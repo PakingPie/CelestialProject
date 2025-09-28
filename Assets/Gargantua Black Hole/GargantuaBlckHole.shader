@@ -1,10 +1,13 @@
-Shader "SkyBox/GargantuaBlckHole"
+Shader "Custom/GargantuaBlckHole"
 {
     Properties
     {
+        _MainTex("Main Texture", 2D) = "white" {}
         _MainColor("Main Color", Color) = (1,1,1,1)
         _NoiseTex("Noise Texture", 2D) = "white" {}
         _HaloTex("Halo Texture", 2D) = "white" {}
+
+        [Toggle(_)] TEMPORTAL_AA("Temporal AA", Float) = 0
     }
 
     SubShader
@@ -14,6 +17,8 @@ Shader "SkyBox/GargantuaBlckHole"
         Pass
         {
             HLSLPROGRAM
+
+            #pragma multi_compile _ TEMPORTAL_AA
 
             #pragma vertex Vert
             #pragma fragment frag
@@ -26,12 +31,17 @@ Shader "SkyBox/GargantuaBlckHole"
 
             TEXTURE2D(_NoiseTex);
             TEXTURE2D(_HaloTex);    
+            TEXTURE2D(_MainTex);
+
+            SAMPLER(sampler_MainTex);
             SAMPLER(sampler_NoiseTex);
             SAMPLER(sampler_HaloTex);
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainColor;
             CBUFFER_END
+
+            
 
 
             // From Inigo Quilez
@@ -234,10 +244,23 @@ Shader "SkyBox/GargantuaBlckHole"
                     GasDisc(color, alpha, raypos);
                     Haze(color, raypos, alpha);
                 }
+                #if TEMPORTAL_AA
+                    const float p = 1.0;
+                    float3 previous = pow(SAMPLE_TEXTURE2D_X(_MainTex, sampler_MainTex, screenUV).rgb, 1.0 / p);
+                    
+                    color = pow(color, 1.0 / p);
+                    
+                    float blendWeight = 0.9 ;
+                    
+                    color = lerp(color, previous, blendWeight);
+                    
+                    color = pow(color, p);
+                #endif
+
                 
-                // color *= 0.0001;
+                color *= 0.0001;
                 
-                return float4(saturate(color), 1.0);
+                return float4(saturate(color), 1);
             }
             ENDHLSL
         }
