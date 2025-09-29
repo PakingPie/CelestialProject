@@ -5,9 +5,15 @@ public class GargantuaBlackHole : MonoBehaviour
     private RenderTexture _garganturaPrev;
     private RenderTexture _garganturaCurr;
     public Material GargantuaBaseMaterial;
-    public Material GargantuaFirstBloomMaterial;
 
     public bool TemporalAA = false;
+
+    public Material TestMat;
+
+    public void SetTexture(Material mat, RenderTexture rt)
+    {
+        mat.SetTexture("_MainTex", rt);
+    }
 
     public void Init()
     {
@@ -17,17 +23,15 @@ public class GargantuaBlackHole : MonoBehaviour
 
     public void Render()
     {
-        if (_garganturaCurr == null && _garganturaPrev == null)
-        {
-            Init();
-        }
+        // _garganturaCurr.DiscardContents();
+        // _garganturaPrev.DiscardContents();
+        // if (_garganturaCurr == null && _garganturaPrev == null)
+        // {
+        Init();
+        // }
 
         if (TemporalAA)
         {
-            if (_garganturaPrev == null)
-            {
-                Init();
-            }
             GargantuaBaseMaterial.EnableKeyword("TEMPORTAL_AA");
             Graphics.Blit(_garganturaPrev, _garganturaPrev, GargantuaBaseMaterial);
             GargantuaBaseMaterial.SetTexture("_MainTex", _garganturaPrev);
@@ -37,9 +41,10 @@ public class GargantuaBlackHole : MonoBehaviour
             GargantuaBaseMaterial.DisableKeyword("TEMPORTAL_AA");
         }
 
-        // Graphics.Blit(_garganturaPrev, Camera.main.activeTexture, GargantuaBaseMaterial);
 
-        GargantuaFirstBloomMaterial.SetTexture("_GargantuaTex", _garganturaPrev);
+        GargantuaBaseMaterial.SetTexture("_GargantuaTex", _garganturaCurr);
+        Graphics.Blit(_garganturaPrev, _garganturaCurr, GargantuaBaseMaterial, pass: 1);
+        
 
     }
 
@@ -52,7 +57,7 @@ public class GargantuaBlackHole : MonoBehaviour
                 Init();
             }
             GargantuaBaseMaterial.EnableKeyword("TEMPORTAL_AA");
-            Graphics.Blit(_garganturaPrev, _garganturaPrev, GargantuaBaseMaterial);
+            Graphics.Blit(_garganturaPrev, _garganturaPrev, GargantuaBaseMaterial, pass: 0);
             GargantuaBaseMaterial.SetTexture("_MainTex", _garganturaPrev);
         }
         else
@@ -60,7 +65,9 @@ public class GargantuaBlackHole : MonoBehaviour
             GargantuaBaseMaterial.DisableKeyword("TEMPORTAL_AA");
         }
 
-        Graphics.Blit(null, _garganturaCurr, GargantuaBaseMaterial);
+        Graphics.Blit(_garganturaPrev, _garganturaCurr);
+        GargantuaBaseMaterial.SetTexture("_GargantuaTex", _garganturaCurr);
+
 
 
     }

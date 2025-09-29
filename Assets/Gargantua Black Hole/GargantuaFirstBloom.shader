@@ -2,7 +2,7 @@ Shader "Custom/GargantuaFirstBloom"
 {
     Properties
     {
-        _GargantuaTex("Gargantua Texture", 2D) = "white" {}
+        _GargantuaTex("Gargantua Texture", 2D) = "black" {}
     }
 
     SubShader
@@ -164,27 +164,27 @@ Shader "Custom/GargantuaFirstBloom"
 
             half4 frag(Varyings IN) : SV_Target
             {
-                float2 uv = IN.texcoord;
+                // float2 uv = IN.texcoord;
                 
-                float3 color = 0.0;
+                // float3 color = 0.0;
 
-                /*
-                Create a mipmap tree thingy with padding to prevent leaking bloom
+                // /*
+                // Create a mipmap tree thingy with padding to prevent leaking bloom
                 
-                Since there's no mipmaps for the previous buffer and the reduction process has to be done in one pass,
-                oversampling is required for a proper result
-                */
-                color += Grab1(uv, 1.0, 0.0);
-                color += Grab4(uv, 2.0, CalcOffset(1.0));
-                color += Grab8(uv, 3.0, CalcOffset(2.0));
-                color += Grab16(uv, 4.0, CalcOffset(3.0));
-                color += Grab16(uv, 5.0, CalcOffset(4.0));
-                color += Grab16(uv, 6.0, CalcOffset(5.0));
-                color += Grab16(uv, 7.0, CalcOffset(6.0));
-                color += Grab16(uv, 8.0, CalcOffset(7.0));
+                // Since there's no mipmaps for the previous buffer and the reduction process has to be done in one pass,
+                // oversampling is required for a proper result
+                // */
+                // color += Grab1(uv, 1.0, 0.0);
+                // color += Grab4(uv, 2.0, CalcOffset(1.0));
+                // color += Grab8(uv, 3.0, CalcOffset(2.0));
+                // color += Grab16(uv, 4.0, CalcOffset(3.0));
+                // color += Grab16(uv, 5.0, CalcOffset(4.0));
+                // color += Grab16(uv, 6.0, CalcOffset(5.0));
+                // color += Grab16(uv, 7.0, CalcOffset(6.0));
+                // color += Grab16(uv, 8.0, CalcOffset(7.0));
 
-                return float4(saturate(color), 1);
-
+                // return float4(saturate(color), 1);
+                return SAMPLE_TEXTURE2D_X(_GargantuaTex, sampler_GargantuaTex, IN.texcoord);
             }
             ENDHLSL
         }
