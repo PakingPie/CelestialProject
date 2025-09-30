@@ -8,8 +8,8 @@ Shader "Custom/MyBlackHole_2"
         _DiscWidth ("Width of the accretion disc", float) = 0.1
         _DiscInnerRadius ("Object relative disc inner radius", Range(0,10)) = 0.25
         _DiscOuterRadius ("Object relative outer disc radius", Range(0,10)) = 1
+        _DiscSpeed ("Disc rotation speed", float) = .05
         _Steps ("Amount of steps", int) = 100
-        _StepSize ("Step size", Range(0.001, 1)) = 0.1
         _SSRadius ("Object relative Schwarzschild radius", Range(0,1)) = 0.2
         _GConst ("Gravitational constant", float) = 0.15
     }
@@ -37,8 +37,8 @@ Shader "Custom/MyBlackHole_2"
                 float _DiscWidth;
                 float _DiscOuterRadius;
                 float _DiscInnerRadius;
+                float _DiscSpeed;
                 int _Steps;
-                float _StepSize;
                 float _SSRadius;
                 float _GConst;
             CBUFFER_END
@@ -158,7 +158,7 @@ Shader "Custom/MyBlackHole_2"
                 eyevec = normalize(eyevec + singularityVector * warpFactor * warpAmount / float(_Steps));
             }
 
-            void GasDisc(float3 center, inout float3 color, inout float alpha, float3 pos)
+            void GasDisc(float3 center, float stepSize, inout float3 color, inout float alpha, float3 pos)
             {
                 float discWidth = _DiscWidth;
                 float discInner = _DiscInnerRadius;
@@ -197,11 +197,10 @@ Shader "Custom/MyBlackHole_2"
                 dustColor = lerp(dustColor, b * 150.0, saturate(1.0 - coverage * 1.0));
                 coverage = saturate(coverage + bloomFactor * bloomFactor * 0.1);
                 
-                if (coverage < _StepSize)
+                if (coverage < stepSize)
                 {
                     return;   
                 }
-                
                 
                 float3 radialCoords;
                 radialCoords.x = distFromCenter * 1.5 + 0.55;
@@ -210,10 +209,10 @@ Shader "Custom/MyBlackHole_2"
 
                 radialCoords *= 0.95;
                 
-                float speed = 0.06;
+                float speed = _DiscSpeed;
                 
                 float noise1 = 1.0;
-                float3 rc = radialCoords + 0.0;               rc.y += _Time.y * speed;
+                float3 rc = radialCoords + 0.0;             rc.y += _Time.y * speed;
                 noise1 *= noise(rc * 3.0) * 0.5 + 0.5;      rc.y -= _Time.y * speed;
                 noise1 *= noise(rc * 6.0) * 0.5 + 0.5;      rc.y += _Time.y * speed;
                 noise1 *= noise(rc * 12.0) * 0.5 + 0.5;     rc.y -= _Time.y * speed;
@@ -261,11 +260,12 @@ Shader "Custom/MyBlackHole_2"
                 float blackHoleMask = 0;
 
                 float alpha = 0.0;
-                float3 currentRayPos = rayOrigin + rayDir * dither / float(_Steps);
+                float3 currentRayPos = rayOrigin + rayDir * dither * 10.0 / float(_Steps);
 
                 float3 color = float3(0.0, 0.0, 0.0);
 
                 float3 currentRayDir = rayDir;
+                float stepSize = length(rayOrigin - center) * 10.0 / float(_Steps);
                 
                 UNITY_LOOP
                 for (int i = 0; i < _Steps; i++)
@@ -275,17 +275,17 @@ Shader "Custom/MyBlackHole_2"
                     dirToCentre /= dstToCentre;
 
                     float force = _GConst/(dstToCentre * dstToCentre);
-                    currentRayDir = normalize(currentRayDir + dirToCentre * force * _StepSize);
+                    currentRayDir = normalize(currentRayDir + dirToCentre * force * stepSize);
 
                     float blackHoleDistance = intersectSphere(currentRayPos, rayDir, center, _SSRadius * sphereRadius);
-                    if(blackHoleDistance <= _StepSize)
+                    if(blackHoleDistance <= stepSize)
                     {
                         blackHoleMask = 1;
                         break;
                     }
                     WarpSpace(center, currentRayDir, currentRayPos);
-                    currentRayPos += currentRayDir * _StepSize;
-                    GasDisc(center, color, alpha, currentRayPos);
+                    currentRayPos += currentRayDir * stepSize;
+                    GasDisc(center, stepSize, color, alpha, currentRayPos);
                     Haze(center, color, currentRayPos, alpha);
                 }
 
