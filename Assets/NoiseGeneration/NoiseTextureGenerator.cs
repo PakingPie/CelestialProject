@@ -1,4 +1,4 @@
-#define RGBA_NOISE
+// #define RGBA_NOISE
 
 using System;
 using UnityEngine;
@@ -18,6 +18,9 @@ public class NoiseTextureGenerator : MonoBehaviour
     public Texture2D NoiseTexture2D => _noiseTexture2D;
     public Texture3D NoiseTexture3D => _noiseTexture3D;
 
+    // Conitional Enable for RGBA Noise
+    
+
     public int Octaves = 4;
     [Range(0, 1)]
     public float Persistence = 0.5f;
@@ -27,6 +30,23 @@ public class NoiseTextureGenerator : MonoBehaviour
     public int Seed = 0;
 
     public void Generate2DNoiseTexture()
+    {
+        _noiseTexture2D = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
+        for (int y = 0; y < textureSize; y++)
+        {
+            for (int x = 0; x < textureSize; x++)
+            {
+                float r = Random.Range(0.0f, 1.0f);
+                float g = Random.Range(0.0f, 1.0f);
+                float b = Random.Range(0.0f, 1.0f);
+                Color color = new Color(r, g, b);
+                _noiseTexture2D.SetPixel(x, y, color);
+            }
+        }
+        _noiseTexture2D.Apply();
+    }
+
+    public void Generate2DPerlinNoiseTexture()
     {
         _noiseTexture2D = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
 

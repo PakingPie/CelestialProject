@@ -131,22 +131,22 @@ Shader "Custom/MyBlackHole_2"
                 return minNew + (v - minOld) * (maxNew - minNew) / (maxOld - minOld);
             }
 
-            void Haze(inout float3 color, float3 pos, float alpha)
+            void Haze(float3 center, inout float3 color, float3 pos, float alpha)
             {
                 float2 t = float2(1.0, 0.01);
 
-                float torusDist = length(sdTorus(pos + float3(0.0, -0.05, 0.0), t));
+                float torusDist = length(sdTorus(pos - center + float3(0.0, -0.05, 0.0), t));
 
                 float bloomDisc = 1.0 / (pow(torusDist, 2.0) + 0.001);
                 float3 col = _MainColor;
-                bloomDisc *= length(pos) < 0.5 ? 0.0 : 1.0;
+                bloomDisc *= length(pos - center) < 0.5 ? 0.0 : 1.0;
 
                 color += col * bloomDisc * (2.9 / float(_Steps)) * (1.0 - alpha * 1.0);
             }
 
-            void WarpSpace(inout float3 eyevec, inout float3 currentRayPos)
+            void WarpSpace(float3 center, inout float3 eyevec, inout float3 currentRayPos)
             {
-                float3 origin = float3(0.0, 0.0, 0.0);
+                float3 origin = center;
 
                 float singularityDist = distance(currentRayPos, origin);
                 float warpFactor = 1.0 / (pow(singularityDist, 2.0) + 0.000001);
@@ -158,13 +158,13 @@ Shader "Custom/MyBlackHole_2"
                 eyevec = normalize(eyevec + singularityVector * warpFactor * warpAmount / float(_Steps));
             }
 
-            void GasDisc(inout float3 color, inout float alpha, float3 pos)
+            void GasDisc(float3 center, inout float3 color, inout float alpha, float3 pos)
             {
                 float discWidth = _DiscWidth;
                 float discInner = _DiscInnerRadius;
                 float discOuter = _DiscOuterRadius;
                 
-                float3 origin = float3(0.0, 0.0, 0.0);
+                float3 origin = center;
                 float3 discNormal = normalize(float3(0.0, 1.0, 0.0));
                 float discThickness = 0.1;
 
@@ -270,13 +270,11 @@ Shader "Custom/MyBlackHole_2"
                 UNITY_LOOP
                 for (int i = 0; i < _Steps; i++)
                 {
-                    
-
                     float3 dirToCentre = center - currentRayPos;
                     float dstToCentre = length(dirToCentre);
                     dirToCentre /= dstToCentre;
 
-                    float force = _GConst/(dstToCentre*dstToCentre);
+                    float force = _GConst/(dstToCentre * dstToCentre);
                     currentRayDir = normalize(currentRayDir + dirToCentre * force * _StepSize);
 
                     float blackHoleDistance = intersectSphere(currentRayPos, rayDir, center, _SSRadius * sphereRadius);
@@ -285,12 +283,10 @@ Shader "Custom/MyBlackHole_2"
                         blackHoleMask = 1;
                         break;
                     }
-
-
-                    WarpSpace(currentRayDir, currentRayPos);
+                    WarpSpace(center, currentRayDir, currentRayPos);
                     currentRayPos += currentRayDir * _StepSize;
-                    GasDisc(color, alpha, currentRayPos);
-                    Haze(color, currentRayPos, alpha);
+                    GasDisc(center, color, alpha, currentRayPos);
+                    Haze(center, color, currentRayPos, alpha);
                 }
 
                 float transmittance = 0;

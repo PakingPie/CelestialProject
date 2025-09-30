@@ -23,6 +23,19 @@ public class NoiseTextureGeneratorEditor : Editor
             }
         }
 
+        if(GUILayout.Button("Save 2D Perlin Texture as Asset"))
+        {
+            if (generator.textureSize > 0)
+            {
+                generator.Generate2DPerlinNoiseTexture();
+                generator.SaveTextureAsAsset(generator.NoiseTexture2D, "PerlinNoise2D_");
+            }
+            else
+            {
+                Debug.LogError("Texture size must be greater than 0.");
+            }
+        }
+
         if (GUILayout.Button("Save 3D Texture as Asset"))
         {
             if (generator.textureSize > 0)
