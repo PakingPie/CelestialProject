@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: MyBlackHole
-  m_Shader: {fileID: 4800000, guid: f15c707ffefcaf24f88f9fe3b654be37, type: 3}
+  m_Shader: {fileID: 4800000, guid: 390b839d9e0b66646bb7aa78b64a3fa3, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -24,24 +24,29 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _DiscTex:
-        m_Texture: {fileID: 2800000, guid: f750ee730fb769d499aef6a66a03d308, type: 2}
+        m_Texture: {fileID: 2800000, guid: 2cbf79cedd26ffc4b9d1a3bbe6116c12, type: 3}
         m_Scale: {x: 4, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NoiseTex:
+        m_Texture: {fileID: 2800000, guid: 47c6e7466ddcd5341b751e706e479a03, type: 2}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _DiscInnerRadius: 0.15
+    - _DiscInnerRadius: 0.35
     - _DiscOuterRadius: 0.75
-    - _DiscSpeed: 2
-    - _DiscWidth: 0.01
+    - _DiscSpeed: 0.05
+    - _DiscWidth: 2
     - _DopplerBeamingFactor: 66
-    - _GConst: 0.2
+    - _GConst: 0.1
     - _HueRadius: 0.75
     - _HueShiftFactor: -0.03
-    - _SSRadius: 0.1
+    - _SSRadius: 0.097
     - _StepSize: 0.1
-    - _Steps: 256
+    - _Steps: 400
     m_Colors:
     - _DiscColor: {r: 2.9960787, g: 0.86550176, b: 0, a: 1}
+    - _MainColor: {r: 26.453411, g: 43.459625, b: 141.2118, a: 1}
     - _TexTiling: {r: 16, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -4,10 +4,10 @@ Shader "Custom/MyBlackHole_2"
     {
         [HDR]_MainColor ("Main Color", Color) = (1,1,1,1)
         _NoiseTex ("Noise texture", 2D) = "white" {}
+        _TexTiling ("Noise Texture Tiling", Vector) = (1, 1, 0, 0)
         _DiscTex ("Disc texture", 2D) = "white" {}
-        _DiscWidth ("Width of the accretion disc", float) = 0.1
-        _DiscInnerRadius ("Object relative disc inner radius", Range(0,10)) = 0.25
-        _DiscOuterRadius ("Object relative outer disc radius", Range(0,10)) = 1
+        _DiscRadius ("Radius of the accretion disc", float) = 0.1
+        _DiscWidth ("Width of the accretion disc", Range(0,10)) = 1
         _DiscSpeed ("Disc rotation speed", float) = .05
         _Steps ("Amount of steps", int) = 100
         _SSRadius ("Object relative Schwarzschild radius", Range(0,1)) = 0.2
@@ -17,6 +17,8 @@ Shader "Custom/MyBlackHole_2"
     {
         Tags { "RenderType" = "Transparent" "RenderPipeline" = "UniversalRenderPipeline" "Queue" = "Transparent" }
         Cull Front
+        ZWrite Off
+        Blend One OneMinusSrcAlpha
         Pass
         {
             HLSLPROGRAM
@@ -33,10 +35,10 @@ Shader "Custom/MyBlackHole_2"
             SAMPLER(sampler_DiscTex);
 
             CBUFFER_START(UnityPerMaterial)
+                float2 _TexTiling;
                 float4 _MainColor;
+                float _DiscRadius;
                 float _DiscWidth;
-                float _DiscOuterRadius;
-                float _DiscInnerRadius;
                 float _DiscSpeed;
                 int _Steps;
                 float _SSRadius;
@@ -76,10 +78,10 @@ Shader "Custom/MyBlackHole_2"
             {
                 float3 p = floor(x);
                 float3 f = frac(x);
-                f = f * f * (3 - 2 * f);
-                float2 uv = (p.xy + float2(37, 17)*p.z) + f.xy;
+                f = f * f * (3.0 - 2.0 * f);
+                float2 uv = (p.xy + float2(37.0, 17.0) * p.z) + f.xy;
                 float2 rg = SAMPLE_TEXTURE2D_X_LOD( _NoiseTex, sampler_NoiseTex, (uv + 0.5) / 256, 0).yx;
-                return -1 + 2 * lerp( rg.x, rg.y, f.z );
+                return -1.0 + 2 * lerp( rg.x, rg.y, f.z );
             }
 
             float rand(float2 coord)
@@ -161,8 +163,9 @@ Shader "Custom/MyBlackHole_2"
             void GasDisc(float3 center, float stepSize, inout float3 color, inout float alpha, float3 pos)
             {
                 float discWidth = _DiscWidth;
-                float discInner = _DiscInnerRadius;
-                float discOuter = _DiscOuterRadius;
+                float discInner = _DiscRadius - _DiscWidth * 0.5;
+                float discOuter = _DiscRadius + _DiscWidth * 0.5;
+                if (discInner < 0) discInner = 0;
                 
                 float3 origin = center;
                 float3 discNormal = normalize(float3(0.0, 1.0, 0.0));
@@ -179,15 +182,13 @@ Shader "Custom/MyBlackHole_2"
                 coverage *= saturate(1.0 - abs(distFromDisc) / discThickness);
 
                 float3 dustColorLit = _MainColor;
-                float3 dustColorDark = float3(0.0, 0.0, 0.0);
 
                 float dustGlow = 1.0 / (pow(1.0 - radialGradient, 2.0) * 290.0 + 0.002);
                 float3 dustColor = dustColorLit * dustGlow * 8.2;
 
                 coverage = saturate(coverage * 0.7);
 
-
-                float fade = pow((abs(distFromCenter - discInner) + 0.4), 4.0) * 0.04;
+                float fade = pow((abs(distFromCenter - discOuter) + 0.4), 4.0) * 0.04;
                 float bloomFactor = 1.0 / (pow(distFromDisc, 2.0) * 40.0 + fade + 0.00002);
                 float3 b = dustColorLit * pow(bloomFactor, 1.5);
                 
@@ -232,7 +233,7 @@ Shader "Custom/MyBlackHole_2"
                 
                 radialCoords.y += _Time.y * speed * 0.5;
                 
-                dustColor *= pow(SAMPLE_TEXTURE2D_X(_DiscTex, sampler_DiscTex, radialCoords.yx * float2(0.15, 0.27)).rgb, 2.0) * 4.0;
+                dustColor *= pow(SAMPLE_TEXTURE2D_X(_DiscTex, sampler_DiscTex, _TexTiling * radialCoords.yx * float2(0.15, 0.27)).rgb, 2.0) * 4.0;
 
                 coverage = saturate(coverage * 1200.0 / float(_Steps));
                 dustColor = max(0, dustColor);
@@ -260,12 +261,12 @@ Shader "Custom/MyBlackHole_2"
                 float blackHoleMask = 0;
 
                 float alpha = 0.0;
-                float3 currentRayPos = rayOrigin + rayDir * dither * 10.0 / float(_Steps);
+                float3 currentRayPos = rayOrigin + rayDir * dither * 15.0 / float(_Steps);
 
                 float3 color = float3(0.0, 0.0, 0.0);
 
                 float3 currentRayDir = rayDir;
-                float stepSize = length(rayOrigin - center) * 10.0 / float(_Steps);
+                float stepSize = distance(rayOrigin, center) * 15.0 / float(_Steps);
                 
                 UNITY_LOOP
                 for (int i = 0; i < _Steps; i++)
@@ -287,9 +288,11 @@ Shader "Custom/MyBlackHole_2"
                     currentRayPos += currentRayDir * stepSize;
                     GasDisc(center, stepSize, color, alpha, currentRayPos);
                     Haze(center, color, currentRayPos, alpha);
+                    // WarpSpace(center, rayDir, currentRayPos);
+                    // currentRayPos += rayDir * 15.0 / float(_Steps);
+                    // GasDisc(center, stepSize, color, alpha, currentRayPos);
+                    // Haze(center, color, currentRayPos, alpha);
                 }
-
-                float transmittance = 0;
 
                 // Ray direction projection
                 float3 distortedRayDir = normalize(currentRayPos - rayOrigin);
@@ -304,10 +307,8 @@ Shader "Custom/MyBlackHole_2"
                 distortedScreenUV = lerp(screenUV, distortedScreenUV, t);
                 float3 backgroundCol = SampleSceneColor(distortedScreenUV) * (1 - blackHoleMask);
 
-                
-
-
-                return float4(lerp(backgroundCol, color, alpha), 1);
+                return float4(saturate(lerp(backgroundCol, color, alpha)), 1);
+                // return float4(saturate(color * 0.0001f) * 1000.0f, 1);
             }
             ENDHLSL
         }
