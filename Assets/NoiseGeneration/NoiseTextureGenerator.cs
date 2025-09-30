@@ -1,6 +1,9 @@
+#define RGBA_NOISE
+
 using System;
 using UnityEngine;
 using Random = UnityEngine.Random;
+
 
 public class NoiseTextureGenerator : MonoBehaviour
 {
@@ -26,7 +29,7 @@ public class NoiseTextureGenerator : MonoBehaviour
     public void Generate2DNoiseTexture()
     {
         _noiseTexture2D = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
-        
+
         System.Random rand = new System.Random(Seed);
         Vector2[] octaveOffsets = new Vector2[Octaves];
 
@@ -43,9 +46,9 @@ public class NoiseTextureGenerator : MonoBehaviour
             maxPossibleHeight += amplitude;
             amplitude *= Persistence;
         }
-        
+
         float maxLocalNoiseHeight = float.MinValue;
-		float minLocalNoiseHeight = float.MaxValue;
+        float minLocalNoiseHeight = float.MaxValue;
         int halfSize = textureSize / 2;
 
         for (int y = 0; y < textureSize; y++)
@@ -53,9 +56,35 @@ public class NoiseTextureGenerator : MonoBehaviour
             for (int x = 0; x < textureSize; x++)
             {
                 amplitude = 1;
-				frequency = 1;
-                float noiseHeight = 0;
+                frequency = 1;
 
+
+#if RGBA_NOISE
+                float r = 0, g = 0, b = 0, a = 0;
+                for (int i = 0; i < Octaves; i++)
+                {
+                    float sampleX = (x - halfSize + octaveOffsets[i].x) / Scale * frequency;
+                    float sampleY = (y - halfSize + octaveOffsets[i].y) / Scale * frequency;
+                    float perlinValue = Mathf.PerlinNoise(sampleX, sampleY) * 2 - 1;
+
+                    if (i % 4 == 0) r += (perlinValue + 1) * amplitude;
+                    else if (i % 4 == 1) g += (perlinValue + 1) * amplitude;
+                    else if (i % 4 == 2) b += (perlinValue + 1) * amplitude;
+
+                    a += (perlinValue + 1) / 2 * amplitude;
+
+                    amplitude *= Persistence;
+                    frequency *= Lacunarity;
+                }
+
+                r = Mathf.Clamp01(r / maxPossibleHeight);
+                g = Mathf.Clamp01(g / maxPossibleHeight);
+                b = Mathf.Clamp01(b / maxPossibleHeight);
+                a = Mathf.Clamp01(a / maxPossibleHeight);
+
+                Color color = new Color(r, g, b, a);
+#else
+                float noiseHeight = 0;
                 for (int i = 0; i < Octaves; i++)
                 {
                     float sampleX = (x - halfSize + octaveOffsets[i].x) / Scale * frequency;
@@ -79,15 +108,8 @@ public class NoiseTextureGenerator : MonoBehaviour
                 noiseHeight = Mathf.InverseLerp(minLocalNoiseHeight, maxLocalNoiseHeight, noiseHeight);
 
                 Color color = new Color(noiseHeight, noiseHeight, noiseHeight, noiseHeight);
+#endif
                 _noiseTexture2D.SetPixel(x, y, color);
-
-                // // Generate random Perlin noise with different rgba channels
-                // float r = Mathf.PerlinNoise((x + Random.Range(0.0f, 10.0f)) / textureSize * NoiseScale, (y + Random.Range(0.0f, 10.0f)) / textureSize * NoiseScale);
-                // float g = Mathf.PerlinNoise((x + Random.Range(0.0f, 10.0f)) / textureSize * NoiseScale, (y + Random.Range(0.0f, 10.0f)) / textureSize * NoiseScale);
-                // float b = Mathf.PerlinNoise((x + Random.Range(0.0f, 10.0f)) / textureSize * NoiseScale, (y + Random.Range(0.0f, 10.0f)) / textureSize * NoiseScale);
-                // float a = Mathf.PerlinNoise((x + Random.Range(0.0f, 10.0f)) / textureSize * NoiseScale, (y + Random.Range(0.0f, 10.0f)) / textureSize * NoiseScale);
-                // Color color = new Color(r, g, b, a);
-                // _noiseTexture2D.SetPixel(x, y, color);
             }
         }
         _noiseTexture2D.Apply();
