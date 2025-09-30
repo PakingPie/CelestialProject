@@ -1,4 +1,4 @@
-Shader "Custom/MyBlackHole"
+Shader "Custom/MyBlackHole_1"
 {
     Properties
     {
@@ -15,6 +15,7 @@ Shader "Custom/MyBlackHole"
         _StepSize ("Step size", Range(0.001, 1)) = 0.1
         _SSRadius ("Object relative Schwarzschild radius", Range(0,1)) = 0.2
         _GConst ("Gravitational constant", float) = 0.15
+        _TexTiling ("Texture tiling", Vector) = (4, 1, 0, 0)
     }
     SubShader
     {
@@ -49,6 +50,7 @@ Shader "Custom/MyBlackHole"
                 float _StepSize;
                 float _SSRadius;
                 float _GConst;
+                float2 _TexTiling;
             CBUFFER_END
 
             struct Attributes
@@ -151,13 +153,15 @@ Shader "Custom/MyBlackHole"
                 {
                     planarDiscPos = samplePos - dot(samplePos - i.centerPosOS, discDir) * discDir - i.centerPosOS;
                     uv = discUV(planarDiscPos, discDir, i.centerPosOS, discRadius);
-                    uv.y += _Time.x * _DiscSpeed;
+
+                    // Speed increase as close to center
+                    uv.y += _Time.x * _DiscSpeed;// * (1 - length(planarDiscPos - i.centerPosOS) / discRadius);
                 }
 
                 float3 discCol = discColor(_DiscColor.rgb, planarDiscPos, discDir, _WorldSpaceCameraPos, uv.x, discRadius);
 
 
-                float4 texCol = SAMPLE_TEXTURE2D(_DiscTex, sampler_DiscTex, uv);
+                float4 texCol = SAMPLE_TEXTURE2D(_DiscTex, sampler_DiscTex, uv * _TexTiling);
 
                 float2 screenUV = i.positionCS.xy / _ScreenParams.xy;
                 // Ray direction projection
