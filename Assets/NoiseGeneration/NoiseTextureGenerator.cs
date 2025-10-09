@@ -1,4 +1,4 @@
-// #define RGBA_NOISE
+#define RGBA_NOISE
 
 using System;
 using UnityEngine;
@@ -97,9 +97,9 @@ public class NoiseTextureGenerator : MonoBehaviour
                     frequency *= Lacunarity;
                 }
 
-                r = Mathf.Clamp01(r / maxPossibleHeight);
-                g = Mathf.Clamp01(g / maxPossibleHeight);
-                b = Mathf.Clamp01(b / maxPossibleHeight);
+                r = Mathf.Clamp(r / maxPossibleHeight * 1.0f, 0.25f, 1.0f);
+                g = Mathf.Clamp(g / maxPossibleHeight * 2.0f, 0.25f, 1.0f);
+                b = Mathf.Clamp(b / maxPossibleHeight * 3.0f, 0.25f, 1.0f);
                 a = Mathf.Clamp01(a / maxPossibleHeight);
 
                 Color color = new Color(r, g, b, a);
