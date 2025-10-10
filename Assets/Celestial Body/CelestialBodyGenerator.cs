@@ -47,16 +47,16 @@ public class CelestialBodyGenerator : MonoBehaviour
             HandleEditModeGeneration();
         }
 
-        if (Input.GetKeyDown(KeyCode.O))
-        {
-            //body.shading.atmosphereSettings.useOptimVersion = !body.shading.atmosphereSettings.useOptimVersion;
-        }
+        // if (Input.GetKeyDown(KeyCode.O))
+        // {
+        //     //body.shading.atmosphereSettings.useOptimVersion = !body.shading.atmosphereSettings.useOptimVersion;
+        // }
 
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            //	var m = terrainMeshFilter.GetComponent<MeshRenderer> ();
-            //m.enabled = !m.enabled;
-        }
+        // if (Input.GetKeyDown(KeyCode.I))
+        // {
+        //     //	var m = terrainMeshFilter.GetComponent<MeshRenderer> ();
+        //     //m.enabled = !m.enabled;
+        // }
     }
 
     // Handles creation of celestial body when entering game mode

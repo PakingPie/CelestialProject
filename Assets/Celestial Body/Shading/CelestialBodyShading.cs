@@ -16,7 +16,7 @@ public abstract class CelestialBodyShading : ScriptableObject {
 
 	public Material terrainMaterial = null;
 	public bool hasAtmosphere;
-	// public AtmosphereSettings atmosphereSettings;
+	public AtmosphereSettings atmosphereSettings;
 	public bool hasOcean;
 	[Range (0, 1)]
 	public float oceanLevel;
