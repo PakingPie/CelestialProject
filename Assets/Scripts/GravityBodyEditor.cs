@@ -35,7 +35,7 @@ public class GravityBodyEditor : Editor {
     }
 
     static string[] GetGravityInfo (Vector3 point, CelestialBody ignore = null) {
-        CelestialBody[] bodies = GameObject.FindObjectsOfType<CelestialBody> ();
+        CelestialBody[] bodies = FindObjectsByType<CelestialBody> (FindObjectsSortMode.None);
         Vector3 totalAcc = Vector3.zero;
 
         // gravity
