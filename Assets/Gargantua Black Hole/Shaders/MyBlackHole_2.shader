@@ -7,7 +7,7 @@ Shader "Custom/MyBlackHole_2"
         _TexTiling ("Noise Texture Tiling", Vector) = (1, 1, 0, 0)
         _DiscTex ("Disc texture", 2D) = "white" {}
         _DiscRadius ("Radius of the accretion disc", float) = 0.1
-        _DiscWidth ("Width of the accretion disc", Range(0,10)) = 1
+        _DiscWidth ("Width of the accretion disc", Range(0,100)) = 1
         _DiscSpeed ("Disc rotation speed", float) = .05
         _Steps ("Amount of steps", int) = 100
         _SSRadius ("Object relative Schwarzschild radius", Range(0,1)) = 0.2
@@ -143,7 +143,7 @@ Shader "Custom/MyBlackHole_2"
                 float3 col = _MainColor;
                 bloomDisc *= length(pos - center) < 0.5 ? 0.0 : 1.0;
 
-                color += col * bloomDisc * (2.9 / float(_Steps)) * (1.0 - alpha * 1.0);
+                color += col * bloomDisc * (2.9 / float(_Steps)) * (1.0 - alpha * 1.0) * 100.0;// Color add to disc
             }
 
             void WarpSpace(float3 center, inout float3 eyevec, inout float3 currentRayPos)
@@ -174,7 +174,7 @@ Shader "Custom/MyBlackHole_2"
                 float distFromCenter = distance(pos, origin);
                 float distFromDisc = dot(discNormal, pos - origin);
                 
-                float radialGradient = 1.0 - saturate((distFromCenter - discInner) / discWidth * 0.5);
+                float radialGradient = 1.0 - saturate((distFromCenter - discInner) / discWidth * .5);
 
                 float coverage = pcurve(radialGradient, 4.0, 0.9);
 
@@ -188,7 +188,7 @@ Shader "Custom/MyBlackHole_2"
 
                 coverage = saturate(coverage * 0.7);
 
-                float fade = pow((abs(distFromCenter - discOuter) + 0.4), 4.0) * 0.04;
+                float fade = pow((abs(distFromCenter - discOuter) + 0.4), 4.0) * 0.04 * 1;
                 float bloomFactor = 1.0 / (pow(distFromDisc, 2.0) * 40.0 + fade + 0.00002);
                 float3 b = dustColorLit * pow(bloomFactor, 1.5);
                 
@@ -235,7 +235,7 @@ Shader "Custom/MyBlackHole_2"
                 
                 dustColor *= pow(SAMPLE_TEXTURE2D_X(_DiscTex, sampler_DiscTex, _TexTiling * radialCoords.yx * float2(0.15, 0.27)).rgb, 2.0) * 4.0;
 
-                coverage = saturate(coverage * 1200.0 / float(_Steps));
+                coverage = saturate(coverage * 2400.0 / float(_Steps));
                 dustColor = max(0, dustColor);
 
                 coverage *= pcurve(radialGradient, 4.0, 0.9);
@@ -261,15 +261,15 @@ Shader "Custom/MyBlackHole_2"
                 float blackHoleMask = 0;
 
                 float alpha = 0.0;
-                float3 currentRayPos = rayOrigin + rayDir * dither * 15.0 / float(_Steps);
+                float3 currentRayPos = rayOrigin + rayDir * dither * (i.objectScale * 0.02f) / float(_Steps);
 
                 float3 color = float3(0.0, 0.0, 0.0);
 
                 float3 currentRayDir = rayDir;
-                float stepSize = distance(rayOrigin, center) * 15.0 / float(_Steps);
+                float stepSize = distance(rayOrigin, center) * (i.objectScale * 0.02f) / float(_Steps);
                 
                 UNITY_LOOP
-                for (int i = 0; i < _Steps; i++)
+                for (int index = 0; index < _Steps; index++)
                 {
                     float3 dirToCentre = center - currentRayPos;
                     float dstToCentre = length(dirToCentre);
