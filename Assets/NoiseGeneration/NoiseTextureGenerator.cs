@@ -67,8 +67,8 @@ public class NoiseTextureGenerator : MonoBehaviour
             amplitude *= Persistence;
         }
 
-        float maxLocalNoiseHeight = float.MinValue;
-        float minLocalNoiseHeight = float.MaxValue;
+        // float maxLocalNoiseHeight = float.MinValue;
+        // float minLocalNoiseHeight = float.MaxValue;
         int halfSize = textureSize / 2;
 
         for (int y = 0; y < textureSize; y++)
