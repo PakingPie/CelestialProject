@@ -1,8 +1,8 @@
 #ifndef CUSTOM_MATH_UTILITIES_INCLUDED_HLSL
 #define CUSTOM_MATH_UTILITIES_INCLUDED_HLSL
 
-static const float PI = 3.14159265359;
-static const float TAU = PI * 2;
+static const float M_PI = 3.14159265359;
+static const float TAU = M_PI * 2;
 static const float maxFloat = 3.402823466e+38;
 
 // Remap a value from one range to another

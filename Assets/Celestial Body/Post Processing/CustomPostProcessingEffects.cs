@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteInEditMode, ImageEffectAllowedInSceneView]
-public class CustomPostProcessingEfects : MonoBehaviour {
+public class CustomPostProcessingEffects : MonoBehaviour {
 
 	public PostProcessingEffect[] effects;
 	Shader defaultShader;

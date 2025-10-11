@@ -20,7 +20,7 @@ public abstract class CelestialBodyShading : ScriptableObject {
 	public bool hasOcean;
 	[Range (0, 1)]
 	public float oceanLevel;
-	// public OceanSettings oceanSettings;
+	public OceanSettings oceanSettings;
 
 	public ComputeShader shadingDataCompute;
 
@@ -59,11 +59,11 @@ public abstract class CelestialBodyShading : ScriptableObject {
 
 	}
 
-	// public virtual void SetOceanProperties (Material oceanMaterial) {
-	// 	if (oceanSettings) {
-	// 		oceanSettings.SetProperties (oceanMaterial, seed, randomize);
-	// 	}
-	// }
+	public virtual void SetOceanProperties (Material oceanMaterial) {
+		if (oceanSettings) {
+			oceanSettings.SetProperties (oceanMaterial, seed, randomize);
+		}
+	}
 
 	// Override this to set properties on the shadingDataCompute before it is run
 	protected virtual void SetShadingDataComputeProperties () {

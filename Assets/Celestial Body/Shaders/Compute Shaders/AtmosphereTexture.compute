@@ -70,7 +70,7 @@ void CSMain (uint2 id : SV_DispatchThreadID)
 
 	float2 uv = id / (float)textureSize;
 	float height01 = uv.y;
-	float angle = uv.x * PI;
+	float angle = uv.x * M_PI;
 	//angle = (1-cos(angle))/2;
 	float2 dir = float2(sin(angle), cos(angle));
 	float y = -2 * uv.x + 1;
