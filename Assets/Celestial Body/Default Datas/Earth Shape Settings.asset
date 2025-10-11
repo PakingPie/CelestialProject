@@ -12,29 +12,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ba559fc4a20483409499d28b6eb054f, type: 3}
   m_Name: Earth Shape Settings
   m_EditorClassIdentifier: Assembly-CSharp::EarthShape
-  randomize: 0
-  seed: 0
+  randomize: 1
+  seed: -1100
   heightMapCompute: {fileID: 7200000, guid: d6df9e6cc324e48a892dd6a9cf741d65, type: 3}
   perturbVertices: 1
   perturbCompute: {fileID: 7200000, guid: c95c667630d66481daf208e2a7a4d95d, type: 3}
-  perturbStrength: 0.7
+  perturbStrength: 1
   oceanDepthMultiplier: 5
-  oceanFloorDepth: 1.5
+  oceanFloorDepth: 0.1
   oceanFloorSmoothing: 0.5
-  mountainBlend: 1.2
+  mountainBlend: 1.1
   continentNoise:
-    numLayers: 6
+    numLayers: 5
     lacunarity: 2
     persistence: 0.5
-    scale: 1
+    scale: 2
     elevation: 1
     verticalShift: 0
     offset: {x: 0, y: 0, z: 0}
   maskNoise:
-    numLayers: 4
+    numLayers: 5
     lacunarity: 2
     persistence: 0.5
-    scale: 1
+    scale: 2
     elevation: 1
     verticalShift: 0
     offset: {x: 0, y: 0, z: 0}
@@ -43,8 +43,8 @@ MonoBehaviour:
     lacunarity: 2
     persistence: 0.5
     scale: 1
-    power: 2
-    elevation: 1
+    power: 1
+    elevation: 0.5
     gain: 1
     verticalShift: 0
     peakSmoothing: 0

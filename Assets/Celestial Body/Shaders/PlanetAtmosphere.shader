@@ -2,7 +2,22 @@ Shader "Custom/PlanetAtmosphere"
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
+        _BlueNoise ("Blue Noise", 2D) = "white" {}
+        _MainTex ("Main Texture", 2D) = "white" {}
+        _BakedOpticalDepth ("Baked Optical Depth", 2D) = "white" {}
+        params ("Params", Vector) = (1,1,1,1)
+        dirToSun ("Direction to Sun", Vector) = (0,1,0,0)
+        planetCentre ("Planet Centre", Vector) = (0,0,0,0)
+        atmosphereRadius ("Atmosphere Radius", Float) = 1
+        oceanRadius ("Ocean Radius", Float) = 1
+        planetRadius ("Planet Radius", Float) = 1
+        numInScatteringPoints ("Num In Scattering Points", Int) = 10
+        numOpticalDepthPoints ("Num Optical Depth Points", Int) = 10
+        intensity ("Intensity", Float) = 1
+        scatteringCoefficients ("Scattering Coefficients", Vector) = (1,1,1,1)
+        ditherStrength ("Dither Strength", Float) = 0.1
+        ditherScale ("Dither Scale", Float) = 1
+        densityFalloff ("Density Falloff", Float) = 10
     }
 
     SubShader
@@ -195,7 +210,7 @@ Shader "Custom/PlanetAtmosphere"
             float4 frag (v2f i) : SV_Target
             {
                 float4 originalCol = tex2D(_MainTex, i.uv);
-                float sceneDepthNonLinear = SampleSceneDepth(i.uv);
+                float sceneDepthNonLinear = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture,i.uv);
                 float sceneDepth = LinearEyeDepth(sceneDepthNonLinear, _ZBufferParams) * length(i.viewVector);
                 
                 float3 rayOrigin = _WorldSpaceCameraPos;
@@ -216,7 +231,7 @@ Shader "Custom/PlanetAtmosphere"
                     return float4(light, 1);
                 }
 
-                return originalCol;
+                return 0;
             }
 
             ENDHLSL

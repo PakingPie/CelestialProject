@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-5917883496504480953
+--- !u!114 &-5171215171778034144
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,9 +20,9 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_PlanetAtmosphere
+  m_Name: Skybox_sg_sky 1
   m_Shader: {fileID: -6465566751694194690, guid: f4b6614233bb42545b87fba102f5f7ea, type: 3}
-  m_Parent: {fileID: 2100000, guid: 8b5152c88f3088947b375dec01714e8d, type: 2}
+  m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
@@ -30,27 +30,64 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AbsorptionFalloff: 4000
+    - _AbsorptionFalloff: 8000
+    - _AlphaClip: 0
+    - _AlphaToMask: 0
     - _AtmosphereRadius: 10000
-    - _CameraOffsetY: 0
+    - _Blend: 0
+    - _BlendModePreserveSpecular: 0
+    - _CameraOffsetY: 100
+    - _CastShadows: 0
+    - _ClipThreshold: 0
+    - _Cull: 0
+    - _DstBlend: 10
     - _G: 0.7
     - _HeightAbsoption: 30000
     - _LightIntensity: 40
+    - _LightStep: 4
+    - _MainStep: 16
     - _MieHeight: 1200
+    - _PlanetScale: 1
+    - _QueueControl: 0
+    - _QueueOffset: 0
     - _RayLeighHeight: 8000
+    - _ReceiveShadows: 1
+    - _RimPower: 1.07
+    - _SrcBlend: 5
     - _SunDiskSize: 0.99999
+    - _Surface: 1
+    - _WorkflowMode: 1
+    - _ZTest: 4
+    - _ZWrite: 0
+    - _ZWriteControl: 2
     m_Colors:
-    - _BackgroundColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BackgroundColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Beta: {r: 0, g: 0, b: 0, a: 1}
+    - _BetaAbsorption: {r: 0.0000204, g: 0.0000497, b: 0.00000195, a: 0}
     - _BetaAmbient: {r: 0, g: 0, b: 0, a: 0}
+    - _BetaMie: {r: 0.000021, g: 0.000021, b: 0.000021, a: 0}
+    - _BetaRayLeigh: {r: 0.0000055, g: 0.000013, b: 0.0000224, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

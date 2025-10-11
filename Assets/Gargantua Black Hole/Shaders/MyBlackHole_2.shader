@@ -261,12 +261,12 @@ Shader "Custom/MyBlackHole_2"
                 float blackHoleMask = 0;
 
                 float alpha = 0.0;
-                float3 currentRayPos = rayOrigin + rayDir * dither * (i.objectScale * 0.02f) / float(_Steps);
+                float3 currentRayPos = rayOrigin + rayDir * dither * (i.objectScale * 0.03f) / float(_Steps);
 
                 float3 color = float3(0.0, 0.0, 0.0);
 
                 float3 currentRayDir = rayDir;
-                float stepSize = distance(rayOrigin, center) * (i.objectScale * 0.02f) / float(_Steps);
+                float stepSize = distance(rayOrigin, center) * (i.objectScale * 0.03f) / float(_Steps);
                 
                 UNITY_LOOP
                 for (int index = 0; index < _Steps; index++)
