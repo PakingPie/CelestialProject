@@ -24,11 +24,13 @@ Shader "Custom/Atmosphere"
     {
         Pass
         {
-            Name "Universal Forward"
-            Tags { "RenderPipeline"="UniversalPipeline" "Queue"="Opaque" "RenderType"="Opaque"}
-            Cull Off
-            ZTest LEqual
-            ZWrite On
+            // Name "Universal Forward"
+            Tags { "RenderPipeline"="UniversalPipeline" 
+                "Queue"="Transparent" 
+            "RenderType"="Transparent"}
+            Cull Front
+            ZWrite Off
+            ZTest Always
             Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
@@ -36,7 +38,6 @@ Shader "Custom/Atmosphere"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
-            
 
             CBUFFER_START(UnityPerMaterial)
                 float _LightIntensity;
@@ -60,6 +61,8 @@ Shader "Custom/Atmosphere"
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 3.5
+
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             
             struct Attributes
             {
@@ -90,14 +93,14 @@ Shader "Custom/Atmosphere"
             }
             
 
-            float4 frag(Varyings IN, out float DEPTH : SV_Depth) : SV_Target
+            float4 frag(Varyings IN) : SV_Target
             {
                 float3 planetPos = unity_ObjectToWorld._m03_m13_m23;
                 float3 cameraPosWS = _WorldSpaceCameraPos.xyz;
                 float3 positionWS = IN.positionWS;
                 float3 normalWS = normalize(IN.normalWS);
                 // Camera to Pixel Direction
-                float3 viewDir = normalize(cameraPosWS - positionWS);
+                float3 viewDir = -normalize(cameraPosWS - positionWS);
 
                 float sceneDepth = SampleSceneDepth(IN.uv);
                 float depth = LinearEyeDepth(sceneDepth, _ZBufferParams);
@@ -108,31 +111,127 @@ Shader "Custom/Atmosphere"
                 float atmosphereRadius = _PlanetRadius + _AtmosphereRadius;
 
                 float4 color = float4(0, 0, 0, 1);
+                float3 opacity = 0;
 
                 color.rgb += CalculateScattering(
                 cameraPosWS,
                 viewDir,
-                depth,
+                1e12,
                 float3(0,0,0),
                 sunDir,
                 planetPos,
                 _PlanetRadius,
                 atmosphereRadius,
                 _PrimarySteps,
-                _LightSteps
+                _LightSteps,
+                opacity
                 );
 
-                color.rgb = 1 - exp(-color.rgb);
-                // color.a = 0.5;
+                // color.rgb = 1 - exp(-color.rgb);
+                color.a = 0.5;//opacity.x;
+                // float3 mainLightDir = GetMainLight(0).direction;
+                // float NoL = saturate(pow(saturate(dot(normalWS, mainLightDir)), 1.0));
+                // return NoL;
+                // float fresnel = saturate(pow(dot(normalWS, viewDir), 1.5));
+                // color.rgb *= fresnel;
 
-                float NoL = saturate(pow(saturate(dot(normalWS, sunDir) + 0.5), 1.1));
-                float fresnel = saturate(pow(dot(normalWS, viewDir), 1.5));
-                color.rgb *= fresnel;
-
-                DEPTH = IN.positionHCS.z / IN.positionHCS.w;
                 return color;
             }
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "DepthOnly"
+            Tags {"LightMode" = "DepthOnly"}
+
+            ZWrite On
+            ColorMask 0
+            Cull Off
+
+            HLSLPROGRAM
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+                float2 uv : TEXCOORD0;
+            };
+
+            struct Varyings
+            {
+                float4 positionHCS : SV_POSITION;
+                float2 uv : TEXCOORD0;
+            };
+
+            Varyings vert(Attributes v)
+            {
+                Varyings o = (Varyings)0;
+                o.positionHCS = TransformObjectToHClip(v.positionOS.xyz);
+                o.uv = v.uv;
+                return o;
+            }
+
+            void frag(Varyings input, out float DEPTH : SV_DEPTH)
+            {
+                DEPTH =  LinearEyeDepth(SampleSceneDepth(input.uv), _ZBufferParams);
+                // input.positionHCS.z / input.positionHCS.w; //
+            }
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "DepthNormals"
+            Tags {"LightMode" = "DepthNormals"}
+
+            ZWrite On
+
+            HLSLPROGRAM
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float4 positionHCS : SV_POSITION;
+                float3 normalWS : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            Varyings vert(Attributes v)
+            {
+                Varyings o = (Varyings)0;
+                o.positionHCS = TransformObjectToHClip(v.positionOS.xyz);
+                o.normalWS = TransformObjectToWorldNormal(v.normalOS);
+                return o;
+            }
+
+            float4 frag(Varyings i) : SV_Target
+            {
+                return float4(NormalizeNormalPerPixel(i.normalWS), 0.0);
+            }
+            ENDHLSL
+        }
     }
+    FallBack "Diffuse"
 }

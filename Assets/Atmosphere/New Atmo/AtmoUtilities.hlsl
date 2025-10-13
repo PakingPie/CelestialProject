@@ -38,7 +38,8 @@ float3 CalculateScattering(
     float planetRadius,
     float atmosphereRadius,
     float stepsI,
-    float stepsL)
+    float stepsL,
+    out float3 opacity)
 {
     // // subtract planet position(object world position) to get object local space
     start -= unity_ObjectToWorld._m03_m13_m23;
@@ -62,6 +63,7 @@ float3 CalculateScattering(
     }
 
     bool allowMie = maxDistance > rayLength.y;
+    
     rayLength.y = min(rayLength.y, maxDistance);// Far
     rayLength.x = max(rayLength.x, 0);          // Near
 
@@ -80,7 +82,9 @@ float3 CalculateScattering(
     float mumu = mu * mu;
     float gg = _G * _G;
     float phaseRayleigh = 3 / 50.2654824574 * (1 + mumu);
-    float phaseMie = allowMie ? 3 / 25.1327412287 * ((1 - gg) * (1 + mumu)) / (pow(1 + gg - 2 * _G * mu, 1.5) * (2.0 + gg)) : 0;
+    float phaseMie = allowMie ? 3 / 25.1327412287 * 
+    ((1 - gg) * (1 + mumu)) / (pow(1 + gg - 2 * _G * mu, 1.5) * (2.0 + gg)) : 0;
+
 
     for (int i = 0; i < stepsI; ++i)
     {
@@ -126,18 +130,24 @@ float3 CalculateScattering(
 
             rayPosL += stepSizeL;
         }
-
-        float3 attenuation = exp(-(_RayleighBeta * (opticalDepthI.x + opticalDepthL.x) - _MieBeta * (opticalDepthI.y + opticalDepthL.y) - _AbsorptionBeta * (opticalDepthI.z + opticalDepthL.z)));
+        
+        float3 attenuation = exp(
+            - _RayleighBeta * (opticalDepthI.x + opticalDepthL.x) 
+            - _MieBeta * (opticalDepthI.y + opticalDepthL.y) 
+            - _AbsorptionBeta * (opticalDepthI.z + opticalDepthL.z));
+        
         totalRayleigh += density.x * attenuation;
         totalMie += density.y * attenuation;
 
         rayPosI += stepSizeI;
     }
 
-    float3 opacity = exp(-(_MieBeta * opticalDepthI.y + _RayleighBeta * opticalDepthI.x + _AbsorptionBeta * opticalDepthI.z));
-    return (phaseRayleigh * _RayleighBeta * totalRayleigh +
-            phaseMie * _MieBeta * totalMie +
-            opticalDepthI.x * _AmbientBeta) *
-           _LightIntensity;
+    opacity = exp(-(_MieBeta * opticalDepthI.y + _RayleighBeta * opticalDepthI.x + _AbsorptionBeta * opticalDepthI.z));
+
+    return (
+        phaseRayleigh * _RayleighBeta * totalRayleigh + 
+        phaseMie * _MieBeta * totalMie + 
+        opticalDepthI.x * _AmbientBeta)
+            *_LightIntensity;
 }
 

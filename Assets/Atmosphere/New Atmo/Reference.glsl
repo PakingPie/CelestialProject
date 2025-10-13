@@ -167,7 +167,8 @@ vec3 calculate_scattering(
     float mumu = mu * mu;
     float gg = g * g;
     float phase_ray = 3.0 / (50.2654824574 /* (16 * pi) */) * (1.0 + mumu);
-    float phase_mie = allow_mie ? 3.0 / (25.1327412287 /* (8 * pi) */) * ((1.0 - gg) * (mumu + 1.0)) / (pow(1.0 + gg - 2.0 * mu * g, 1.5) * (2.0 + gg)) : 0.0;
+    float phase_mie = allow_mie ? 3.0 / (25.1327412287 /* (8 * pi) */) * 
+    ((1.0 - gg) * (mumu + 1.0)) / (pow(1.0 + gg - 2.0 * mu * g, 1.5) * (2.0 + gg)) : 0.0;
     
     // now we need to sample the 'primary' ray. this ray gathers the light that gets scattered onto it
     for (int i = 0; i < steps_i; ++i) {
@@ -245,7 +246,9 @@ vec3 calculate_scattering(
         
         // Now we need to calculate the attenuation
         // this is essentially how much light reaches the current sample point due to scattering
-        vec3 attn = exp(-beta_ray * (opt_i.x + opt_l.x) - beta_mie * (opt_i.y + opt_l.y) - beta_absorption * (opt_i.z + opt_l.z));
+        vec3 attn = exp(-beta_ray 
+        *
+         (opt_i.x + opt_l.x) - beta_mie * (opt_i.y + opt_l.y) - beta_absorption * (opt_i.z + opt_l.z));
 
         // accumulate the scattered light (how much will be scattered towards the camera)
         total_ray += density.x * attn;
