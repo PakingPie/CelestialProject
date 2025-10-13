@@ -16,7 +16,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
@@ -29,15 +29,16 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AbsorptionFalloff: 4
-    - _AtmosphereRadius: 5
+    - _AbsorptionFalloff: 4000
+    - _AtmosphereRadius: 10000
     - _G: 0.7
-    - _HeightAbsorption: 30
-    - _HeightMie: 1.2
-    - _HeightRayleigh: 8
-    - _LightIntensity: 1
+    - _HeightAbsorption: 30000
+    - _HeightMie: 1200
+    - _HeightRayleigh: 8000
+    - _LightIntensity: 10
     - _LightSteps: 4
-    - _PlanetRadius: 40
+    - _PlanetRadius: 5000
+    - _PrimarySteps: 32
     m_Colors:
     - _AbsorptionBeta: {r: 0.0000204, g: 0.0000497, b: 0.00000195, a: 1}
     - _AmbientBeta: {r: 0, g: 0, b: 0, a: 1}
