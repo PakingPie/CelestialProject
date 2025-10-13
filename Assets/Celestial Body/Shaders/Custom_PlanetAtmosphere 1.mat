@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Custom_PlanetAtmosphere 1
+  m_Shader: {fileID: 4800000, guid: c30f3bcfa4970204cbae0ccf7b8c5971, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BakedOpticalDepth:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BlueNoise:
+        m_Texture: {fileID: 2800000, guid: 8886a14b14a1b44089f789c0b8c05643, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - atmosphereRadius: 396.6
+    - densityFalloff: 4.3
+    - ditherScale: 3.89
+    - ditherStrength: 1
+    - intensity: 1
+    - numInScatteringPoints: 10
+    - numOpticalDepthPoints: 100
+    - oceanRadius: 300
+    - planetRadius: 300
+    m_Colors:
+    - dirToSun: {r: 0, g: 1, b: 0, a: 0}
+    - params: {r: 3, g: 0.15, b: 6.4, a: 1.5}
+    - planetCentre: {r: -20000, g: 0, b: 3000, a: 0}
+    - scatteringCoefficients: {r: 2.2635903, g: 6.8878946, b: 12.138319, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

@@ -231,7 +231,7 @@ Shader "Custom/PlanetAtmosphere"
                     return float4(light, 1);
                 }
 
-                return 0;
+                return originalCol;
             }
 
             ENDHLSL
