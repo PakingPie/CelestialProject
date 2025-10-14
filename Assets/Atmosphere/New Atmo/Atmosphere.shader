@@ -28,7 +28,7 @@ Shader "Custom/Atmosphere"
             Tags { "RenderPipeline"="UniversalPipeline" 
                 "Queue"="Transparent" 
             "RenderType"="Transparent"}
-            Cull Back
+            Cull Off
             ZWrite On
             ZTest LEqual
             Blend SrcAlpha OneMinusSrcAlpha
@@ -216,11 +216,11 @@ Shader "Custom/Atmosphere"
 
                 float3 sunDir = GetMainLight(0).direction; // normalize(_SunPosition - planetPos);
 
-                // Get object scale
-                float3 scale = 0;
-                scale.x = length(unity_ObjectToWorld._m00_m10_m20);
-                scale.y = length(unity_ObjectToWorld._m01_m11_m21);
-                scale.z = length(unity_ObjectToWorld._m02_m12_m22);
+                // // Get object scale
+                // float3 scale = 0;
+                // scale.x = length(unity_ObjectToWorld._m00_m10_m20);
+                // scale.y = length(unity_ObjectToWorld._m01_m11_m21);
+                // scale.z = length(unity_ObjectToWorld._m02_m12_m22);
 
                 float2 inter1 = RayIntersectSphere(cameraPosWS - planetPos, viewDir, _PlanetRadius + _AtmosphereHeight);
                 if(inter1.x > inter1.y)
@@ -232,12 +232,17 @@ Shader "Custom/Atmosphere"
                 inter1.y = min(inter1.y, inter2.x);
                 float3 scatter = InScattering(cameraPosWS - planetPos, viewDir, inter1, sunDir);
                 scatter = 1 - exp(-scatter);
+                scatter = pow(scatter, 1/2.2);
 
                 float fresnel = saturate(pow(dot(normalWS, viewDir), 1.0));
-                // scatter *= fresnel;
 
+                float4 color = float4(scatter, (1 - fresnel));
+                float NoL = saturate(pow(saturate(dot(normalWS, sunDir)), 1.0));
+                color *= fresnel;
+                color *= NoL;
 
-                return float4(scatter, (1 - fresnel) * 0.8);
+                clip(0.5 - color.a);
+                return color;
             }
             
 
