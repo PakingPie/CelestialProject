@@ -4,19 +4,19 @@ Shader "Custom/Atmosphere"
     {
         _SunPosition("Sun Position", Vector) = (0, 0, 0, 0)
         _LightIntensity("Light Intensity", Float) = 10
-        _PlanetRadius("Planet Radius", Float) = 6371    // Earth radius in km
-        _AtmosphereHeight("Atmosphere Height", Float) = 100 // Atmosphere height in km
-        _RayleighBeta("Rayleigh Scattering Coefficients", Vector) = (0.0000055, 0.000013, 0.0000224)
-        _MieBeta("Mie Scattering Coefficients", Vector) = (0.000021, 0.000021, 0.000021)
+        _PlanetRadius("Planet Radius", Float) = 1    // Earth radius in km
+        _AtmosphereHeight("Atmosphere Height", Float) = 0.5 // Atmosphere height in km
+        _RayleighBeta("Rayleigh Scattering Coefficients", Vector) = (0.0055, 0.013, 0.0224)
+        _MieBeta("Mie Scattering Coefficients", Vector) = (0.021, 0.021, 0.021)
         _AmbientBeta("Ambient Coefficients", Color) = (0, 0, 0, 1)
-        _AbsorptionBeta("Absorption Coefficients", Vector) = (0.0000204, 0.0000497, 0.00000195)
+        _AbsorptionBeta("Absorption Coefficients", Vector) = (0.0204, 0.0497, 0.00195)
         _G("G", Range(0, 1)) = 0.76
         _HeightRayleigh("Height Rayleigh", Float) = 8
         _HeightMie("Height Mie", Float) = 1.2
         _HeightAbsorption("Height Absorption", Float) = 30
         _AbsorptionFalloff("Absorption Falloff", Float) = 4
 
-        _PrimarySteps("Primary Steps", Int) = 32
+        _PrimarySteps("Primary Steps", Int) = 40
         _LightSteps("Light Steps", Int) = 4
     }
 
@@ -30,7 +30,7 @@ Shader "Custom/Atmosphere"
             "RenderType"="Transparent"}
             Cull Off
             ZWrite Off
-            ZTest Always
+            ZTest LEqual
             Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
@@ -147,24 +147,27 @@ Shader "Custom/Atmosphere"
 
             float3 InScattering( float3 o, float3 dir, float2 e, float3 l ) 
             {
-                const float ph_ray = 0.05;
-                const float ph_mie = 0.02;
+                const float ph_ray = _HeightRayleigh * 1e-3;
+                const float ph_mie = _HeightMie * 1e-3;
 
-                const float3 k_ray = _RayleighBeta * 1e6;
-                const float3 k_mie = _MieBeta * 1e6;
+                const float3 k_ray = _RayleighBeta * 1e3;
+                const float3 k_mie = _MieBeta * 1e3;
                 const float k_mie_ex = 1.1;
 
-                float3 sum_ray = 0;
-                float3 sum_mie = 0;
+                float3 sum_ray = 0; // total rayleigh
+                float3 sum_mie = 0; // total mie
 
-                float n_ray0 = 0.0;
+                float n_ray0 = 0.0; // 
                 float n_mie0 = 0.0;
+
+                // float opticalDepthI = 0;
                 
                 float len = ( e.y - e.x ) / float( _PrimarySteps );
                 float3 s = dir * len;
                 float3 v = o + dir * ( e.x + len * 0.5 );
 
-                for ( int i = 0; i < _PrimarySteps; i++, v += s ) {
+                for ( int i = 0; i < _PrimarySteps; i++, v += s ) 
+                {
                     float d_ray = SampleDensity( v, ph_ray ) * len;
                     float d_mie = SampleDensity( v, ph_mie ) * len;
                     
@@ -172,12 +175,12 @@ Shader "Custom/Atmosphere"
                     n_mie0 += d_mie;
 
                     // #if 0
-                        float2 e = RayIntersectSphere( v, l, _PlanetRadius );
-                        e.x = max( e.x, 0.0 );
-                        if ( e.x < e.y ) 
-                        {
-                            continue;
-                        }
+                        // float2 e = RayIntersectSphere( v, l, _PlanetRadius );
+                        // e.x = max( e.x, 0.0 );
+                        // if ( e.x < e.y ) 
+                        // {
+                        //     continue;
+                        // }
                     // #endif
 
                     float2 f = RayIntersectSphere( v, l, _PlanetRadius + _AtmosphereHeight );
@@ -196,7 +199,7 @@ Shader "Custom/Atmosphere"
                 float cc = c * c;
                 float3 scatter =
                 sum_ray * k_ray * PhaseRayleigh( cc ) +
-                sum_mie * k_mie * PhaseMie( -0.78, c, cc );// + n_ray0 * _AmbientBeta.rgb;
+                sum_mie * k_mie * PhaseMie( -_G, c, cc );// + n_ray0 * _AmbientBeta.rgb;
                 
                 
                 return _LightIntensity * scatter;
