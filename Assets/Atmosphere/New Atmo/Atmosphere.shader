@@ -29,8 +29,8 @@ Shader "Custom/Atmosphere"
                 "Queue"="Transparent" 
             "RenderType"="Transparent"}
             Cull Back
-            ZWrite Off
-            ZTest Always
+            ZWrite On
+            ZTest LEqual
             Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
@@ -232,7 +232,12 @@ Shader "Custom/Atmosphere"
                 inter1.y = min(inter1.y, inter2.x);
                 float3 scatter = InScattering(cameraPosWS - planetPos, viewDir, inter1, sunDir);
                 scatter = 1 - exp(-scatter);
-                return float4(pow(scatter, 1.0/2.2), 1);
+
+                float fresnel = saturate(pow(dot(normalWS, viewDir), 1.0));
+                // scatter *= fresnel;
+
+
+                return float4(scatter, (1 - fresnel) * 0.8);
             }
             
 
