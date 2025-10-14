@@ -44,8 +44,8 @@ float phase_ray( float cc ) {
 }
 
 // scatter const
-const float R_INNER = 1.0;
-const float R = R_INNER + 0.5;
+const float R_INNER = 10.0;
+const float R = R_INNER + 5.0;
 
 const int NUM_OUT_SCATTER = 8;
 const int NUM_IN_SCATTER = 80;
@@ -151,12 +151,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	vec3 dir = ray_dir( 45.0, iResolution.xy, fragCoord.xy );
 	
 	// default ray origin
-	vec3 eye = vec3( 0.0, 0.0, 3.0 );
+	vec3 eye = vec3( 0.0, 5.0, 53.0 );
 
-	// rotate camera
-	mat3 rot = rot3xy( vec2( 0.0, iTime * 0.5 ) );
-	dir = rot * dir;
-	eye = rot * eye;
+	// // rotate camera
+	// mat3 rot = rot3xy( vec2( 0.0, iTime * 0.5 ) );
+	// dir = rot * dir;
+	// eye = rot * eye;
 	
 	// sun light dir
 	vec3 l = vec3( 0.0, 0.0, 1.0 );

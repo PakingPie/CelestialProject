@@ -29,8 +29,8 @@ Shader "Custom/Atmosphere"
                 "Queue"="Transparent" 
             "RenderType"="Transparent"}
             Cull Off
-            ZWrite On
-            ZTest LEqual
+            ZWrite Off
+            ZTest Always
             Blend SrcAlpha OneMinusSrcAlpha
 
             HLSLPROGRAM
@@ -171,14 +171,14 @@ Shader "Custom/Atmosphere"
                     n_ray0 += d_ray;
                     n_mie0 += d_mie;
 
-                    #if 0
-                        vec2 e = RayIntersectSphere( v, l, _PlanetRadius );
+                    // #if 0
+                        float2 e = RayIntersectSphere( v, l, _PlanetRadius );
                         e.x = max( e.x, 0.0 );
                         if ( e.x < e.y ) 
                         {
                             continue;
                         }
-                    #endif
+                    // #endif
 
                     float2 f = RayIntersectSphere( v, l, _PlanetRadius + _AtmosphereHeight );
                     float3 u = v + l * f.y;
@@ -196,7 +196,7 @@ Shader "Custom/Atmosphere"
                 float cc = c * c;
                 float3 scatter =
                 sum_ray * k_ray * PhaseRayleigh( cc ) +
-                sum_mie * k_mie * PhaseMie( -0.78, c, cc );
+                sum_mie * k_mie * PhaseMie( -0.78, c, cc );// + n_ray0 * _AmbientBeta.rgb;
                 
                 
                 return _LightIntensity * scatter;
@@ -209,10 +209,7 @@ Shader "Custom/Atmosphere"
                 float3 positionWS = IN.positionWS;
                 float3 normalWS = normalize(IN.normalWS);
                 // Camera to Pixel Direction
-                float3 viewDir = normalize(cameraPosWS - positionWS);
-
-                float sceneDepth = SampleSceneDepth(IN.uv);
-                float depth = Linear01Depth(sceneDepth, _ZBufferParams);
+                float3 viewDir = -normalize(cameraPosWS - positionWS);
 
                 float3 sunDir = GetMainLight(0).direction; // normalize(_SunPosition - planetPos);
 
@@ -231,17 +228,18 @@ Shader "Custom/Atmosphere"
                 float2 inter2 = RayIntersectSphere(cameraPosWS - planetPos, viewDir, _PlanetRadius);
                 inter1.y = min(inter1.y, inter2.x);
                 float3 scatter = InScattering(cameraPosWS - planetPos, viewDir, inter1, sunDir);
-                scatter = 1 - exp(-scatter);
+                // scatter = 1 - exp(-scatter);
                 scatter = pow(scatter, 1/2.2);
+                // float4 color = float4(scatter + _AmbientBeta.rgb, 1);
 
                 float fresnel = saturate(pow(dot(normalWS, viewDir), 1.0));
-
                 float4 color = float4(scatter, (1 - fresnel));
-                float NoL = saturate(pow(saturate(dot(normalWS, sunDir)), 1.0));
-                color *= fresnel;
+                float NoL = saturate(pow(saturate(dot(normalWS, sunDir) + 0.3), 0.5));
+                color *= clamp(fresnel + 0.1, 0, 1);
                 color *= NoL;
 
                 clip(0.5 - color.a);
+                color.xyz *= _AmbientBeta.rgb;
                 return color;
             }
             
