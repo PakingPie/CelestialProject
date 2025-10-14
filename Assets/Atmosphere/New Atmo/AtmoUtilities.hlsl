@@ -41,6 +41,7 @@ float3 CalculateScattering(
     float stepsL,
     out float3 opacity)
 {
+    opacity = float3(1, 1, 1);
     // // subtract planet position(object world position) to get object local space
     start -= unity_ObjectToWorld._m03_m13_m23;
     float a = dot(dir, dir);
@@ -63,7 +64,6 @@ float3 CalculateScattering(
     }
 
     bool allowMie = maxDistance > rayLength.y;
-    
     rayLength.y = min(rayLength.y, maxDistance);// Far
     rayLength.x = max(rayLength.x, 0);          // Near
 
@@ -91,7 +91,7 @@ float3 CalculateScattering(
         float3 posI = start + dir * rayPosI;
         // get object scaled radius
 
-        float heightI = length(posI) - _PlanetRadius;
+        float heightI = length(posI) - planetRadius;
 
         float3 density = float3(exp(-heightI / scaleHeight), 0);
 
@@ -117,7 +117,7 @@ float3 CalculateScattering(
         {
             float3 posL = posI + lightDir * rayPosL;
 
-            float heightL = length(posL) - _PlanetRadius;
+            float heightL = length(posL) - planetRadius;
 
             float3 densityL = float3(exp(-heightL / scaleHeight), 0);
 

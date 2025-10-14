@@ -75,18 +75,18 @@ Note: 	Because rayleigh is a long word to type, I use ray instead on most variab
 #define ABSORPTION_FALLOFF 4e3 /* how much the absorption decreases the further away it gets from the maximum height */
 // and the steps (more looks better, but is slower)
 // the primary step has the most effect on looks
-#if HW_PERFORMANCE==0
+#ifdef HW_PERFORMANCE
 // edit these if you are on mobile
 #define PRIMARY_STEPS 12 
 #define LIGHT_STEPS 4
-# else
+#else
 // and these on desktop
 #define PRIMARY_STEPS 32 /* primary steps, affects quality the most */
 #define LIGHT_STEPS 8 /* light steps, how much steps in the light direction are taken */
 #endif
 
 // camera mode, 0 is on the ground, 1 is in space, 2 is moving, 3 is moving from ground to space
-#define CAMERA_MODE 2
+#define CAMERA_MODE 1
 
 /*
 Next we'll define the main scattering function.
