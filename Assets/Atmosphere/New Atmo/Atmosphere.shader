@@ -115,13 +115,13 @@ Shader "Custom/Atmosphere"
                 float b = dot( p, dir );
                 float c = dot( p, p ) - r * r;
                 
-                float d = b * b - c;
+                float d = b * b -c;
                 if ( d < 0.0 ) {
                     return float2( maxFloat, -maxFloat );
                 }
                 d = sqrt( d );
 
-                return float2( -b - d, -b + d );
+                return float2(-b - d, -b + d);
             }
 
             float SampleDensity( float3 p, float ph ) 
@@ -131,13 +131,13 @@ Shader "Custom/Atmosphere"
 
             float optic( float3 p, float3 q, float ph ) 
             {
-                float3 s = ( q - p ) / float( _LightSteps );
-                float3 v = p + s * 0.5;
+                float3 s = ( q - p ) / float( _LightSteps ); // Light Step Size
+                float3 v = p + s * 0.5; // Light Step Position
 
                 float sum = 0.0;
                 for ( int i = 0; i < _LightSteps; i++ ) 
                 {
-                    sum += SampleDensity( v, ph );
+                    sum += SampleDensity( v, ph );  // Sample Density
                     v += s;
                 }
                 sum *= length( s );
@@ -145,14 +145,45 @@ Shader "Custom/Atmosphere"
                 return sum;
             }
 
+            float3 CalculateOpticalDepth(float3 camPos, 
+            float3 posI, 
+            float3 lightDir, 
+            float2 phaseHeight,
+            float heightAbsorption,
+            float absorptionFalloff)
+            {
+                float3 stepSizeL = ( posI - camPos ) / float( _LightSteps ); // Light Step Size
+                float3 rayPosL = stepSizeL * 0.5;
+
+                float3 opticalDepthL = 0;
+                for ( int i = 0; i < _LightSteps; i++ ) 
+                {
+                    float3 posL = posI + stepSizeL * rayPosL;
+                    float heightL = length(posL) - _PlanetRadius;
+                    float densityRayleigh = SampleDensity( posL, phaseHeight.x );
+                    float densityMie = SampleDensity( posL, phaseHeight.y );
+                    float3 densityL = float3(densityRayleigh, densityMie, 0);  // Sample Density
+                    float denomL = (heightAbsorption - heightL) / absorptionFalloff;
+                    densityL.z = (1 / (denomL * denomL + 1)) * densityL.x;
+                    densityL *= stepSizeL;
+                    opticalDepthL += densityL;
+                    rayPosL += stepSizeL;
+                }
+
+                return opticalDepthL;
+            }
+
             float3 InScattering( float3 o, float3 dir, float2 e, float3 l ) 
             {
                 const float ph_ray = _HeightRayleigh * 1e-3;
                 const float ph_mie = _HeightMie * 1e-3;
+                const float height_absorption = _HeightAbsorption * 1e-3;
+                const float absorption_falloff = _AbsorptionFalloff * 1e-3;
 
                 const float3 k_ray = _RayleighBeta * 1e3;
                 const float3 k_mie = _MieBeta * 1e3;
                 const float k_mie_ex = 1.1;
+                const float3 k_abs = _AbsorptionBeta * 1e3;
 
                 float3 sum_ray = 0; // total rayleigh
                 float3 sum_mie = 0; // total mie
@@ -175,22 +206,28 @@ Shader "Custom/Atmosphere"
                     n_mie0 += d_mie;
 
                     // #if 0
-                        // float2 e = RayIntersectSphere( v, l, _PlanetRadius );
-                        // e.x = max( e.x, 0.0 );
-                        // if ( e.x < e.y ) 
-                        // {
+                    // float2 e = RayIntersectSphere( v, l, _PlanetRadius );
+                    // e.x = max( e.x, 0.0 );
+                    // if ( e.x < e.y ) 
+                    // {
                         //     continue;
-                        // }
+                    // }
                     // #endif
 
                     float2 f = RayIntersectSphere( v, l, _PlanetRadius + _AtmosphereHeight );
-                    float3 u = v + l * f.y;
+                    float3 u = v + l * f.y; // posI
 
-                    float n_ray1 = optic( v, u, ph_ray );
-                    float n_mie1 = optic( v, u, ph_mie );
+                    // float n_ray1 = optic( v, u, ph_ray );
+                    // float n_mie1 = optic( v, u, ph_mie );
 
-                    float3 att = exp( - ( n_ray0 + n_ray1 ) * k_ray - ( n_mie0 + n_mie1 ) * k_mie * k_mie_ex );
+                    float3 opticalDepthL = CalculateOpticalDepth(v, u, l, float2(ph_ray, ph_mie), height_absorption, absorption_falloff);
+                    float n_ray1 = opticalDepthL.x;
+                    float n_mie1 = opticalDepthL.y;
+                    float n_abs1 = opticalDepthL.z;
 
+                    // float3 att = exp( - ( n_ray0 + n_ray1 ) * k_ray - ( n_mie0 + n_mie1 ) * k_mie * k_mie_ex );
+                    float3 att = exp( - ( n_ray0 + n_ray1 ) * k_ray - ( n_mie0 + n_mie1 ) * k_mie * k_mie_ex);// - n_abs1 * k_abs );
+                    
                     sum_ray += d_ray * att;
                     sum_mie += d_mie * att;
                 }
