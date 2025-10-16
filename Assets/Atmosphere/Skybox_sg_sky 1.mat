@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Skybox_sg_sky 1
-  m_Shader: {fileID: -6465566751694194690, guid: f4b6614233bb42545b87fba102f5f7ea, type: 3}
+  m_Shader: {fileID: 4800000, guid: e465be2e7f370694590effdafc0e1a72, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -52,9 +52,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AbsorptionFalloff: 8000
+    - _AbsorptionFalloff: 8
     - _AlphaClip: 0
     - _AlphaToMask: 0
+    - _AtmosphereHeight: 1
     - _AtmosphereRadius: 10000
     - _Blend: 0
     - _BlendModePreserveSpecular: 0
@@ -65,11 +66,18 @@ Material:
     - _DstBlend: 10
     - _G: 0.7
     - _HeightAbsoption: 30000
+    - _HeightAbsorption: 30
+    - _HeightMie: 1.2
+    - _HeightRayleigh: 8
+    - _IsPlanet: 1
     - _LightIntensity: 40
     - _LightStep: 4
+    - _LightSteps: 4
     - _MainStep: 16
     - _MieHeight: 1200
+    - _PlanetRadius: 400
     - _PlanetScale: 1
+    - _PrimarySteps: 40
     - _QueueControl: 0
     - _QueueOffset: 0
     - _RayLeighHeight: 8000
@@ -83,11 +91,16 @@ Material:
     - _ZWrite: 0
     - _ZWriteControl: 2
     m_Colors:
+    - _AbsorptionBeta: {r: 0.0204, g: 0.0497, b: 0.00195, a: 1}
+    - _AmbientBeta: {r: 1, g: 1, b: 1, a: 1}
     - _BackgroundColor: {r: 0, g: 0, b: 0, a: 1}
     - _Beta: {r: 0, g: 0, b: 0, a: 1}
     - _BetaAbsorption: {r: 0.0000204, g: 0.0000497, b: 0.00000195, a: 0}
     - _BetaAmbient: {r: 0, g: 0, b: 0, a: 0}
     - _BetaMie: {r: 0.000021, g: 0.000021, b: 0.000021, a: 0}
     - _BetaRayLeigh: {r: 0.0000055, g: 0.000013, b: 0.0000224, a: 0}
+    - _MieBeta: {r: 0.021, g: 0.021, b: 0.021, a: 1}
+    - _RayleighBeta: {r: 0.0055, g: 0.013, b: 0.0224, a: 1}
+    - _SunPosition: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
