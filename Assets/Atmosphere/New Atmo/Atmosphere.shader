@@ -28,8 +28,8 @@ Shader "Custom/Atmosphere"
             Tags { "RenderPipeline"="UniversalPipeline" 
                 "Queue"="Transparent" 
             "RenderType"="Transparent"}
-            Cull Off
-            ZWrite Off
+            Cull Back
+            ZWrite On
             ZTest LEqual
             Blend SrcAlpha OneMinusSrcAlpha
 
@@ -340,7 +340,7 @@ Shader "Custom/Atmosphere"
                 float NoL = saturate(pow(saturate(dot(normalWS, sunDir) + 0.3), 0.5));
                 color *= clamp(fresnel + 0.1, 0, 1);
 
-                color.rgb *= NoL;
+                color *= NoL;
 
                 clip(0.5 - color.a);
                 // color.xyz *= _AmbientBeta.rgb;
