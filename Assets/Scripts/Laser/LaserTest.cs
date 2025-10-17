@@ -61,6 +61,4 @@ public class LaserTestEditor : Editor
             laserTest.LaserDisable();
         }
     }
-
-
 }
