@@ -6,23 +6,52 @@ using UnityEditor;
 // [ExecuteInEditMode]
 public class LaserTest : MonoBehaviour
 {
-    public Transform targetPoint;
 
     public LineRenderer LaserLineRenderer;
+    [Header("Laser Settings")]
+    [Tooltip("Number of updates per second for the laser targeting system.")]
+    public int UpdateRate = 60;
 
+    [Tooltip("The range within which the laser can target enemies.")]
     public Vector2 LaserActiveRange = new Vector2(50f, 500f);
+    [Tooltip("Duration of the laser effect in seconds.")]
+    public float LaserEffectDuration = 2.5f;
 
-    public float LaserEffectDuration = 0.5f;
-    private float _laserEffectTimer = 0f;
+    private Transform _targetPoint;
+
 
     void Start()
     {
-        // InvokeRepeating("UpdateTarget", 0f, 0.5f);
-        
+        InvokeRepeating("Shoot", 0.0f, 5.0f);
+        InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
+        LaserLineRenderer.SetPosition(0, transform.position);
+        LaserLineRenderer.SetPosition(1, _targetPoint.position);
+    }
+    void Update()
+    {
+        LaserLineRenderer.SetPosition(0, transform.position);
+        LaserLineRenderer.SetPosition(1, _targetPoint.position);
+    }
+    public void Shoot()
+    {
+        StartCoroutine(LaserBeam());
     }
 
     public void UpdateTarget()
     {
+        if (_targetPoint != null)
+        {
+            if (Vector3.Distance(transform.position, _targetPoint.position) > LaserActiveRange.y)
+            {
+                _targetPoint = null;
+                LaserDisable();
+            }
+            else
+            {
+                return;
+            }
+        }
+
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
         float shortest_distance = Mathf.Infinity;
         GameObject nearest_enemy = null;
@@ -39,12 +68,12 @@ public class LaserTest : MonoBehaviour
 
         if (nearest_enemy && shortest_distance <= LaserActiveRange.y)
         {
-            targetPoint = nearest_enemy.transform;
+            _targetPoint = nearest_enemy.transform;
             Debug.Log("Target Acquired: " + nearest_enemy.name);
         }
         else
         {
-            targetPoint = null;
+            _targetPoint = null;
         }
     }
 
@@ -55,9 +84,6 @@ public class LaserTest : MonoBehaviour
         {
             LaserLineRenderer.enabled = true;
         }
-        LaserLineRenderer.SetPosition(0, transform.position);
-        LaserLineRenderer.SetPosition(1, targetPoint.position);
-        LaserLineRenderer.material.SetFloat("_Active_Time", LaserEffectDuration);
         StartCoroutine(LaserBeam());
     }
 
@@ -77,11 +103,11 @@ public class LaserTest : MonoBehaviour
             yield return null;
             if (t > LaserEffectDuration / 2f)   // Fade out
             {
-                LaserLineRenderer.material.SetFloat("_Active_Time", LaserEffectDuration / 2f - (t - LaserEffectDuration / 2f));
+                LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(LaserEffectDuration / 2f - (t - LaserEffectDuration / 2f)));
             }
             else                            // Fade in
             {
-                LaserLineRenderer.material.SetFloat("_Active_Time", t);
+                LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(t));
             }
         }
         // yield return new WaitForSeconds(LaserEffectDuration);
