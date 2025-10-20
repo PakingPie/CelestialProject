@@ -6,7 +6,6 @@ using UnityEditor;
 [ExecuteInEditMode]
 public class LaserTest : MonoBehaviour
 {
-    public LineRenderer lineRenderer;
     public Transform targetPoint;
 
     public LineRenderer LaserLineRenderer;
@@ -16,9 +15,35 @@ public class LaserTest : MonoBehaviour
     public float LaserEffectDuration = 0.5f;
     private float _laserEffectTimer = 0f;
 
-    public void UpdateTarget(Transform newTarget)
+    void Start()
     {
-        targetPoint = newTarget;
+        InvokeRepeating("UpdateTarget", 0f, 0.5f);
+    }
+
+    public void UpdateTarget()
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
+        float shortest_distance = Mathf.Infinity;
+        GameObject nearest_enemy = null;
+
+        foreach(GameObject enemy in enemies)
+        {
+            float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
+           if(distance_to_enemy < shortest_distance)
+            {
+                shortest_distance = distance_to_enemy;
+                nearest_enemy = enemy;
+            }
+        }
+
+        if (nearest_enemy && shortest_distance <= LaserActiveRange.y)
+        {
+            targetPoint = nearest_enemy.transform;
+        }
+        else
+        {
+            targetPoint = null;
+        }
     }
 
 
