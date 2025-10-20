@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[ExecuteInEditMode]
+// [ExecuteInEditMode]
 public class LaserTest : MonoBehaviour
 {
     public Transform targetPoint;
@@ -17,7 +17,8 @@ public class LaserTest : MonoBehaviour
 
     void Start()
     {
-        InvokeRepeating("UpdateTarget", 0f, 0.5f);
+        // InvokeRepeating("UpdateTarget", 0f, 0.5f);
+        
     }
 
     public void UpdateTarget()
@@ -26,10 +27,10 @@ public class LaserTest : MonoBehaviour
         float shortest_distance = Mathf.Infinity;
         GameObject nearest_enemy = null;
 
-        foreach(GameObject enemy in enemies)
+        foreach (GameObject enemy in enemies)
         {
             float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
-           if(distance_to_enemy < shortest_distance)
+            if (distance_to_enemy < shortest_distance)
             {
                 shortest_distance = distance_to_enemy;
                 nearest_enemy = enemy;
@@ -39,6 +40,7 @@ public class LaserTest : MonoBehaviour
         if (nearest_enemy && shortest_distance <= LaserActiveRange.y)
         {
             targetPoint = nearest_enemy.transform;
+            Debug.Log("Target Acquired: " + nearest_enemy.name);
         }
         else
         {
@@ -53,9 +55,10 @@ public class LaserTest : MonoBehaviour
         {
             LaserLineRenderer.enabled = true;
         }
-
         LaserLineRenderer.SetPosition(0, transform.position);
         LaserLineRenderer.SetPosition(1, targetPoint.position);
+        LaserLineRenderer.material.SetFloat("_Active_Time", LaserEffectDuration);
+        StartCoroutine(LaserBeam());
     }
 
     public void LaserDisable()
@@ -64,6 +67,24 @@ public class LaserTest : MonoBehaviour
         {
             LaserLineRenderer.enabled = false;
         }
+    }
+
+    IEnumerator LaserBeam()
+    {
+        LaserLineRenderer.material.SetFloat("_Active_Time", 0.0f);
+        for (float t = 0.0f; t <= LaserEffectDuration; t += Time.deltaTime)
+        {
+            yield return null;
+            if (t > LaserEffectDuration / 2f)   // Fade out
+            {
+                LaserLineRenderer.material.SetFloat("_Active_Time", LaserEffectDuration / 2f - (t - LaserEffectDuration / 2f));
+            }
+            else                            // Fade in
+            {
+                LaserLineRenderer.material.SetFloat("_Active_Time", t);
+            }
+        }
+        // yield return new WaitForSeconds(LaserEffectDuration);
     }
 }
 
