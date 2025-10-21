@@ -197,7 +197,7 @@ public class TerrainGrid : MonoBehaviour
             {
                 Gizmos.color = Color.Lerp(Color.white, Color.black, Mathf.InverseLerp(minPenalty, maxPenalty, n.movementPenalty));
                 Gizmos.color = n.isWalkable ? Gizmos.color : Color.red;
-                Gizmos.DrawCube(n.wolrdPosition, Vector3.one * nodeDiameter);
+                Gizmos.DrawWireCube(n.wolrdPosition, Vector3.one * nodeDiameter);
             }
         }
     }
