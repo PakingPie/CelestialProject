@@ -9,6 +9,7 @@ public class BoidsManager : MonoBehaviour
     Boid[] boids;
 
     public Transform target;
+    public Vector2 HeightRange = new Vector2(-1.0f, 1.0f);
 
     void Start()
     {
@@ -39,7 +40,7 @@ public class BoidsManager : MonoBehaviour
         computeShader.SetInt("numBoids", numBoids);
         computeShader.SetFloat("viewRadius", settings.perceptionRadius);
         computeShader.SetFloat("avoidRadius", settings.avoidanceRadius);
-
+        computeShader.SetVector("heightRange", HeightRange);
         int threadGroups = Mathf.CeilToInt(numBoids / (float)threadGroupSize);
         computeShader.Dispatch(0, threadGroups, 1, 1);
 

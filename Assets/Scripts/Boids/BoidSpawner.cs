@@ -14,14 +14,18 @@ public class Spawner : MonoBehaviour
     public Color color;
     public GizmoType showSpawnRegion;
 
+    public Vector2 HeightRange = new Vector2(-1.0f, 1.0f);
+
     void Awake()
     {
         for (int i = 0; i < spawnCount; i++)
         {
-            Vector3 pos = transform.position + Random.insideUnitSphere * spawnRadius;
+            Vector3 randomSphere = Random.insideUnitSphere * spawnRadius;
+            Vector3 pos = transform.position + new Vector3(randomSphere.x, Mathf.Clamp(randomSphere.y, HeightRange.x, HeightRange.y), randomSphere.z); // originly Random.insideUnitSphere
             Boid boid = Instantiate(prefab);
             boid.transform.position = pos;
-            boid.transform.forward = Random.insideUnitSphere;
+            randomSphere = Random.insideUnitSphere;
+            boid.transform.forward = new Vector3(randomSphere.x, Mathf.Clamp(randomSphere.y, HeightRange.x, HeightRange.y), randomSphere.z); // originly Random.insideUnitSphere
 
             boid.SetColor(color);
         }

@@ -11,19 +11,19 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0f79a97a8f3d566438e5fbb617fd1c0f, type: 3}
   m_Name: Default Boid Settings
-  m_EditorClassIdentifier: 
-  minSpeed: 3
+  m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
+  minSpeed: 2
   maxSpeed: 5
-  perceptionRadius: 20
-  avoidanceRadius: 8
-  maxSteerForce: 8
-  alignWeight: 2
+  perceptionRadius: 2.5
+  avoidanceRadius: 1
+  maxSteerForce: 3
+  alignWeight: 1
   cohesionWeight: 1
-  separateWeight: 2.5
-  targetWeight: 0.1
+  separateWeight: 1
+  targetWeight: 1
   obstacleMask:
     serializedVersion: 2
-    m_Bits: 960
-  boundsRadius: 1
-  avoidCollisionWeight: 20
+    m_Bits: 0
+  boundsRadius: 0.27
+  avoidCollisionWeight: 10
   collisionAvoidDistance: 5

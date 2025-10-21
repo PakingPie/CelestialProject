@@ -23,6 +23,8 @@ public class Boid : MonoBehaviour
     Transform cachedTransform;
     Transform target;
 
+    public Vector2 HeightRange = new Vector2(-1.0f, 1.0f);
+
     void Awake()
     {
         material = transform.GetComponentInChildren<MeshRenderer>().material;
@@ -88,6 +90,7 @@ public class Boid : MonoBehaviour
 
         cachedTransform.position += velocity * Time.deltaTime;
         cachedTransform.forward = dir;
+        cachedTransform.position = new Vector3(cachedTransform.position.x, Mathf.Clamp(cachedTransform.position.y, HeightRange.x, HeightRange.y), cachedTransform.position.z);
         position = cachedTransform.position;
         forward = dir;
     }
