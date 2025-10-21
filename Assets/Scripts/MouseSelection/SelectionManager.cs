@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class SelectionManager
 {
@@ -17,5 +18,36 @@ public class SelectionManager
         {
             _instance = value;
         }
+    }
+
+    public HashSet<SelectableUnit> SelectedUnits = new HashSet<SelectableUnit>();
+    public List<SelectableUnit> AvailableUnits = new List<SelectableUnit>();
+
+    private SelectionManager() { }
+
+    public void Select(SelectableUnit unit)
+    {
+        SelectedUnits.Add(unit);
+        unit.OnSelected();
+    }
+
+    public void Deselect(SelectableUnit unit)
+    {
+        unit.OnDeselected();
+        SelectedUnits.Remove(unit);
+    }
+
+    public void DeselectAll()
+    {
+        foreach (var unit in SelectedUnits)
+        {
+            unit.OnDeselected();
+        }
+        SelectedUnits.Clear();
+    }
+
+    public bool IsSelected(SelectableUnit unit)
+    {
+        return SelectedUnits.Contains(unit);
     }
 }

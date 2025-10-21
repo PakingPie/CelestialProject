@@ -1,0 +1,122 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlayerInput : MonoBehaviour
+{
+    [SerializeField]
+    private Camera _camera;
+    [SerializeField]
+    private RectTransform _selectionBox;
+    [SerializeField]
+    private LayerMask _unitMask;
+    [SerializeField]
+    private LayerMask _floorMask;
+    [SerializeField]
+    private float DragDelay = 0.1f;
+
+    private float _dragDelay = 0.1f;
+    private float _mouseDownTime;
+
+    private Vector2 _startMousePosition;
+
+    private HashSet<SelectableUnit> newlySelectedUnits = new HashSet<SelectableUnit>();
+    private HashSet<SelectableUnit> deselectedUnits = new HashSet<SelectableUnit>();
+    void Update()
+    {
+        HandleSelectionInputs();
+    }
+
+    private void HandleSelectionInputs()
+    {
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            _selectionBox.sizeDelta = Vector2.zero;
+            _selectionBox.gameObject.SetActive(true);
+            _startMousePosition = Input.mousePosition;
+            _mouseDownTime = Time.time;
+        }
+        else if (Input.GetKey(KeyCode.Mouse0) && _mouseDownTime + _dragDelay < Time.time)
+        {
+            ResizeSelectionBox();
+        }
+        else if (Input.GetKeyUp(KeyCode.Mouse0))
+        {
+            _selectionBox.sizeDelta = Vector2.zero;
+            _selectionBox.gameObject.SetActive(false);
+
+            foreach (var newUnit in newlySelectedUnits)
+            {
+                SelectionManager.Instance.Select(newUnit);
+            }
+            foreach (var deselectedUnit in deselectedUnits)
+            {
+                SelectionManager.Instance.Deselect(deselectedUnit);
+            }
+
+            newlySelectedUnits.Clear();
+            deselectedUnits.Clear();
+
+            if (Physics.Raycast(_camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, _unitMask)
+                && hit.collider.TryGetComponent<SelectableUnit>(out SelectableUnit unit))
+            {
+                if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                {
+                    if (SelectionManager.Instance.IsSelected(unit))
+                    {
+                        SelectionManager.Instance.Deselect(unit);
+                    }
+                    else
+                    {
+                        SelectionManager.Instance.Select(unit);
+                    }
+                }
+                else
+                {
+                    SelectionManager.Instance.DeselectAll();
+                    SelectionManager.Instance.Select(unit);
+                }
+            }
+            else if (_mouseDownTime + _dragDelay > Time.time)
+            {
+                SelectionManager.Instance.DeselectAll();
+            }
+
+            _mouseDownTime = 0f;
+        }
+    }
+
+    private void ResizeSelectionBox()
+    {
+        float width = Input.mousePosition.x - _startMousePosition.x;
+        float height = Input.mousePosition.y - _startMousePosition.y;
+        _selectionBox.anchoredPosition = _startMousePosition + new Vector2(width / 2, height / 2);
+        _selectionBox.sizeDelta = new Vector2(Mathf.Abs(width), Mathf.Abs(height));
+
+        Bounds bounds = new Bounds(_selectionBox.anchoredPosition, _selectionBox.sizeDelta);
+        for (int i = 0; i < SelectionManager.Instance.AvailableUnits.Count; i++)
+        {
+            SelectableUnit unit = SelectionManager.Instance.AvailableUnits[i];
+            Vector2 screenPosition = _camera.WorldToScreenPoint(unit.transform.position);
+            if (UnitIsInSelectionBox(screenPosition, bounds))
+            {
+                if (!SelectionManager.Instance.IsSelected(unit))
+                {
+                    newlySelectedUnits.Add(unit);
+                }
+                deselectedUnits.Remove(unit);
+            }
+            else
+            {
+                deselectedUnits.Add(unit);
+                newlySelectedUnits.Remove(unit);
+            }
+        }
+    }
+
+    private bool UnitIsInSelectionBox(Vector2 Position, Bounds Bounds)
+    {
+        return Position.x > Bounds.min.x && Position.x < Bounds.max.x
+            && Position.y > Bounds.min.y && Position.y < Bounds.max.y;
+    }
+
+}
