@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerInput : MonoBehaviour
 {
@@ -28,18 +29,18 @@ public class PlayerInput : MonoBehaviour
 
     private void HandleSelectionInputs()
     {
-        if (Input.GetKeyDown(KeyCode.Mouse0))
+        if (Mouse.current.leftButton.isPressed && _mouseDownTime == 0f) 
         {
             _selectionBox.sizeDelta = Vector2.zero;
             _selectionBox.gameObject.SetActive(true);
-            _startMousePosition = Input.mousePosition;
+            _startMousePosition = Mouse.current.position.ReadValue();
             _mouseDownTime = Time.time;
         }
-        else if (Input.GetKey(KeyCode.Mouse0) && _mouseDownTime + _dragDelay < Time.time)
+        else if (Mouse.current.leftButton.isPressed && _mouseDownTime + _dragDelay < Time.time)
         {
             ResizeSelectionBox();
         }
-        else if (Input.GetKeyUp(KeyCode.Mouse0))
+        else if (Mouse.current.leftButton.wasReleasedThisFrame)
         {
             _selectionBox.sizeDelta = Vector2.zero;
             _selectionBox.gameObject.SetActive(false);
@@ -56,10 +57,10 @@ public class PlayerInput : MonoBehaviour
             newlySelectedUnits.Clear();
             deselectedUnits.Clear();
 
-            if (Physics.Raycast(_camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, _unitMask)
+            if (Physics.Raycast(_camera.ScreenPointToRay(Mouse.current.position.ReadValue()), out RaycastHit hit, _unitMask)
                 && hit.collider.TryGetComponent<SelectableUnit>(out SelectableUnit unit))
             {
-                if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                if (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed)
                 {
                     if (SelectionManager.Instance.IsSelected(unit))
                     {
@@ -87,8 +88,8 @@ public class PlayerInput : MonoBehaviour
 
     private void ResizeSelectionBox()
     {
-        float width = Input.mousePosition.x - _startMousePosition.x;
-        float height = Input.mousePosition.y - _startMousePosition.y;
+        float width = Mouse.current.position.ReadValue().x - _startMousePosition.x;
+        float height = Mouse.current.position.ReadValue().y - _startMousePosition.y;
         _selectionBox.anchoredPosition = _startMousePosition + new Vector2(width / 2, height / 2);
         _selectionBox.sizeDelta = new Vector2(Mathf.Abs(width), Mathf.Abs(height));
 
