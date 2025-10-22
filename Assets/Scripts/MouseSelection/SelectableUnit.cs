@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class SelectableUnit : MonoBehaviour
 {
+    [SerializeField]
     private SpriteRenderer _spriteRenderer;
     void Awake()
     {

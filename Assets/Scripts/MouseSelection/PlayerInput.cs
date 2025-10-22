@@ -57,7 +57,12 @@ public class PlayerInput : MonoBehaviour
             newlySelectedUnits.Clear();
             deselectedUnits.Clear();
 
-            if (Physics.Raycast(_camera.ScreenPointToRay(Mouse.current.position.ReadValue()), out RaycastHit hit, _unitMask)
+            // #if ENABLE_INPUT_SYSTEM
+            // #end
+
+            // Debug.Log(Mouse.current.position.ReadValue());
+            
+            if (Physics.Raycast(_camera.ScreenPointToRay(new Vector3(Mouse.current.position.ReadValue().x, Mouse.current.position.ReadValue().y, _camera.transform.position.y)), out RaycastHit hit, _unitMask)
                 && hit.collider.TryGetComponent<SelectableUnit>(out SelectableUnit unit))
             {
                 if (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed)
