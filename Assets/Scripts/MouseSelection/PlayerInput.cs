@@ -14,6 +14,8 @@ public class PlayerInput : MonoBehaviour
     private LayerMask _floorMask;
     [SerializeField]
     private float DragDelay = 0.1f;
+    [SerializeField]
+    private Transform _playerPlaceTarget;
 
     private float _dragDelay = 0.1f;
     private float _mouseDownTime;
@@ -29,7 +31,7 @@ public class PlayerInput : MonoBehaviour
 
     private void HandleSelectionInputs()
     {
-        if (Mouse.current.leftButton.isPressed && _mouseDownTime == 0f) 
+        if (Mouse.current.leftButton.isPressed && _mouseDownTime == 0f)
         {
             _selectionBox.sizeDelta = Vector2.zero;
             _selectionBox.gameObject.SetActive(true);
@@ -61,7 +63,7 @@ public class PlayerInput : MonoBehaviour
             // #end
 
             // Debug.Log(Mouse.current.position.ReadValue());
-            
+
             if (Physics.Raycast(_camera.ScreenPointToRay(new Vector3(Mouse.current.position.ReadValue().x, Mouse.current.position.ReadValue().y, _camera.transform.position.y)), out RaycastHit hit, _unitMask)
                 && hit.collider.TryGetComponent<SelectableUnit>(out SelectableUnit unit))
             {
@@ -88,6 +90,17 @@ public class PlayerInput : MonoBehaviour
             }
 
             _mouseDownTime = 0f;
+        }
+
+        if (Mouse.current.rightButton.wasPressedThisFrame)
+        {
+            if (Physics.Raycast(_camera.ScreenPointToRay(new Vector3(Mouse.current.position.ReadValue().x, Mouse.current.position.ReadValue().y, _camera.transform.position.y)), out RaycastHit hit, _floorMask))
+            {
+                _playerPlaceTarget.position = hit.point;
+                // Debug.Log("Moving to " + hit.point);
+                // Create a cube at the hit point
+                // Instantiate(GameObject.CreatePrimitive(PrimitiveType.Cube), hit.point, Quaternion.identity);
+            }
         }
     }
 

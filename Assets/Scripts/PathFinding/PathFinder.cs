@@ -108,26 +108,26 @@ public class PathFinder : MonoBehaviour
         }
     }
 
-    void OnDrawGizmos()
-    {
-        if (path != null)
-        {
-            path.DrawWithGizmos();
-            // for (int i = targetIndex; i < path.Length; i++)
-            // {
-            //     Gizmos.color = Color.green;
-            //     Gizmos.DrawCube(path[i], Vector3.one * 0.2f);
+    // void OnDrawGizmos()
+    // {
+    //     if (path != null)
+    //     {
+    //         path.DrawWithGizmos();
+    //         // for (int i = targetIndex; i < path.Length; i++)
+    //         // {
+    //         //     Gizmos.color = Color.green;
+    //         //     Gizmos.DrawCube(path[i], Vector3.one * 0.2f);
 
-            //     if (i == targetIndex)
-            //     {
-            //         Gizmos.DrawLine(transform.position, path[i]);
-            //     }
-            //     else
-            //     {
-            //         Gizmos.DrawLine(path[i - 1], path[i]);
-            //     }
-            // }
-        }
-    }
+    //         //     if (i == targetIndex)
+    //         //     {
+    //         //         Gizmos.DrawLine(transform.position, path[i]);
+    //         //     }
+    //         //     else
+    //         //     {
+    //         //         Gizmos.DrawLine(path[i - 1], path[i]);
+    //         //     }
+    //         // }
+    //     }
+    // }
 
 }

@@ -187,22 +187,22 @@ public class TerrainGrid : MonoBehaviour
         return grid[x, y];
     }
 
-    void OnDrawGizmos()
-    {
-        Gizmos.DrawWireCube(transform.position, new Vector3(GridWorldSize.x, 1, GridWorldSize.y));
+    // void OnDrawGizmos()
+    // {
+    //     Gizmos.DrawWireCube(transform.position, new Vector3(GridWorldSize.x, 1, GridWorldSize.y));
 
-        if (grid != null && displayGridGizmos)
-        {
-            foreach (Node n in grid)
-            {
-                Gizmos.color = Color.Lerp(Color.white, Color.black, Mathf.InverseLerp(minPenalty, maxPenalty, n.movementPenalty));
-                Gizmos.color = n.isWalkable ? Gizmos.color : Color.red;
-                Gizmos.DrawWireCube(n.wolrdPosition, Vector3.one * nodeDiameter);
-            }
-        }
-    }
+    //     if (grid != null && displayGridGizmos)
+    //     {
+    //         foreach (Node n in grid)
+    //         {
+    //             Gizmos.color = Color.Lerp(Color.white, Color.black, Mathf.InverseLerp(minPenalty, maxPenalty, n.movementPenalty));
+    //             Gizmos.color = n.isWalkable ? Gizmos.color : Color.red;
+    //             Gizmos.DrawWireCube(n.wolrdPosition, Vector3.one * nodeDiameter);
+    //         }
+    //     }
+    // }
 
-    [System.Serializable]
+    [Serializable]
     public class TerrainType
     {
         public LayerMask mask;
