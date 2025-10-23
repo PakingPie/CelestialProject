@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-
+using static GlobalHelper;
 // [ExecuteInEditMode]
 public class LaserTest : MonoBehaviour
 {
@@ -17,55 +17,50 @@ public class LaserTest : MonoBehaviour
     [Tooltip("Duration of the laser effect in seconds.")]
     public float LaserEffectDuration = 2.5f;
     public float TurretRotateSpeed = 5f;
+    public int LaserDamageCap = 10;
+    public int LaserDPS = 1;
 
-    private Transform _targetPoint;
+    private GameObject _targetGO;
 
 
     void Start()
     {
         InvokeRepeating("Shoot", 0.0f, 5.0f);
         InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
-        // InvokeRepeating("LockOn", 0f, 1.0f / UpdateRate);
+        InvokeRepeating("LockOn", 0f, 2.0f / UpdateRate);
         LaserLineRenderer.SetPosition(0, transform.position);
 
-        if(_targetPoint != null)
+        if (_targetGO != null)
         {
-            LaserLineRenderer.SetPosition(1, _targetPoint.position);
+            LaserLineRenderer.SetPosition(1, _targetGO.transform.position);
         }
     }
     void Update()
     {
         LaserLineRenderer.SetPosition(0, transform.position);
-        LaserLineRenderer.SetPosition(1, _targetPoint.position);
+        LaserLineRenderer.SetPosition(1, _targetGO.transform.position);
     }
 
-    // void LockOn()
-    // {
-    //     Vector3 dir = _targetPoint.position - transform.position;
-    //     Quaternion look_rotation = Quaternion.LookRotation(dir);
-    //     Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
-    //     transform.rotation = Quaternion.Euler(0f, rotation.y, 0f);
-    // }
-    
+    void LockOn()
+    {
+        Vector3 dir = _targetGO.transform.position - transform.position;
+        Quaternion look_rotation = Quaternion.LookRotation(dir);
+        Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
+        transform.rotation = Quaternion.Euler(0f, rotation.y, 0f);
+    }
+
     public void Shoot()
     {
-        // Calculate the angle between the gun and the target point
-        Vector3 dir = _targetPoint.position - transform.position;
-        // If the angle is less than 10 degrees, shoot the laser
-        float angle = Vector3.Angle(transform.forward, dir);
-        if (angle < 10f)
-        {
-            StartCoroutine(LaserBeam());
-        }
+        StartCoroutine(LaserBeam());
     }
 
     public void UpdateTarget()
     {
-        if (_targetPoint != null)
+        if (_targetGO != null)
         {
-            if (Vector3.Distance(transform.position, _targetPoint.position) > LaserActiveRange.y)
+            if (Vector3.Distance(transform.position, _targetGO.transform.position) > LaserActiveRange.y)
             {
-                _targetPoint = null;
+                _targetGO = null;
                 LaserDisable();
             }
             else
@@ -90,12 +85,12 @@ public class LaserTest : MonoBehaviour
 
         if (nearest_enemy && shortest_distance <= LaserActiveRange.y)
         {
-            _targetPoint = nearest_enemy.transform;
+            _targetGO = nearest_enemy;
             Debug.Log("Target Acquired: " + nearest_enemy.name);
         }
         else
         {
-            _targetPoint = null;
+            _targetGO = null;
         }
     }
 
@@ -120,6 +115,7 @@ public class LaserTest : MonoBehaviour
     IEnumerator LaserBeam()
     {
         LaserLineRenderer.material.SetFloat("_Active_Time", 0.0f);
+        // int LaserDamageDealt = 0;
         for (float t = 0.0f; t <= LaserEffectDuration; t += Time.deltaTime)
         {
             yield return null;
@@ -127,9 +123,14 @@ public class LaserTest : MonoBehaviour
             {
                 LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(LaserEffectDuration / 2f - (t - LaserEffectDuration / 2f)));
             }
-            else                            // Fade in
+            else                                // Fade in
             {
                 LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(t));
+            }
+            if (t > 1.0f  && t < LaserEffectDuration - 1.0f)
+            {
+                _targetGO.GetComponent<EnemyVehicle>().TakeDamage(LaserDPS, AmmoType.Energy); // Deal damage over time
+                // LaserDamageDealt += 1;
             }
         }
         // yield return new WaitForSeconds(LaserEffectDuration);

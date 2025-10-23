@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 public class BoidsManager : MonoBehaviour
 {
@@ -57,6 +59,19 @@ public class BoidsManager : MonoBehaviour
         }
 
         boidBuffer.Release();
+    }
+
+
+    public void UpdateBoidList()
+    {
+        boids = FindObjectsByType<Boid>(FindObjectsSortMode.None);
+    }
+
+    public void RemoveBoid(Boid boid)
+    {
+        List<Boid> boidList = new List<Boid>(boids);
+        boidList.Remove(boid);
+        boids = boidList.ToArray();
     }
 
     public struct BoidData

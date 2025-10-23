@@ -362,7 +362,7 @@ MonoBehaviour:
   spawnRadius: 50
   spawnCount: 20
   color: {r: 1, g: 1, b: 1, a: 0}
-  showSpawnRegion: 2
+  showSpawnRegion: 1
   HeightRange: {x: -10, y: 10}
 --- !u!4 &220290812
 Transform:
@@ -694,7 +694,8 @@ MonoBehaviour:
   LaserActiveRange: {x: 50, y: 500}
   LaserEffectDuration: 2
   TurretRotateSpeed: 5
-  BulletPrefab: {fileID: 0}
+  LaserDamageCap: 10
+  LaserDPS: 1
 --- !u!120 &321926417
 LineRenderer:
   serializedVersion: 2
@@ -1301,7 +1302,8 @@ MonoBehaviour:
   LaserActiveRange: {x: 50, y: 500}
   LaserEffectDuration: 3
   TurretRotateSpeed: 5
-  BulletPrefab: {fileID: 0}
+  LaserDamageCap: 10
+  LaserDPS: 1
 --- !u!120 &600151981
 LineRenderer:
   serializedVersion: 2
@@ -1572,6 +1574,8 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 200}
   GunShootInterval: 1
   TurretRotateSpeed: 5
+  BulletPrefab: {fileID: 0}
+  BulletSpawnPoint: {fileID: 0}
 --- !u!1 &833653046
 GameObject:
   m_ObjectHideFlags: 0
@@ -2544,7 +2548,8 @@ MonoBehaviour:
   LaserActiveRange: {x: 50, y: 500}
   LaserEffectDuration: 3
   TurretRotateSpeed: 5
-  BulletPrefab: {fileID: 0}
+  LaserDamageCap: 10
+  LaserDPS: 1
 --- !u!120 &1391807176
 LineRenderer:
   serializedVersion: 2
@@ -3036,9 +3041,10 @@ MonoBehaviour:
   LaserLineRenderer: {fileID: 1588799890}
   UpdateRate: 60
   LaserActiveRange: {x: 50, y: 500}
-  LaserEffectDuration: 3
+  LaserEffectDuration: 2.5
   TurretRotateSpeed: 5
-  BulletPrefab: {fileID: 0}
+  LaserDamageCap: 10
+  LaserDPS: 1
 --- !u!1 &1598901206
 GameObject:
   m_ObjectHideFlags: 0
@@ -3386,7 +3392,8 @@ MonoBehaviour:
   LaserActiveRange: {x: 50, y: 500}
   LaserEffectDuration: 4
   TurretRotateSpeed: 5
-  BulletPrefab: {fileID: 0}
+  LaserDamageCap: 10
+  LaserDPS: 1
 --- !u!120 &1825705449
 LineRenderer:
   serializedVersion: 2

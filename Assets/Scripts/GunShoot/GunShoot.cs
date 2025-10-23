@@ -18,6 +18,9 @@ public class GunShoot : MonoBehaviour
     public float TurretRotateSpeed = 5f;
     private Transform _targetPoint;
 
+    public GameObject BulletPrefab;
+    public Transform BulletSpawnPoint;
+
 
     void Start()
     {
@@ -37,9 +40,10 @@ public class GunShoot : MonoBehaviour
         Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
         transform.rotation = Quaternion.Euler(0f, rotation.y, 0f);
     }
-    
+
     public void Shoot()
     {
+        
     }
 
     public void UpdateTarget()
