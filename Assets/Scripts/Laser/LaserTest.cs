@@ -13,9 +13,10 @@ public class LaserTest : MonoBehaviour
     public int UpdateRate = 60;
 
     [Tooltip("The range within which the laser can target enemies.")]
-    public Vector2 LaserActiveRange = new Vector2(50f, 500f);
+    public Vector2 LaserActiveRange = new Vector2(20f, 300f);
     [Tooltip("Duration of the laser effect in seconds.")]
     public float LaserEffectDuration = 2.5f;
+    public float TurretRotateSpeed = 5f;
 
     private Transform _targetPoint;
 
@@ -24,17 +25,38 @@ public class LaserTest : MonoBehaviour
     {
         InvokeRepeating("Shoot", 0.0f, 5.0f);
         InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
+        // InvokeRepeating("LockOn", 0f, 1.0f / UpdateRate);
         LaserLineRenderer.SetPosition(0, transform.position);
-        LaserLineRenderer.SetPosition(1, _targetPoint.position);
+
+        if(_targetPoint != null)
+        {
+            LaserLineRenderer.SetPosition(1, _targetPoint.position);
+        }
     }
     void Update()
     {
         LaserLineRenderer.SetPosition(0, transform.position);
         LaserLineRenderer.SetPosition(1, _targetPoint.position);
     }
+
+    // void LockOn()
+    // {
+    //     Vector3 dir = _targetPoint.position - transform.position;
+    //     Quaternion look_rotation = Quaternion.LookRotation(dir);
+    //     Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
+    //     transform.rotation = Quaternion.Euler(0f, rotation.y, 0f);
+    // }
+    
     public void Shoot()
     {
-        StartCoroutine(LaserBeam());
+        // Calculate the angle between the gun and the target point
+        Vector3 dir = _targetPoint.position - transform.position;
+        // If the angle is less than 10 degrees, shoot the laser
+        float angle = Vector3.Angle(transform.forward, dir);
+        if (angle < 10f)
+        {
+            StartCoroutine(LaserBeam());
+        }
     }
 
     public void UpdateTarget()
