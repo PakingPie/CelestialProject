@@ -91,7 +91,6 @@ public class LaserTest : MonoBehaviour
         if (nearest_enemy && shortest_distance <= LaserActiveRange.y)
         {
             _targetGO = nearest_enemy;
-            Debug.Log("Target Acquired: " + nearest_enemy.name);
         }
         else
         {
@@ -142,7 +141,6 @@ public class LaserTest : MonoBehaviour
                 {
                     enemyVehicle.TakeDamage(LaserDPS, AmmoType.Energy);
                 }
-                Debug.Log("Laser dealing damage to " + _targetGO.name);
             }
         }
         // yield return new WaitForSeconds(LaserEffectDuration);

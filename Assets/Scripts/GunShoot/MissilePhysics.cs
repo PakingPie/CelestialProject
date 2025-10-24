@@ -4,18 +4,22 @@ using UnityEngine;
 
 public class MissilePhysics : MonoBehaviour
 {
-    public int Velocity = 100;
+    public int Velocity = 10;
     Transform _target;
-    public int Damage = 10;
+    public int Damage = 100;
     public int ExplodeRadius = 5;
+    public float LifeTime = 5f;
+    public int DetonationRadius = 3;
+
     // public GameObject impact_effect;
 
     // Start is called before the first frame update
     void Start()
     {
+        Destroy(gameObject, LifeTime);
     }
 
-    public void seek(Transform target)
+    public void Seek(Transform target)
     {
         _target = target;
     }
@@ -23,15 +27,15 @@ public class MissilePhysics : MonoBehaviour
     {
         if (!_target)
         {
-            Destroy(this.gameObject);
             return;
         }
         Vector3 dir = _target.position - transform.position;
         float distance = Velocity * Time.deltaTime;
 
-        if (dir.magnitude <= distance)
+        if (dir.magnitude <= DetonationRadius)
         {
-            hitTarget();
+            HitTarget();
+            Debug.Log("Missile hit target: " + _target.name);
             return;
         }
 
@@ -39,25 +43,24 @@ public class MissilePhysics : MonoBehaviour
         transform.LookAt(_target);
     }
 
-    void hitTarget()
+    void HitTarget()
     {
-        // GameObject effect = Instantiate(impact_effect, transform.position, transform.rotation);
-        // Destroy(effect.gameObject, 2f);
-        // audio_manager.PlayAudio(explosion_sound);
-        Destroy(this.gameObject);
-        // _target.GetComponent<EnemyMovement>().takenDamage(Damage);
-    }
-
-    void Explode()
-    {
-        Collider[] colliders = Physics.OverlapSphere(transform.position, ExplodeRadius);
-
-        foreach(Collider collider in colliders)
+        if (ExplodeRadius > 0)  // Area damage
         {
-            if(collider.tag == "Foe")
+            Collider[] colliders = Physics.OverlapSphere(transform.position, ExplodeRadius);
+
+            foreach (Collider collider in colliders)
             {
-                collider.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                if (collider.tag == "Foe")
+                {
+                    collider.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                }
             }
         }
+        else    // Direct hit
+        {
+            _target.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+        }
+        Destroy(this.gameObject);
     }
 }

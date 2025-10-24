@@ -1,37 +1,32 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 
-// [ExecuteInEditMode]
-public class GunShoot : MonoBehaviour
+public class MissileLaunch : MonoBehaviour
 {
+    [Header("Missile Settings")]
+    [Tooltip("Prefab of the missile to be launched.")]
+    public GameObject missilePrefab;
 
-    [Header("Gun Settings")]
     [Tooltip("Number of updates per second for the gun targeting system.")]
     public int UpdateRate = 60;
 
     [Tooltip("The range within which the gun can target enemies.")]
-    public Vector2 ActiveRange = new Vector2(5f, 200f);
-    [Tooltip("Duration of the gun shoot effect in seconds.")]
-    public float GunShootInterval = 1.0f;
+    public Vector2 ActiveRange = new Vector2(5f, 300f);
+    public Transform MissileSpawnPoint;
+    public float LaunchInterval = 3f;
     public float TurretRotateSpeed = 5f;
+
     private Transform _targetPoint;
-
-    public GameObject BulletPrefab;
-    public Transform BulletSpawnPoint;
-
 
     void Start()
     {
-        InvokeRepeating("Shoot", 0.0f, GunShootInterval);
+        InvokeRepeating("LaunchMissile", 0.0f, LaunchInterval);
         InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
         InvokeRepeating("LockOn", 0f, 1.0f / UpdateRate);
     }
-
+    
     void LockOn()
     {
-        if(_targetPoint == null)
+        if (_targetPoint == null)
         {
             return;
         }
@@ -41,11 +36,12 @@ public class GunShoot : MonoBehaviour
         transform.rotation = Quaternion.Euler(rotation);
     }
 
-    public void Shoot()
+    void LaunchMissile()
     {
         if (_targetPoint != null || Vector3.Distance(transform.position, _targetPoint.position) < ActiveRange.y)
         {
-            GameObject fired_object = Instantiate(BulletPrefab, BulletSpawnPoint.position, BulletSpawnPoint.rotation);
+            GameObject fired_object = Instantiate(missilePrefab, MissileSpawnPoint.position, MissileSpawnPoint.rotation);
+            fired_object.GetComponent<MissilePhysics>().Seek(_targetPoint);
         }
     }
 
@@ -86,17 +82,4 @@ public class GunShoot : MonoBehaviour
             _targetPoint = null;
         }
     }
-
-
-    public void GunEnable()
-    {
-
-    }
-
-    public void GunDisable()
-    {
-
-    }
-
-
 }
