@@ -27,8 +27,15 @@ public class MissilePhysics : MonoBehaviour
     {
         if (!_target)
         {
-            return;
+            // Lock another target or self-destruct
+            UpdateTarget();
+            if (!_target)
+            {
+                Destroy(gameObject);
+                return;
+            }
         }
+
         Vector3 dir = _target.position - transform.position;
         float distance = Velocity * Time.deltaTime;
 
@@ -43,6 +50,37 @@ public class MissilePhysics : MonoBehaviour
         transform.LookAt(_target);
     }
 
+    public void UpdateTarget()
+    {
+        if (_target != null)
+        {
+            return;
+        }
+
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
+        float shortest_distance = Mathf.Infinity;
+        GameObject nearest_enemy = null;
+
+        foreach (GameObject enemy in enemies)
+        {
+            float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distance_to_enemy < shortest_distance)
+            {
+                shortest_distance = distance_to_enemy;
+                nearest_enemy = enemy;
+            }
+        }
+
+        if (nearest_enemy)
+        {
+            _target = nearest_enemy.transform;
+        }
+        else
+        {
+            _target = null;
+        }
+    }
+
     void HitTarget()
     {
         if (ExplodeRadius > 0)  // Area damage
@@ -53,14 +91,25 @@ public class MissilePhysics : MonoBehaviour
             {
                 if (collider.tag == "Foe")
                 {
+                    // Damage reduce if farther from explosion center
+                    // float distance = Vector3.Distance(transform.position, collider.transform.position);
+                    // int damage = Damage * (int)(1 - distance / ExplodeRadius);
+                    // damage = Mathf.Max(damage, 0);
                     collider.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
                 }
             }
+
         }
         else    // Direct hit
         {
             _target.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
         }
         Destroy(this.gameObject);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, DetonationRadius);
     }
 }
