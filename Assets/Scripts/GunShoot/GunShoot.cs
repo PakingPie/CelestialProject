@@ -24,7 +24,7 @@ public class GunShoot : MonoBehaviour
 
     void Start()
     {
-        InvokeRepeating("Shoot", 0.0f, 5.0f);
+        InvokeRepeating("Shoot", 0.0f, GunShootInterval);
         InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
         InvokeRepeating("LockOn", 0f, 1.0f / UpdateRate);
     }
@@ -38,7 +38,7 @@ public class GunShoot : MonoBehaviour
         Vector3 dir = _targetPoint.position - transform.position;
         Quaternion look_rotation = Quaternion.LookRotation(dir);
         Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
-        transform.rotation = Quaternion.Euler(0f, rotation.y, 0f);
+        transform.rotation = Quaternion.Euler(rotation);
     }
 
     public void Shoot()

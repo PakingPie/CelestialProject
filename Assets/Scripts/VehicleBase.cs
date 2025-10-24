@@ -14,7 +14,7 @@ public abstract class VehicleBase : MonoBehaviour
     {
         throw new NotImplementedException();
     }
-    public virtual void TakeDamage(int damage, AmmoType ammoType)
+    public virtual bool TakeDamage(int damage, AmmoType ammoType)
     {
         throw new NotImplementedException();
     }

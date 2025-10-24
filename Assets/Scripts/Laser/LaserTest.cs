@@ -70,6 +70,7 @@ public class LaserTest : MonoBehaviour
         }
 
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
+
         float shortest_distance = Mathf.Infinity;
         GameObject nearest_enemy = null;
 
@@ -91,6 +92,7 @@ public class LaserTest : MonoBehaviour
         else
         {
             _targetGO = null;
+            LaserDisable();
         }
     }
 
@@ -110,6 +112,7 @@ public class LaserTest : MonoBehaviour
         {
             LaserLineRenderer.enabled = false;
         }
+        StopCoroutine(LaserBeam());
     }
 
     IEnumerator LaserBeam()
@@ -127,10 +130,11 @@ public class LaserTest : MonoBehaviour
             {
                 LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(t));
             }
-            if (t > 1.0f  && t < LaserEffectDuration - 1.0f)
+
+            if (t > 0.5f  && t < LaserEffectDuration - 0.5f)
             {
-                _targetGO.GetComponent<EnemyVehicle>().TakeDamage(LaserDPS, AmmoType.Energy); // Deal damage over time
-                // LaserDamageDealt += 1;
+                var isEnemyDestroyed = _targetGO.GetComponent<EnemyVehicle>().TakeDamage(LaserDPS, AmmoType.Energy); // Deal damage over time
+                Debug.Log("Laser dealing damage to " + _targetGO.name);
             }
         }
         // yield return new WaitForSeconds(LaserEffectDuration);

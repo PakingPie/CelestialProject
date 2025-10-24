@@ -28,7 +28,7 @@ public class EnemyVehicle : VehicleBase
         // Implement attack logic for enemy vehicles
     }
 
-    public override void TakeDamage(int damage, AmmoType ammoType)
+    public override bool TakeDamage(int damage, AmmoType ammoType)
     {
         // Simple damage calculation; can be expanded based on ammoType and armor/shield
         switch (ammoType)
@@ -107,6 +107,8 @@ public class EnemyVehicle : VehicleBase
         {
             DestroyVehicle();
         }
+
+        return HitPoints > 0;
     }
 
     public override void DestroyVehicle()
@@ -118,6 +120,6 @@ public class EnemyVehicle : VehicleBase
             boidManager.RemoveBoid(boid);
         }
 
-        Destroy(gameObject);
+        Destroy(gameObject, 0.5f);
     }
 }
