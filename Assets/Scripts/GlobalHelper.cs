@@ -23,6 +23,9 @@ public static class GlobalHelper
     {
         Kinetic,
         Energy,
-        Explosive
+        Explosive,
+        EMP,
+        Plasma,
+        Pierce
     }
 }

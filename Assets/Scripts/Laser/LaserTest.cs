@@ -43,6 +43,10 @@ public class LaserTest : MonoBehaviour
 
     void LockOn()
     {
+        if(_targetGO == null)
+        {
+            return;
+        }
         Vector3 dir = _targetGO.transform.position - transform.position;
         Quaternion look_rotation = Quaternion.LookRotation(dir);
         Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
@@ -133,7 +137,11 @@ public class LaserTest : MonoBehaviour
 
             if (t > 0.5f  && t < LaserEffectDuration - 0.5f)
             {
-                var isEnemyDestroyed = _targetGO.GetComponent<EnemyVehicle>().TakeDamage(LaserDPS, AmmoType.Energy); // Deal damage over time
+                var enemyVehicle = _targetGO.GetComponent<EnemyVehicle>();
+                if (enemyVehicle != null)
+                {
+                    enemyVehicle.TakeDamage(LaserDPS, AmmoType.Energy);
+                }
                 Debug.Log("Laser dealing damage to " + _targetGO.name);
             }
         }

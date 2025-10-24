@@ -35,6 +35,10 @@ public class GunShoot : MonoBehaviour
 
     void LockOn()
     {
+        if(_targetPoint == null)
+        {
+            return;
+        }
         Vector3 dir = _targetPoint.position - transform.position;
         Quaternion look_rotation = Quaternion.LookRotation(dir);
         Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
