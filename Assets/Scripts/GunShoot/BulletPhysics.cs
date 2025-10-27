@@ -10,6 +10,8 @@ public class BulletPhysics : MonoBehaviour
     private float lifeTimer;
     public int FuseDetonationDistance = 1;
 
+    public GlobalHelper.AmmoType DamageType = GlobalHelper.AmmoType.Kinetic;
+
     internal EnemyVehicle[] enemyVehicles;
     void Start()
     {
@@ -26,7 +28,7 @@ public class BulletPhysics : MonoBehaviour
             float distance = Vector3.Distance(transform.position, enemy.transform.position);
             if (distance < FuseDetonationDistance)
             {
-                var isEnemyDestroyed = enemy.TakeDamage(Damage, GlobalHelper.AmmoType.Kinetic);
+                var isEnemyDestroyed = enemy.TakeDamage(Damage, DamageType);
 
                 if (isEnemyDestroyed)
                 {
@@ -44,7 +46,7 @@ public class BulletPhysics : MonoBehaviour
         //     EnemyVehicle enemy = hitCollider.GetComponent<EnemyVehicle>();
         //     if (enemy != null)
         //     {
-        //         enemy.TakeDamage(Damage, GlobalHelper.AmmoType.Kinetic);
+        //         enemy.TakeDamage(Damage, DamageType);
         //         Destroy(this.gameObject);
         //     }
         // }

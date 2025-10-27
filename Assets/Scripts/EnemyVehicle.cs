@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using static GlobalHelper;
 using UnityEngine.UI;
+using Unity.Burst.Intrinsics;
 
 [ExecuteAlways]
 public class EnemyVehicle : VehicleBase
@@ -13,6 +14,9 @@ public class EnemyVehicle : VehicleBase
     public Image ArmorBar;
     public Image ShieldBar;
     public Shader HealthBarShader;
+    public GameObject Turret;
+    public Transform FireSpawn;
+    public int ShieldRegenerationRate = 1; // Points per second
     void Start()
     {
         HealthBar.GetComponent<Image>().material = new Material(HealthBarShader);
@@ -25,9 +29,9 @@ public class EnemyVehicle : VehicleBase
         ArmorBar.GetComponent<Image>().material = new Material(HealthBarShader);
         ArmorBar.GetComponent<Image>().material.SetInt("_MaxHitPoints", MaxArmorPoints);
         ArmorBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ArmorPoints);
-        ArmorBar.GetComponent<Image>().material.SetVector("_Color1", Color.brown);
-        ArmorBar.GetComponent<Image>().material.SetVector("_Color2", Color.brown);
-        ArmorBar.GetComponent<Image>().material.SetVector("_Color3", Color.brown);
+        ArmorBar.GetComponent<Image>().material.SetVector("_Color1", Color.yellow);
+        ArmorBar.GetComponent<Image>().material.SetVector("_Color2", Color.yellow);
+        ArmorBar.GetComponent<Image>().material.SetVector("_Color3", Color.yellow);
 
         ShieldBar.GetComponent<Image>().material = new Material(HealthBarShader);
         ShieldBar.GetComponent<Image>().material.SetInt("_MaxHitPoints", MaxShieldPoints);
@@ -45,6 +49,7 @@ public class EnemyVehicle : VehicleBase
     public override void Attack()
     {
         // Implement attack logic for enemy vehicles
+
     }
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
@@ -54,65 +59,121 @@ public class EnemyVehicle : VehicleBase
         {
             case AmmoType.Kinetic:  // Strong against shields, weak against armor
                 {
-                    ArmorPoints -= damage / 2;
                     int armorFloatDamage = 0;
-                    if (ArmorPoints < 0)
+                    if (ArmorPoints > 0)
                     {
-                        armorFloatDamage += -ArmorPoints / 2;
-                        ArmorPoints = 0;
+                        ArmorPoints -= damage / 2;
+                        if (ArmorPoints <= 0)
+                        {
+                            armorFloatDamage += -ArmorPoints / 2;
+                            ArmorPoints = 0;
+                        }
                     }
 
-                    ShieldPoints -= damage * 2;
                     int shieldFloatDamage = 0;
-                    if (ShieldPoints < 0)
+                    if (ShieldPoints > 0)
                     {
-                        shieldFloatDamage += -ShieldPoints / 2;
-                        ShieldPoints = 0;
+                        ShieldPoints -= damage * 2;
+                        if (ShieldPoints <= 0)
+                        {
+                            shieldFloatDamage += -ShieldPoints / 2;
+                            ShieldPoints = 0;
+                        }
                     }
 
-                    damage = armorFloatDamage + shieldFloatDamage;
+
+                    if (ArmorPoints <= 0 && ShieldPoints <= 0)  // Both armor and shield are down, take full damage plus bonus damage
+                    {
+                        damage = (int)(damage * 1.5f) + armorFloatDamage + shieldFloatDamage;
+                    }
+                    else if (ArmorPoints > 0 && ShieldPoints <= 0) // Only shield is down, take half damage
+                    {
+                        damage = (int)(damage * 0.5f) + shieldFloatDamage;
+                    }
+                    else if (ArmorPoints > 0 && ShieldPoints > 0)  // Both armor and shield are still up, take no damage
+                    {
+                        damage = 0;
+                    }
                     break;
                 }
-            case AmmoType.Energy:   // Strong against armor, weak against shields
+            case AmmoType.Energy:   // Strong against armor, weak against shields; 50% damage bonus if both are down
                 {
-                    ArmorPoints -= damage * 2;
                     int armorFloatDamage = 0;
-                    if (ArmorPoints < 0)
+                    if (ArmorPoints > 0)
                     {
-                        armorFloatDamage += -ArmorPoints / 2;
-                        ArmorPoints = 0;
+                        ArmorPoints -= damage * 2;
+                        if (ArmorPoints <= 0)
+                        {
+                            armorFloatDamage += -ArmorPoints / 2;
+                            ArmorPoints = 0;
+                        }
                     }
 
-                    ShieldPoints -= damage / 2;
                     int shieldFloatDamage = 0;
-                    if (ShieldPoints < 0)
+                    if (ShieldPoints > 0)
                     {
-                        shieldFloatDamage += -ShieldPoints / 2;
-                        ShieldPoints = 0;
+                        ShieldPoints -= damage / 2;
+                        if (ShieldPoints <= 0)
+                        {
+                            shieldFloatDamage += -ShieldPoints / 2;
+                            ShieldPoints = 0;
+                        }
                     }
 
-                    damage = armorFloatDamage + shieldFloatDamage;
+                    if (ArmorPoints <= 0 && ShieldPoints <= 0)  // Both armor and shield are down, take full damage plus bonus damage
+                    {
+                        damage = (int)(damage * 1.5f) + armorFloatDamage + shieldFloatDamage;
+                    }
+                    else if (ArmorPoints <= 0 && ShieldPoints > 0) // Only armor is down, take half damage
+                    {
+                        damage = (int)(damage * 0.5f) + armorFloatDamage;
+                    }
+                    else if (ArmorPoints > 0 && ShieldPoints > 0)  // Both armor and shield are still up, take no damage
+                    {
+                        damage = 0;
+                    }
                     break;
                 }
             case AmmoType.Explosive:    // Balanced damage to both armor and shields
                 {
-                    ArmorPoints -= damage;
                     int armorFloatDamage = 0;
-                    if (ArmorPoints < 0)
+                    if (ArmorPoints > 0)
                     {
-                        armorFloatDamage += -ArmorPoints;
-                        ArmorPoints = 0;
+                        ArmorPoints -= damage;
+                        if (ArmorPoints <= 0)
+                        {
+                            armorFloatDamage += -ArmorPoints;
+                            ArmorPoints = 0;
+                        }
                     }
 
-                    ShieldPoints -= damage;
                     int shieldFloatDamage = 0;
-                    if (ShieldPoints < 0)
+                    if (ShieldPoints > 0)
                     {
-                        shieldFloatDamage += -ShieldPoints;
-                        ShieldPoints = 0;
+                        ShieldPoints -= damage;
+                        if (ShieldPoints <= 0)
+                        {
+                            shieldFloatDamage += -ShieldPoints;
+                            ShieldPoints = 0;
+                        }
                     }
 
-                    damage = armorFloatDamage + shieldFloatDamage;
+                    if (ArmorPoints <= 0 && ShieldPoints <= 0) // Both armor and shield are down, deal extra damage to hit points
+                    {
+                        damage *= 2;
+                    }
+                    else if (ArmorPoints <= 0 && ShieldPoints > 0) // Only armor is down, take half damage
+                    {
+                        damage = (int)(damage * 0.5f);
+                    }
+                    else if (ShieldPoints <= 0 && ArmorPoints > 0) // Only shield is down, take three-quarters damage
+                    {
+                        damage = (int)(damage * 0.75f);
+                    }
+                    else if (ArmorPoints > 0 && ShieldPoints > 0) // Both armor and shield are still up, take quarter damage
+                    {
+                        damage = (int)(damage * 0.25f);
+                    }
                     break;
                 }
             case AmmoType.EMP:  // Effective against shields, no direct damage
@@ -123,24 +184,41 @@ public class EnemyVehicle : VehicleBase
                 }
             case AmmoType.Plasma:   // Heavy against shields, light against armor
                 {
-                    // Plasma deals heavy damage to shields but less to armor
-                    ShieldPoints -= damage * 3;
-                    int shieldFloatDamage = 0;
-                    if (ShieldPoints < 0)
-                    {
-                        shieldFloatDamage += -ShieldPoints / 2;
-                        ShieldPoints = 0;
-                    }
-
-                    ArmorPoints -= damage / 2;
                     int armorFloatDamage = 0;
-                    if (ArmorPoints < 0)
+                    if (ArmorPoints > 0)
                     {
-                        armorFloatDamage += -ArmorPoints / 2;
-                        ArmorPoints = 0;
+                        ArmorPoints -= damage / 2;
+                        if (ArmorPoints <= 0)
+                        {
+                            armorFloatDamage += -ArmorPoints / 2;
+                            ArmorPoints = 0;
+                        }
                     }
 
-                    damage = armorFloatDamage + shieldFloatDamage;
+                    int shieldFloatDamage = 0;
+                    if (ShieldPoints > 0)
+                    {
+                        ShieldPoints -= damage * 3;
+                        if (ShieldPoints <= 0)
+                        {
+                            shieldFloatDamage += -ShieldPoints / 2;
+                            ShieldPoints = 0;
+                        }
+                    }
+
+
+                    if (ArmorPoints <= 0 && ShieldPoints <= 0)  // Both armor and shield are down, take full damage plus bonus damage
+                    {
+                        damage = (int)(damage * 1.25f) + armorFloatDamage + shieldFloatDamage;
+                    }
+                    else if (ArmorPoints <= 0 && ShieldPoints > 0) // Only shield is down, take half damage
+                    {
+                        damage = (int)(damage * 0.5f) + shieldFloatDamage;
+                    }
+                    else if (ArmorPoints > 0 && ShieldPoints > 0)  // Both armor and shield are still up, take no damage
+                    {
+                        damage = 0;
+                    }
                     break;
                 }
             case AmmoType.Pierce:   // Ignores armor, shield, full damage to hit points
@@ -150,6 +228,7 @@ public class EnemyVehicle : VehicleBase
         }
 
         HitPoints -= damage;
+        // Debug.Log($"EnemyVehicle took {damage} damage, remaining HP: {HitPoints}");
         HealthBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", HitPoints);
         ArmorBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ArmorPoints);
         ShieldBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ShieldPoints);

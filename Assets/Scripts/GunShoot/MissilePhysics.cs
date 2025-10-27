@@ -46,7 +46,10 @@ public class MissilePhysics : MonoBehaviour
             return;
         }
 
-        transform.Translate(dir.normalized * distance, Space.World);
+        // transform.Translate(dir.normalized * distance, Space.World);
+        // The previous line results in a very straight movement, so we use MoveTowards for smoother motion
+        transform.position = Vector3.MoveTowards(transform.position, _target.position, distance);
+
         transform.LookAt(_target);
     }
 
