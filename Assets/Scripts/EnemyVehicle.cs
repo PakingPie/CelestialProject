@@ -14,6 +14,8 @@ public class EnemyVehicle : VehicleBase
     public Image ArmorBar;
     public Image ShieldBar;
     public Shader HealthBarShader;
+    public Shader EnergyShieldShader;
+    public GameObject ShieldEffect;
     public GameObject Turret;
     public Transform FireSpawn;
     public int ShieldRegenerationRate = 1; // Points per second
@@ -39,6 +41,9 @@ public class EnemyVehicle : VehicleBase
         ShieldBar.GetComponent<Image>().material.SetVector("_Color1", Color.cyan);
         ShieldBar.GetComponent<Image>().material.SetVector("_Color2", Color.cyan);
         ShieldBar.GetComponent<Image>().material.SetVector("_Color3", Color.cyan);
+
+        ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial = new Material(EnergyShieldShader);
+        ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", 1.0f);
     }
 
     public override void Move()
@@ -232,6 +237,8 @@ public class EnemyVehicle : VehicleBase
         HealthBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", HitPoints);
         ArmorBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ArmorPoints);
         ShieldBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ShieldPoints);
+
+        ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", ShieldPoints / (float)MaxShieldPoints);
 
         if (HitPoints <= 0)
         {
