@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 public class GunshotTest : MonoBehaviour
 {
-    public float RippleEffectTime = 1.0f;
+    public float RippleEffectTime = 5.0f;
     public float RippleRadius = 0.1f;
     public void Shoot()
     {
@@ -12,8 +12,9 @@ public class GunshotTest : MonoBehaviour
         Physics.Raycast(transform.position, transform.forward, out hit);
         if (hit.collider != null)
         {
-            hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetVector("_Center", hit.point);
-            StartCoroutine(RippleEffect(hit));
+            // hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetVector("_Center", hit.point);
+            // StartCoroutine(RippleEffect(hit));
+            hit.collider.gameObject.GetComponent<ShieldHitEffect>().GetHit(hit);
         }
     }
 
@@ -25,6 +26,8 @@ public class GunshotTest : MonoBehaviour
             elapsed += Time.deltaTime;
             float rippleStrength = Mathf.Lerp(0.0f, RippleRadius, elapsed / RippleEffectTime);
             hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Radius", rippleStrength);
+            hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Hardness", 1.0f - (elapsed / RippleEffectTime));
+
             yield return null;
         }
         hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Radius", 0f);
