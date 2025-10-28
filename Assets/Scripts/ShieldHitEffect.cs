@@ -35,10 +35,9 @@ public class ShieldHitEffect : MonoBehaviour
 
     public void GetHit(RaycastHit hit)
     {
-        _currRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.R8);
+        _currRT = new RenderTexture(_textureSize, _textureSize, 24);
         TempGO.GetComponent<MeshRenderer>().material.SetTexture("_HitEffectRT", _currRT);
 
-        Debug.Log(_currRT.isReadable);
         _hitEffectMaterial = GetComponent<MeshRenderer>().sharedMaterial;
         _hitEffectMaterial.SetVector("_Center", hit.point);
 
@@ -58,13 +57,13 @@ public class ShieldHitEffect : MonoBehaviour
             float rippleStrength = Mathf.Lerp(0.0f, RippleRadius, elapsed / RippleEffectTime);
             _hitEffectMaterial.SetFloat("_Radius", rippleStrength);
             _hitEffectMaterial.SetFloat("_Hardness", 1.0f - (elapsed / RippleEffectTime));
-            Graphics.Blit(_currRT, _currRT, _hitEffectMaterial);
             yield return null;
+            Graphics.Blit(null, _currRT, _hitEffectMaterial);
         }
         _hitEffectMaterial.SetFloat("_Radius", 0f);
 
         yield return null;
-        Graphics.Blit(_currRT, _currRT, _hitEffectMaterial);
+        Graphics.Blit(null, _currRT, _hitEffectMaterial);
     }
 
     IEnumerator HitEffect(RaycastHit hit)

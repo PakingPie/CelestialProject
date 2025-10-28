@@ -282,7 +282,7 @@ Transform:
   m_GameObject: {fileID: 655787698}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.155, y: 0.123, z: -1.5}
+  m_LocalPosition: {x: -0.101, y: 0.256, z: -1.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -330,7 +330,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _HitEffectRT:
-        m_Texture: {fileID: 1657989122}
+        m_Texture: {fileID: 1671727554}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -600,13 +600,13 @@ Transform:
   m_GameObject: {fileID: 1320961421}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.063, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 4.46}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!84 &1657989122
+--- !u!84 &1671727554
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -618,11 +618,11 @@ RenderTexture:
     Hash: 00000000000000000000000000000000
   m_IsAlphaChannelOptional: 0
   serializedVersion: 6
-  m_Width: 256
-  m_Height: 256
+  m_Width: 512
+  m_Height: 512
   m_AntiAliasing: 1
   m_MipCount: -1
-  m_DepthStencilFormat: 0
+  m_DepthStencilFormat: 94
   m_ColorFormat: 4
   m_MipMap: 0
   m_GenerateMips: 1
@@ -879,8 +879,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
   RippleEffectTime: 0.5
-  RippleRadius: 2
-  _textureSize: 256
+  RippleRadius: 1
+  _textureSize: 512
   CombineShader: {fileID: 4800000, guid: 5c74cb195c4b09a43839bdee4e5d7803, type: 3}
   HitEffectShader: {fileID: -6465566751694194690, guid: 882933e06dc0d0e4aa64db3cda68e64c, type: 3}
   TempGO: {fileID: 1320961421}

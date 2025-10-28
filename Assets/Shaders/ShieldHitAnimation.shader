@@ -6,20 +6,20 @@ Shader "Unlit/ShieldHitAnimation"
     }
     SubShader
     {
-        Tags {"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"  }
+        Tags {"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
 
         Pass
         {
-            Cull Back
+            Cull Off
             ZWrite On
             ZTest LEqual
             HLSLPROGRAM
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            #pragma target 4.5 
             #pragma vertex vert
             #pragma fragment frag
+            #pragma target 4.5 
 
             TEXTURE2D(_HitEffectRT);
             SAMPLER(sampler_HitEffectRT);
@@ -35,14 +35,16 @@ Shader "Unlit/ShieldHitAnimation"
             {
                 float4 PosHCS : SV_POSITION;
                 float2 UV : TEXCOORD0;
+                float3 PosWS : TEXCOORD1;
             };
 
 
             v2f vert (appdata v)
             {
-                v2f o;
+                v2f o = (v2f)0;
                 o.PosHCS = TransformObjectToHClip(v.vertex);
                 o.UV = TRANSFORM_TEX(v.uv, _HitEffectRT);
+                o.PosWS = mul(unity_ObjectToWorld, v.vertex).xyz;
                 return o;
             }
 
