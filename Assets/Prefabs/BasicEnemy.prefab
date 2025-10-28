@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -876546973899608171, guid: 0ecca2089310e92469facae548b27810, type: 3}
+  - {fileID: 2100000, guid: f790f40b5ef2be44681ec8ec9eccbc3c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -273,6 +273,7 @@ GameObject:
   - component: {fileID: 3109858766895225120}
   - component: {fileID: -2094783752960322070}
   - component: {fileID: -6321029497098750570}
+  - component: {fileID: 3670135770272380480}
   m_Layer: 8
   m_Name: BasicEnemy
   m_TagString: Foe
@@ -368,6 +369,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &3670135770272380480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4103674997823826176}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a413cac27f96b0d4db5adc212e01cf6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
+  TextureSize: 128
+  ShieldHitTexture: {fileID: 8400000, guid: b89868deb2edc1d4f9228e0665e2a161, type: 2}
+  ShieldObject: {fileID: 124679239445400308}
+  HitEffectShader: {fileID: 4800000, guid: ea8fcb174a37f3c42b530f70b53a4719, type: 3}
+  CombineShader: {fileID: 4800000, guid: 5c74cb195c4b09a43839bdee4e5d7803, type: 3}
 --- !u!1 &4262406418400434559
 GameObject:
   m_ObjectHideFlags: 0
@@ -544,7 +562,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6894111711972518283}
-  m_LocalRotation: {x: 0.5205834, y: 0.01244039, z: -0.007586267, w: 0.8536865}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 1
