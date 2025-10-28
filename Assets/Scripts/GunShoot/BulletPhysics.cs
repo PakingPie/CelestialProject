@@ -26,10 +26,19 @@ public class BulletPhysics : MonoBehaviour
                 break;
             }
             float distance = Vector3.Distance(transform.position, enemy.transform.position);
+            
             if (distance < FuseDetonationDistance)
             {
-                var isEnemyDestroyed = enemy.TakeDamage(Damage, DamageType);
+                RaycastHit hit;
+                Ray ray = new Ray(transform.position - transform.right, transform.right);
+                Physics.Raycast(ray, out hit);
+                if(hit.collider != null)
+                {
+                    Debug.Log("Hit Shield Effect");
+                    enemy.GetComponentInChildren<ShieldHitEffect>().GetHit(hit);
+                }
 
+                var isEnemyDestroyed = enemy.TakeDamage(Damage, DamageType);
                 if (isEnemyDestroyed)
                 {
                     Destroy(this.gameObject, 0.01f);
