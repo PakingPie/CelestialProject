@@ -6,28 +6,26 @@ using UnityEngine.Rendering;
 // [ExecuteInEditMode]
 public class ShieldHitEffect : MonoBehaviour
 {
+    [SerializeField] private int _textureSize = 128;
     public Shader CombineShader;
     public Shader HitEffectShader;
     private RenderTexture _hitEffectRT;
 
-    private Material _material;
-
-    private float _rippleTime = 100.0f;
+    private Material _material, combineMaterial, hitEffectMaterial;
     void Start()
     {
         _material = GetComponent<MeshRenderer>().sharedMaterial;
+        _hitEffectRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.ARGB32);
+        combineMaterial = new Material(CombineShader);
+        hitEffectMaterial = new Material(HitEffectShader);
     }
 
     public void GetHit(RaycastHit hit)
     {
-        _material.SetVector("_Ripple_Origin", hit.transform.position);
-        _rippleTime = _material.GetFloat("_Ripple_Thickness") * -2.0f;
     }
     
     private void Update()
     {
-        _rippleTime += Time.deltaTime;
-        _material.SetFloat("_Ripple_Time", _rippleTime);
     }
 
 }
