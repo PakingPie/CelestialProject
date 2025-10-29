@@ -124,8 +124,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a413cac27f96b0d4db5adc212e01cf6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
-  CombineShader: {fileID: 0}
-  HitEffectShader: {fileID: 0}
+  RippleEffectTime: 1
+  RippleRadius: 1
 --- !u!1 &1007471231402458588
 GameObject:
   m_ObjectHideFlags: 0
@@ -348,8 +348,8 @@ MonoBehaviour:
   MaxHitPoints: 100
   ArmorPoints: 50
   MaxArmorPoints: 50
-  ShieldPoints: 50
-  MaxShieldPoints: 50
+  ShieldPoints: 500
+  MaxShieldPoints: 500
   Speed: 10
   FactionType: 1
   Type: 0
@@ -381,7 +381,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 5
+  m_Radius: 7.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4262406418400434559
 GameObject:

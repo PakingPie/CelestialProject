@@ -30,11 +30,9 @@ public class BulletPhysics : MonoBehaviour
             if (distance < FuseDetonationDistance)
             {
                 RaycastHit hit;
-                Ray ray = new Ray(transform.position - transform.right, transform.right);
-                Physics.Raycast(ray, out hit);
+                Physics.Raycast(transform.position + transform.forward, -transform.forward, out hit);
                 if(hit.collider != null)
                 {
-                    Debug.Log("Hit Shield Effect");
                     enemy.GetComponentInChildren<ShieldHitEffect>().GetHit(hit);
                 }
 

@@ -37,7 +37,7 @@ Shader "Unlit/CopyFromHitEffect"
             {
                 float4 PosHCS : SV_POSITION;
                 float2 UV : TEXCOORD0;
-                float3 PosOS : TEXCOORD1;
+                float3 PosWS : TEXCOORD1;
             };
 
 
@@ -46,8 +46,7 @@ Shader "Unlit/CopyFromHitEffect"
                 v2f o = (v2f)0;
                 o.PosHCS = TransformObjectToHClip(v.vertex);
                 o.UV = v.uv;
-                o.PosOS = v.vertex.xyz;
-                _Center.xyz = mul((float3x3)unity_WorldToObject, _Center.xyz);
+                o.PosWS = mul(unity_ObjectToWorld, v.vertex).xyz;
                 return o;
             }
 
@@ -58,8 +57,8 @@ Shader "Unlit/CopyFromHitEffect"
 
             half4 frag (v2f i) : SV_Target
             {
-                float mask1 = SphereMask(i.PosOS, _Center.xyz, _Radius, _Hardness);
-                float mask2 = SphereMask(i.PosOS, _Center.xyz, _Radius * 0.5, _Hardness);
+                float mask1 = SphereMask(i.PosWS, _Center.xyz + i.PosWS, _Radius, _Hardness);
+                float mask2 = SphereMask(i.PosWS, _Center.xyz + i.PosWS, _Radius * 0.5, _Hardness);
                 return mask1 - mask2;
             }
             ENDHLSL

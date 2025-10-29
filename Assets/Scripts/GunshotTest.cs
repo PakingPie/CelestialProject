@@ -14,6 +14,8 @@ public class GunshotTest : MonoBehaviour
         {
             // hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetVector("_Center", hit.point);
             // StartCoroutine(RippleEffect(hit));
+            hit.collider.gameObject.GetComponent<ShieldHitEffect>().RippleEffectTime = RippleEffectTime;
+            hit.collider.gameObject.GetComponent<ShieldHitEffect>().RippleRadius = RippleRadius;
             hit.collider.gameObject.GetComponent<ShieldHitEffect>().GetHit(hit);
         }
     }
@@ -26,11 +28,11 @@ public class GunshotTest : MonoBehaviour
             elapsed += Time.deltaTime;
             float rippleStrength = Mathf.Lerp(0.0f, RippleRadius, elapsed / RippleEffectTime);
             hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Radius", rippleStrength);
-            hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Hardness", 1.0f - (elapsed / RippleEffectTime));
+            hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Hardness",1 - elapsed / RippleEffectTime);
 
             yield return null;
         }
-        hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Radius", 0f);
+        hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Radius", 0.0f);
     }
 }
 
