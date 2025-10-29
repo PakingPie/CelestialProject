@@ -38,7 +38,7 @@ public class MissileLaunch : MonoBehaviour
 
     void LaunchMissile()
     {
-        if (_targetPoint != null || Vector3.Distance(transform.position, _targetPoint.position) < ActiveRange.y)
+        if (_targetPoint != null && Vector3.Distance(transform.position, _targetPoint.position) < ActiveRange.y)
         {
             GameObject fired_object = Instantiate(missilePrefab, MissileSpawnPoint.position, MissileSpawnPoint.rotation);
             fired_object.GetComponent<MissilePhysics>().Seek(_targetPoint);

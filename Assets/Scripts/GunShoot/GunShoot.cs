@@ -43,7 +43,7 @@ public class GunShoot : MonoBehaviour
 
     public void Shoot()
     {
-        if (_targetPoint != null || Vector3.Distance(transform.position, _targetPoint.position) < ActiveRange.y)
+        if (_targetPoint != null && Vector3.Distance(transform.position, _targetPoint.position) < ActiveRange.y)
         {
             GameObject fired_object = Instantiate(BulletPrefab, BulletSpawnPoint.position, BulletSpawnPoint.rotation);
         }

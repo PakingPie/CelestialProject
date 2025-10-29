@@ -11,8 +11,6 @@ GameObject:
   - component: {fileID: 3449610485239219872}
   - component: {fileID: 8381651718303398464}
   - component: {fileID: 2368025303835637834}
-  - component: {fileID: 6248139122430881729}
-  - component: {fileID: 1192435592245252296}
   m_Layer: 8
   m_Name: Shield
   m_TagString: Untagged
@@ -91,41 +89,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &6248139122430881729
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 124679239445400308}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &1192435592245252296
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 124679239445400308}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a413cac27f96b0d4db5adc212e01cf6f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
-  RippleEffectTime: 1
-  RippleRadius: 1
 --- !u!1 &1007471231402458588
 GameObject:
   m_ObjectHideFlags: 0
@@ -285,9 +248,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1510646433887854243}
+  - component: {fileID: -6321029497098750570}
   - component: {fileID: 3109858766895225120}
   - component: {fileID: -2094783752960322070}
-  - component: {fileID: -6321029497098750570}
+  - component: {fileID: 6621555047069784344}
   m_Layer: 8
   m_Name: BasicEnemy
   m_TagString: Foe
@@ -313,6 +277,27 @@ Transform:
   - {fileID: 3449610485239219872}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &-6321029497098750570
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4103674997823826176}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 8
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &3109858766895225120
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -348,8 +333,8 @@ MonoBehaviour:
   MaxHitPoints: 100
   ArmorPoints: 50
   MaxArmorPoints: 50
-  ShieldPoints: 500
-  MaxShieldPoints: 500
+  ShieldPoints: 100
+  MaxShieldPoints: 100
   Speed: 10
   FactionType: 1
   Type: 0
@@ -362,27 +347,21 @@ MonoBehaviour:
   Turret: {fileID: 0}
   FireSpawn: {fileID: 0}
   ShieldRegenerationRate: 1
---- !u!135 &-6321029497098750570
-SphereCollider:
+--- !u!114 &6621555047069784344
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4103674997823826176}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 7.5
-  m_Center: {x: 0, y: 0, z: 0}
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a413cac27f96b0d4db5adc212e01cf6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
+  RippleEffectTime: 1
+  RippleRadius: 2
+  ShieldGO: {fileID: 124679239445400308}
 --- !u!1 &4262406418400434559
 GameObject:
   m_ObjectHideFlags: 0

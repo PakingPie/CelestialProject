@@ -13,6 +13,7 @@ public class BulletPhysics : MonoBehaviour
     public GlobalHelper.AmmoType DamageType = GlobalHelper.AmmoType.Kinetic;
 
     internal EnemyVehicle[] enemyVehicles;
+    private RaycastHit _hit;
     void Start()
     {
     }
@@ -29,13 +30,6 @@ public class BulletPhysics : MonoBehaviour
             
             if (distance < FuseDetonationDistance)
             {
-                RaycastHit hit;
-                Physics.Raycast(transform.position + transform.forward, -transform.forward, out hit);
-                if(hit.collider != null)
-                {
-                    enemy.GetComponentInChildren<ShieldHitEffect>().GetHit(hit);
-                }
-
                 var isEnemyDestroyed = enemy.TakeDamage(Damage, DamageType);
                 if (isEnemyDestroyed)
                 {
@@ -67,6 +61,14 @@ public class BulletPhysics : MonoBehaviour
         if (lifeTimer >= LifeTime)
         {
             Destroy(gameObject);
+        }
+
+        
+        Physics.Raycast(transform.position, transform.forward, out _hit);
+        if(_hit.collider != null && Vector3.Distance(_hit.point, transform.position) <= FuseDetonationDistance + 0.1f)
+        {
+            if(_hit.collider.GetComponent<ShieldHitEffect>())
+            _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
         }
     }
 

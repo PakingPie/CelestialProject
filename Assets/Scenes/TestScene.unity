@@ -465,7 +465,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca32a774a3ee37a42a91896792cda5c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GunshotTest
-  RippleEffectTime: 1
+  RippleEffectTime: 0.5
   RippleRadius: 4
 --- !u!33 &655787701
 MeshFilter:
@@ -868,6 +868,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
   RippleEffectTime: 1
   RippleRadius: 0.8
+  ShieldGO: {fileID: 0}
 --- !u!64 &1972868341
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -965,8 +966,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a413cac27f96b0d4db5adc212e01cf6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
-  RippleEffectTime: 1
+  RippleEffectTime: 0.5
   RippleRadius: 4
+  ShieldGO: {fileID: 3774630771858066989}
 --- !u!1 &3774630771858066989
 GameObject:
   m_ObjectHideFlags: 0

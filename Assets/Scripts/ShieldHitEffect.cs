@@ -8,11 +8,11 @@ public class ShieldHitEffect : MonoBehaviour
 {
     public float RippleEffectTime = 0.1f;
     public float RippleRadius = 0.1f;
-
+    public GameObject ShieldGO;
 
     public void GetHit(RaycastHit hit)
     {
-        GetComponent<MeshRenderer>().sharedMaterial.SetVector("_Center", hit.point);
+        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetVector("_Center", hit.point);
         StartCoroutine(RippleEffect(hit));
     }
 
@@ -23,12 +23,12 @@ public class ShieldHitEffect : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float rippleStrength = Mathf.Lerp(RippleRadius, 0.0f, elapsed / RippleEffectTime);
-            GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Radius", 1 - rippleStrength);
-            GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Hardness", Mathf.Clamp01((elapsed / RippleEffectTime)));
+            ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Radius", 1 - rippleStrength);
+            ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Hardness", Mathf.Clamp01((elapsed / RippleEffectTime)));
             yield return null;
         }
-        GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Radius", 0.0f);
-        GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Hardness", 1.0f);
+        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Radius", 0.0f);
+        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Hardness", 1.0f);
     }
 
 }
