@@ -9,7 +9,7 @@ public class GunshotTest : MonoBehaviour
     public void Shoot()
     {
         RaycastHit hit;
-        Physics.Raycast(transform.position, transform.forward, out hit);
+        Physics.Raycast(transform.position - transform.forward, transform.forward, out hit);
         if (hit.collider != null)
         {
             // hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetVector("_Center", hit.point);

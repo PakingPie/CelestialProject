@@ -11,19 +11,20 @@ public class ShieldHitEffect : MonoBehaviour
     [SerializeField] private int _textureSize = 128;
     public Shader CombineShader;
     public Shader HitEffectShader;
-    private RenderTexture _hitEffectRT;
+    private RenderTexture _objectRT;
     private RenderTexture _currRT;
     private RenderTexture _prevRT;
     private RenderTexture _tempRT;
 
-    public GameObject TempGO;
+    public GameObject CopyGO;
+    public GameObject CombineGO;
 
     private Material _material, _combineMaterial;
     private Material _hitEffectMaterial, _hitEffectForCombineMaterial;
 
     // void Start()
     // {
-    //     _hitEffectRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf);
+    //     _objectRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf);
     //     _currRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf);
     //     _prevRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf);
     //     _tempRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf);
@@ -37,16 +38,28 @@ public class ShieldHitEffect : MonoBehaviour
 
     public void GetHit(RaycastHit hit)
     {
-        _currRT = new RenderTexture(_textureSize, _textureSize, 24);
-        TempGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitEffectRT", _currRT);
+        _currRT.Release();
+        _objectRT.Release();
+        _currRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        _objectRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
 
-        _hitEffectMaterial = GetComponent<MeshRenderer>().sharedMaterial;
-        _hitEffectForCombineMaterial = new Material(Shader.Find("Hidden/HitEffectForCombine"));
-        _hitEffectMaterial.SetVector("_Center", hit.point);
-        _hitEffectForCombineMaterial.SetVector("_Center", hit.point);
+        CombineGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_ObjectRT", _objectRT);
+        CombineGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_CurrentRT", _currRT);
 
-        StartCoroutine(RippleEffect(hit));
-        // StartCoroutine(HitEffect(hit));
+        CopyGO.GetComponent<MeshRenderer>().sharedMaterial.SetVector("_Center", hit.point);
+        GetComponent<MeshRenderer>().sharedMaterial.SetVector("_Center", hit.point);
+
+        _combineMaterial = new Material(CombineShader);
+
+        // Initial _currRT with _hitEffectMaterial
+        Graphics.Blit(null, _currRT, CopyGO.GetComponent<MeshRenderer>().sharedMaterial);
+
+        // Blit _currRT to _objectRT using _combineMaterial
+        Graphics.Blit(_currRT, _objectRT, _combineMaterial, pass: 0);
+        // Graphics.Blit(null, _objectRT, _combineMaterial, pass: 1);
+        // Graphics.Blit(_currRT, _objectRT);
+
+        // StartCoroutine(RippleEffect(hit));
 
         // -------------------------------------
         // if (SourceRT != null)
@@ -65,8 +78,8 @@ public class ShieldHitEffect : MonoBehaviour
         // DestRT.Create();
         // DestRT.filterMode = FilterMode.Bilinear;
         // DestRT.wrapMode = TextureWrapMode.Clamp;
-    
-        // TempGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitEffectRT", DestRT);
+
+        // CombineGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitEffectRT", DestRT);
         // _hitEffectMaterial = GetComponent<MeshRenderer>().sharedMaterial;
         // Graphics.Blit(null, SourceRT, _hitEffectMaterial);
         // Graphics.Blit(SourceRT, DestRT);
@@ -93,26 +106,9 @@ public class ShieldHitEffect : MonoBehaviour
         yield return null;
         Graphics.Blit(null, _currRT, _hitEffectForCombineMaterial);
     }
-
+    // This coroutine handles the multi-hit effect rendering    
     IEnumerator HitEffect(RaycastHit hit)
     {
-        _combineMaterial.SetTexture("_ObjectRT", _hitEffectRT);
-        _combineMaterial.SetTexture("_CurrentRT", _currRT);
-        Graphics.Blit(null, _tempRT, _combineMaterial);
-
-        RenderTexture temp1 = _tempRT;
-        _tempRT = _currRT;
-        _currRT = temp1;
-
-        StartCoroutine(RippleEffect(hit));
-        Graphics.Blit(null, _tempRT, _hitEffectMaterial);
-        Graphics.Blit(_tempRT, _prevRT);
-
-        RenderTexture temp2 = _tempRT;
-        _tempRT = _currRT;
-        _currRT = temp2;
-
-        yield return null;
-        StartCoroutine(HitEffect(hit));
+        yield return StartCoroutine(RippleEffect(hit));
     }
 }

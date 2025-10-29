@@ -1,8 +1,7 @@
-Shader "Hidden/HitEffectForCombine"
+Shader "Unlit/CopyFromHitEffect"
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
         _Center ("Center", Vector) = (0,0,0,0)
         _Radius ("Radius", Float) = 0.5
         _Hardness ("Hardness", Float) = 0.5
@@ -24,10 +23,6 @@ Shader "Hidden/HitEffectForCombine"
             #pragma fragment frag
             #pragma target 4.5
 
-            TEXTURE2D(_MainTex);
-            SAMPLER(sampler_MainTex);
-            float4 _MainTex_ST;
-
             float4 _Center;
             float _Radius;
             float _Hardness;
@@ -42,7 +37,7 @@ Shader "Hidden/HitEffectForCombine"
             {
                 float4 PosHCS : SV_POSITION;
                 float2 UV : TEXCOORD0;
-                float3 PosWS : TEXCOORD1;
+                float3 PosOS : TEXCOORD1;
             };
 
 
@@ -51,7 +46,8 @@ Shader "Hidden/HitEffectForCombine"
                 v2f o = (v2f)0;
                 o.PosHCS = TransformObjectToHClip(v.vertex);
                 o.UV = v.uv;
-                o.PosWS = mul(unity_ObjectToWorld, v.vertex).xyz;
+                o.PosOS = v.vertex.xyz;
+                _Center.xyz = mul((float3x3)unity_WorldToObject, _Center.xyz);
                 return o;
             }
 
@@ -62,11 +58,9 @@ Shader "Hidden/HitEffectForCombine"
 
             half4 frag (v2f i) : SV_Target
             {
-                float mask1 = SphereMask(i.PosWS - 0.5, _Center.xyz, _Radius, _Hardness);
-                float mask2 = SphereMask(i.PosWS - 0.5, _Center.xyz, _Radius * 0.5, _Hardness);
+                float mask1 = SphereMask(i.PosOS, _Center.xyz, _Radius, _Hardness);
+                float mask2 = SphereMask(i.PosOS, _Center.xyz, _Radius * 0.5, _Hardness);
                 return mask1 - mask2;
-                // return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.UV + 0.5);
-                // return float4(i.PosWS, 1.0);
             }
             ENDHLSL
         }
