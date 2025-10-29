@@ -1,4 +1,4 @@
-Shader "Custom/HitEffect"
+Shader "Hidden/HitEffectForCombine"
 {
     Properties
     {
@@ -62,9 +62,11 @@ Shader "Custom/HitEffect"
 
             half4 frag (v2f i) : SV_Target
             {
-                float mask1 = SphereMask(i.PosWS, _Center.xyz, _Radius, _Hardness);
-                float mask2 = SphereMask(i.PosWS, _Center.xyz, _Radius * 0.5, _Hardness);
+                float mask1 = SphereMask(i.PosWS - 0.5, _Center.xyz, _Radius, _Hardness);
+                float mask2 = SphereMask(i.PosWS - 0.5, _Center.xyz, _Radius * 0.5, _Hardness);
                 return mask1 - mask2;
+                // return SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.UV + 0.5);
+                // return float4(i.PosWS, 1.0);
             }
             ENDHLSL
         }

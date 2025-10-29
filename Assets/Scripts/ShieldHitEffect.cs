@@ -18,7 +18,9 @@ public class ShieldHitEffect : MonoBehaviour
 
     public GameObject TempGO;
 
-    private Material _material, _combineMaterial, _hitEffectMaterial;
+    private Material _material, _combineMaterial;
+    private Material _hitEffectMaterial, _hitEffectForCombineMaterial;
+
     // void Start()
     // {
     //     _hitEffectRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf);
@@ -36,15 +38,38 @@ public class ShieldHitEffect : MonoBehaviour
     public void GetHit(RaycastHit hit)
     {
         _currRT = new RenderTexture(_textureSize, _textureSize, 24);
-        TempGO.GetComponent<MeshRenderer>().material.SetTexture("_HitEffectRT", _currRT);
+        TempGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitEffectRT", _currRT);
 
         _hitEffectMaterial = GetComponent<MeshRenderer>().sharedMaterial;
+        _hitEffectForCombineMaterial = new Material(Shader.Find("Hidden/HitEffectForCombine"));
         _hitEffectMaterial.SetVector("_Center", hit.point);
+        _hitEffectForCombineMaterial.SetVector("_Center", hit.point);
 
         StartCoroutine(RippleEffect(hit));
-
-
         // StartCoroutine(HitEffect(hit));
+
+        // -------------------------------------
+        // if (SourceRT != null)
+        // {
+        //     SourceRT.Release();
+        // }
+        // SourceRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        // SourceRT.Create();
+        // SourceRT.filterMode = FilterMode.Bilinear;
+        // SourceRT.wrapMode = TextureWrapMode.Clamp;
+        // if (DestRT != null)
+        // {
+        //     DestRT.Release();
+        // }
+        // DestRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        // DestRT.Create();
+        // DestRT.filterMode = FilterMode.Bilinear;
+        // DestRT.wrapMode = TextureWrapMode.Clamp;
+    
+        // TempGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitEffectRT", DestRT);
+        // _hitEffectMaterial = GetComponent<MeshRenderer>().sharedMaterial;
+        // Graphics.Blit(null, SourceRT, _hitEffectMaterial);
+        // Graphics.Blit(SourceRT, DestRT);
 
     }
 
@@ -57,13 +82,16 @@ public class ShieldHitEffect : MonoBehaviour
             float rippleStrength = Mathf.Lerp(0.0f, RippleRadius, elapsed / RippleEffectTime);
             _hitEffectMaterial.SetFloat("_Radius", rippleStrength);
             _hitEffectMaterial.SetFloat("_Hardness", 1.0f - (elapsed / RippleEffectTime));
+            _hitEffectForCombineMaterial.SetFloat("_Radius", rippleStrength);
+            _hitEffectForCombineMaterial.SetFloat("_Hardness", 1.0f - (elapsed / RippleEffectTime));
             yield return null;
-            Graphics.Blit(null, _currRT, _hitEffectMaterial);
+            Graphics.Blit(null, _currRT, _hitEffectForCombineMaterial);
         }
         _hitEffectMaterial.SetFloat("_Radius", 0f);
+        _hitEffectForCombineMaterial.SetFloat("_Radius", 0f);
 
         yield return null;
-        Graphics.Blit(null, _currRT, _hitEffectMaterial);
+        Graphics.Blit(null, _currRT, _hitEffectForCombineMaterial);
     }
 
     IEnumerator HitEffect(RaycastHit hit)
