@@ -60,10 +60,6 @@ Shader "Custom/HitEffect"
                 float mask1 = SphereMask(i.PosWS, _Center.xyz, _Radius, _Hardness);
                 float mask2 = SphereMask(i.PosWS, _Center.xyz, _Radius * 0.5, _Hardness);
                 return mask1 - mask2;
-                // float mask1 = SphereMask(i.PosWS, _Center.xyz, _Radius, _Hardness);
-                // return mask1;
-                // float dist = distance(i.UV, _Center.xy);
-                // return float4(dist, dist, dist, 1);
             }
             ENDHLSL
         }

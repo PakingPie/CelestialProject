@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 // [ExecuteInEditMode]
+#if Test1
 public class ShieldHitEffect : MonoBehaviour
 {
     public float RippleEffectTime = 0.1f;
@@ -32,3 +33,30 @@ public class ShieldHitEffect : MonoBehaviour
     }
 
 }
+#else
+public class ShieldHitEffect : MonoBehaviour
+{
+    public float RippleEffectTime = 1.0f;
+    public float RippleRadius = 0.1f;
+    private RenderTexture _currRT;
+
+    public GameObject ShieldGO;
+    
+    public void GetHit(RaycastHit hit)
+    {
+        if (_currRT == null)
+        {
+            _currRT = new RenderTexture(128, 128, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        }
+        GetComponent<MeshRenderer>().sharedMaterial.SetVector("_Center", hit.textureCoord);
+        GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_MainTex", _currRT);
+
+        RenderTexture tempRT = RenderTexture.GetTemporary(128, 128, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        Graphics.Blit(_currRT, tempRT, GetComponent<MeshRenderer>().sharedMaterial);
+        Graphics.Blit(tempRT, _currRT);
+
+        RenderTexture.ReleaseTemporary(tempRT);
+    }
+
+}
+#endif

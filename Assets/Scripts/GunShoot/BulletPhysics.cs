@@ -63,7 +63,6 @@ public class BulletPhysics : MonoBehaviour
             Destroy(gameObject);
         }
 
-        
         Physics.Raycast(transform.position, transform.forward, out _hit);
         if(_hit.collider != null && Vector3.Distance(_hit.point, transform.position) <= FuseDetonationDistance + 0.1f)
         {
