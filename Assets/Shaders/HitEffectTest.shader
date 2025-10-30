@@ -6,6 +6,7 @@ Shader "Unlit/HitEffectTest"
         _HitTexture ("Hit Texture", 2D) = "white" {}
         _HitTexScale ("Scale", Float) = 0.5
         _HitUV ("Center", Vector) = (0,0,0,0)
+        _Fade ("Fade", Float) = 1.0
     }
     SubShader
     {
@@ -102,6 +103,52 @@ Shader "Unlit/HitEffectTest"
                     return lerp(baseColor, hitColor, hitColor.a);
                 }
                 return baseColor;
+            }
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Fade Effect"
+
+            Cull Off
+            ZWrite On
+            ZTest LEqual
+            HLSLPROGRAM
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 4.5
+
+            sampler2D _MainTex;
+            float _Fade;
+            
+            struct appdata
+            {
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+            };
+
+            struct v2f
+            {
+                float4 PosHCS : SV_POSITION;
+                float2 UV : TEXCOORD0;
+            };
+
+            v2f vert (appdata v)
+            {
+                v2f o = (v2f)0;
+                o.PosHCS = TransformObjectToHClip(v.vertex);
+                o.UV = v.uv;
+                return o;
+            }
+
+            half4 frag (v2f i) : SV_Target
+            {
+                float4 baseColor = tex2Dlod(_MainTex, float4(i.UV, 0, 0)).r;
+                return baseColor * _Fade;
             }
             ENDHLSL
         }

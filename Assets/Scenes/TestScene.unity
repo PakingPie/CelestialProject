@@ -163,7 +163,7 @@ Material:
     - _Radius: 0
     - _Strength: 1
     m_Colors:
-    - _Center: {r: -0.088, g: 0.193, b: -0.45277703, a: 0}
+    - _Center: {r: 0, g: 0, b: 0, a: 0}
     - _Color1: {r: 0.7490196, g: 2.996078, b: 2.996078, a: 1}
     - _Color2: {r: 1.043295, g: 4.173181, b: 5.216475, a: 1}
     - _Color3: {r: 4, g: 4, b: 2, a: 1}
@@ -325,7 +325,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &501917195
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -447,7 +447,7 @@ Transform:
   m_GameObject: {fileID: 655787698}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.088, y: 0.193, z: -0.89}
+  m_LocalPosition: {x: -0.583, y: 0.069, z: -0.311}
   m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -465,8 +465,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca32a774a3ee37a42a91896792cda5c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GunshotTest
-  RippleEffectTime: 0.5
-  RippleRadius: 4
+  HitImpactDuration: 10
+  HitImpactScale: 1
 --- !u!33 &655787701
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -668,7 +668,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &1320961423
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -781,7 +781,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!23 &1972868337
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -837,7 +837,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1972868335}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &1972868339
 Transform:
   m_ObjectHideFlags: 0
@@ -866,9 +866,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a413cac27f96b0d4db5adc212e01cf6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
-  RippleEffectTime: 1
-  RippleRadius: 0.8
-  ShieldGO: {fileID: 0}
+  ShieldGO: {fileID: 1972868335}
+  HitImpactDuration: 10
+  HitImpactScale: 1
+  HitEffectShader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
 --- !u!64 &1972868341
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -890,7 +891,7 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &1514396793114983571
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -948,7 +949,7 @@ Transform:
   m_GameObject: {fileID: 3774630771858066989}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.005, z: 0.014}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -966,9 +967,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a413cac27f96b0d4db5adc212e01cf6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
-  RippleEffectTime: 0.5
-  RippleRadius: 4
   ShieldGO: {fileID: 3774630771858066989}
+  HitImpactDuration: 5
+  HitImpactScale: 0.1
+  HitEffectShader: {fileID: 4800000, guid: a63a745ff69d80e46a11d9e8f34dd690, type: 3}
 --- !u!1 &3774630771858066989
 GameObject:
   m_ObjectHideFlags: 0
@@ -988,7 +990,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!33 &4722383198978162329
 MeshFilter:
   m_ObjectHideFlags: 0

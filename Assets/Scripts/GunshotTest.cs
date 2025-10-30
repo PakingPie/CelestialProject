@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEditor;
 public class GunshotTest : MonoBehaviour
 {
-    public float RippleEffectTime = 5.0f;
-    public float RippleRadius = 0.1f;
+    public float HitImpactDuration = 5.0f;
+    public float HitImpactScale = 0.1f;
     public void Shoot()
     {
         RaycastHit hit;
@@ -14,26 +14,26 @@ public class GunshotTest : MonoBehaviour
         {
             // hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetVector("_Center", hit.point);
             // StartCoroutine(RippleEffect(hit));
-            hit.collider.gameObject.GetComponent<ShieldHitEffect>().RippleEffectTime = RippleEffectTime;
-            hit.collider.gameObject.GetComponent<ShieldHitEffect>().RippleRadius = RippleRadius;
+            hit.collider.gameObject.GetComponent<ShieldHitEffect>().HitImpactDuration = HitImpactDuration;
+            hit.collider.gameObject.GetComponent<ShieldHitEffect>().HitImpactScale = HitImpactScale;
             hit.collider.gameObject.GetComponent<ShieldHitEffect>().GetHit(hit);
         }
     }
 
-    IEnumerator RippleEffect(RaycastHit hit)
-    {
-        float elapsed = 0f;
-        while (elapsed < RippleEffectTime)
-        {
-            elapsed += Time.deltaTime;
-            float rippleStrength = Mathf.Lerp(0.0f, RippleRadius, elapsed / RippleEffectTime);
-            hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Radius", rippleStrength);
-            hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Hardness",1 - elapsed / RippleEffectTime);
+    // IEnumerator RippleEffect(RaycastHit hit)
+    // {
+    //     float elapsed = 0f;
+    //     while (elapsed < HitImpactDuration)
+    //     {
+    //         elapsed += Time.deltaTime;
+    //         float rippleStrength = Mathf.Lerp(0.0f, HitImpactScale, elapsed / HitImpactDuration);
+    //         hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Radius", rippleStrength);
+    //         hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Hardness",1 - elapsed / HitImpactDuration);
 
-            yield return null;
-        }
-        hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Radius", 0.0f);
-    }
+    //         yield return null;
+    //     }
+    //     hit.collider.gameObject.GetComponent<MeshRenderer>().material.SetFloat("_Radius", 0.0f);
+    // }
 }
 
 [CustomEditor(typeof(GunshotTest))]

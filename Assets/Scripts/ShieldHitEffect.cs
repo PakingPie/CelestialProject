@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -7,8 +8,8 @@ using UnityEngine.Rendering;
 #if Test1
 public class ShieldHitEffect : MonoBehaviour
 {
-    public float RippleEffectTime = 0.1f;
-    public float RippleRadius = 0.1f;
+    public float HitImpactDuration = 0.1f;
+    public float HitImpactScale = 0.1f;
     public GameObject ShieldGO;
 
     public void GetHit(RaycastHit hit)
@@ -20,12 +21,12 @@ public class ShieldHitEffect : MonoBehaviour
     IEnumerator RippleEffect(RaycastHit hit)
     {
         float elapsed = 0f;
-        while (elapsed < RippleEffectTime)
+        while (elapsed < HitImpactDuration)
         {
             elapsed += Time.deltaTime;
-            float rippleStrength = Mathf.Lerp(RippleRadius, 0.0f, elapsed / RippleEffectTime);
+            float rippleStrength = Mathf.Lerp(HitImpactScale, 0.0f, elapsed / HitImpactDuration);
             ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Radius", 1 - rippleStrength);
-            ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Hardness", Mathf.Clamp01((elapsed / RippleEffectTime)));
+            ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Hardness", Mathf.Clamp01((elapsed / HitImpactDuration)));
             yield return null;
         }
         ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Radius", 0.0f);
@@ -33,15 +34,15 @@ public class ShieldHitEffect : MonoBehaviour
     }
 
 }
-#else
+#elif Test2
 public class ShieldHitEffect : MonoBehaviour
 {
-    public float RippleEffectTime = 1.0f;
-    public float RippleRadius = 0.1f;
+    public float HitImpactDuration = 1.0f;
+    public float HitImpactScale = 0.1f;
     private RenderTexture _currRT;
 
     public GameObject ShieldGO;
-    
+
     public void GetHit(RaycastHit hit)
     {
         if (_currRT == null)
@@ -56,6 +57,107 @@ public class ShieldHitEffect : MonoBehaviour
         Graphics.Blit(tempRT, _currRT);
 
         RenderTexture.ReleaseTemporary(tempRT);
+    }
+
+}
+#else
+public class ShieldHitEffect : MonoBehaviour
+{
+    public GameObject ShieldGO;
+    public float HitImpactDuration = 1.0f;
+    public float HitImpactScale = 0.1f;
+    private int _textureSize = 64;
+    public Shader HitEffectShader;
+    private RenderTexture _currRT;
+    private RenderTexture _prevRT;
+    private RenderTexture _tempRT;
+
+    private Material _hitEffectMat;
+
+    public void ClearAll()
+    {
+        if (_currRT != null)
+        {
+            RenderTexture.ReleaseTemporary(_currRT);
+            _currRT = null;
+        }
+        if (_prevRT != null)
+        {
+            RenderTexture.ReleaseTemporary(_prevRT);
+            _prevRT = null;
+        }
+        if (_tempRT != null)
+        {
+            RenderTexture.ReleaseTemporary(_tempRT);
+            _tempRT = null;
+        }
+
+        if (_hitEffectMat != null)
+        {
+            _hitEffectMat = null;
+        }
+    }
+
+    public void GetHit(RaycastHit hit)
+    {
+        if (_currRT == null)
+        {
+            _currRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        }
+        if (_prevRT == null)
+        {
+            _prevRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        }
+        if (_tempRT == null)
+        {
+            _tempRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        }
+        if (_hitEffectMat == null)
+        {
+            _hitEffectMat = new Material(HitEffectShader);
+        }
+        GetComponent<MeshRenderer>().sharedMaterial.SetVector("_HitUV", hit.textureCoord);
+        GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_MainTex", _currRT);
+
+
+
+        float elapsed = 0f;
+        StartCoroutine(GetHit(elapsed));
+    }
+
+    IEnumerator GetHit(float timer)
+    {
+        RenderTexture tempRT = RenderTexture.GetTemporary(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        Graphics.Blit(_currRT, tempRT, GetComponent<MeshRenderer>().sharedMaterial, 0);
+        Graphics.Blit(tempRT, _currRT);
+        RenderTexture.ReleaseTemporary(tempRT);
+        _hitEffectMat.SetFloat("_EdgeMax", 0.15f);
+        _hitEffectMat.SetFloat("_Thickness", 0.01f);
+        if (timer < HitImpactDuration)
+        {
+            timer += Time.deltaTime;
+            float strength = Mathf.Lerp(HitImpactScale, 0.0f, timer / HitImpactDuration);
+            _hitEffectMat.SetFloat("_Radius", 1 - strength);
+            yield return null;
+            _hitEffectMat.SetFloat("_Radius", 0.0f);
+            _hitEffectMat.SetFloat("_EdgeMax", 0.0f);
+            _hitEffectMat.SetFloat("_Thickness", 0.0f);
+            StartCoroutine(GetHit(timer));
+        }
+        else
+        {
+            ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Fade", 1 - timer / HitImpactDuration);
+            StartCoroutine(EffectFade(timer));
+        }
+    }
+    
+    IEnumerator EffectFade(float timer)
+    {
+        RenderTexture tempRT = RenderTexture.GetTemporary(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        Graphics.Blit(_currRT, tempRT, GetComponent<MeshRenderer>().sharedMaterial, 1);
+        Graphics.Blit(tempRT, _currRT);
+        RenderTexture.ReleaseTemporary(tempRT);
+        yield return null;
     }
 
 }
