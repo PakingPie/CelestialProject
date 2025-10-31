@@ -1,4 +1,4 @@
-Shader "Unlit/HitEffectTest"
+Shader "Custom/HitEffectCumulative"
 {
     Properties
     {
