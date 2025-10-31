@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor;
 
 // [ExecuteInEditMode]
 #if Test1
@@ -64,9 +65,10 @@ public class ShieldHitEffect : MonoBehaviour
 public class ShieldHitEffect : MonoBehaviour
 {
     public GameObject ShieldGO;
+    public GameObject TempGO;
     public float HitImpactDuration = 1.0f;
     public float HitImpactScale = 0.1f;
-    private int _textureSize = 64;
+    public int TextureSize = 64;
     public Shader HitEffectShader;
     private RenderTexture _currRT;
     private RenderTexture _prevRT;
@@ -78,17 +80,17 @@ public class ShieldHitEffect : MonoBehaviour
     {
         if (_currRT != null)
         {
-            RenderTexture.ReleaseTemporary(_currRT);
+            _currRT.Release();
             _currRT = null;
         }
         if (_prevRT != null)
         {
-            RenderTexture.ReleaseTemporary(_prevRT);
+            _prevRT.Release();
             _prevRT = null;
         }
         if (_tempRT != null)
         {
-            RenderTexture.ReleaseTemporary(_tempRT);
+            _tempRT.Release();
             _tempRT = null;
         }
 
@@ -102,44 +104,50 @@ public class ShieldHitEffect : MonoBehaviour
     {
         if (_currRT == null)
         {
-            _currRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+            _currRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
         }
         if (_prevRT == null)
         {
-            _prevRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+            _prevRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
         }
         if (_tempRT == null)
         {
-            _tempRT = new RenderTexture(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+            _tempRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
         }
         if (_hitEffectMat == null)
         {
             _hitEffectMat = new Material(HitEffectShader);
         }
+
+        TempGO.GetComponent<MeshRenderer>().sharedMaterial = _hitEffectMat;
+
         GetComponent<MeshRenderer>().sharedMaterial.SetVector("_HitUV", hit.textureCoord);
         GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_MainTex", _currRT);
+        GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitTex", _prevRT);
 
 
-
-        float elapsed = 0f;
+        float elapsed = 0.0f;
         StartCoroutine(GetHit(elapsed));
     }
 
     IEnumerator GetHit(float timer)
     {
-        RenderTexture tempRT = RenderTexture.GetTemporary(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
-        Graphics.Blit(_currRT, tempRT, GetComponent<MeshRenderer>().sharedMaterial, 0);
+        RenderTexture tempRT = RenderTexture.GetTemporary(TextureSize, TextureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        Graphics.Blit(_currRT, tempRT, GetComponent<MeshRenderer>().sharedMaterial, pass: 0);
         Graphics.Blit(tempRT, _currRT);
         RenderTexture.ReleaseTemporary(tempRT);
+
         _hitEffectMat.SetFloat("_EdgeMax", 0.15f);
         _hitEffectMat.SetFloat("_Thickness", 0.01f);
         if (timer < HitImpactDuration)
         {
             timer += Time.deltaTime;
             float strength = Mathf.Lerp(HitImpactScale, 0.0f, timer / HitImpactDuration);
-            _hitEffectMat.SetFloat("_Radius", 1 - strength);
+            _hitEffectMat.SetFloat("_Size", 1 - strength);
+            Graphics.Blit(null, _tempRT, _hitEffectMat);
+            Graphics.Blit(_tempRT, _prevRT);
             yield return null;
-            _hitEffectMat.SetFloat("_Radius", 0.0f);
+            _hitEffectMat.SetFloat("_Size", 0.0f);
             _hitEffectMat.SetFloat("_EdgeMax", 0.0f);
             _hitEffectMat.SetFloat("_Thickness", 0.0f);
             StartCoroutine(GetHit(timer));
@@ -150,15 +158,30 @@ public class ShieldHitEffect : MonoBehaviour
             StartCoroutine(EffectFade(timer));
         }
     }
-    
+
     IEnumerator EffectFade(float timer)
     {
-        RenderTexture tempRT = RenderTexture.GetTemporary(_textureSize, _textureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
-        Graphics.Blit(_currRT, tempRT, GetComponent<MeshRenderer>().sharedMaterial, 1);
+        RenderTexture tempRT = RenderTexture.GetTemporary(TextureSize, TextureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        Graphics.Blit(_currRT, tempRT, GetComponent<MeshRenderer>().sharedMaterial, pass: 1);
         Graphics.Blit(tempRT, _currRT);
         RenderTexture.ReleaseTemporary(tempRT);
         yield return null;
     }
-
 }
+
+[CustomEditor(typeof(ShieldHitEffect))]
+public class ShieldHitEffectEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        DrawDefaultInspector();
+
+        ShieldHitEffect shieldHitEffect = (ShieldHitEffect)target;
+        if (GUILayout.Button("Clear All"))
+        {
+            shieldHitEffect.ClearAll();
+        }
+    }
+}
+
 #endif

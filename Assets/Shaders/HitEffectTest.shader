@@ -3,7 +3,7 @@ Shader "Unlit/HitEffectTest"
     Properties
     {
         _MainTex ("Texture", 2D) = "black" {}
-        _HitTexture ("Hit Texture", 2D) = "white" {}
+        _HitTex ("Hit Texture", 2D) = "white" {}
         _HitTexScale ("Scale", Float) = 0.5
         _HitUV ("Center", Vector) = (0,0,0,0)
         _Fade ("Fade", Float) = 1.0
@@ -26,7 +26,7 @@ Shader "Unlit/HitEffectTest"
             #pragma target 4.5
 
             sampler2D _MainTex;
-            sampler2D _HitTexture;
+            sampler2D _HitTex;
             float4 _HitUV;
             float _HitTexScale;
 
@@ -99,7 +99,7 @@ Shader "Unlit/HitEffectTest"
                 if (IsInRange(i.UV, _HitUV.xy, _HitTexScale, 0))
                 {
                     float2 hitUV = CalcHitUV(i.UV, _HitUV.xy, _HitTexScale, 0);
-                    hitColor = tex2Dlod(_HitTexture, float4(hitUV, 0, 0));
+                    hitColor = tex2Dlod(_HitTex, float4(hitUV, 0, 0));
                     return lerp(baseColor, hitColor, hitColor.a);
                 }
                 return baseColor;
