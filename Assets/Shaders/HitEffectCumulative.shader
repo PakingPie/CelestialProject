@@ -3,11 +3,14 @@ Shader "Custom/HitEffectCumulative"
     Properties
     {
         _MainTex ("Texture", 2D) = "black" {}
+        _LastFrameTex ("Texture", 2D) = "black" {}
+
         _HitTex ("Hit Texture", 2D) = "black" {}
         _HitTexScale ("Scale", Float) = 0.5
         _HitUV ("Center", Vector) = (0,0,0,0)
         _Fade ("Fade", Float) = 1.0
-        _AlphaControl ("Alpha Control", Range(0,1)) = 0.5
+        _AlphaControl ("Alpha Control", Range(0,1)) = 1.0
+
     }
     SubShader
     {
@@ -29,10 +32,12 @@ Shader "Custom/HitEffectCumulative"
 
             sampler2D _MainTex;
             sampler2D _HitTex;
+
             float4 _HitUV;
             float _HitTexScale;
             float _Fade;
             float _AlphaControl;
+            sampler2D _LastFrameTex;
 
             struct appdata
             {
@@ -98,7 +103,7 @@ Shader "Custom/HitEffectCumulative"
 
             half4 frag (v2f i) : SV_Target
             {
-                float4 baseColor = tex2Dlod(_MainTex, float4(i.UV, 0, 0));
+                float4 baseColor = saturate(tex2Dlod(_MainTex, float4(i.UV, 0, 0)) - tex2Dlod(_LastFrameTex, float4(i.UV, 0, 0)));
                 float4 hitColor = 1;
                 if (IsInRange(i.UV, _HitUV.xy, _HitTexScale, 0) && _Fade > 0)
                 {
