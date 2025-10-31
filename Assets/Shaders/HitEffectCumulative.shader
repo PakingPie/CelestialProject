@@ -3,7 +3,7 @@ Shader "Custom/HitEffectCumulative"
     Properties
     {
         _MainTex ("Texture", 2D) = "black" {}
-        _HitTex ("Hit Texture", 2D) = "white" {}
+        _HitTex ("Hit Texture", 2D) = "black" {}
         _HitTexScale ("Scale", Float) = 0.5
         _HitUV ("Center", Vector) = (0,0,0,0)
         _Fade ("Fade", Float) = 1.0
@@ -31,6 +31,7 @@ Shader "Custom/HitEffectCumulative"
             sampler2D _HitTex;
             float4 _HitUV;
             float _HitTexScale;
+            float _Fade;
             float _AlphaControl;
 
             struct appdata
@@ -99,11 +100,11 @@ Shader "Custom/HitEffectCumulative"
             {
                 float4 baseColor = tex2Dlod(_MainTex, float4(i.UV, 0, 0));
                 float4 hitColor = 1;
-                if (IsInRange(i.UV, _HitUV.xy, _HitTexScale, 0))
+                if (IsInRange(i.UV, _HitUV.xy, _HitTexScale, 0) && _Fade > 0)
                 {
                     float2 hitUV = CalcHitUV(i.UV, _HitUV.xy, _HitTexScale, 0);
                     hitColor = tex2Dlod(_HitTex, float4(hitUV, 0, 0));
-                    return lerp(baseColor, hitColor, _AlphaControl);
+                    return lerp(baseColor, hitColor, hitColor.a);
                 }
                 return baseColor;
             }

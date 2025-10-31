@@ -6,7 +6,6 @@ Shader "Custom/HitEffect"
         _EdgeMin ("Edge Min", Float) = 0.0
         _EdgeMax ("Edge Max", Float) = 0.15
         _Thickness ("Thickness", Float) = 0.01
-        _Alpha ("Alpha", Range(0, 1)) = 0.5
     }
     SubShader
     {
@@ -29,7 +28,6 @@ Shader "Custom/HitEffect"
             float _EdgeMin;
             float _EdgeMax;
             float _Thickness;
-            float _Alpha;
 
             struct appdata
             {
@@ -42,7 +40,6 @@ Shader "Custom/HitEffect"
                 float4 PosHCS : SV_POSITION;
                 float2 UV : TEXCOORD0;
             };
-
 
             v2f vert (appdata v)
             {
@@ -79,7 +76,7 @@ Shader "Custom/HitEffect"
             {
                 float fill, sdfFill, stroke, sdfStroke;
                 Circle(i.UV, _Size, _EdgeMin, _EdgeMax, _Thickness, false, fill, sdfFill, stroke, sdfStroke);
-                return stroke * float4(1, 1, 1, _Alpha);
+                return stroke;
             }
             ENDHLSL
         }

@@ -9,7 +9,7 @@ public class GunshotTest : MonoBehaviour
 
     public void Start()
     {
-        InvokeRepeating("Shoot", 2.0f, 2.0f);   
+        InvokeRepeating("Shoot", 0.0f, 0.5f);   
     }
     public void Shoot()
     {
