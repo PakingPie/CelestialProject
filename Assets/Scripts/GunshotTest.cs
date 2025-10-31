@@ -6,6 +6,11 @@ public class GunshotTest : MonoBehaviour
 {
     public float HitImpactDuration = 5.0f;
     public float HitImpactScale = 0.1f;
+
+    public void Start()
+    {
+        InvokeRepeating("Shoot", 2.0f, 2.0f);   
+    }
     public void Shoot()
     {
         RaycastHit hit;

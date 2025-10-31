@@ -6,15 +6,17 @@ Shader "Custom/HitEffect"
         _EdgeMin ("Edge Min", Float) = 0.0
         _EdgeMax ("Edge Max", Float) = 0.15
         _Thickness ("Thickness", Float) = 0.01
+        _Alpha ("Alpha", Range(0, 1)) = 0.5
     }
     SubShader
     {
-        Tags {"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
+        Tags {"RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" "Queue" = "Transparent"}
         Pass
         {
-            Cull Off
+            Cull Back
             ZWrite On
             ZTest LEqual
+            Blend SrcAlpha OneMinusSrcAlpha
             HLSLPROGRAM
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -27,6 +29,7 @@ Shader "Custom/HitEffect"
             float _EdgeMin;
             float _EdgeMax;
             float _Thickness;
+            float _Alpha;
 
             struct appdata
             {
@@ -76,9 +79,7 @@ Shader "Custom/HitEffect"
             {
                 float fill, sdfFill, stroke, sdfStroke;
                 Circle(i.UV, _Size, _EdgeMin, _EdgeMax, _Thickness, false, fill, sdfFill, stroke, sdfStroke);
-                float circle = stroke;
-                float3 color = circle;
-                return float4(color, 1);
+                return stroke * float4(1, 1, 1, _Alpha);
             }
             ENDHLSL
         }

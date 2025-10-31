@@ -110,15 +110,15 @@ public class ShieldHitEffect : MonoBehaviour
     {
         if (_currRT == null)
         {
-            _currRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+            _currRT = new RenderTexture(TextureSize, TextureSize, 24, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
         }
         if (_prevRT == null)
         {
-            _prevRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+            _prevRT = new RenderTexture(TextureSize, TextureSize, 24, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
         }
         if (_tempRT == null)
         {
-            _tempRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+            _tempRT = new RenderTexture(TextureSize, TextureSize, 24, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
         }
 
         if (_cumulativeMat == null)
@@ -130,30 +130,32 @@ public class ShieldHitEffect : MonoBehaviour
             _hitEffectMat = new Material(HitEffectShader);
         }
 
-        TempGO.GetComponent<MeshRenderer>().sharedMaterial = _hitEffectMat;
+        // TempGO.GetComponent<MeshRenderer>().sharedMaterial = _hitEffectMat;
 
+        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial = _cumulativeMat;
         GetComponent<MeshRenderer>().sharedMaterial = _cumulativeMat;
 
         _cumulativeMat.SetTexture("_MainTex", _currRT);
         _cumulativeMat.SetTexture("_HitTex", _prevRT);
         _cumulativeMat.SetVector("_HitUV", hit.textureCoord);
         _cumulativeMat.SetFloat("_HitTexScale", 0.1f);
-
-        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitAreaTex", _currRT);
-
+        _cumulativeMat.SetFloat("_AlphaControl", 1.0f);
+        
         float elapsed = 0.0f;
         StartCoroutine(GetHit(elapsed));
     }
 
     IEnumerator GetHit(float timer)
     {
-        RenderTexture tempRT = RenderTexture.GetTemporary(TextureSize, TextureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        RenderTexture tempRT = RenderTexture.GetTemporary(TextureSize, TextureSize, 24, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
         Graphics.Blit(_currRT, tempRT, _cumulativeMat, pass: 0);
         Graphics.Blit(tempRT, _currRT);
         RenderTexture.ReleaseTemporary(tempRT);
 
         _hitEffectMat.SetFloat("_EdgeMax", 0.15f);
         _hitEffectMat.SetFloat("_Thickness", 0.01f);
+
+
         if (timer < HitImpactDuration)
         {
             timer += Time.deltaTime;
@@ -161,11 +163,12 @@ public class ShieldHitEffect : MonoBehaviour
             strength = Mathf.Clamp(1 - strength, 0.0f, 0.7f);
             _hitEffectMat.SetFloat("_Size", strength);
 
-            yield return null;
-
-            Graphics.Blit(null, _tempRT, _hitEffectMat, pass: -1);
+            Graphics.Blit(null, _tempRT, _hitEffectMat, pass: 0);
             Graphics.Blit(_tempRT, _prevRT);
+            ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitAreaTex", _prevRT);
 
+
+            yield return null;
             _hitEffectMat.SetFloat("_Size", 0.0f);
             _hitEffectMat.SetFloat("_EdgeMax", 0.0f);
             _hitEffectMat.SetFloat("_Thickness", 0.0f);
@@ -173,14 +176,15 @@ public class ShieldHitEffect : MonoBehaviour
         }
         else
         {
-            _cumulativeMat.SetFloat("_Fade", 1 - timer / HitImpactDuration);
+            StopCoroutine(GetHit(timer));
+            _cumulativeMat.SetFloat("_AlphaControl", 0.0f);
             StartCoroutine(EffectFade(timer));
         }
     }
 
     IEnumerator EffectFade(float timer)
     {
-        RenderTexture tempRT = RenderTexture.GetTemporary(TextureSize, TextureSize, 0, RenderTextureFormat.RHalf, RenderTextureReadWrite.Linear);
+        RenderTexture tempRT = RenderTexture.GetTemporary(TextureSize, TextureSize, 24, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
         Graphics.Blit(_currRT, tempRT, _cumulativeMat, pass: 1);
         Graphics.Blit(tempRT, _currRT);
         RenderTexture.ReleaseTemporary(tempRT);

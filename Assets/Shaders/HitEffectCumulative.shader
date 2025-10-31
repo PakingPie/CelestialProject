@@ -7,16 +7,18 @@ Shader "Custom/HitEffectCumulative"
         _HitTexScale ("Scale", Float) = 0.5
         _HitUV ("Center", Vector) = (0,0,0,0)
         _Fade ("Fade", Float) = 1.0
+        _AlphaControl ("Alpha Control", Range(0,1)) = 0.5
     }
     SubShader
     {
-        Tags {"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
+        Tags {"RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" "Queue" = "Transparent"}
 
         Pass
         {
-            Cull Off
+            Cull Back
             ZWrite On
             ZTest LEqual
+            Blend SrcAlpha OneMinusSrcAlpha
             HLSLPROGRAM
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -29,6 +31,7 @@ Shader "Custom/HitEffectCumulative"
             sampler2D _HitTex;
             float4 _HitUV;
             float _HitTexScale;
+            float _AlphaControl;
 
             struct appdata
             {
@@ -100,7 +103,7 @@ Shader "Custom/HitEffectCumulative"
                 {
                     float2 hitUV = CalcHitUV(i.UV, _HitUV.xy, _HitTexScale, 0);
                     hitColor = tex2Dlod(_HitTex, float4(hitUV, 0, 0));
-                    return lerp(baseColor, hitColor, hitColor.a);
+                    return lerp(baseColor, hitColor, _AlphaControl);
                 }
                 return baseColor;
             }
@@ -111,9 +114,10 @@ Shader "Custom/HitEffectCumulative"
         {
             Name "Fade Effect"
 
-            Cull Off
+            Cull Back
             ZWrite On
             ZTest LEqual
+            Blend SrcAlpha OneMinusSrcAlpha
             HLSLPROGRAM
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -147,7 +151,7 @@ Shader "Custom/HitEffectCumulative"
 
             half4 frag (v2f i) : SV_Target
             {
-                float4 baseColor = tex2Dlod(_MainTex, float4(i.UV, 0, 0)).r;
+                float4 baseColor = tex2Dlod(_MainTex, float4(i.UV, 0, 0));
                 return baseColor * _Fade;
             }
             ENDHLSL
