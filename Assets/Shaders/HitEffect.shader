@@ -6,6 +6,7 @@ Shader "Custom/HitEffect"
         _EdgeMin ("Edge Min", Float) = 0.0
         _EdgeMax ("Edge Max", Float) = 0.15
         _Thickness ("Thickness", Float) = 0.01
+        _Fade ("Fade", Float) = 1.0
     }
     SubShader
     {
@@ -28,6 +29,7 @@ Shader "Custom/HitEffect"
             float _EdgeMin;
             float _EdgeMax;
             float _Thickness;
+            float _Fade;
 
             struct appdata
             {
@@ -76,7 +78,7 @@ Shader "Custom/HitEffect"
             {
                 float fill, sdfFill, stroke, sdfStroke;
                 Circle(i.UV, _Size, _EdgeMin, _EdgeMax, _Thickness, false, fill, sdfFill, stroke, sdfStroke);
-                return stroke;
+                return stroke  * _Fade;
             }
             ENDHLSL
         }

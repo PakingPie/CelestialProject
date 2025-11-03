@@ -181,6 +181,7 @@ public class ShieldHitEffect : MonoBehaviour
             float strength = Mathf.Lerp(HitImpactScale, 0.0f, timer / HitImpactDuration);
             strength = Mathf.Clamp(1 - strength, 0.0f, 0.7f);
             _hitEffectMat.SetFloat("_Size", strength);
+            _hitEffectMat.SetFloat("_Fade", 1 - strength);
         }
 
         _currRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
