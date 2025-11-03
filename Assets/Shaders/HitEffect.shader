@@ -2,6 +2,7 @@ Shader "Custom/HitEffect"
 {
     Properties
     {
+        [KeywordEnum(Fill, SDF, Stroke, StrokeSDF)] Circle ("Mode", Float) = 0
         _Size ("Size", Float) = 0.5
         _EdgeMin ("Edge Min", Float) = 0.0
         _EdgeMax ("Edge Max", Float) = 0.15
@@ -20,6 +21,8 @@ Shader "Custom/HitEffect"
             HLSLPROGRAM
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            #pragma multi_compile Circle_Fill Circle_SDF Circle_Stroke Circle_StrokeSDF
 
             #pragma vertex vert
             #pragma fragment frag
@@ -76,148 +79,150 @@ Shader "Custom/HitEffect"
 
             float4 frag (v2f i) : SV_Target
             {
-                float fill, sdfFill, stroke, sdfStroke;
+                float fill = 0, sdfFill = 0, stroke = 0, sdfStroke = 0;
                 Circle(i.UV, _Size, _EdgeMin, _EdgeMax, _Thickness, false, fill, sdfFill, stroke, sdfStroke);
-                return stroke  * _Fade;
+                
+                return fill * _Fade;
+                
             }
             ENDHLSL
         }
 
         // Pass
         // {
-        //     Cull Off
-        //     ZWrite On
-        //     ZTest LEqual
-        //     HLSLPROGRAM
+            //     Cull Off
+            //     ZWrite On
+            //     ZTest LEqual
+            //     HLSLPROGRAM
 
-        //     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            //     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-        //     #pragma vertex vert
-        //     #pragma fragment frag
-        //     #pragma target 4.5
+            //     #pragma vertex vert
+            //     #pragma fragment frag
+            //     #pragma target 4.5
 
-        //     float4 _Center;
-        //     float _Radius;
-        //     float _Hardness;
+            //     float4 _Center;
+            //     float _Radius;
+            //     float _Hardness;
 
-        //     struct appdata
-        //     {
-        //         float4 vertex : POSITION;
-        //         float2 uv : TEXCOORD0;
-        //     };
+            //     struct appdata
+            //     {
+                //         float4 vertex : POSITION;
+                //         float2 uv : TEXCOORD0;
+            //     };
 
-        //     struct v2f
-        //     {
-        //         float4 PosHCS : SV_POSITION;
-        //         float2 UV : TEXCOORD0;
-        //         float3 PosWS : TEXCOORD1;
-        //     };
+            //     struct v2f
+            //     {
+                //         float4 PosHCS : SV_POSITION;
+                //         float2 UV : TEXCOORD0;
+                //         float3 PosWS : TEXCOORD1;
+            //     };
 
 
-        //     v2f vert (appdata v)
-        //     {
-        //         v2f o = (v2f)0;
-        //         o.PosHCS = TransformObjectToHClip(v.vertex);
-        //         o.UV = v.uv;
-        //         o.PosWS = mul(unity_ObjectToWorld, v.vertex).xyz;
-        //         return o;
-        //     }
+            //     v2f vert (appdata v)
+            //     {
+                //         v2f o = (v2f)0;
+                //         o.PosHCS = TransformObjectToHClip(v.vertex);
+                //         o.UV = v.uv;
+                //         o.PosWS = mul(unity_ObjectToWorld, v.vertex).xyz;
+                //         return o;
+            //     }
 
-        //     float SphereMask(float3 Coords, float3 Center, float Radius, float Hardness)
-        //     {
-        //         return 1 - saturate((distance(Coords, Center) - Radius) / (1 - Hardness));
-        //     }
+            //     float SphereMask(float3 Coords, float3 Center, float Radius, float Hardness)
+            //     {
+                //         return 1 - saturate((distance(Coords, Center) - Radius) / (1 - Hardness));
+            //     }
 
-        //     half4 frag (v2f i) : SV_Target
-        //     {
-        //         float mask1 = SphereMask(i.PosWS, _Center.xyz, _Radius, _Hardness);
-        //         float mask2 = SphereMask(i.PosWS, _Center.xyz, _Radius * 0.5, _Hardness);
-        //         return mask1 - mask2;
-        //     }
-        //     ENDHLSL
+            //     half4 frag (v2f i) : SV_Target
+            //     {
+                //         float mask1 = SphereMask(i.PosWS, _Center.xyz, _Radius, _Hardness);
+                //         float mask2 = SphereMask(i.PosWS, _Center.xyz, _Radius * 0.5, _Hardness);
+                //         return mask1 - mask2;
+            //     }
+            //     ENDHLSL
         // }
 
         // Pass 
         // {
-        //     Name "DepthOnly"
-        //     Tags { "LightMode" = "DepthOnly" }
+            //     Name "DepthOnly"
+            //     Tags { "LightMode" = "DepthOnly" }
 
-        //     ZWrite On
-        //     ColorMask 0
-        //     Cull Off
+            //     ZWrite On
+            //     ColorMask 0
+            //     Cull Off
 
-        //     HLSLPROGRAM
-        //     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            //     HLSLPROGRAM
+            //     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             
-        //     #pragma vertex vert
-        //     #pragma fragment frag
+            //     #pragma vertex vert
+            //     #pragma fragment frag
 
-        //     struct appdata
-        //     {
-        //         float4 vertex : POSITION;
-        //         float3 normal : NORMAL;
-        //         float2 uv : TEXCOORD0;
-        //         UNITY_VERTEX_INPUT_INSTANCE_ID
-        //     };
+            //     struct appdata
+            //     {
+                //         float4 vertex : POSITION;
+                //         float3 normal : NORMAL;
+                //         float2 uv : TEXCOORD0;
+                //         UNITY_VERTEX_INPUT_INSTANCE_ID
+            //     };
 
-        //     struct v2f
-        //     {
-        //         float4 PosHCS : SV_POSITION;
-        //         float2 UV : TEXCOORD0;
-        //         float3 NormalWS : TEXCOORD1;
-        //         UNITY_VERTEX_OUTPUT_STEREO
-        //     };
+            //     struct v2f
+            //     {
+                //         float4 PosHCS : SV_POSITION;
+                //         float2 UV : TEXCOORD0;
+                //         float3 NormalWS : TEXCOORD1;
+                //         UNITY_VERTEX_OUTPUT_STEREO
+            //     };
 
-        //     v2f vert (appdata v)
-        //     {
-        //        return v;
-        //     }
+            //     v2f vert (appdata v)
+            //     {
+                //        return v;
+            //     }
 
-        //     float frag (v2f i) : SV_DEPTH
-        //     {
-        //         return i.PosHCS.z / i.PosHCS.w;
-        //     }
-        //     ENDHLSL
+            //     float frag (v2f i) : SV_DEPTH
+            //     {
+                //         return i.PosHCS.z / i.PosHCS.w;
+            //     }
+            //     ENDHLSL
         // }
 
         // Pass 
         // {
-        //     Name "DepthNormals"
-        //     Tags { "LightMode" = "DepthNormals" }
-        //     ZWrite On
-        //     HLSLPROGRAM
-        //     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            //     Name "DepthNormals"
+            //     Tags { "LightMode" = "DepthNormals" }
+            //     ZWrite On
+            //     HLSLPROGRAM
+            //     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             
-        //     #pragma vertex vert
-        //     #pragma fragment frag
+            //     #pragma vertex vert
+            //     #pragma fragment frag
 
-        //     struct appdata
-        //     {
-        //         float4 vertex : POSITION;
-        //         float3 normal : NORMAL;
-        //         UNITY_VERTEX_INPUT_INSTANCE_ID
-        //     };
+            //     struct appdata
+            //     {
+                //         float4 vertex : POSITION;
+                //         float3 normal : NORMAL;
+                //         UNITY_VERTEX_INPUT_INSTANCE_ID
+            //     };
 
-        //     struct v2f
-        //     {
-        //         float4 PosHCS : SV_POSITION;
-        //         float3 NormalWS : TEXCOORD0;
-        //         UNITY_VERTEX_OUTPUT_STEREO
-        //     };
+            //     struct v2f
+            //     {
+                //         float4 PosHCS : SV_POSITION;
+                //         float3 NormalWS : TEXCOORD0;
+                //         UNITY_VERTEX_OUTPUT_STEREO
+            //     };
 
-        //     v2f vert (appdata v)
-        //     {
-        //         v2f o = (v2f)0;
-        //         o.PosHCS = TransformObjectToHClip(v.vertex);
-        //         o.NormalWS = TransformObjectToWorldNormal(v.normal);
-        //         return o;
-        //     }
+            //     v2f vert (appdata v)
+            //     {
+                //         v2f o = (v2f)0;
+                //         o.PosHCS = TransformObjectToHClip(v.vertex);
+                //         o.NormalWS = TransformObjectToWorldNormal(v.normal);
+                //         return o;
+            //     }
 
-        //     float4 frag (v2f i) : SV_Target
-        //     {
-        //         return float4(NormalizeNormalPerPixel(i.NormalWS), 0.0);
-        //     }
-        //     ENDHLSL
+            //     float4 frag (v2f i) : SV_Target
+            //     {
+                //         return float4(NormalizeNormalPerPixel(i.NormalWS), 0.0);
+            //     }
+            //     ENDHLSL
         // }
     }
 }
