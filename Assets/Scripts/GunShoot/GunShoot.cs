@@ -51,19 +51,26 @@ public class GunShoot : MonoBehaviour
 
     public void UpdateTarget()
     {
-        if (_targetPoint != null)
-        {
-            if (Vector3.Distance(transform.position, _targetPoint.position) > ActiveRange.y)
-            {
-                _targetPoint = null;
-            }
-            else
-            {
-                return;
-            }
-        }
+        // if (_targetPoint != null)
+        // {
+        //     if (Vector3.Distance(transform.position, _targetPoint.position) > ActiveRange.y)
+        //     {
+        //         _targetPoint = null;
+        //     }
+        //     else
+        //     {
+        //         return;
+        //     }
+        // }
 
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
+
+        if (enemies.Length == 0)
+        {
+            _targetPoint = null;
+            return;
+        }
+        
         float shortest_distance = Mathf.Infinity;
         GameObject nearest_enemy = null;
 
@@ -90,7 +97,7 @@ public class GunShoot : MonoBehaviour
 
     public void GunEnable()
     {
-
+        
     }
 
     public void GunDisable()

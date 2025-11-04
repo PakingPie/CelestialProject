@@ -162,10 +162,10 @@ public class ShieldHitEffect : MonoBehaviour
         _cumulativeMat.SetTexture("_HitTex", _singleEffectRT);
 
         _cumulativeMat.SetVector("_HitUV", hit.textureCoord);
-        _cumulativeMat.SetFloat("_HitTexScale", .05f);
+        _cumulativeMat.SetFloat("_HitTexScale", 0.2f);
 
         _hitEffectMat.SetFloat("_EdgeMax", 0.0f);
-        _hitEffectMat.SetFloat("_Thickness", 0.02f);
+        _hitEffectMat.SetFloat("_Thickness", 0.1f);
         // _hitEffectMat.DisableKeyword("Circle_Fill");
         // _hitEffectMat.DisableKeyword("Circle_FillSDF");
         // _hitEffectMat.DisableKeyword("Circle_Stroke");
@@ -182,16 +182,16 @@ public class ShieldHitEffect : MonoBehaviour
 
     IEnumerator GetHit(float timer)
     {
-        // if(_singleEffectRT != null)
-        Graphics.Blit(null, _singleEffectRT, _hitEffectMat, pass: 0);   // Get single hit effect
         timer += Time.deltaTime;
         if (timer < HitImpactDuration)
         {
             float strength = Mathf.Lerp(HitImpactScale, 0.0f, timer / HitImpactDuration);
-            strength = Mathf.Clamp(1 - strength, 0.0f, 0.7f);
+            strength = Mathf.Clamp(1 - strength, 0.0f, 1.0f);
             _hitEffectMat.SetFloat("_Size", strength);
             _hitEffectMat.SetFloat("_Fade", 1 - strength);
         }
+
+        Graphics.Blit(null, _singleEffectRT, _hitEffectMat, pass: 0);   // Get single hit effect
 
         Graphics.Blit(null, _cumulativeRT, _cumulativeMat, pass: 0);
         Graphics.Blit(_cumulativeRT, _currRT);
@@ -200,7 +200,7 @@ public class ShieldHitEffect : MonoBehaviour
         _prevRT = _cumulativeRT;
         _cumulativeRT = swap;
 
-        // if(_singleEffectRT != null)
+        if(_singleEffectRT != null)
         _singleEffectRT.Release();
 
         yield return null;

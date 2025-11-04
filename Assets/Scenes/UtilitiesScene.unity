@@ -531,7 +531,7 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: 87271600012ff1a4b8b041568bc01d96, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 1588799891}
-  HeightRange: {x: -10, y: 10}
+  HeightRange: {x: -100, y: 100}
 --- !u!114 &220290811
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -546,10 +546,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefab: {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 50
-  spawnCount: 1
+  spawnCount: 20
   color: {r: 1, g: 1, b: 1, a: 0}
   showSpawnRegion: 1
-  HeightRange: {x: -10, y: 10}
+  HeightRange: {x: -100, y: 100}
 --- !u!4 &220290812
 Transform:
   m_ObjectHideFlags: 0
@@ -1203,7 +1203,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &464948759
 Transform:
   m_ObjectHideFlags: 0
@@ -1213,7 +1213,7 @@ Transform:
   m_GameObject: {fileID: 464948758}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: 1.5}
+  m_LocalPosition: {x: 0, y: 2, z: -8.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -1234,7 +1234,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GunShoot
   UpdateRate: 60
-  ActiveRange: {x: 5, y: 200}
+  ActiveRange: {x: 5, y: 50}
   GunShootInterval: 0.4
   TurretRotateSpeed: 5
   BulletPrefab: {fileID: 6305537667324850647, guid: cdabe52d8daf4e445a8be5cc61742e2c, type: 3}
@@ -1512,7 +1512,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &720957853
 Transform:
   m_ObjectHideFlags: 0
@@ -1543,7 +1543,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GunShoot
   UpdateRate: 60
-  ActiveRange: {x: 5, y: 200}
+  ActiveRange: {x: 5, y: 100}
   GunShootInterval: 0.5
   TurretRotateSpeed: 5
   BulletPrefab: {fileID: 6305537667324850647, guid: 933ad824c5d806540a368873edeeb09f, type: 3}
@@ -2053,7 +2053,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1331995348
 Transform:
   m_ObjectHideFlags: 0
@@ -2084,7 +2084,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GunShoot
   UpdateRate: 60
-  ActiveRange: {x: 5, y: 200}
+  ActiveRange: {x: 5, y: 50}
   GunShootInterval: 0.4
   TurretRotateSpeed: 5
   BulletPrefab: {fileID: 6305537667324850647, guid: cdabe52d8daf4e445a8be5cc61742e2c, type: 3}
@@ -2800,7 +2800,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1598901206}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 40ec75193da0d18499e38e797aba31e8, type: 3}
   m_Name: 
@@ -2808,7 +2808,7 @@ MonoBehaviour:
   target: {fileID: 51694838}
   speed: 20
   turnSpeed: 3
-  turnDistance: 5
+  turnDistance: 3
   stoppingDistance: 10
 --- !u!1 &1602247031
 GameObject:
@@ -3491,8 +3491,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GunShoot
   UpdateRate: 60
-  ActiveRange: {x: 5, y: 200}
-  GunShootInterval: 0.4
+  ActiveRange: {x: 5, y: 100}
+  GunShootInterval: 0.5
   TurretRotateSpeed: 5
   BulletPrefab: {fileID: 6305537667324850647, guid: 933ad824c5d806540a368873edeeb09f, type: 3}
   BulletSpawnPoint: {fileID: 608694493}
@@ -3561,7 +3561,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 866b8eed158fdc04b8171631409bbbe6, type: 2}
+  - {fileID: 2100000, guid: 1a19ed86d4d3927468325826afa141a3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

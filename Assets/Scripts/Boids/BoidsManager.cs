@@ -28,6 +28,10 @@ public class BoidsManager : MonoBehaviour
             return;
 
         int numBoids = boids.Length;
+
+        if (numBoids <= 0)
+            return;
+            
         var boidData = new BoidData[numBoids];
         for (int i = 0; i < numBoids; i++)
         {

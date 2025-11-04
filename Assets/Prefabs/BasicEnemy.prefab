@@ -199,7 +199,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 2}
+  m_SizeDelta: {x: 0, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2312192323488569684
 CanvasRenderer:
@@ -295,7 +295,7 @@ MonoBehaviour:
   avgAvoidanceHeading: {x: 0, y: 0, z: 0}
   flockmatesCenter: {x: 0, y: 0, z: 0}
   numPerceivedFlockmates: 0
-  HeightRange: {x: -10, y: 10}
+  HeightRange: {x: -100, y: 100}
 --- !u!114 &-2094783752960322070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -308,12 +308,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5fd111861f695545934d2f021080e53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
-  HitPoints: 1000
-  MaxHitPoints: 1000
+  HitPoints: 100
+  MaxHitPoints: 100
   ArmorPoints: 20
   MaxArmorPoints: 20
-  ShieldPoints: 5000
-  MaxShieldPoints: 5000
+  ShieldPoints: 200
+  MaxShieldPoints: 200
   Speed: 10
   FactionType: 1
   Type: 0
@@ -341,8 +341,8 @@ MonoBehaviour:
   ShieldGO: {fileID: 124679239445400308}
   TempGO: {fileID: 0}
   HitImpactDuration: 1
-  HitImpactScale: 0.1
-  TextureSize: 64
+  HitImpactScale: 1
+  TextureSize: 8
   HitEffectShader: {fileID: 4800000, guid: 9d4680f053a4c804784f0d8d0d3302d7, type: 3}
   CumulativeShader: {fileID: 4800000, guid: a63a745ff69d80e46a11d9e8f34dd690, type: 3}
 --- !u!64 &506681942887901699
@@ -476,7 +476,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 2}
+  m_SizeDelta: {x: 0, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3180118109876081506
 CanvasRenderer:

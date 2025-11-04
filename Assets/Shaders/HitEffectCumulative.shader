@@ -24,7 +24,7 @@ Shader "Custom/HitEffectCumulative"
 
         Pass
         {
-            Cull Back
+            Cull Off
             ZWrite On
             ZTest LEqual
             Blend SrcAlpha OneMinusSrcAlpha
@@ -151,7 +151,7 @@ Shader "Custom/HitEffectCumulative"
             // }
             float4 frag(v2f i) : SV_Target
             {
-                float baseColor = tex2D(_MainTex, float4(i.UV, 0, 0)).r * 0.1;
+                float baseColor = tex2D(_MainTex, float4(i.UV, 0, 0)).r * 0.5;
                 float2 hitUV = CalcHitUV(i.UV, _HitUV.xy, _HitTexScale, 0);
                 float hitColor = tex2D(_HitTex, float4(hitUV, 0, 0)).r;
                 return lerp(baseColor, hitColor, hitColor);

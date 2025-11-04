@@ -14,7 +14,7 @@ Shader "Custom/HitEffect"
         Tags {"RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" "Queue" = "Transparent"}
         Pass
         {
-            Cull Back
+            Cull Off
             ZWrite On
             ZTest LEqual
             Blend SrcAlpha OneMinusSrcAlpha
