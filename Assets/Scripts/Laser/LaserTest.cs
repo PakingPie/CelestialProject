@@ -60,18 +60,18 @@ public class LaserTest : MonoBehaviour
 
     public void UpdateTarget()
     {
-        if (_targetGO != null)
-        {
-            if (Vector3.Distance(transform.position, _targetGO.transform.position) > LaserActiveRange.y)
-            {
-                _targetGO = null;
-                LaserDisable();
-            }
-            else
-            {
-                return;
-            }
-        }
+        // if (_targetGO != null)
+        // {
+        //     if (Vector3.Distance(transform.position, _targetGO.transform.position) > LaserActiveRange.y)
+        //     {
+        //         _targetGO = null;
+        //         LaserDisable();
+        //     }
+        //     else
+        //     {
+        //         return;
+        //     }
+        // }
 
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
 
