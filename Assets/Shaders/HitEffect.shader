@@ -82,7 +82,7 @@ Shader "Custom/HitEffect"
                 float fill = 0, sdfFill = 0, stroke = 0, sdfStroke = 0;
                 Circle(i.UV, _Size, _EdgeMin, _EdgeMax, _Thickness, false, fill, sdfFill, stroke, sdfStroke);
                 
-                return fill * _Fade;
+                return stroke * _Fade;
                 
             }
             ENDHLSL

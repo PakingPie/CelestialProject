@@ -182,18 +182,26 @@ public class ShieldHitEffect : MonoBehaviour
 
     IEnumerator GetHit(float timer)
     {
-        if(_singleEffectRT != null)
-            Graphics.Blit(null, _singleEffectRT, _hitEffectMat, pass: 0);   // Get single hit effect
+        // if(_singleEffectRT != null)
+        Graphics.Blit(null, _singleEffectRT, _hitEffectMat, pass: 0);   // Get single hit effect
+        timer += Time.deltaTime;
+        if (timer < HitImpactDuration)
+        {
+            float strength = Mathf.Lerp(HitImpactScale, 0.0f, timer / HitImpactDuration);
+            strength = Mathf.Clamp(1 - strength, 0.0f, 0.7f);
+            _hitEffectMat.SetFloat("_Size", strength);
+            _hitEffectMat.SetFloat("_Fade", 1 - strength);
+        }
 
         Graphics.Blit(null, _cumulativeRT, _cumulativeMat, pass: 0);
         Graphics.Blit(_cumulativeRT, _currRT);
 
-        // RenderTexture swap = _prevRT;
-        // _prevRT = _cumulativeRT;
-        // _cumulativeRT = swap;
+        RenderTexture swap = _prevRT;
+        _prevRT = _cumulativeRT;
+        _cumulativeRT = swap;
 
-        if(_singleEffectRT != null)
-            _singleEffectRT.Release();
+        // if(_singleEffectRT != null)
+        _singleEffectRT.Release();
 
         yield return null;
         StartCoroutine(GetHit(timer));
