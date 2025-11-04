@@ -69,17 +69,15 @@ public class ShieldHitEffect : MonoBehaviour
     public GameObject TempGO;
     public float HitImpactDuration = 1.0f;
     public float HitImpactScale = 0.1f;
-    public int TextureSize = 64;
+    public int TextureSize = 8;
     public Shader HitEffectShader;
     public Shader CumulativeShader;
     private RenderTexture _cumulativeRT;
     private RenderTexture _currRT;
     private RenderTexture _singleEffectRT;
-    private RenderTexture _prevRT;
 
     private Material _hitEffectMat;
     private Material _cumulativeMat;
-    private Material _combineMat;
 
     public void ClearAll()
     {
@@ -98,11 +96,6 @@ public class ShieldHitEffect : MonoBehaviour
             _singleEffectRT.Release();
             _singleEffectRT = null;
         }
-        if (_prevRT != null)
-        {
-            _prevRT.Release();
-            _prevRT = null;
-        }
 
         if (_hitEffectMat != null)
         {
@@ -112,10 +105,7 @@ public class ShieldHitEffect : MonoBehaviour
         {
             _cumulativeMat = null;
         }
-        if (_combineMat != null)
-        {
-            _combineMat = null;
-        }
+        
     }
 
     public void GetHit(RaycastHit hit)
@@ -132,10 +122,6 @@ public class ShieldHitEffect : MonoBehaviour
         {
             _singleEffectRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
         }
-        if (_prevRT == null)
-        {
-            _prevRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-        }
 
         if (_cumulativeMat == null)
         {
@@ -144,10 +130,6 @@ public class ShieldHitEffect : MonoBehaviour
         if (_hitEffectMat == null)
         {
             _hitEffectMat = new Material(HitEffectShader);
-        }
-        if (_combineMat == null)
-        {
-            _combineMat = new Material(Shader.Find("Unlit/Combine"));
         }
 
         if (TempGO != null)
@@ -158,11 +140,10 @@ public class ShieldHitEffect : MonoBehaviour
             GetComponent<MeshRenderer>().sharedMaterial = _cumulativeMat;
 
         _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
-        _cumulativeMat.SetTexture("_PrevTex", _prevRT);
         _cumulativeMat.SetTexture("_HitTex", _singleEffectRT);
 
         _cumulativeMat.SetVector("_HitUV", hit.textureCoord);
-        _cumulativeMat.SetFloat("_HitTexScale", 0.2f);
+        _cumulativeMat.SetFloat("_HitTexScale", 0.5f);
 
         _hitEffectMat.SetFloat("_EdgeMax", 0.0f);
         _hitEffectMat.SetFloat("_Thickness", 0.1f);
@@ -170,9 +151,6 @@ public class ShieldHitEffect : MonoBehaviour
         // _hitEffectMat.DisableKeyword("Circle_FillSDF");
         // _hitEffectMat.DisableKeyword("Circle_Stroke");
         // _hitEffectMat.EnableKeyword("Circle_StokeSDF");
-
-
-
 
         ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitAreaTex", _currRT);
 
@@ -193,11 +171,11 @@ public class ShieldHitEffect : MonoBehaviour
 
         Graphics.Blit(null, _singleEffectRT, _hitEffectMat, pass: 0);   // Get single hit effect
 
-        Graphics.Blit(null, _cumulativeRT, _cumulativeMat, pass: 0);
-        Graphics.Blit(_cumulativeRT, _currRT);
+        Graphics.Blit(null, _cumulativeRT, _cumulativeMat, pass: 0);    // Get cumulative effect
+        Graphics.Blit(_cumulativeRT, _currRT);                          // Copy cumulative to current RT
 
-        RenderTexture swap = _prevRT;
-        _prevRT = _cumulativeRT;
+        RenderTexture swap = _currRT;   // Swap current and previous RTs
+        _currRT = _cumulativeRT;
         _cumulativeRT = swap;
 
         if(_singleEffectRT != null)
