@@ -546,7 +546,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefab: {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 50
-  spawnCount: 5
+  spawnCount: 50
   color: {r: 1, g: 1, b: 1, a: 0}
   showSpawnRegion: 1
   HeightRange: {x: -100, y: 100}
@@ -3367,6 +3367,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
+      propertyPath: thrust
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 7122753308070185882, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

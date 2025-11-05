@@ -152,17 +152,42 @@ public class AAMissile : MonoBehaviour
         {
             Vector3 dir = target.position - transform.position;
 
-            RaycastHit hit;
-            Physics.Raycast(transform.position, Vector3.Normalize(dir), out hit);
-            if (hit.collider != null)
-            {
-                if (hit.collider.GetComponent<ShieldHitEffect>())
-                    hit.collider.GetComponent<ShieldHitEffect>().GetHit(hit);
-            }
+            // RaycastHit hit;
+            // Physics.Raycast(transform.position, Vector3.Normalize(dir), out hit);
+            // if (hit.collider != null)
+            // {
+            //     if (hit.collider.GetComponent<ShieldHitEffect>())
+            //         hit.collider.GetComponent<ShieldHitEffect>().GetHit(hit);
+            // }
 
             if (dir.magnitude <= DetonationRadius)
             {
                 HitTarget();
+            }
+        }
+        else if (isLaunched && missileActive)
+        {
+            // Seek another target if the current one is lost.
+            GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
+            float shortest_distance = Mathf.Infinity;
+            GameObject nearest_enemy = null;
+
+            foreach (GameObject enemy in enemies)
+            {
+                float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
+                if (distance_to_enemy < shortest_distance)
+                {
+                    shortest_distance = distance_to_enemy;
+                    nearest_enemy = enemy;
+                }
+            }
+            if (nearest_enemy)
+            {
+                target = nearest_enemy.transform;
+            }
+            else
+            {
+                target = null;
             }
         }
     }
