@@ -252,13 +252,14 @@ public class EnemyVehicle : VehicleBase
 
     public override void DestroyVehicle()
     {
+
         var boid = GetComponent<Boid>();
         var boidManager = FindAnyObjectByType<BoidsManager>();
-        if (boid != null)
+        if (boid != null && boidManager != null)
         {
             boidManager.RemoveBoid(boid);
         }
 
-        Destroy(gameObject, 0.5f);
+        Destroy(gameObject, 0.1f);
     }
 }

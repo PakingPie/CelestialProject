@@ -28,13 +28,13 @@ public class AAMissile : MonoBehaviour
 
     [Tooltip("Run guidance code in fixed update versus update.\n\nIf your target has a rigidbody and moved through physics, set this to Fixed.")]
     public UpdateType targetUpdateCycle = UpdateType.Update;
-    
+
     [Tooltip("Transform of the target. Typically assigned by launcher that shot the missile, but can be manually assigned for a missile already in the scene. If null on launch, the missile will have no guidance.")]
     public Transform target;
-    
+
     [Tooltip("Launching object. Typically assigned by the launcher and only needs to be assigned if manually launching a missile already in the scene. When assigned, this will prevent the missile from colliding with whatever launched it.")]
     public Transform ownShip;
-    
+
     [Tooltip("Position where this missile attaches to hardpoint style launchers. If not assigned, this will automatically search for a GameObject named \"Attach\". If no such GameObject, then the missile will attach at its origin.")]
     public Transform attachPoint;
 
@@ -78,6 +78,12 @@ public class AAMissile : MonoBehaviour
     [Tooltip("Whether or not the missile should have gravity when dropping.")]
     public bool gravity = true;
 
+    [Header("Warhead parameters:")]
+    public int Damage = 100;
+    public int ExplodeRadius = 5;
+    public int DetonationRadius = 3;
+
+
     AAMissileEffects missileEffect;
     private Vector3 launchVelocity = Vector3.zero;
 
@@ -118,7 +124,7 @@ public class AAMissile : MonoBehaviour
 
         // Find attach point if necessary.
         if (attachPoint == null)
-        {            
+        {
             Transform[] potentialAttach = GetComponentsInChildren<Transform>();
             foreach (Transform xform in potentialAttach)
                 if (xform.name == "Attach")
@@ -141,6 +147,16 @@ public class AAMissile : MonoBehaviour
 
         if (movementUpdateCycle == UpdateType.Update)
             RunMissile();
+
+        if (target != null)
+        {
+            Vector3 dir = target.position - transform.position;
+
+            if (dir.magnitude <= DetonationRadius)
+            {
+                HitTarget();
+            }
+        }
     }
 
     private void FixedUpdate()
@@ -157,9 +173,36 @@ public class AAMissile : MonoBehaviour
         // Prevent missile from exploding if it hasn't activated yet.
         if (isLaunched && TimeSince(launchTime) > dropDelay)
         {
+            HitTarget();
             // This is a good place to apply damage based on what was collided with.
             DestroyMissile(true);
         }
+    }
+
+    void HitTarget()
+    {
+        if (ExplodeRadius > 0)  // Area damage
+        {
+            Collider[] colliders = Physics.OverlapSphere(transform.position, ExplodeRadius);
+
+            foreach (Collider collider in colliders)
+            {
+                if (collider.tag == "Foe")
+                {
+                    // Damage reduce if farther from explosion center
+                    // float distance = Vector3.Distance(transform.position, collider.transform.position);
+                    // int damage = Damage * (int)(1 - distance / ExplodeRadius);
+                    // damage = Mathf.Max(damage, 0);
+                    collider.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                }
+            }
+
+        }
+        else    // Direct hit
+        {
+            target.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+        }
+        DestroyMissile(true);
     }
 
     /// <summary>
@@ -184,7 +227,7 @@ public class AAMissile : MonoBehaviour
         if (!isLaunched)
         {
             isLaunched = true;
-            launchTime = Time.time;            
+            launchTime = Time.time;
             transform.parent = null;
             target = newTarget;
             launchVelocity = inheritedVelocity;
@@ -336,7 +379,7 @@ public class AAMissile : MonoBehaviour
 
         if (missileEffect.playExplosionOnSelfDestruct)
             missileEffect.Explode();
-     
+
         else if (impact)
             missileEffect.Explode();
     }
