@@ -16,7 +16,8 @@ public class PlayerShipMovement : MonoBehaviour
     {
         rigidbody = GetComponent<Rigidbody>();
     }
-
+    
+    // FixedUpdate is called once per physics frame
     void FixedUpdate()
     {
         float inPitch = Keyboard.current.sKey.isPressed ? -1.0f :
