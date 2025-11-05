@@ -152,10 +152,28 @@ public class AAMissile : MonoBehaviour
         {
             Vector3 dir = target.position - transform.position;
 
+            RaycastHit hit;
+            Physics.Raycast(transform.position, Vector3.Normalize(dir), out hit);
+            if (hit.collider != null)
+            {
+                if (hit.collider.GetComponent<ShieldHitEffect>())
+                    hit.collider.GetComponent<ShieldHitEffect>().GetHit(hit);
+            }
+
             if (dir.magnitude <= DetonationRadius)
             {
                 HitTarget();
             }
+        }
+    }
+
+    void OnDrawGizmos()
+    {
+        // Draw a line heading to the target.
+        if (target != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, target.position);
         }
     }
 
