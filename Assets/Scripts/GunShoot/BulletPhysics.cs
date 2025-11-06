@@ -4,13 +4,26 @@ using System.Collections.Generic;
 
 public class BulletPhysics : MonoBehaviour
 {
+    [Header("Prefabs")]
+    [Tooltip("Effect played when the bullet impacts something.")]
+    [SerializeField] private ParticleSystem ImpactFXPrefab = null;
+    [Tooltip("Effect played when the bullet explodes.")]
+    [SerializeField] private ParticleSystem ExplodeFXPrefab = null;
+    
     public int Damage = 2;
+    [Header("Motion")]
+
     public float Speed = 50f;
+    [Tooltip("How long (seconds) the bullet lasts")]
     public float LifeTime = 5f;
     private float lifeTimer;
     public int FuseDetonationDistance = 1;
 
     public GlobalHelper.AmmoType DamageType = GlobalHelper.AmmoType.Kinetic;
+
+    [Header("Explosions")]
+    public bool ExplodeOnImpact = false;
+    public bool ExplodeOnTimeout = false;
 
     internal EnemyVehicle[] enemyVehicles;
     private RaycastHit _hit;
@@ -27,7 +40,7 @@ public class BulletPhysics : MonoBehaviour
                 break;
             }
             float distance = Vector3.Distance(transform.position, enemy.transform.position);
-            
+
             if (distance < FuseDetonationDistance)
             {
                 var isEnemyDestroyed = enemy.TakeDamage(Damage, DamageType);
@@ -64,10 +77,10 @@ public class BulletPhysics : MonoBehaviour
         }
 
         Physics.Raycast(transform.position, transform.forward, out _hit);
-        if(_hit.collider != null && Vector3.Distance(_hit.point, transform.position) <= FuseDetonationDistance + 0.1f)
+        if (_hit.collider != null && Vector3.Distance(_hit.point, transform.position) <= FuseDetonationDistance + 0.1f)
         {
-            if(_hit.collider.GetComponent<ShieldHitEffect>())
-            _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
+            if (_hit.collider.GetComponent<ShieldHitEffect>())
+                _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
         }
     }
 

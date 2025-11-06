@@ -149,7 +149,7 @@ public class EnemyVehicle : VehicleBase
                         ArmorPoints -= damage;
                         if (ArmorPoints <= 0)
                         {
-                            armorFloatDamage += -ArmorPoints;
+                            armorFloatDamage += -ArmorPoints / 2;
                             ArmorPoints = 0;
                         }
                     }
@@ -160,22 +160,22 @@ public class EnemyVehicle : VehicleBase
                         ShieldPoints -= damage;
                         if (ShieldPoints <= 0)
                         {
-                            shieldFloatDamage += -ShieldPoints;
+                            shieldFloatDamage += -ShieldPoints / 2;
                             ShieldPoints = 0;
                         }
                     }
-
-                    if (ArmorPoints <= 0 && ShieldPoints <= 0) // Both armor and shield are down, deal extra damage to hit points
+                    
+                    if (ArmorPoints <= 0 && ShieldPoints <= 0)  // Both armor and shield are down, take full damage plus bonus damage
                     {
-                        damage *= 2;
+                        damage = damage * 2;
                     }
                     else if (ArmorPoints <= 0 && ShieldPoints > 0) // Only armor is down, take half damage
                     {
-                        damage = (int)(damage * 0.5f);
+                        damage = (int)(damage * 0.5f) + armorFloatDamage;
                     }
                     else if (ShieldPoints <= 0 && ArmorPoints > 0) // Only shield is down, take three-quarters damage
                     {
-                        damage = (int)(damage * 0.75f);
+                        damage = (int)(damage * 0.75f) + shieldFloatDamage;
                     }
                     else if (ArmorPoints > 0 && ShieldPoints > 0) // Both armor and shield are still up, take quarter damage
                     {
