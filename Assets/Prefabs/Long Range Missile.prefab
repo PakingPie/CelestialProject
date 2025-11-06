@@ -496,7 +496,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86cc3a68799dcbd4ab63f4ffa9a844f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAMissileEffects
-  trailAlwaysOn: 1
+  trailAlwaysOn: 0
   trailFxPoint: {fileID: 0}
   trailPrefab: {fileID: 0}
   particleTrailPrefab: {fileID: 128602908056493726, guid: c73b41204b7b07f45b917fc22c25bfe0, type: 3}
@@ -529,17 +529,17 @@ MonoBehaviour:
   ownShip: {fileID: 0}
   attachPoint: {fileID: 0}
   guidanceType: 1
-  seekerCone: 45
+  seekerCone: 180
   seekerRange: 10000
   overrideInitialSpeed: 0
-  initialSpeed: 50
-  motorLifetime: 3
+  initialSpeed: 60
+  motorLifetime: 5
   acceleration: 5
-  turnRate: 20
+  turnRate: 30
   timeToLive: 15
-  dropDelay: 0.5
+  dropDelay: 0.3
   ejectVelocity: {x: 0, y: -5, z: 0}
-  gravity: 1
+  gravity: 0
   Damage: 50
   ExplodeRadius: 10
   DetonationRadius: 10
@@ -683,7 +683,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.38268343, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.20000002, y: 0.20000002, z: 4}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8864816284003992073}

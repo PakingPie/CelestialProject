@@ -668,7 +668,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 7122753308070185882}
+  m_Father: {fileID: 5734056256728635084}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &3081261057042086212
 Camera:
@@ -786,6 +786,38 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraLookAt
   target: {fileID: 7122753308070185882}
+--- !u!1 &6156824848337170154
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5734056256728635084}
+  m_Layer: 0
+  m_Name: CameraRig
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5734056256728635084
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6156824848337170154}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4545587904385555693}
+  m_Father: {fileID: 7122753308070185882}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7557760658031684151
 GameObject:
   m_ObjectHideFlags: 0
@@ -976,6 +1008,7 @@ GameObject:
   - component: {fileID: 2819691271651229457}
   - component: {fileID: 408229594850891347}
   - component: {fileID: 8654627433885299497}
+  - component: {fileID: 4207254624340459385}
   m_Layer: 0
   m_Name: PlayerShip
   m_TagString: Untagged
@@ -996,7 +1029,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4545587904385555693}
+  - {fileID: 5734056256728635084}
   - {fileID: 4606758638136826003}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1012,9 +1045,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4bf767fcaeb3364bb0e5a0a33910a17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShipMovement
-  thrust: 50
-  yaw: 5
-  pitch: 5
+  controller: {fileID: 0}
+  thrust: 100
+  turnTorque: {x: 90, y: 25, z: 45}
+  forceMult: 1000
+  sensitivity: 5
+  aggressiveTurnAngle: 10
+  pitch: 0
+  yaw: 0
+  roll: 0
 --- !u!54 &408229594850891347
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1055,3 +1094,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAFire
   ActiveRange: {x: 5, y: 500}
+--- !u!114 &4207254624340459385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8481271028399502966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1ab2a9f0d20cf644802032b06469801, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovementController
+  aircraft: {fileID: 7122753308070185882}
+  mouseAim: {fileID: 0}
+  cameraRig: {fileID: 0}
+  cam: {fileID: 0}
+  useFixed: 1
+  camSmoothSpeed: 5
+  mouseSensitivity: 3
+  aimDistance: 500
+  showDebugInfo: 0
