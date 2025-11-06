@@ -6,10 +6,13 @@ public class BulletPhysics : MonoBehaviour
 {
     [Header("Prefabs")]
     [Tooltip("Effect played when the bullet impacts something.")]
-    [SerializeField] private ParticleSystem ImpactFXPrefab = null;
+    [SerializeField] private ParticleSystem _impactFXPrefab = null;
     [Tooltip("Effect played when the bullet explodes.")]
-    [SerializeField] private ParticleSystem ExplodeFXPrefab = null;
-    
+    [SerializeField] private ParticleSystem _explodeFXPrefab = null;
+    [Tooltip("Any trails listed here will be cleaned up nicely on the bullet's destruction. " +
+            "Used to prevent unsightly deleted trails.")]
+    [SerializeField] private List<TrailRenderer> _childTrails = new List<TrailRenderer>();
+
     public int Damage = 2;
     [Header("Motion")]
 
@@ -81,6 +84,25 @@ public class BulletPhysics : MonoBehaviour
         {
             if (_hit.collider.GetComponent<ShieldHitEffect>())
                 _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
+        }
+    }
+
+    public void DestroyBulletFromImpact(Vector3 impactedPoint, Quaternion impactRotation)
+    {
+        if (_impactFXPrefab != null)
+            Instantiate(_impactFXPrefab, impactedPoint, impactRotation).Play();
+
+        CleanUpTrails();
+        Destroy(gameObject);
+    }
+
+    private void CleanUpTrails()
+    {
+        foreach (var trail in _childTrails)
+        {
+            trail.emitting = false;
+            trail.autodestruct = true;
+            trail.transform.SetParent(null);
         }
     }
 
