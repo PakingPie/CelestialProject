@@ -22,6 +22,10 @@ public abstract class VehicleBase : MonoBehaviour
     {
         throw new NotImplementedException();
     }
+    public virtual void RestoreShield()
+    {
+        throw new NotImplementedException();
+    }
     public virtual void DestroyVehicle()
     {
         throw new NotImplementedException();

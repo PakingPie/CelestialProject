@@ -19,6 +19,8 @@ public class EnemyVehicle : VehicleBase
     public GameObject Turret;
     public Transform FireSpawn;
     public int ShieldRegenerationRate = 1; // Points per second
+    public float ShieldRegenerationDelay = 5f; // Seconds after taking damage before regeneration starts
+    private float _shieldRegenTimer = 0f;
     void Start()
     {
         HealthBar.GetComponent<Image>().material = new Material(HealthBarShader);
@@ -57,6 +59,30 @@ public class EnemyVehicle : VehicleBase
     {
         // Implement attack logic for enemy vehicles
 
+    }
+
+    void Update()
+    {
+        // Handle shield regeneration
+        if (ShieldPoints < MaxShieldPoints)
+        {
+            _shieldRegenTimer += Time.deltaTime;
+            if (_shieldRegenTimer >= ShieldRegenerationDelay)
+            {
+                RestoreShield();
+            }
+        }
+    }
+
+    public override void RestoreShield()
+    {
+        ShieldPoints += ShieldRegenerationRate;
+        if (ShieldPoints > MaxShieldPoints)
+        {
+            ShieldPoints = MaxShieldPoints;
+        }
+        ShieldBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ShieldPoints);
+        ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", ShieldPoints / (float)MaxShieldPoints);
     }
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
@@ -164,7 +190,7 @@ public class EnemyVehicle : VehicleBase
                             ShieldPoints = 0;
                         }
                     }
-                    
+
                     if (ArmorPoints <= 0 && ShieldPoints <= 0)  // Both armor and shield are down, take full damage plus bonus damage
                     {
                         damage = damage * 2;
@@ -246,6 +272,8 @@ public class EnemyVehicle : VehicleBase
         {
             DestroyVehicle();
         }
+
+        _shieldRegenTimer = 0f; // Reset shield regeneration timer on taking damage
 
         return HitPoints > 0;
     }

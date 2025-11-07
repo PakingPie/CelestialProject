@@ -80,8 +80,17 @@ public class GunShoot : MonoBehaviour
         if (_targetPoint != null && Vector3.Distance(transform.position, _targetPoint.position) < ActiveRange.y)
         {
             var bulletPrefab = Instantiate(BulletPrefab, BulletSpawnPoint.position, BulletSpawnPoint.rotation);
-            bulletPrefab.GetComponent<BulletPhysics>().TargetObject = _targetPoint;
         }
+    }
+
+    public void StopShooting()
+    {
+        CancelInvoke("Shoot");
+    }
+
+    public void StartShooting()
+    {
+        InvokeRepeating("Shoot", 0.0f, GunShootInterval);
     }
 
     public void UpdateTarget()

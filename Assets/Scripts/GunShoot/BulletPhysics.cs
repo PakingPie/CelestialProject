@@ -28,13 +28,8 @@ public class BulletPhysics : MonoBehaviour
     public bool ExplodeOnImpact = false;
     public bool ExplodeOnTimeout = false;
 
-    public Transform TargetObject;
-
-    internal EnemyVehicle[] enemyVehicles;
     private RaycastHit _hit;
-    void Start()
-    {
-    }
+
     public void FindClosestTarget()
     {
         // enemyVehicles = FindObjectsByType<EnemyVehicle>(FindObjectsSortMode.None);
