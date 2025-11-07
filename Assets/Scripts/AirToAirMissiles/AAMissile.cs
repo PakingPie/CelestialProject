@@ -214,7 +214,7 @@ public class AAMissile : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         // Prevent missile from exploding if it hasn't activated yet.
-        if (isLaunched && TimeSince(launchTime) > dropDelay)
+        if (isLaunched && TimeSince(launchTime) > dropDelay && collision.gameObject != ownShip && collision.gameObject.tag == "Foe")
         {
             HitTarget();
             // This is a good place to apply damage based on what was collided with.

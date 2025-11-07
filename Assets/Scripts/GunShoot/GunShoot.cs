@@ -21,31 +21,66 @@ public class GunShoot : MonoBehaviour
     public GameObject BulletPrefab;
     public Transform BulletSpawnPoint;
 
+    public enum GuidanceType
+    {
+        Pursuit,
+        Lead
+    };
+
+    public GuidanceType _guidanceType = GuidanceType.Lead;
+
+    private Vector3 _targetPosLastFrame;
+
 
     void Start()
     {
         InvokeRepeating("Shoot", 0.0f, GunShootInterval);
         InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
         InvokeRepeating("LockOn", 0f, 1.0f / UpdateRate);
+        if(_targetPoint != null)
+        {
+            _targetPosLastFrame = _targetPoint.position;
+        }
     }
 
     void LockOn()
     {
-        if(_targetPoint == null)
+        if (_targetPoint == null)
         {
             return;
         }
-        Vector3 dir = _targetPoint.position - transform.position;
-        Quaternion look_rotation = Quaternion.LookRotation(dir);
-        Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
-        transform.rotation = Quaternion.Euler(rotation);
+        if (_guidanceType == GuidanceType.Pursuit)
+        {
+            Vector3 dir = _targetPoint.position - transform.position;
+            Quaternion look_rotation = Quaternion.LookRotation(dir);
+            Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
+            transform.rotation = Quaternion.Euler(rotation);
+        }
+        else
+        {
+            // Get where target will be in one second.
+            Vector3 targetVelocity = _targetPoint.position - _targetPosLastFrame;
+            targetVelocity /= Time.deltaTime;
+            //=====================================================
+
+            // Figure out time to impact based on distance.          
+            float bulletSpeed = BulletPrefab.GetComponent<BulletPhysics>().Speed;
+            float distanceToTarget = Vector3.Distance(transform.position, _targetPoint.position);
+            float timeToImpact = distanceToTarget / bulletSpeed;
+            Vector3 futureTargetPos = _targetPoint.position + targetVelocity * timeToImpact;
+            Vector3 dir = futureTargetPos - transform.position;
+            Quaternion look_rotation = Quaternion.LookRotation(dir);
+            Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
+            transform.rotation = Quaternion.Euler(rotation);
+        }
     }
 
     public void Shoot()
     {
         if (_targetPoint != null && Vector3.Distance(transform.position, _targetPoint.position) < ActiveRange.y)
         {
-            GameObject fired_object = Instantiate(BulletPrefab, BulletSpawnPoint.position, BulletSpawnPoint.rotation);
+            var bulletPrefab = Instantiate(BulletPrefab, BulletSpawnPoint.position, BulletSpawnPoint.rotation);
+            bulletPrefab.GetComponent<BulletPhysics>().TargetObject = _targetPoint;
         }
     }
 
@@ -70,7 +105,7 @@ public class GunShoot : MonoBehaviour
             _targetPoint = null;
             return;
         }
-        
+
         float shortest_distance = Mathf.Infinity;
         GameObject nearest_enemy = null;
 
@@ -97,7 +132,7 @@ public class GunShoot : MonoBehaviour
 
     public void GunEnable()
     {
-        
+
     }
 
     public void GunDisable()

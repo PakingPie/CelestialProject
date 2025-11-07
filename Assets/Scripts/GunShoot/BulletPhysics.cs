@@ -28,6 +28,8 @@ public class BulletPhysics : MonoBehaviour
     public bool ExplodeOnImpact = false;
     public bool ExplodeOnTimeout = false;
 
+    public Transform TargetObject;
+
     internal EnemyVehicle[] enemyVehicles;
     private RaycastHit _hit;
     void Start()
@@ -35,26 +37,34 @@ public class BulletPhysics : MonoBehaviour
     }
     public void FindClosestTarget()
     {
-        enemyVehicles = FindObjectsByType<EnemyVehicle>(FindObjectsSortMode.None);
-        foreach (EnemyVehicle enemy in enemyVehicles)
-        {
-            if (enemy == null)
-            {
-                break;
-            }
-            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+        // enemyVehicles = FindObjectsByType<EnemyVehicle>(FindObjectsSortMode.None);
+        // foreach (EnemyVehicle enemy in enemyVehicles)
+        // {
+        //     if (enemy == null)
+        //     {
+        //         break;
+        //     }
+        //     float distance = Vector3.Distance(transform.position, enemy.transform.position);
 
-            if (distance < FuseDetonationDistance)
-            {
-                var isEnemyDestroyed = enemy.TakeDamage(Damage, DamageType);
-                if (isEnemyDestroyed)
-                {
-                    Destroy(this.gameObject, 0.01f);
-                    break;
-                }
-                Destroy(this.gameObject);
-            }
-        }
+        //     if (distance < FuseDetonationDistance)
+        //     {
+        //         Vector3 dir = (enemy.transform.position - transform.position).normalized;
+        //         Physics.Raycast(transform.position - dir * 10, dir, out _hit);
+        //         if (_hit.collider != null && Vector3.Distance(_hit.point, transform.position) <= FuseDetonationDistance + 0.1f)
+        //         {
+        //             if (_hit.collider.GetComponent<ShieldHitEffect>())
+        //                 _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
+        //         }
+
+        //         var isEnemyDestroyed = enemy.TakeDamage(Damage, DamageType);
+        //         if (isEnemyDestroyed)
+        //         {
+        //             DestroyBulletFromImpact(transform.position, transform.rotation);
+        //             break;
+        //         }
+        //         DestroyBulletFromImpact(transform.position, transform.rotation);
+        //     }
+        // }
 
         // Search for enemies within FuseDetonationDistance
         // Collider[] hitColliders = Physics.OverlapSphere(transform.position, FuseDetonationDistance);
@@ -71,19 +81,12 @@ public class BulletPhysics : MonoBehaviour
 
     void Update()
     {
-        FindClosestTarget();
+        // FindClosestTarget();
         transform.Translate(Vector3.forward * Speed * Time.deltaTime);
         lifeTimer += Time.deltaTime;
         if (lifeTimer >= LifeTime)
         {
-            Destroy(gameObject);
-        }
-
-        Physics.Raycast(transform.position, transform.forward, out _hit);
-        if (_hit.collider != null && Vector3.Distance(_hit.point, transform.position) <= FuseDetonationDistance + 0.1f)
-        {
-            if (_hit.collider.GetComponent<ShieldHitEffect>())
-                _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
+            DestroyBulletFromImpact(transform.position, transform.rotation);
         }
     }
 
@@ -106,17 +109,20 @@ public class BulletPhysics : MonoBehaviour
         }
     }
 
-    // private void OnCollisionEnter(Collision other)
-    // {
-    //     Collider[] colliders = Physics.OverlapSphere(transform.position, FuseDetonationDistance);
-    //     for(int i = 0; i < colliders.Length; i++)
-    //     {
-    //       EnemyVehicle enemy = colliders[i].GetComponent<EnemyVehicle>();
-    //         if (enemy != null)
-    //         {
-    //             enemy.TakeDamage(1, GlobalHelper.AmmoType.Kinetic);
-    //             Destroy(this.gameObject);
-    //         }
-    //     }
-    // }
+    private void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.tag == "Foe")
+        {
+            other.gameObject.GetComponent<EnemyVehicle>().TakeDamage(Damage, DamageType);
+            var contactPoint = other.contacts[0].point;
+            Vector3 dir = (other.transform.position - transform.position).normalized;
+            Physics.Raycast(transform.position - dir, dir, out _hit);
+            if (_hit.collider != null)
+            {
+                if (_hit.collider.GetComponent<ShieldHitEffect>())
+                    _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
+            }
+            DestroyBulletFromImpact(contactPoint, transform.rotation);
+        }
+    }
 }

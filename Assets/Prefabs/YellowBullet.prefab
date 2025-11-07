@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1324292948685452850}
   - component: {fileID: 5645221599804554687}
   - component: {fileID: -3295528032157664246}
+  - component: {fileID: -2623997556800514209}
   m_Layer: 11
   m_Name: YellowBullet
   m_TagString: Untagged
@@ -124,12 +125,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08d7bd52323df8e4ea8bfe1108f53197, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletPhysics
-  ImpactFXPrefab: {fileID: 4353961468635224783, guid: 816964e01681d0d4c8627ea16975cef0, type: 3}
-  ExplodeFXPrefab: {fileID: 0}
+  _impactFXPrefab: {fileID: 4353961468635224783, guid: 816964e01681d0d4c8627ea16975cef0, type: 3}
+  _explodeFXPrefab: {fileID: 0}
+  _childTrails: []
   Damage: 2
-  Speed: 50
-  LifeTime: 5
-  FuseDetonationDistance: 1
+  Speed: 100
+  LifeTime: 8
+  FuseDetonationDistance: 5
   DamageType: 0
   ExplodeOnImpact: 0
   ExplodeOnTimeout: 0
+  TargetObject: {fileID: 0}
+--- !u!54 &-2623997556800514209
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6305537667324850647}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0

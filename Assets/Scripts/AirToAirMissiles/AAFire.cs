@@ -17,9 +17,21 @@ public class AAFire : MonoBehaviour
 
     private void Update()
     {
-        if (Mouse.current.leftButton.wasPressedThisFrame)
-        {
+        // if (Mouse.current.leftButton.wasPressedThisFrame)
+        // {
+        // }
+        if(_targetPoint != null)
             FireWeapon();
+        
+        if(Mouse.current.rightButton.wasPressedThisFrame)
+        {
+            _targetPoint = null;
+            RaycastHit hit;
+            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+            if (Physics.Raycast(ray, out hit))
+            {
+                _targetPoint = hit.transform;
+            }
         }
     }
 
@@ -32,17 +44,17 @@ public class AAFire : MonoBehaviour
                 if(_targetPoint != null)
                 {
                     launcher.Launch(_targetPoint);
+                    break;
                 }
-                else
-
-                {
-                    launcher.Launch(null);
-                }                
-                break;
+                // else
+                // {
+                //     launcher.Launch(null);
+                //     break;
+                // }                
             }
         }
     }
-    
+
     public void UpdateTarget()
     {
         if (_targetPoint != null)
@@ -78,6 +90,16 @@ public class AAFire : MonoBehaviour
         else
         {
             _targetPoint = null;
+        }
+    }
+    
+    void OnDrawGizmos()
+    {
+        // Draw a line heading to the target.
+        if (_targetPoint != null)
+        {
+            Gizmos.color = Color.orangeRed;
+            Gizmos.DrawLine(transform.position, _targetPoint.position);
         }
     }
     
