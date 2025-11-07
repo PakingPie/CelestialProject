@@ -1547,9 +1547,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAHardpoint
   ownShip: {fileID: 7103346325574244501}
-  missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 90c23d95d8590d94e86211e6098d4a67, type: 3}
+  missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 1dea1f09ef5669844be1e2b40b4c8574, type: 3}
   missileCount: 100
-  fireDelay: 5
+  fireDelay: 10
   launchPoints:
   - {fileID: 9218160428141935222}
   - {fileID: 5313584158660600118}
@@ -1746,7 +1746,7 @@ GameObject:
   - component: {fileID: 4509037192788184008}
   - component: {fileID: 8220160253758234162}
   m_Layer: 0
-  m_Name: MissileHardPoint 1 (1)
+  m_Name: MissileHardPoint 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1768,7 +1768,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &3774630771858066989
 GameObject:
   m_ObjectHideFlags: 0
@@ -2337,7 +2337,7 @@ MonoBehaviour:
   ownShip: {fileID: 7103346325574244501}
   missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 90c23d95d8590d94e86211e6098d4a67, type: 3}
   missileCount: 100
-  fireDelay: 10
+  fireDelay: 8
   launchPoints:
   - {fileID: 7372045464721756001}
   - {fileID: 3831444920449321479}
@@ -2392,7 +2392,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1db5bcea85ac7604abda9a00766f20dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAFire
+  _fireMode: 0
   ActiveRange: {x: 25, y: 3000}
+  FireInterval: 1
 --- !u!4 &9218160428141935222
 Transform:
   m_ObjectHideFlags: 0

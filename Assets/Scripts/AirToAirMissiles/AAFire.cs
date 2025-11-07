@@ -5,9 +5,17 @@ using UnityEngine.InputSystem;
 
 public class AAFire : MonoBehaviour
 {
+    public enum FireMode
+    {
+        Manual,
+        Automatic
+    };
+    public FireMode _fireMode = FireMode.Automatic;
     public Vector2 ActiveRange = new Vector2(5f, 300f);
     private AALauncher[] _allLaunchers;
     private Transform _targetPoint;
+    public float FireInterval = 1.0f;
+    private float _fireTimer = 0f;
 
     private void Start()
     {
@@ -17,13 +25,17 @@ public class AAFire : MonoBehaviour
 
     private void Update()
     {
-        // if (Mouse.current.leftButton.wasPressedThisFrame)
-        // {
-        // }
-        if(_targetPoint != null)
-            FireWeapon();
-        
-        if(Mouse.current.rightButton.wasPressedThisFrame)
+        if (_fireMode == FireMode.Manual)
+        {
+            ManualFireUpdate();
+        }
+        else if (_fireMode == FireMode.Automatic)
+        {
+            AutomaticFireUpdate();
+        }
+
+
+        if (Mouse.current.rightButton.wasPressedThisFrame)
         {
             _targetPoint = null;
             RaycastHit hit;
@@ -35,24 +47,70 @@ public class AAFire : MonoBehaviour
         }
     }
 
+    private void AutomaticFireUpdate()
+    {
+        if (_targetPoint == null)
+        {
+            return;
+        }
+        float distanceToTarget = Vector3.Distance(transform.position, _targetPoint.position);
+        if (distanceToTarget < ActiveRange.x || distanceToTarget > ActiveRange.y)
+        {
+            return;
+        }
+        FireWeapon();
+
+    }
+
+    private void ManualFireUpdate()
+    {
+        if (Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            if (_targetPoint == null)
+            {
+                return;
+            }
+            float distanceToTarget = Vector3.Distance(transform.position, _targetPoint.position);
+            if (distanceToTarget < ActiveRange.x || distanceToTarget > ActiveRange.y)
+            {
+                return;
+            }
+
+            FireWeapon();
+        }
+    }
+
     private void FireWeapon()
     {
-        foreach (AALauncher launcher in _allLaunchers)
+        for (int i = 0; i < _allLaunchers.Length; i++)
         {
-            if (launcher.missileCount > 0)
+            AALauncher launcher = _allLaunchers[i];
+            // Get the target point's angle relative to the launcher. If it's within the launcher's FOV, fire.
+            Vector3 directionToTarget = (_targetPoint.position - launcher.transform.position).normalized;
+            float angleToTarget = Vector3.Angle(launcher.transform.forward, directionToTarget);
+            if (angleToTarget > launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone / 2f)
             {
-                if(_targetPoint != null)
+                continue;
+            }
+            if (_fireMode == FireMode.Manual)
+            {
+                if (launcher.MagazineCount > 0 && _targetPoint != null)
                 {
                     launcher.Launch(_targetPoint);
+                    _fireTimer = 0f;
                     break;
                 }
-                // else
-                // {
-                //     launcher.Launch(null);
-                //     break;
-                // }                
+            }
+            else if (_fireMode == FireMode.Automatic)
+            {
+                if (launcher.MagazineCount > 0 && _targetPoint != null && _fireTimer >= FireInterval)
+                {
+                    launcher.Launch(_targetPoint);
+                    _fireTimer = 0f;
+                }
             }
         }
+        _fireTimer += Time.deltaTime;
     }
 
     public void UpdateTarget()
@@ -92,7 +150,7 @@ public class AAFire : MonoBehaviour
             _targetPoint = null;
         }
     }
-    
+
     void OnDrawGizmos()
     {
         // Draw a line heading to the target.
@@ -102,5 +160,5 @@ public class AAFire : MonoBehaviour
             Gizmos.DrawLine(transform.position, _targetPoint.position);
         }
     }
-    
+
 }

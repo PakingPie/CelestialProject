@@ -7,11 +7,12 @@ public class AAHardpoint : AALauncher
     int initialMisCount = 1;
     int spawnedMissiles = 0;
 
+
     /// <summary>
     /// Get the magazine count of a pod launcher. Hardpoints don't have magazines, so they
     /// will always return 1. 
     /// </summary>
-    public override int MagazineCount { get { return 1; } }
+    public override int MagazineCount { get { return spawnedMissiles; } }
 
     protected override void Awake()
     {
@@ -74,6 +75,7 @@ public class AAHardpoint : AALauncher
                 stations.Enqueue(launchingStation);
 
                 missileCount--;
+                spawnedMissiles--;
             }
         }
     }
