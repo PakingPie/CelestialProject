@@ -515,7 +515,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefab: {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 50
-  spawnCount: 10
+  spawnCount: 20
   color: {r: 1, g: 1, b: 1, a: 0}
   showSpawnRegion: 1
   HeightRange: {x: -100, y: 100}
@@ -713,7 +713,6 @@ GameObject:
   - component: {fileID: 271862972}
   - component: {fileID: 271862975}
   - component: {fileID: 271862974}
-  - component: {fileID: 271862973}
   m_Layer: 9
   m_Name: Sphere
   m_TagString: Untagged
@@ -736,27 +735,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1331995348}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &271862973
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 271862971}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &271862974
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1036,9 +1014,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GunShoot
   UpdateRate: 60
-  ActiveRange: {x: 5, y: 50}
-  GunShootInterval: 0.4
-  TurretRotateSpeed: 5
+  ActiveRange: {x: 5, y: 500}
+  GunShootInterval: 0.3
+  TurretRotateSpeed: 30
   BulletPrefab: {fileID: 6305537667324850647, guid: cdabe52d8daf4e445a8be5cc61742e2c, type: 3}
   BulletSpawnPoint: {fileID: 436874196}
   _guidanceType: 1
@@ -1404,6 +1382,10 @@ PrefabInstance:
       propertyPath: aircraft
       value: 
       objectReference: {fileID: 598598951}
+    - target: {fileID: 3935872858728091165, guid: 6c328d55769863e4680a1fd8454fc6f5, type: 3}
+      propertyPath: showDebugInfo
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5087940889075179744, guid: 6c328d55769863e4680a1fd8454fc6f5, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1823,7 +1805,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1331995348
 Transform:
   m_ObjectHideFlags: 0
@@ -1854,9 +1836,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GunShoot
   UpdateRate: 60
-  ActiveRange: {x: 5, y: 50}
+  ActiveRange: {x: 5, y: 500}
   GunShootInterval: 0.4
-  TurretRotateSpeed: 5
+  TurretRotateSpeed: 30
   BulletPrefab: {fileID: 6305537667324850647, guid: cdabe52d8daf4e445a8be5cc61742e2c, type: 3}
   BulletSpawnPoint: {fileID: 757432074}
   _guidanceType: 1
@@ -1871,7 +1853,6 @@ GameObject:
   - component: {fileID: 1494760712}
   - component: {fileID: 1494760715}
   - component: {fileID: 1494760714}
-  - component: {fileID: 1494760713}
   m_Layer: 9
   m_Name: Sphere
   m_TagString: Untagged
@@ -1894,27 +1875,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 464948759}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &1494760713
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1494760711}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1494760714
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2947,7 +2907,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2008083422
 Transform:
   m_ObjectHideFlags: 0
@@ -3134,13 +3094,21 @@ PrefabInstance:
       propertyPath: m_ImplicitTensor
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1544176963097918403, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
+      propertyPath: fireDelay
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: thrust
       value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
+      propertyPath: forceMult
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: controller
@@ -3189,6 +3157,10 @@ PrefabInstance:
     - target: {fileID: 7122753308070185882, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8241267972373843261, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
+      propertyPath: fireDelay
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8481271028399502966, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: m_Name
