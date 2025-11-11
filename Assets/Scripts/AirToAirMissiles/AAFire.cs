@@ -92,6 +92,12 @@ public class AAFire : MonoBehaviour
             {
                 continue;
             }
+
+            if(launcher.missilePrefabToLaunch.GetComponent<AAMissile>().ActiveRange.y < Vector3.Distance(transform.position, _targetPoint.position))
+            {
+                continue;
+            }
+
             if (_fireMode == FireMode.Manual)
             {
                 if (launcher.MagazineCount > 0 && _targetPoint != null)

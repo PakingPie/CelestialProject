@@ -211,32 +211,41 @@ public class AAMissile : MonoBehaviour
     //         RunMissile();
     // }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        // Prevent missile from exploding if it hasn't activated yet.
-        if (isLaunched && TimeSince(launchTime) > dropDelay && collision.gameObject != ownShip && collision.gameObject.tag == "Foe")
-        {
-            HitTarget();
-            // This is a good place to apply damage based on what was collided with.
-            DestroyMissile(true);
-        }
-    }
+    // private void OnCollisionEnter(Collision collision)
+    // {
+    //     // Prevent missile from exploding if it hasn't activated yet.
+    //     if (isLaunched && TimeSince(launchTime) > dropDelay && collision.gameObject != ownShip && collision.gameObject.tag == "Foe")
+    //     {
+    //         HitTarget();
+    //         // This is a good place to apply damage based on what was collided with.
+    //         DestroyMissile(true);
+    //     }
+    // }
 
     void HitTarget()
     {
         if (ExplodeRadius > 0)  // Area damage
         {
-            Collider[] colliders = Physics.OverlapSphere(transform.position, ExplodeRadius);
+            // Collider[] colliders = Physics.OverlapSphere(transform.position, ExplodeRadius);
 
-            foreach (Collider collider in colliders)
+            // foreach (Collider collider in colliders)
+            // {
+            //     if (collider.tag == "Foe")
+            //     {
+            //         // Damage reduce if farther from explosion center
+            //         // float distance = Vector3.Distance(transform.position, collider.transform.position);
+            //         // int damage = Damage * (int)(1 - distance / ExplodeRadius);
+            //         // damage = Mathf.Max(damage, 0);
+            //         collider.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+            //     }
+            // }
+            GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
+            foreach (GameObject enemy in enemies)
             {
-                if (collider.tag == "Foe")
+                float distance = Vector3.Distance(transform.position, enemy.transform.position);
+                if (distance <= ExplodeRadius)
                 {
-                    // Damage reduce if farther from explosion center
-                    // float distance = Vector3.Distance(transform.position, collider.transform.position);
-                    // int damage = Damage * (int)(1 - distance / ExplodeRadius);
-                    // damage = Mathf.Max(damage, 0);
-                    collider.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                    enemy.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
                 }
             }
 
