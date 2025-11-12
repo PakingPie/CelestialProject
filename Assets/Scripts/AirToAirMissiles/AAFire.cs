@@ -93,7 +93,7 @@ public class AAFire : MonoBehaviour
                 continue;
             }
 
-            if(launcher.missilePrefabToLaunch.GetComponent<AAMissile>().ActiveRange.y < Vector3.Distance(transform.position, _targetPoint.position))
+            if(launcher.missilePrefabToLaunch.GetComponent<AAMissile>().ActiveRange < Vector3.Distance(transform.position, _targetPoint.position))
             {
                 continue;
             }

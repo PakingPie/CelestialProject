@@ -1504,7 +1504,7 @@ MonoBehaviour:
   ownShip: {fileID: 7103346325574244501}
   missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 1dea1f09ef5669844be1e2b40b4c8574, type: 3}
   missileCount: 100
-  fireDelay: 5
+  fireDelay: 10
   launchPoints:
   - {fileID: 2082537119}
   - {fileID: 1380203862}
@@ -1958,33 +1958,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!54 &425430851729048924
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8502438397938148729}
-  serializedVersion: 5
-  m_Mass: 100
-  m_LinearDamping: 1
-  m_AngularDamping: 5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 1
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!4 &580940861853613106
 Transform:
   m_ObjectHideFlags: 0
@@ -2149,7 +2122,7 @@ MonoBehaviour:
   ownShip: {fileID: 7103346325574244501}
   missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 1dea1f09ef5669844be1e2b40b4c8574, type: 3}
   missileCount: 100
-  fireDelay: 5
+  fireDelay: 10
   launchPoints:
   - {fileID: 9218160428141935222}
   - {fileID: 5313584158660600118}
@@ -2294,8 +2267,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShipMovement
   controller: {fileID: 6141874323968867814}
-  thrust: 1000
-  turnTorque: {x: 18, y: 5, z: 9}
+  thrust: 100
+  turnTorque: {x: 90, y: 25, z: 45}
   forceMult: 1
   sensitivity: 5
   aggressiveTurnAngle: 5
@@ -2976,7 +2949,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7103346325574244501}
-  - component: {fileID: 425430851729048924}
   - component: {fileID: 2840843351104990238}
   - component: {fileID: 8671210974142504998}
   m_Layer: 0

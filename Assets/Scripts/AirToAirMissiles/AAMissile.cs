@@ -78,6 +78,8 @@ public class AAMissile : MonoBehaviour
     [Tooltip("Whether or not the missile should have gravity when dropping.")]
     public bool gravity = true;
 
+    [Header("Active Range (in meters):")]
+    public float ActiveRange = 5000f;
     [Header("Warhead parameters:")]
     public int Damage = 100;
     public int ExplodeRadius = 5;

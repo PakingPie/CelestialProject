@@ -13,8 +13,7 @@ using UnityEngine;
 /// keyboard overrides for flight control. It's not perfect, but it works well enough
 /// for an example.
 /// </summary>
-[RequireComponent(typeof(Rigidbody))]
-public class Plane : MonoBehaviour
+public class PlayerShipMovement : MonoBehaviour
 {
     [Header("Components")]
     [SerializeField] private PlayerMovementController controller = null;
@@ -37,14 +36,14 @@ public class Plane : MonoBehaviour
     public float Yaw { set { yaw = Mathf.Clamp(value, -1f, 1f); } get { return yaw; } }
     public float Roll { set { roll = Mathf.Clamp(value, -1f, 1f); } get { return roll; } }
 
-    private Rigidbody rigid;
+    // private Rigidbody rigid;
 
     private bool rollOverride = false;
     private bool pitchOverride = false;
 
     private void Awake()
     {
-        rigid = GetComponent<Rigidbody>();
+        // rigid = GetComponent<Rigidbody>();
 
         if (controller == null)
             Debug.LogError(name + ": Plane - Missing reference to MouseFlightController!");
@@ -102,6 +101,27 @@ public class Plane : MonoBehaviour
         yaw = autoYaw;
         pitch = (pitchOverride) ? keyboardPitch : autoPitch;
         roll = (rollOverride) ? keyboardRoll : autoRoll;
+
+        // Simple throttle control.
+        float throttleInput = 0f;
+        if (gp != null)
+        {
+            throttleInput = gp.rightTrigger.ReadValue() - gp.leftTrigger.ReadValue();
+        }
+        else if (kb != null)
+        {
+            throttleInput = (kb.leftShiftKey.isPressed ? 1f : 0f) + (kb.leftCtrlKey.isPressed ? -1f : 0f);
+        }
+
+        thrust += throttleInput * Time.deltaTime;
+        // thrust = Mathf.Clamp(thrust, 0f, 500f);
+
+        // Appply forces without using Rigidbody.
+        transform.position += transform.forward * (thrust * Time.deltaTime);
+        transform.Rotate(new Vector3(turnTorque.x * pitch,
+                                     turnTorque.y * yaw,
+                                     -turnTorque.z * roll) * Time.deltaTime);
+
     }
 
     private void RunAutopilot(Vector3 flyTarget, out float yaw, out float pitch, out float roll)
@@ -149,16 +169,16 @@ public class Plane : MonoBehaviour
         roll = Mathf.Lerp(wingsLevelRoll, agressiveRoll, wingsLevelInfluence);
     }
 
-    private void FixedUpdate()
-    {
-        // Ultra simple flight where the plane just gets pushed forward and manipulated
-        // with torques to turn.
-        rigid.AddRelativeForce(Vector3.forward * thrust * forceMult, ForceMode.Force);
-        rigid.AddRelativeTorque(new Vector3(turnTorque.x * pitch,
-                                            turnTorque.y * yaw,
-                                            -turnTorque.z * roll) * forceMult,
-                                ForceMode.Force);
-    }
+    // private void FixedUpdate()
+    // {
+    //     // Ultra simple flight where the plane just gets pushed forward and manipulated
+    //     // with torques to turn.
+    //     rigid.AddRelativeForce(Vector3.forward * thrust * forceMult, ForceMode.Force);
+    //     rigid.AddRelativeTorque(new Vector3(turnTorque.x * pitch,
+    //                                         turnTorque.y * yaw,
+    //                                         -turnTorque.z * roll) * forceMult,
+    //                             ForceMode.Force);
+    // }
 }
 
 
