@@ -223,7 +223,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!135 &71717943
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -2305,7 +2305,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1602247032
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2970,7 +2970,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!135 &2014069153
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -3108,7 +3108,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: thrust
-      value: 100
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: forceMult
@@ -3175,10 +3175,15 @@ PrefabInstance:
       value: PlayerShip
       objectReference: {fileID: 0}
     - target: {fileID: 8654627433885299497, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
-      propertyPath: m_Enabled
-      value: 0
+      propertyPath: _fireMode
+      value: 1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 8654627433885299497, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 408229594850891347, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 7122753308070185882, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}

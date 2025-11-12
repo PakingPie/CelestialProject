@@ -823,7 +823,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7122753308070185882}
   - component: {fileID: 2819691271651229457}
-  - component: {fileID: 408229594850891347}
   - component: {fileID: 8654627433885299497}
   m_Layer: 0
   m_Name: PlayerShip
@@ -861,41 +860,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShipMovement
   controller: {fileID: 0}
-  thrust: 100
+  thrust: 10
   turnTorque: {x: 90, y: 25, z: 45}
-  forceMult: 1000
+  forceMult: 1
   sensitivity: 5
   aggressiveTurnAngle: 10
   pitch: 0
   yaw: 0
   roll: 0
---- !u!54 &408229594850891347
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8481271028399502966}
-  serializedVersion: 5
-  m_Mass: 10
-  m_LinearDamping: 10
-  m_AngularDamping: 5
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!114 &8654627433885299497
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -908,4 +880,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1db5bcea85ac7604abda9a00766f20dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAFire
+  _fireMode: 1
   ActiveRange: {x: 5, y: 500}
+  FireInterval: 1

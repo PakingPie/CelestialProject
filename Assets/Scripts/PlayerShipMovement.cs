@@ -113,7 +113,7 @@ public class PlayerShipMovement : MonoBehaviour
             throttleInput = (kb.leftShiftKey.isPressed ? 1f : 0f) + (kb.leftCtrlKey.isPressed ? -1f : 0f);
         }
 
-        thrust += throttleInput * Time.deltaTime;
+        thrust += throttleInput * Time.deltaTime * forceMult;
         // thrust = Mathf.Clamp(thrust, 0f, 500f);
 
         // Appply forces without using Rigidbody.
