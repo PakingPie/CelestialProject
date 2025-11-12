@@ -300,7 +300,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 71717942}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -2432090755550338912, guid: fef1d3afdd6ddca45a898e94c849dc01, type: 3}
 --- !u!4 &71717946
 Transform:
   m_ObjectHideFlags: 0
@@ -311,7 +311,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -50, z: -400}
-  m_LocalScale: {x: 200, y: 200, z: 200}
+  m_LocalScale: {x: 20, y: 20, z: 20}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 606865269}
@@ -484,7 +484,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &220290810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -515,7 +515,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefab: {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 50
-  spawnCount: 20
+  spawnCount: 5
   color: {r: 1, g: 1, b: 1, a: 0}
   showSpawnRegion: 1
   HeightRange: {x: -100, y: 100}
@@ -1019,7 +1019,7 @@ MonoBehaviour:
   TurretRotateSpeed: 30
   BulletPrefab: {fileID: 6305537667324850647, guid: cdabe52d8daf4e445a8be5cc61742e2c, type: 3}
   BulletSpawnPoint: {fileID: 436874196}
-  _guidanceType: 1
+  _guidanceType: 0
 --- !u!1 &476173324
 GameObject:
   m_ObjectHideFlags: 0
@@ -1151,14 +1151,13 @@ GameObject:
   - component: {fileID: 606865269}
   - component: {fileID: 606865272}
   - component: {fileID: 606865271}
-  - component: {fileID: 606865270}
   m_Layer: 7
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &606865269
 Transform:
   m_ObjectHideFlags: 0
@@ -1169,32 +1168,11 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.1, y: 1.1, z: 1.1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 71717946}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &606865270
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 606865268}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &606865271
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1250,7 +1228,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 606865268}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -2432090755550338912, guid: fef1d3afdd6ddca45a898e94c849dc01, type: 3}
 --- !u!1 &608694492
 GameObject:
   m_ObjectHideFlags: 0
@@ -1334,7 +1312,7 @@ MonoBehaviour:
   TurretRotateSpeed: 60
   BulletPrefab: {fileID: 6305537667324850647, guid: 933ad824c5d806540a368873edeeb09f, type: 3}
   BulletSpawnPoint: {fileID: 528156170}
-  _guidanceType: 1
+  _guidanceType: 0
 --- !u!1 &757432073
 GameObject:
   m_ObjectHideFlags: 0
@@ -1849,7 +1827,7 @@ MonoBehaviour:
   TurretRotateSpeed: 30
   BulletPrefab: {fileID: 6305537667324850647, guid: cdabe52d8daf4e445a8be5cc61742e2c, type: 3}
   BulletSpawnPoint: {fileID: 757432074}
-  _guidanceType: 1
+  _guidanceType: 0
 --- !u!1 &1494760711
 GameObject:
   m_ObjectHideFlags: 0
@@ -2560,7 +2538,6 @@ GameObject:
   - component: {fileID: 1840336135}
   - component: {fileID: 1840336138}
   - component: {fileID: 1840336137}
-  - component: {fileID: 1840336136}
   m_Layer: 7
   m_Name: Sphere
   m_TagString: Untagged
@@ -2583,27 +2560,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2014069156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &1840336136
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1840336134}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1840336137
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2659,7 +2615,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1840336134}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -2432090755550338912, guid: fef1d3afdd6ddca45a898e94c849dc01, type: 3}
 --- !u!1 &1868043060
 GameObject:
   m_ObjectHideFlags: 0
@@ -2951,7 +2907,7 @@ MonoBehaviour:
   TurretRotateSpeed: 60
   BulletPrefab: {fileID: 6305537667324850647, guid: 933ad824c5d806540a368873edeeb09f, type: 3}
   BulletSpawnPoint: {fileID: 608694493}
-  _guidanceType: 1
+  _guidanceType: 0
 --- !u!1 &2014069152
 GameObject:
   m_ObjectHideFlags: 0
@@ -3047,7 +3003,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2014069152}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -2432090755550338912, guid: fef1d3afdd6ddca45a898e94c849dc01, type: 3}
 --- !u!4 &2014069156
 Transform:
   m_ObjectHideFlags: 0
@@ -3058,7 +3014,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1200, y: 200, z: 600}
-  m_LocalScale: {x: 500, y: 500, z: 500}
+  m_LocalScale: {x: 50, y: 50, z: 50}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1840336135}
@@ -3122,6 +3078,18 @@ PrefabInstance:
       propertyPath: controller
       value: 
       objectReference: {fileID: 767602797}
+    - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
+      propertyPath: turnTorque.x
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
+      propertyPath: turnTorque.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
+      propertyPath: turnTorque.z
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 4207254624340459385, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -3170,6 +3138,10 @@ PrefabInstance:
       propertyPath: fireDelay
       value: 5
       objectReference: {fileID: 0}
+    - target: {fileID: 8241267972373843261, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
+      propertyPath: missilePrefabToLaunch
+      value: 
+      objectReference: {fileID: 5355222595161521942, guid: 1dea1f09ef5669844be1e2b40b4c8574, type: 3}
     - target: {fileID: 8481271028399502966, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: m_Name
       value: PlayerShip
@@ -3219,7 +3191,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 0.1, z: 1}
+  m_LocalScale: {x: 2, y: 0.1, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2014069156}
