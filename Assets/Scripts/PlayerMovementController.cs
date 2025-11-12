@@ -109,7 +109,7 @@ public class PlayerMovementController : MonoBehaviour
         if (useFixed == false)
             UpdateCameraPos();
 
-        // RotateRig();
+        RotateRig();
     }
 
     private void FixedUpdate()
@@ -137,8 +137,8 @@ public class PlayerMovementController : MonoBehaviour
 
         // Mouse input.
         var mouse = Mouse.current;
-        float mouseX = mouse != null ? mouse.position.ReadValue().x * mouseSensitivity : 0f;
-        float mouseY = mouse != null ? mouse.position.ReadValue().y * mouseSensitivity : 0f;
+        float mouseX = mouse != null ? mouse.delta.ReadValue().x * mouseSensitivity : 0f;
+        float mouseY = mouse != null ? -mouse.delta.ReadValue().y * mouseSensitivity : 0f;
 
         // Rotate the aim target that the plane is meant to fly towards.
         // Use the camera's axes in world space so that mouse motion is intuitive.
