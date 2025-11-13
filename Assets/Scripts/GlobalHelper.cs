@@ -14,6 +14,7 @@ public static class GlobalHelper
 
     public enum Faction
     {
+        Player,
         Ally,
         Foe,
         Neutral
@@ -28,4 +29,6 @@ public static class GlobalHelper
         Plasma,
         Pierce
     }
+
+    public static string[] FactionNames = { "Player", "Ally", "Foe", "Neutral" };
 }
