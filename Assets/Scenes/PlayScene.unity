@@ -310,8 +310,8 @@ Transform:
   m_GameObject: {fileID: 71717942}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -50, z: -400}
-  m_LocalScale: {x: 40, y: 40, z: 40}
+  m_LocalPosition: {x: 100, y: -100, z: -600}
+  m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 606865269}
@@ -484,7 +484,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &220290810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -515,7 +515,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefab: {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 50
-  spawnCount: 5
+  spawnCount: 1
   color: {r: 1, g: 1, b: 1, a: 0}
   showSpawnRegion: 1
   HeightRange: {x: -100, y: 100}
@@ -1364,7 +1364,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_LocalScale: {x: 1.1, y: 1.1, z: 1.1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 71717946}
@@ -1569,8 +1569,12 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3935872858728091165, guid: 6c328d55769863e4680a1fd8454fc6f5, type: 3}
+      propertyPath: camSmoothSpeed
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 3935872858728091165, guid: 6c328d55769863e4680a1fd8454fc6f5, type: 3}
       propertyPath: mouseSensitivity
-      value: 3
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5087940889075179744, guid: 6c328d55769863e4680a1fd8454fc6f5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1956,7 +1960,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 965721617}
   serializedVersion: 5
-  m_Mass: 100
+  m_Mass: 200
   m_LinearDamping: 1
   m_AngularDamping: 5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -3471,7 +3475,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1200, y: 200, z: 600}
-  m_LocalScale: {x: 100, y: 100, z: 100}
+  m_LocalScale: {x: 200, y: 200, z: 200}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1840336135}
@@ -3525,7 +3529,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: forceMult
-      value: 100
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: m_Enabled
@@ -3545,7 +3549,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: turnTorque.z
-      value: 45
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2819691271651229457, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: aggressiveTurnAngle
@@ -3609,7 +3613,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8654627433885299497, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: _fireMode
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8654627433885299497, guid: b0c5e6e65b1e0304d96a164ea8e02214, type: 3}
       propertyPath: m_Enabled

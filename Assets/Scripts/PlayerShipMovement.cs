@@ -85,6 +85,7 @@ public class PlayerShipMovement : MonoBehaviour
         {
             keyboardPitch = (kb.wKey.isPressed ? 1f : 0f) + (kb.sKey.isPressed ? -1f : 0f);
         }
+
         if (Mathf.Abs(keyboardPitch) > .25f)
         {
             pitchOverride = true;

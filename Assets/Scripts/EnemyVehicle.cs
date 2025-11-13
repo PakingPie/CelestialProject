@@ -18,6 +18,7 @@ public class EnemyVehicle : VehicleBase
     public GameObject ShieldEffect;
     public GameObject Turret;
     public Transform FireSpawn;
+    public ParticleSystem ExplodeEffect;
     public int ShieldRegenerationRate = 1; // Points per second
     public float ShieldRegenerationDelay = 5f; // Seconds after taking damage before regeneration starts
     private float _shieldRegenTimer = 0f;
@@ -278,7 +279,7 @@ public class EnemyVehicle : VehicleBase
     }
 
     public override void DestroyVehicle()
-    {
+    {   
 
         var boid = GetComponent<Boid>();
         var boidManager = FindAnyObjectByType<BoidsManager>();
@@ -287,6 +288,10 @@ public class EnemyVehicle : VehicleBase
             boidManager.RemoveBoid(boid);
         }
 
+        if(ExplodeEffect != null)
+        {
+            Instantiate(ExplodeEffect, transform.position, transform.rotation);
+        }
         Destroy(gameObject, 0.1f);
     }
 }
