@@ -114,7 +114,6 @@ public class EnemyVehicle : VehicleBase
                         }
                     }
 
-
                     if (ArmorPoints <= 0 && ShieldPoints <= 0)  // Both armor and shield are down, take full damage plus bonus damage
                     {
                         damage = (int)(damage * 1.5f) + armorFloatDamage + shieldFloatDamage;

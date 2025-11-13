@@ -1654,7 +1654,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAHardpoint
   ownShip: {fileID: 7103346325574244501}
-  missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 1dea1f09ef5669844be1e2b40b4c8574, type: 3}
+  missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 6e64c1f252f435144a5c37bae23d2a0c, type: 3}
   missileCount: 100
   fireDelay: 10
   launchPoints:
@@ -2272,7 +2272,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAHardpoint
   ownShip: {fileID: 7103346325574244501}
-  missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 1dea1f09ef5669844be1e2b40b4c8574, type: 3}
+  missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 6e64c1f252f435144a5c37bae23d2a0c, type: 3}
   missileCount: 100
   fireDelay: 10
   launchPoints:
@@ -2419,9 +2419,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShipMovement
   controller: {fileID: 6141874323968867814}
-  thrust: 10
+  thrust: 100
   turnTorque: {x: 90, y: 25, z: 45}
-  forceMult: 1
+  forceMult: 10
   sensitivity: 5
   aggressiveTurnAngle: 5
   pitch: 0
@@ -2856,7 +2856,7 @@ PrefabInstance:
       objectReference: {fileID: 7103346325574244501}
     - target: {fileID: 3935872858728091165, guid: 6c328d55769863e4680a1fd8454fc6f5, type: 3}
       propertyPath: mouseSensitivity
-      value: 0.1
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5087940889075179744, guid: 6c328d55769863e4680a1fd8454fc6f5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3139,6 +3139,8 @@ GameObject:
   - component: {fileID: 7103346325574244501}
   - component: {fileID: 2840843351104990238}
   - component: {fileID: 8671210974142504998}
+  - component: {fileID: 8671210974142504999}
+  - component: {fileID: 8671210974142505000}
   m_Layer: 0
   m_Name: PlayerShip
   m_TagString: Untagged
@@ -3161,6 +3163,60 @@ MonoBehaviour:
   _fireMode: 1
   ActiveRange: {x: 25, y: 3000}
   FireInterval: 1
+--- !u!114 &8671210974142504999
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8502438397938148729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29e68f896a6572b44b4b5b543dea9e29, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerVehicle
+  HitPoints: 2000
+  MaxHitPoints: 2000
+  ArmorPoints: 1000
+  MaxArmorPoints: 1000
+  ShieldPoints: 1000
+  MaxShieldPoints: 1000
+  Speed: 10
+  HealthBar: {fileID: 1079174261}
+  ArmorBar: {fileID: 0}
+  ShieldBar: {fileID: 0}
+  HealthBarShader: {fileID: 0}
+  EnergyShieldShader: {fileID: 0}
+  ShieldEffect: {fileID: 0}
+  ShieldRegenerationRate: 1
+  ShieldRegenerationDelay: 5
+--- !u!54 &8671210974142505000
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8502438397938148729}
+  serializedVersion: 5
+  m_Mass: 100
+  m_LinearDamping: 1
+  m_AngularDamping: 5
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!4 &9218160428141935222
 Transform:
   m_ObjectHideFlags: 0

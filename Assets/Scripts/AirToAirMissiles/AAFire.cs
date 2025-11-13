@@ -123,7 +123,7 @@ public class AAFire : MonoBehaviour
     {
         if (_targetPoint != null)
         {
-            if (Vector3.Distance(transform.position, _targetPoint.position) > ActiveRange.y)
+            if (Vector3.Distance(transform.position, _targetPoint.position) > ActiveRange.y || Vector3.Angle(transform.forward, Vector3.Normalize(_targetPoint.position - transform.position)) > 90f)
             {
                 _targetPoint = null;
             }
@@ -132,6 +132,8 @@ public class AAFire : MonoBehaviour
                 return;
             }
         }
+
+
 
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
         float shortest_distance = Mathf.Infinity;

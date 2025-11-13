@@ -15,7 +15,7 @@ public class BulletPhysics : MonoBehaviour
 
     public int Damage = 2;
     [Header("Motion")]
-
+    [Tooltip("Speed (m/s) that the bullet travels.")]
     public float Speed = 50f;
     [Tooltip("How long (seconds) the bullet lasts")]
     public float LifeTime = 5f;
