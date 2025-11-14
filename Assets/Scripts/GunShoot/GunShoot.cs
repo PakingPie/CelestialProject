@@ -4,20 +4,15 @@ using UnityEngine;
 using UnityEditor;
 
 // [ExecuteInEditMode]
-public class GunShoot : MonoBehaviour
+public class GunShoot : WeaponBase
 {
 
     [Header("Gun Settings")]
     [Tooltip("Number of updates per second for the gun targeting system.")]
     public int UpdateRate = 60;
-
-    [Tooltip("The range within which the gun can target enemies.")]
-    public Vector2 ActiveRange = new Vector2(5f, 200f);
     [Tooltip("Duration of the gun shoot effect in seconds.")]
     public float GunShootInterval = 1.0f;
     public float TurretRotateSpeed = 5f;
-    private Transform _targetPoint;
-
     public GameObject BulletPrefab;
     public Transform BulletSpawnPoint;
     public GlobalHelper.Faction FireTarget = GlobalHelper.Faction.Foe;
@@ -25,27 +20,26 @@ public class GunShoot : MonoBehaviour
 
     private Vector3 _targetPosLastFrame;
 
-
     void Start()
     {
         InvokeRepeating("Shoot", 0.0f, GunShootInterval);
         InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
         InvokeRepeating("LockOn", 0f, 1.0f / UpdateRate);
-        if(_targetPoint != null)
+        if(Targeted != null)
         {
-            _targetPosLastFrame = _targetPoint.position;
+            _targetPosLastFrame = Targeted.position;
         }
     }
 
     void LockOn()
     {
-        if (_targetPoint == null)
+        if (Targeted == null)
         {
             return;
         }
         if (GuidanceType == GlobalHelper.GuidanceType.Pursuit)
         {
-            Vector3 dir = _targetPoint.position - transform.position;
+            Vector3 dir = Targeted.position - transform.position;
             Quaternion look_rotation = Quaternion.LookRotation(dir);
             Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
             transform.rotation = Quaternion.Euler(rotation);
@@ -53,15 +47,15 @@ public class GunShoot : MonoBehaviour
         else
         {
             // Get where target will be in one second.
-            Vector3 targetVelocity = _targetPoint.position - _targetPosLastFrame;
+            Vector3 targetVelocity = Targeted.position - _targetPosLastFrame;
             targetVelocity /= 1;
             //=====================================================
 
             // Figure out time to impact based on distance.          
             float bulletSpeed = BulletPrefab.GetComponent<BulletPhysics>().Speed;
-            float distanceToTarget = Vector3.Distance(transform.position, _targetPoint.position);
+            float distanceToTarget = Vector3.Distance(transform.position, Targeted.position);
             float timeToImpact = distanceToTarget / bulletSpeed;
-            Vector3 futureTargetPos = _targetPoint.position + targetVelocity * timeToImpact;
+            Vector3 futureTargetPos = Targeted.position + targetVelocity * timeToImpact;
             Vector3 dir = futureTargetPos - transform.position;
             Quaternion look_rotation = Quaternion.LookRotation(dir);
             Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
@@ -71,11 +65,11 @@ public class GunShoot : MonoBehaviour
 
     public void Shoot()
     {
-        if (_targetPoint != null && Vector3.Distance(transform.position, _targetPoint.position) < ActiveRange.y)
+        if (Targeted != null && Vector3.Distance(transform.position, Targeted.position) < ActiveRange.y)
         {
             var bulletPrefab = Instantiate(BulletPrefab, BulletSpawnPoint.position, BulletSpawnPoint.rotation);
             bulletPrefab.GetComponent<BulletPhysics>().FireTarget = FireTarget;
-            bulletPrefab.GetComponent<BulletPhysics>().TargetObject = _targetPoint;
+            bulletPrefab.GetComponent<BulletPhysics>().TargetObject = Targeted;
         }
     }
 
@@ -91,11 +85,11 @@ public class GunShoot : MonoBehaviour
 
     public void UpdateTarget()
     {
-        // if (_targetPoint != null)
+        // if (Targeted != null)
         // {
-        //     if (Vector3.Distance(transform.position, _targetPoint.position) > ActiveRange.y)
+        //     if (Vector3.Distance(transform.position, Targeted.position) > ActiveRange.y)
         //     {
-        //         _targetPoint = null;
+        //         Targeted = null;
         //     }
         //     else
         //     {
@@ -107,7 +101,7 @@ public class GunShoot : MonoBehaviour
 
         if (enemies.Length == 0)
         {
-            _targetPoint = null;
+            Targeted = null;
             return;
         }
 
@@ -126,21 +120,21 @@ public class GunShoot : MonoBehaviour
 
         if (nearest_enemy && shortest_distance <= ActiveRange.y)
         {
-            _targetPoint = nearest_enemy.transform;
+            Targeted = nearest_enemy.transform;
         }
         else
         {
-            _targetPoint = null;
+            Targeted = null;
         }
     }
 
     void OnDrawGizmos()
     {
         // Draw a line from the gun to the target point
-        if (_targetPoint != null)
+        if (Targeted != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, _targetPoint.position);
+            Gizmos.DrawLine(transform.position, Targeted.position);
         }
     }
 }

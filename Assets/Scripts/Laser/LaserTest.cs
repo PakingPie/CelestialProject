@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using static GlobalHelper;
 // [ExecuteInEditMode]
-public class LaserTest : MonoBehaviour
+public class LaserTest : WeaponBase
 {
 
     public LineRenderer LaserLineRenderer;
@@ -20,8 +20,6 @@ public class LaserTest : MonoBehaviour
     public int LaserDamageCap = 10;
     public int LaserDPS = 1;
 
-    private GameObject _targetGO;
-
 
     void Start()
     {
@@ -30,24 +28,24 @@ public class LaserTest : MonoBehaviour
         InvokeRepeating("LockOn", 0f, 2.0f / UpdateRate);
         LaserLineRenderer.SetPosition(0, transform.position);
 
-        if (_targetGO != null)
+        if (Targeted != null)
         {
-            LaserLineRenderer.SetPosition(1, _targetGO.transform.position);
+            LaserLineRenderer.SetPosition(1, Targeted.position);
         }
     }
     void Update()
     {
         LaserLineRenderer.SetPosition(0, transform.position);
-        LaserLineRenderer.SetPosition(1, _targetGO.transform.position);
+        LaserLineRenderer.SetPosition(1, Targeted.position);
     }
 
     void LockOn()
     {
-        if(_targetGO == null)
+        if(Targeted == null)
         {
             return;
         }
-        Vector3 dir = _targetGO.transform.position - transform.position;
+        Vector3 dir = Targeted.position - transform.position;
         Quaternion look_rotation = Quaternion.LookRotation(dir);
         Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
         transform.rotation = Quaternion.Euler(0f, rotation.y, 0f);
@@ -90,11 +88,11 @@ public class LaserTest : MonoBehaviour
 
         if (nearest_enemy && shortest_distance <= LaserActiveRange.y)
         {
-            _targetGO = nearest_enemy;
+            Targeted = nearest_enemy.transform;
         }
         else
         {
-            _targetGO = null;
+            Targeted = null;
             LaserDisable();
         }
     }
@@ -136,7 +134,7 @@ public class LaserTest : MonoBehaviour
 
             if (t > 0.5f  && t < LaserEffectDuration - 0.5f)
             {
-                var enemyVehicle = _targetGO.GetComponent<EnemyVehicle>();
+                var enemyVehicle = Targeted.gameObject.GetComponent<EnemyVehicle>();
                 if (enemyVehicle != null)
                 {
                     enemyVehicle.TakeDamage(LaserDPS, AmmoType.Energy);
