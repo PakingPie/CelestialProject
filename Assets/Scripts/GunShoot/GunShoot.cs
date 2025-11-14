@@ -61,7 +61,7 @@ public class GunShoot : MonoBehaviour
         {
             // Get where target will be in one second.
             Vector3 targetVelocity = _targetPoint.position - _targetPosLastFrame;
-            targetVelocity /= Time.deltaTime;
+            targetVelocity /= 1;
             //=====================================================
 
             // Figure out time to impact based on distance.          
