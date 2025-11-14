@@ -12,9 +12,51 @@ public class PlayerVehicle : VehicleBase
     public GameObject ShieldEffect;
 
     public int ShieldRegenerationRate = 1; // Points per second
-    public float ShieldRegenerationDelay = 5f; // Seconds after taking damage before regeneration starts
+    public float ShieldRegenerationDelay = 3f; // Seconds after taking damage before regeneration starts
     private float _shieldRegenTimer = 0f;
     private float _lastDamageTime = 0f;
+
+    void Start()
+    {
+        HealthBar.GetComponent<Image>().material = new Material(HealthBarShader);
+        HealthBar.GetComponent<Image>().material.SetInt("_MaxHitPoints", MaxHitPoints);
+        HealthBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", HitPoints);
+        HealthBar.GetComponent<Image>().material.SetVector("_Color1", Color.lightGreen);
+        HealthBar.GetComponent<Image>().material.SetVector("_Color2", Color.lightYellow);
+        HealthBar.GetComponent<Image>().material.SetVector("_Color3", Color.softRed);
+
+        ArmorBar.GetComponent<Image>().material = new Material(HealthBarShader);
+        ArmorBar.GetComponent<Image>().material.SetInt("_MaxHitPoints", MaxArmorPoints);
+        ArmorBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ArmorPoints);
+        ArmorBar.GetComponent<Image>().material.SetVector("_Color1", Color.softYellow);
+        ArmorBar.GetComponent<Image>().material.SetVector("_Color2", Color.yellow);
+        ArmorBar.GetComponent<Image>().material.SetVector("_Color3", Color.brown);
+
+        ShieldBar.GetComponent<Image>().material = new Material(HealthBarShader);
+        ShieldBar.GetComponent<Image>().material.SetInt("_MaxHitPoints", MaxShieldPoints);
+        ShieldBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ShieldPoints);
+        ShieldBar.GetComponent<Image>().material.SetVector("_Color1", Color.lightCyan);
+        ShieldBar.GetComponent<Image>().material.SetVector("_Color2", Color.cyan);
+        ShieldBar.GetComponent<Image>().material.SetVector("_Color3", Color.darkCyan);
+
+        ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial = new Material(EnergyShieldShader);
+        ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", 1.0f);
+
+        GetComponent<ShieldHitEffect>().ShieldGO = ShieldEffect;
+    }
+
+    void Update()
+    {
+        // Handle shield regeneration
+        if (ShieldPoints < MaxShieldPoints)
+        {
+            _lastDamageTime += Time.deltaTime;
+            if (_lastDamageTime >= ShieldRegenerationDelay)
+            {
+                RestoreShield();
+            }
+        }
+    }
 
     public override void RestoreShield()
     {

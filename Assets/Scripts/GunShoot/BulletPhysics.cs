@@ -69,13 +69,16 @@ public class BulletPhysics : MonoBehaviour
     {
         if (TargetObject != null && Vector3.Distance(transform.position, TargetObject.position) <= FuseDetonationDistance)
         {
-            TargetObject.gameObject.GetComponent<EnemyVehicle>().TakeDamage(Damage, DamageType);
+            TargetObject.gameObject.GetComponent<VehicleBase>().TakeDamage(Damage, DamageType);
             Vector3 dir = (TargetObject.position - transform.position).normalized;
             Physics.Raycast(transform.position - 2 * dir, dir, out _hit);
             if (_hit.collider != null)
             {
                 if (_hit.collider.GetComponent<ShieldHitEffect>())
+                {
                     _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
+                    Debug.Log("Shield hit effect triggered.");
+                }
             }
             DestroyBulletFromImpact(transform.position, transform.rotation);
         }
@@ -92,9 +95,12 @@ public class BulletPhysics : MonoBehaviour
                     if (_hit.collider != null)
                     {
                         if (_hit.collider.GetComponent<ShieldHitEffect>())
+                        {
                             _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
+                            Debug.Log("Shield hit effect triggered.");
+                        }
                     }
-                    enemy.GetComponent<EnemyVehicle>().TakeDamage(Damage, DamageType);
+                    enemy.GetComponent<VehicleBase>().TakeDamage(Damage, DamageType);
                     DestroyBulletFromImpact(transform.position, transform.rotation);
                 }
             }

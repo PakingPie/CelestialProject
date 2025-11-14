@@ -66,7 +66,7 @@ public class ShieldHitEffect : MonoBehaviour
 public class ShieldHitEffect : MonoBehaviour
 {
     public GameObject ShieldGO;
-    public GameObject TempGO;
+    // public GameObject TempGO;
     public float HitImpactDuration = 1.0f;
     public float HitImpactScale = 0.1f;
     public int TextureSize = 8;
@@ -132,8 +132,8 @@ public class ShieldHitEffect : MonoBehaviour
             _hitEffectMat = new Material(HitEffectShader);
         }
 
-        if (TempGO != null)
-            TempGO.GetComponent<MeshRenderer>().sharedMaterial = _hitEffectMat;
+        // if (TempGO != null)
+        //     TempGO.GetComponent<MeshRenderer>().sharedMaterial = _hitEffectMat;
 
         // ShieldGO.GetComponent<MeshRenderer>().sharedMaterial = _cumulativeMat;
         if (GetComponent<MeshRenderer>() != null)

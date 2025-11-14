@@ -20,6 +20,7 @@ public class GunShoot : MonoBehaviour
 
     public GameObject BulletPrefab;
     public Transform BulletSpawnPoint;
+    public GlobalHelper.Faction FireTarget = GlobalHelper.Faction.Foe;
 
     public enum GuidanceType
     {
@@ -80,6 +81,7 @@ public class GunShoot : MonoBehaviour
         if (_targetPoint != null && Vector3.Distance(transform.position, _targetPoint.position) < ActiveRange.y)
         {
             var bulletPrefab = Instantiate(BulletPrefab, BulletSpawnPoint.position, BulletSpawnPoint.rotation);
+            bulletPrefab.GetComponent<BulletPhysics>().FireTarget = FireTarget;
             bulletPrefab.GetComponent<BulletPhysics>().TargetObject = _targetPoint;
         }
     }
@@ -108,7 +110,7 @@ public class GunShoot : MonoBehaviour
         //     }
         // }
 
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag(GlobalHelper.FactionNames[(int)FireTarget]);
 
         if (enemies.Length == 0)
         {
@@ -138,17 +140,4 @@ public class GunShoot : MonoBehaviour
             _targetPoint = null;
         }
     }
-
-
-    public void GunEnable()
-    {
-
-    }
-
-    public void GunDisable()
-    {
-
-    }
-
-
 }
