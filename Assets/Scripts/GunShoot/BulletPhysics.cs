@@ -69,9 +69,11 @@ public class BulletPhysics : MonoBehaviour
     {
         if (TargetObject != null && Vector3.Distance(transform.position, TargetObject.position) <= FuseDetonationDistance)
         {
+            Debug.Log(TargetObject.gameObject.name + " hit by bullet.");
             TargetObject.gameObject.GetComponent<VehicleBase>().TakeDamage(Damage, DamageType);
             Vector3 dir = (TargetObject.position - transform.position).normalized;
             Physics.Raycast(transform.position - 2 * dir, dir, out _hit);
+            Debug.Log(_hit.collider);
             if (_hit.collider != null)
             {
                 if (_hit.collider.GetComponent<ShieldHitEffect>())

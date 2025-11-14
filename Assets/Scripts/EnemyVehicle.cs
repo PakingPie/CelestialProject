@@ -79,7 +79,7 @@ public class EnemyVehicle : VehicleBase
     public override void RestoreShield()
     {
         _shieldRegenTimer += Time.deltaTime;
-        if (_shieldRegenTimer >= 0.1f && ShieldPoints < MaxShieldPoints ) // Regenerate shield every x second
+        if (_shieldRegenTimer >= 0.1f && ShieldPoints < MaxShieldPoints ) // Regenerate shield every 0.1 second
         {
             ShieldPoints += ShieldRegenerationRate;
             if (ShieldPoints > MaxShieldPoints)

@@ -121,10 +121,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3110045092184062921}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 8}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 50, y: -22}
+  m_SizeDelta: {x: 100, y: 8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3134253914197984826
 CanvasRenderer:
@@ -196,10 +196,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3110045092184062921}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 3}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 50, y: -30.5}
+  m_SizeDelta: {x: 100, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2312192323488569684
 CanvasRenderer:
@@ -250,7 +250,6 @@ GameObject:
   - component: {fileID: 491672687639998709}
   - component: {fileID: 5552325693357558109}
   - component: {fileID: 7292890442854827516}
-  - component: {fileID: 5407751697428203865}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -329,27 +328,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &5407751697428203865
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3559267981316310301}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &3681519436312465255
 GameObject:
   m_ObjectHideFlags: 0
@@ -397,14 +375,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6614f4d0cd36e8438e59d0f4da6485e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GunShoot
-  UpdateRate: 30
+  UpdateRate: 60
   ActiveRange: {x: 5, y: 1500}
-  GunShootInterval: 1
+  GunShootInterval: 2
   TurretRotateSpeed: 5
   BulletPrefab: {fileID: 6305537667324850647, guid: ab44580e32713cc4d8922fc48bc045ac, type: 3}
   BulletSpawnPoint: {fileID: 7887085982298261566}
   FireTarget: 0
-  _guidanceType: 0
+  _guidanceType: 1
 --- !u!1 &3915756800065681784
 GameObject:
   m_ObjectHideFlags: 0
@@ -416,7 +394,6 @@ GameObject:
   - component: {fileID: 1312519066579379706}
   - component: {fileID: 2178018693723290928}
   - component: {fileID: 8294875405859680599}
-  - component: {fileID: 1659721312697453713}
   m_Layer: 0
   m_Name: Cylinder
   m_TagString: Untagged
@@ -495,29 +472,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &1659721312697453713
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3915756800065681784}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!1 &4103674997823826176
 GameObject:
   m_ObjectHideFlags: 0
@@ -595,7 +549,7 @@ MonoBehaviour:
   ShieldPoints: 100
   MaxShieldPoints: 100
   Speed: 10
-  FactionType: 1
+  FactionType: 2
   Type: 0
   HealthBar: {fileID: 4407329836811907037}
   ArmorBar: {fileID: 656281697264504808}
@@ -754,10 +708,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3110045092184062921}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 3}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 50, y: -27.5}
+  m_SizeDelta: {x: 100, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3180118109876081506
 CanvasRenderer:
@@ -816,7 +770,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2595131329914410010
 RectTransform:
   m_ObjectHideFlags: 0

@@ -140,4 +140,14 @@ public class GunShoot : MonoBehaviour
             _targetPoint = null;
         }
     }
+
+    void OnDrawGizmos()
+    {
+        // Draw a line from the gun to the target point
+        if (_targetPoint != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, _targetPoint.position);
+        }
+    }
 }

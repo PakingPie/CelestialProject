@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using static GlobalHelper;
-
+[ExecuteAlways]
 public class PlayerVehicle : VehicleBase
 {
     public Image HealthBar;
@@ -227,7 +227,6 @@ public class PlayerVehicle : VehicleBase
                         }
                     }
 
-
                     if (ArmorPoints <= 0 && ShieldPoints <= 0)  // Both armor and shield are down, take full damage plus bonus damage
                     {
                         damage = (int)(damage * 1.25f) + armorFloatDamage + shieldFloatDamage;
@@ -258,7 +257,7 @@ public class PlayerVehicle : VehicleBase
 
         if (HitPoints <= 0)
         {
-            DestroyVehicle();
+            // DestroyVehicle();
         }
 
         _shieldRegenTimer = 0f; // Reset shield regeneration timer on taking damage
