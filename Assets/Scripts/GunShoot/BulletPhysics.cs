@@ -67,46 +67,42 @@ public class BulletPhysics : MonoBehaviour
 
     void UpdateBullet()
     {
-        if (TargetObject != null && Vector3.Distance(transform.position, TargetObject.position) <= FuseDetonationDistance)
+        // if (TargetObject != null && Vector3.Distance(transform.position, TargetObject.position) <= FuseDetonationDistance)
+        // {
+        //     TargetObject.gameObject.GetComponent<VehicleBase>().TakeDamage(Damage, DamageType);
+        //     Vector3 dir = (TargetObject.position - transform.position).normalized;
+        //     Physics.Raycast(transform.position - 10 * dir, dir, out _hit);
+        //     if (_hit.collider != null)
+        //     {
+        //         if (_hit.collider.GetComponent<ShieldHitEffect>())
+        //         {
+        //             _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
+        //         }
+        //     }
+        //     DestroyBulletFromImpact(transform.position, transform.rotation);
+        // }
+        // else
+        // {
+        // Find if any enemy is within FuseDetonationDistance
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag(GlobalHelper.FactionNames[(int)FireTarget]);
+        foreach (var enemy in enemies)
         {
-            Debug.Log(TargetObject.gameObject.name + " hit by bullet.");
-            TargetObject.gameObject.GetComponent<VehicleBase>().TakeDamage(Damage, DamageType);
-            Vector3 dir = (TargetObject.position - transform.position).normalized;
-            Physics.Raycast(transform.position - 2 * dir, dir, out _hit);
-            Debug.Log(_hit.collider);
-            if (_hit.collider != null)
+            if (Vector3.Distance(transform.position, enemy.transform.position) <= FuseDetonationDistance)
             {
-                if (_hit.collider.GetComponent<ShieldHitEffect>())
+                Vector3 dir = (enemy.transform.position - transform.position).normalized;
+                Physics.Raycast(transform.position - 10 * dir, dir, out _hit);
+                if (_hit.collider != null)
                 {
-                    _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
-                    Debug.Log("Shield hit effect triggered.");
-                }
-            }
-            DestroyBulletFromImpact(transform.position, transform.rotation);
-        }
-        else
-        {
-            // Find if any enemy is within FuseDetonationDistance
-            GameObject[] enemies = GameObject.FindGameObjectsWithTag(GlobalHelper.FactionNames[(int)FireTarget]);
-            foreach (var enemy in enemies)
-            {
-                if (Vector3.Distance(transform.position, enemy.transform.position) <= FuseDetonationDistance)
-                {
-                    Vector3 dir = (enemy.transform.position - transform.position).normalized;
-                    Physics.Raycast(transform.position - 2 * dir, dir, out _hit);
-                    if (_hit.collider != null)
+                    if (_hit.collider.GetComponent<ShieldHitEffect>())
                     {
-                        if (_hit.collider.GetComponent<ShieldHitEffect>())
-                        {
-                            _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
-                            Debug.Log("Shield hit effect triggered.");
-                        }
+                        _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
                     }
-                    enemy.GetComponent<VehicleBase>().TakeDamage(Damage, DamageType);
-                    DestroyBulletFromImpact(transform.position, transform.rotation);
                 }
+                enemy.GetComponent<VehicleBase>().TakeDamage(Damage, DamageType);
+                DestroyBulletFromImpact(transform.position, transform.rotation);
             }
         }
+        // }
     }
 
     // private void OnCollisionEnter(Collision other)

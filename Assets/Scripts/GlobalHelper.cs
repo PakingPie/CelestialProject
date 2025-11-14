@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public static class GlobalHelper
 {
-   public enum VehicleType
+    public enum VehicleType
     {
         Frigate,
         Destroyer,
@@ -29,6 +29,12 @@ public static class GlobalHelper
         Plasma,
         Pierce
     }
+
+    public enum GuidanceType
+    {
+        Pursuit,
+        Lead
+    };
 
     public static string[] FactionNames = { "Player", "Ally", "Foe", "Neutral" };
 }

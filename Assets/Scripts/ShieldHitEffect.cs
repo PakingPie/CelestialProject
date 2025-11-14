@@ -185,6 +185,11 @@ public class ShieldHitEffect : MonoBehaviour
         StartCoroutine(GetHit(timer));
     }
 
+    void OnDestroy()
+    {
+        ClearAll();        
+    }
+
     // IEnumerator GetHit(float timer)
     // {
     //     timer += Time.deltaTime;

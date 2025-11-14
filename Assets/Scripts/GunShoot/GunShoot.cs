@@ -21,14 +21,7 @@ public class GunShoot : MonoBehaviour
     public GameObject BulletPrefab;
     public Transform BulletSpawnPoint;
     public GlobalHelper.Faction FireTarget = GlobalHelper.Faction.Foe;
-
-    public enum GuidanceType
-    {
-        Pursuit,
-        Lead
-    };
-
-    public GuidanceType _guidanceType = GuidanceType.Lead;
+    public GlobalHelper.GuidanceType GuidanceType = GlobalHelper.GuidanceType.Lead;
 
     private Vector3 _targetPosLastFrame;
 
@@ -50,7 +43,7 @@ public class GunShoot : MonoBehaviour
         {
             return;
         }
-        if (_guidanceType == GuidanceType.Pursuit)
+        if (GuidanceType == GlobalHelper.GuidanceType.Pursuit)
         {
             Vector3 dir = _targetPoint.position - transform.position;
             Quaternion look_rotation = Quaternion.LookRotation(dir);

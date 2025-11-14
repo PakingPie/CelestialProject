@@ -62,7 +62,7 @@ public class Gun : MonoBehaviour
     [Header("Ammo")]
 
     public bool UseAmmo = false;
-    public int MaxAmmo = 300;
+    public int MaxAmmo = 10000;
 
     private Dictionary<Transform, ParticleSystem> firePointToMuzzleFlash = new Dictionary<Transform, ParticleSystem>();
     private List<GunBarrel> barrelVisuals = new List<GunBarrel>();
@@ -79,7 +79,27 @@ public class Gun : MonoBehaviour
     public bool ReadyToFire => Time.time - lastShotTime >= FireDelay && HasAmmo;
 
     public bool HasAmmo => !UseAmmo || (UseAmmo && AmmoCount > 0);
-    public int AmmoCount { get; private set; } = 300;
+    public int AmmoCount { get; private set; } = 10000;
+
+    [Header("Targeting")]
+    public Transform Targeted;
+    public GlobalHelper.Faction FireTarget = GlobalHelper.Faction.Foe;
+    public Vector2 ActiveRange = new Vector2(5f, 1000f);
+    public int UpdateRate = 60;
+    public float TurretRotateSpeed = 5f;
+    public GlobalHelper.GuidanceType GuidanceType = GlobalHelper.GuidanceType.Lead;
+
+    private Vector3 _targetPosLastFrame;
+
+    private void Start()
+    {
+        InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
+        InvokeRepeating("LockOn", 0f, 1.0f / UpdateRate);
+        if (Targeted != null)
+        {
+            _targetPosLastFrame = Targeted.position;
+        }
+    }
 
     private void Awake()
     {
@@ -234,6 +254,74 @@ public class Gun : MonoBehaviour
 
         if (firePointToMuzzleFlash.ContainsKey(firePoint))
             firePointToMuzzleFlash[firePoint].Play();
+    }
+
+    void LockOn()
+    {
+        if (Targeted == null)
+        {
+            return;
+        }
+        if (GuidanceType == GlobalHelper.GuidanceType.Pursuit)
+        {
+            Vector3 dir = Targeted.position - transform.position;
+            Quaternion look_rotation = Quaternion.LookRotation(dir);
+            Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
+            transform.rotation = Quaternion.Euler(rotation);
+        }
+        else
+        {
+            // Get where target will be in one second.
+            Vector3 targetVelocity = Targeted.position - _targetPosLastFrame;
+            targetVelocity /= 1;
+            //=====================================================
+
+            // Figure out time to impact based on distance.          
+            float bulletSpeed = BulletPrefab.GetComponent<BulletPhysics>().Speed;
+            float distanceToTarget = Vector3.Distance(transform.position, Targeted.position);
+            float timeToImpact = distanceToTarget / bulletSpeed;
+            Vector3 futureTargetPos = Targeted.position + targetVelocity * timeToImpact;
+            Vector3 dir = futureTargetPos - transform.position;
+            Quaternion look_rotation = Quaternion.LookRotation(dir);
+            Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
+            transform.rotation = Quaternion.Euler(rotation);
+        }
+    }
+
+    public void UpdateTarget()
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag(GlobalHelper.FactionNames[(int)FireTarget]);
+
+        if (enemies.Length == 0)
+        {
+            Targeted = null;
+            IsFiring = false;
+            return;
+        }
+
+        float shortest_distance = Mathf.Infinity;
+        GameObject nearest_enemy = null;
+
+        foreach (GameObject enemy in enemies)
+        {
+            float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distance_to_enemy < shortest_distance)
+            {
+                shortest_distance = distance_to_enemy;
+                nearest_enemy = enemy;
+            }
+        }
+
+        if (nearest_enemy && shortest_distance <= ActiveRange.y)
+        {
+            Targeted = nearest_enemy.transform;
+            IsFiring = true;
+        }
+        else
+        {
+            Targeted = null;
+            IsFiring = false;
+        }
     }
 }
 
