@@ -175,7 +175,10 @@ public class Gun : MonoBehaviour
         }
 
         if (Targeted != null)
+        {
+            RotateBarrelsToFaceTarget(Targeted.position);
             RotateBaseToFaceTarget(Targeted.position);
+        }
     }
 
     private void FixedUpdate()
@@ -346,6 +349,21 @@ public class Gun : MonoBehaviour
             Targeted = null;
             IsFiring = false;
         }
+    }
+
+    private void RotateBarrelsToFaceTarget(Vector3 targetPosition)
+    {
+        Vector3 localTargetPos = turretBase.InverseTransformDirection(targetPosition - barrels.position);
+        Vector3 flattenedVecForBarrels = Vector3.ProjectOnPlane(localTargetPos, Vector3.up);
+
+        float targetElevation = Vector3.Angle(flattenedVecForBarrels, localTargetPos);
+        targetElevation *= Mathf.Sign(localTargetPos.y);
+
+        targetElevation = Mathf.Clamp(targetElevation, -MaxDepression, MaxElevation);
+        elevation = Mathf.MoveTowards(elevation, targetElevation, ElevationSpeed * Time.deltaTime);
+
+        if (Mathf.Abs(elevation) > Mathf.Epsilon)
+            barrels.localEulerAngles = Vector3.right * -elevation;
     }
 
     private void RotateBaseToFaceTarget(Vector3 targetPosition)
