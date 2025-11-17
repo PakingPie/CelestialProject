@@ -53,8 +53,8 @@ public class Gun : MonoBehaviour
     private Dictionary<Transform, ParticleSystem> firePointToMuzzleFlash = new Dictionary<Transform, ParticleSystem>();
     private List<GunBarrel> barrelVisuals = new List<GunBarrel>();
 
-    private float lastShotTime = -float.MaxValue;
-    private int firePointIndex = 0;
+    private float _lastShotTime = -float.MaxValue;
+    private int _firePointIndex = 0;
 
     /// <summary>
     /// Value used when firing for inherited velocity. Normally this is filled in automatically
@@ -62,7 +62,7 @@ public class Gun : MonoBehaviour
     /// </summary>
     public Vector3 InheritedVelocity { get; set; } = Vector3.zero;
 
-    public bool ReadyToFire => Time.time - lastShotTime >= FireDelay && HasAmmo;
+    public bool ReadyToFire => Time.time - _lastShotTime >= FireDelay && HasAmmo;
 
     public bool HasAmmo => !UseAmmo || (UseAmmo && AmmoCount > 0);
     public int AmmoCount { get; private set; } = 10000;
@@ -98,23 +98,26 @@ public class Gun : MonoBehaviour
         "the turret to actively aim at.")]
     public Vector3 AimPosition = Vector3.zero;
     [Tooltip("When the turret is within this many degrees of the target, it is considered aimed.")]
-    [SerializeField] private float aimedThreshold = 5f;
-    private float limitedTraverseAngle = 0f;
-    private float angleToTarget = 0f;
-    private float elevation = 0f;
+    public float AimedThreshold = 5f;
+    private float _limitedTraverseAngle = 0f;
+    private float _angleToTarget = 0f;
+    private float _elevation = 0f;
 
-    private bool hasBarrels = false;
+    private bool _hasBarrels = true;
 
-    private bool isAimed = false;
-    private bool isBaseAtRest = false;
-    private bool isBarrelAtRest = false;
-
+    private bool _isAimed = false;
+    private bool _isBaseAtRest = false;
+    private bool _isBarrelAtRest = false;
+    public bool HasLimitedTraverse { get { return hasLimitedTraverse; } }
+    public bool IsTurretAtRest { get { return _isBarrelAtRest && _isBaseAtRest; } }
+    public bool IsAimed { get { return _isAimed; } }
+    public float AngleToTarget { get { return IsIdle ? 999f : _angleToTarget; } }
 
     private Vector3 _targetPosLastFrame;
 
     private void Start()
     {
-        InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
+        InvokeRepeating("UpdateTarget", 0f, 1.0f / 20f);
         // InvokeRepeating("LockOn", 0f, 1.0f / UpdateRate);
         if (Targeted != null)
         {
@@ -142,6 +145,47 @@ public class Gun : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        if (!FireInFixed)
+        {
+            if (IsFiring)
+                AttemptFireShot(InheritedVelocity);
+
+            foreach (var barrel in barrelVisuals)
+                barrel.ResetBarrelOverTime(Time.deltaTime);
+        }
+
+        if (!_isAimed)
+            IsFiring = false;
+        else
+            IsFiring = true;
+
+        if (IsIdle || Targeted == null)
+        {
+            if (!IsTurretAtRest)
+                RotateTurretToIdle();
+            _isAimed = false;
+        }
+        else
+        {
+            RotateBaseToFaceTarget(Targeted.position);
+
+            if (_hasBarrels)
+                RotateBarrelsToFaceTarget(Targeted.position);
+
+            // Turret is considered "aimed" when it's pointed at the target.
+            _angleToTarget = GetTurretAngleToTarget(Targeted.position);
+
+            // Turret is considered "aimed" when it's pointed at the target.
+            _isAimed = _angleToTarget < AimedThreshold;
+
+            _isBarrelAtRest = false;
+            _isBaseAtRest = false;
+        }
+
+    }
+
     private void RegisterFirePoint(Transform firePoint)
     {
         if (firePoint == null)
@@ -161,24 +205,6 @@ public class Gun : MonoBehaviour
 
         var recoilingBarrel = new GunBarrel(barrel, RecoilLength, RecoilRecoverSpeed);
         barrelVisuals.Add(recoilingBarrel);
-    }
-
-    private void Update()
-    {
-        if (!FireInFixed)
-        {
-            if (IsFiring)
-                AttemptFireShot(InheritedVelocity);
-
-            foreach (var barrel in barrelVisuals)
-                barrel.ResetBarrelOverTime(Time.deltaTime);
-        }
-
-        if (Targeted != null)
-        {
-            RotateBarrelsToFaceTarget(Targeted.position);
-            RotateBaseToFaceTarget(Targeted.position);
-        }
     }
 
     private void FixedUpdate()
@@ -230,9 +256,9 @@ public class Gun : MonoBehaviour
         if (IsSequentialFiring)
         {
             // Cycle between all the fire points.
-            var firePoint = FirePoints[firePointIndex % FirePoints.Count];
+            var firePoint = FirePoints[_firePointIndex % FirePoints.Count];
             FireBulletFromFirePoint(firePoint, inheritedVelocity);
-            firePointIndex += 1;
+            _firePointIndex += 1;
 
             AmmoCount -= 1;
         }
@@ -242,13 +268,13 @@ public class Gun : MonoBehaviour
             foreach (var firePoint in FirePoints)
             {
                 FireBulletFromFirePoint(firePoint, inheritedVelocity);
-                firePointIndex += 1;
+                _firePointIndex += 1;
 
                 AmmoCount -= 1;
             }
         }
 
-        lastShotTime = Time.time;
+        _lastShotTime = Time.time;
         return true;
     }
 
@@ -277,7 +303,7 @@ public class Gun : MonoBehaviour
         }
 
         if (barrelVisuals.Count > 0)
-            barrelVisuals[firePointIndex % barrelVisuals.Count].FireRecoil();
+            barrelVisuals[_firePointIndex % barrelVisuals.Count].FireRecoil();
 
         if (firePointToMuzzleFlash.ContainsKey(firePoint))
             firePointToMuzzleFlash[firePoint].Play();
@@ -332,7 +358,8 @@ public class Gun : MonoBehaviour
         foreach (GameObject enemy in enemies)
         {
             float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
-            if (distance_to_enemy < shortest_distance)
+            float angleToEnemy = GetTurretAngleToTarget(enemy.transform.position);
+            if (distance_to_enemy < shortest_distance && angleToEnemy < AimedThreshold)
             {
                 shortest_distance = distance_to_enemy;
                 nearest_enemy = enemy;
@@ -342,12 +369,10 @@ public class Gun : MonoBehaviour
         if (nearest_enemy && shortest_distance <= ActiveRange.y)
         {
             Targeted = nearest_enemy.transform;
-            IsFiring = true;
         }
         else
         {
             Targeted = null;
-            IsFiring = false;
         }
     }
 
@@ -360,10 +385,10 @@ public class Gun : MonoBehaviour
         targetElevation *= Mathf.Sign(localTargetPos.y);
 
         targetElevation = Mathf.Clamp(targetElevation, -MaxDepression, MaxElevation);
-        elevation = Mathf.MoveTowards(elevation, targetElevation, ElevationSpeed * Time.deltaTime);
+        _elevation = Mathf.MoveTowards(_elevation, targetElevation, ElevationSpeed * Time.deltaTime);
 
-        if (Mathf.Abs(elevation) > Mathf.Epsilon)
-            barrels.localEulerAngles = Vector3.right * -elevation;
+        if (Mathf.Abs(_elevation) > Mathf.Epsilon)
+            barrels.localEulerAngles = Vector3.right * -_elevation;
     }
 
     private void RotateBaseToFaceTarget(Vector3 targetPosition)
@@ -379,13 +404,13 @@ public class Gun : MonoBehaviour
             float targetTraverse = Vector3.SignedAngle(turretForward, flattenedVecForBase, turretUp);
 
             targetTraverse = Mathf.Clamp(targetTraverse, -LeftLimit, RightLimit);
-            limitedTraverseAngle = Mathf.MoveTowards(
-                limitedTraverseAngle,
+            _limitedTraverseAngle = Mathf.MoveTowards(
+                _limitedTraverseAngle,
                 targetTraverse,
                 TraverseSpeed * Time.deltaTime);
 
-            if (Mathf.Abs(limitedTraverseAngle) > Mathf.Epsilon)
-                turretBase.localEulerAngles = Vector3.up * limitedTraverseAngle;
+            if (Mathf.Abs(_limitedTraverseAngle) > Mathf.Epsilon)
+                turretBase.localEulerAngles = Vector3.up * _limitedTraverseAngle;
         }
         else
         {
@@ -398,53 +423,117 @@ public class Gun : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (turretBase != null)
+        // if (turretBase != null)
+        // {
+        //     const float kArcSize = 10f;
+        //     Color colorTraverse = new Color(1f, .5f, .5f, .1f);
+        //     Color colorElevation = new Color(.5f, 1f, .5f, .1f);
+        //     Color colorDepression = new Color(.5f, .5f, 1f, .1f);
+
+        //     Transform arcRoot = barrels != null ? barrels : turretBase;
+
+        //     // Red traverse arc
+        //     UnityEditor.Handles.color = colorTraverse;
+        //     if (hasLimitedTraverse)
+        //     {
+        //         UnityEditor.Handles.DrawSolidArc(
+        //             arcRoot.position, turretBase.up,
+        //             transform.forward, RightLimit,
+        //             kArcSize);
+        //         UnityEditor.Handles.DrawSolidArc(
+        //             arcRoot.position, turretBase.up,
+        //             transform.forward, -LeftLimit,
+        //             kArcSize);
+        //     }
+        //     else
+        //     {
+        //         UnityEditor.Handles.DrawSolidArc(
+        //             arcRoot.position, turretBase.up,
+        //             transform.forward, 360f,
+        //             kArcSize);
+        //     }
+
+        //     if (barrels != null)
+        //     {
+        //         // Green elevation arc
+        //         UnityEditor.Handles.color = colorElevation;
+        //         UnityEditor.Handles.DrawSolidArc(
+        //             barrels.position, barrels.right,
+        //             turretBase.forward, -MaxElevation,
+        //             kArcSize);
+
+        //         // Blue depression arc
+        //         UnityEditor.Handles.color = colorDepression;
+        //         UnityEditor.Handles.DrawSolidArc(
+        //             barrels.position, barrels.right,
+        //             turretBase.forward, MaxDepression,
+        //             kArcSize);
+        //     }
+        // }
+
+        if (Targeted != null)
         {
-            const float kArcSize = 10f;
-            Color colorTraverse = new Color(1f, .5f, .5f, .1f);
-            Color colorElevation = new Color(.5f, 1f, .5f, .1f);
-            Color colorDepression = new Color(.5f, .5f, 1f, .1f);
-
-            Transform arcRoot = barrels != null ? barrels : turretBase;
-
-            // Red traverse arc
-            UnityEditor.Handles.color = colorTraverse;
-            if (hasLimitedTraverse)
-            {
-                UnityEditor.Handles.DrawSolidArc(
-                    arcRoot.position, turretBase.up,
-                    transform.forward, RightLimit,
-                    kArcSize);
-                UnityEditor.Handles.DrawSolidArc(
-                    arcRoot.position, turretBase.up,
-                    transform.forward, -LeftLimit,
-                    kArcSize);
-            }
-            else
-            {
-                UnityEditor.Handles.DrawSolidArc(
-                    arcRoot.position, turretBase.up,
-                    transform.forward, 360f,
-                    kArcSize);
-            }
-
-            if (barrels != null)
-            {
-                // Green elevation arc
-                UnityEditor.Handles.color = colorElevation;
-                UnityEditor.Handles.DrawSolidArc(
-                    barrels.position, barrels.right,
-                    turretBase.forward, -MaxElevation,
-                    kArcSize);
-
-                // Blue depression arc
-                UnityEditor.Handles.color = colorDepression;
-                UnityEditor.Handles.DrawSolidArc(
-                    barrels.position, barrels.right,
-                    turretBase.forward, MaxDepression,
-                    kArcSize);
-            }
+            Gizmos.color = Color.greenYellow;
+            Gizmos.DrawLine(transform.position, Targeted.position);
         }
+    }
+
+    private void RotateTurretToIdle()
+    {
+        // Rotate the base to its default position.
+        if (hasLimitedTraverse)
+        {
+            _limitedTraverseAngle = Mathf.MoveTowards(
+                _limitedTraverseAngle, 0f,
+                TraverseSpeed * Time.deltaTime);
+
+            if (Mathf.Abs(_limitedTraverseAngle) > Mathf.Epsilon)
+                turretBase.localEulerAngles = Vector3.up * _limitedTraverseAngle;
+            else
+                _isBaseAtRest = true;
+        }
+        else
+        {
+            turretBase.rotation = Quaternion.RotateTowards(
+                turretBase.rotation,
+                transform.rotation,
+                TraverseSpeed * Time.deltaTime);
+
+            _isBaseAtRest = Mathf.Abs(turretBase.localEulerAngles.y) < Mathf.Epsilon;
+        }
+
+        if (_hasBarrels)
+        {
+            _elevation = Mathf.MoveTowards(_elevation, 0f, ElevationSpeed * Time.deltaTime);
+            if (Mathf.Abs(_elevation) > Mathf.Epsilon)
+                barrels.localEulerAngles = Vector3.right * -_elevation;
+            else
+                _isBarrelAtRest = true;
+        }
+        else // Barrels automatically at rest if there are no barrels.
+            _isBarrelAtRest = true;
+    }
+
+    private float GetTurretAngleToTarget(Vector3 targetPosition)
+    {
+        float angle = 999f;
+
+        if (_hasBarrels)
+        {
+            angle = Vector3.Angle(targetPosition - barrels.position, barrels.forward);
+        }
+        else
+        {
+            Vector3 flattenedTarget = Vector3.ProjectOnPlane(
+                targetPosition - turretBase.position,
+                turretBase.up);
+
+            angle = Vector3.Angle(
+                flattenedTarget - turretBase.position,
+                turretBase.forward);
+        }
+
+        return angle;
     }
 }
 
