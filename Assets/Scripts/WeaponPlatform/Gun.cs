@@ -117,7 +117,7 @@ public class Gun : MonoBehaviour
 
     private void Start()
     {
-        InvokeRepeating("UpdateTarget", 0f, 1.0f / 20f);
+        InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
         // InvokeRepeating("LockOn", 0f, 1.0f / UpdateRate);
         if (Targeted != null)
         {
@@ -147,6 +147,12 @@ public class Gun : MonoBehaviour
 
     private void Update()
     {
+        
+        if (!_isAimed)
+            IsFiring = false;
+        else
+            IsFiring = true;
+
         if (!FireInFixed)
         {
             if (IsFiring)
@@ -156,10 +162,6 @@ public class Gun : MonoBehaviour
                 barrel.ResetBarrelOverTime(Time.deltaTime);
         }
 
-        if (!_isAimed)
-            IsFiring = false;
-        else
-            IsFiring = true;
 
         if (IsIdle || Targeted == null)
         {
@@ -169,13 +171,33 @@ public class Gun : MonoBehaviour
         }
         else
         {
-            RotateBaseToFaceTarget(Targeted.position);
+            Vector3 aimPosition = Targeted.position;
+            if (GuidanceType == GlobalHelper.GuidanceType.Pursuit)
+            {
+                // Do nothing, already aiming at target
+            }
+            else
+            {
+                // Calculate where to aim based on target movement
+                Vector3 targetVelocity = Targeted.position - _targetPosLastFrame;
+                targetVelocity /= Time.deltaTime;
+                // Figure out time to impact based on distance.          
+                float bulletSpeed = BulletPrefab.GetComponent<BulletPhysics>().Speed;
+                float distanceToTarget = Vector3.Distance(transform.position, Targeted.position);
+                float timeToImpact = distanceToTarget / bulletSpeed;
+                Vector3 futureTargetPos = Targeted.position + targetVelocity * timeToImpact;
+                aimPosition = futureTargetPos;
+
+                _targetPosLastFrame = Targeted.position;
+            }
+
+            RotateBaseToFaceTarget(aimPosition);
 
             if (_hasBarrels)
-                RotateBarrelsToFaceTarget(Targeted.position);
+                RotateBarrelsToFaceTarget(aimPosition);
 
             // Turret is considered "aimed" when it's pointed at the target.
-            _angleToTarget = GetTurretAngleToTarget(Targeted.position);
+            _angleToTarget = GetTurretAngleToTarget(aimPosition);
 
             // Turret is considered "aimed" when it's pointed at the target.
             _isAimed = _angleToTarget < AimedThreshold;
@@ -281,6 +303,7 @@ public class Gun : MonoBehaviour
     private void FireBulletFromFirePoint(Transform firePoint, Vector3 velocity)
     {
         var bullet = Instantiate(BulletPrefab, firePoint.transform.position, firePoint.transform.rotation);
+        bullet.GetComponent<BulletPhysics>().FireTarget = FireTarget;
 
         var bulletRotation = firePoint.transform.rotation;
 
@@ -343,12 +366,25 @@ public class Gun : MonoBehaviour
 
     public void UpdateTarget()
     {
+        // if(Targeted != null)
+        // {
+        //     float dist = Vector3.Distance(transform.position, Targeted.position);
+        //     float angleToEnemy = GetTurretAngleToTarget(Targeted.position);
+        //     if (angleToEnemy <= AimedThreshold && dist <= ActiveRange.y)
+        //     {
+        //         return;
+        //     }
+        // }
+
+        Targeted = null;
+
         GameObject[] enemies = GameObject.FindGameObjectsWithTag(GlobalHelper.FactionNames[(int)FireTarget]);
 
         if (enemies.Length == 0)
         {
             Targeted = null;
             IsFiring = false;
+            _isAimed = false;
             return;
         }
 
@@ -359,20 +395,25 @@ public class Gun : MonoBehaviour
         {
             float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
             float angleToEnemy = GetTurretAngleToTarget(enemy.transform.position);
-            if (distance_to_enemy < shortest_distance && angleToEnemy < AimedThreshold)
+            if (distance_to_enemy < ActiveRange.y && angleToEnemy < AimedThreshold)
             {
-                shortest_distance = distance_to_enemy;
-                nearest_enemy = enemy;
+                if (distance_to_enemy < shortest_distance)
+                {
+                    shortest_distance = distance_to_enemy;
+                    nearest_enemy = enemy;
+                }
             }
         }
 
-        if (nearest_enemy && shortest_distance <= ActiveRange.y)
+        if (nearest_enemy != null)
         {
             Targeted = nearest_enemy.transform;
         }
         else
         {
             Targeted = null;
+            IsFiring = false;
+            _isAimed = false;
         }
     }
 
@@ -421,55 +462,55 @@ public class Gun : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
-        // if (turretBase != null)
-        // {
-        //     const float kArcSize = 10f;
-        //     Color colorTraverse = new Color(1f, .5f, .5f, .1f);
-        //     Color colorElevation = new Color(.5f, 1f, .5f, .1f);
-        //     Color colorDepression = new Color(.5f, .5f, 1f, .1f);
+        if (turretBase != null)
+        {
+            const float kArcSize = 10f;
+            Color colorTraverse = new Color(1f, .5f, .5f, .1f);
+            Color colorElevation = new Color(.5f, 1f, .5f, .1f);
+            Color colorDepression = new Color(.5f, .5f, 1f, .1f);
 
-        //     Transform arcRoot = barrels != null ? barrels : turretBase;
+            Transform arcRoot = barrels != null ? barrels : turretBase;
 
-        //     // Red traverse arc
-        //     UnityEditor.Handles.color = colorTraverse;
-        //     if (hasLimitedTraverse)
-        //     {
-        //         UnityEditor.Handles.DrawSolidArc(
-        //             arcRoot.position, turretBase.up,
-        //             transform.forward, RightLimit,
-        //             kArcSize);
-        //         UnityEditor.Handles.DrawSolidArc(
-        //             arcRoot.position, turretBase.up,
-        //             transform.forward, -LeftLimit,
-        //             kArcSize);
-        //     }
-        //     else
-        //     {
-        //         UnityEditor.Handles.DrawSolidArc(
-        //             arcRoot.position, turretBase.up,
-        //             transform.forward, 360f,
-        //             kArcSize);
-        //     }
+            // Red traverse arc
+            UnityEditor.Handles.color = colorTraverse;
+            if (hasLimitedTraverse)
+            {
+                UnityEditor.Handles.DrawSolidArc(
+                    arcRoot.position, turretBase.up,
+                    transform.forward, RightLimit,
+                    kArcSize);
+                UnityEditor.Handles.DrawSolidArc(
+                    arcRoot.position, turretBase.up,
+                    transform.forward, -LeftLimit,
+                    kArcSize);
+            }
+            else
+            {
+                UnityEditor.Handles.DrawSolidArc(
+                    arcRoot.position, turretBase.up,
+                    transform.forward, 360f,
+                    kArcSize);
+            }
 
-        //     if (barrels != null)
-        //     {
-        //         // Green elevation arc
-        //         UnityEditor.Handles.color = colorElevation;
-        //         UnityEditor.Handles.DrawSolidArc(
-        //             barrels.position, barrels.right,
-        //             turretBase.forward, -MaxElevation,
-        //             kArcSize);
+            if (barrels != null)
+            {
+                // Green elevation arc
+                UnityEditor.Handles.color = colorElevation;
+                UnityEditor.Handles.DrawSolidArc(
+                    barrels.position, barrels.right,
+                    turretBase.forward, -MaxElevation,
+                    kArcSize);
 
-        //         // Blue depression arc
-        //         UnityEditor.Handles.color = colorDepression;
-        //         UnityEditor.Handles.DrawSolidArc(
-        //             barrels.position, barrels.right,
-        //             turretBase.forward, MaxDepression,
-        //             kArcSize);
-        //     }
-        // }
+                // Blue depression arc
+                UnityEditor.Handles.color = colorDepression;
+                UnityEditor.Handles.DrawSolidArc(
+                    barrels.position, barrels.right,
+                    turretBase.forward, MaxDepression,
+                    kArcSize);
+            }
+        }
 
         if (Targeted != null)
         {

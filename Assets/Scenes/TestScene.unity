@@ -2783,7 +2783,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
-  FireDelay: 0.8
+  FireDelay: 0.5
   MuzzleVelocity: 200
   Deviation: 0.2
   AutoInheritVelocity: 1
@@ -2797,30 +2797,28 @@ MonoBehaviour:
   - {fileID: 1336983815}
   RecoilLength: 0.3
   RecoilRecoverSpeed: 1
-  RecoilingBarrels:
-  - {fileID: 453894390}
-  - {fileID: 1722902473}
+  RecoilingBarrels: []
   BulletPrefab: {fileID: -3295528032157664246, guid: 933ad824c5d806540a368873edeeb09f, type: 3}
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 0
   IsFiring: 1
-  UseAmmo: 1
+  UseAmmo: 0
   MaxAmmo: 10000
   Targeted: {fileID: 0}
   FireTarget: 2
-  ActiveRange: {x: 5, y: 1000}
+  ActiveRange: {x: 5, y: 1500}
   UpdateRate: 60
   TurretRotateSpeed: 5
-  GuidanceType: 0
+  GuidanceType: 1
   turretBase: {fileID: 514873004}
   barrels: {fileID: 1791887696}
   ElevationSpeed: 30
   MaxElevation: 60
   MaxDepression: 5
   TraverseSpeed: 60
-  hasLimitedTraverse: 0
-  LeftLimit: 40
-  RightLimit: 160
+  hasLimitedTraverse: 1
+  LeftLimit: 0
+  RightLimit: 120
   IsIdle: 0
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 5
@@ -3086,7 +3084,7 @@ Transform:
   m_GameObject: {fileID: 1622533708}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1500}
+  m_LocalPosition: {x: 0, y: 0, z: 1000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3104,7 +3102,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b24f5ff082e0e2146aad8028f26336fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidsManager
-  settings: {fileID: 11400000, guid: 87271600012ff1a4b8b041568bc01d96, type: 2}
+  settings: {fileID: 11400000, guid: 983d9d1f7c702e1488fb76954bf52876, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 7103346325574244501}
   HeightRange: {x: -100, y: 100}
@@ -3261,7 +3259,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
-  FireDelay: 0.8
+  FireDelay: 0.5
   MuzzleVelocity: 200
   Deviation: 0.2
   AutoInheritVelocity: 1
@@ -3275,33 +3273,31 @@ MonoBehaviour:
   - {fileID: 457572258}
   RecoilLength: 0.3
   RecoilRecoverSpeed: 1
-  RecoilingBarrels:
-  - {fileID: 1245198354}
-  - {fileID: 1650505398}
+  RecoilingBarrels: []
   BulletPrefab: {fileID: -3295528032157664246, guid: 933ad824c5d806540a368873edeeb09f, type: 3}
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 0
   IsFiring: 1
-  UseAmmo: 1
+  UseAmmo: 0
   MaxAmmo: 10000
   Targeted: {fileID: 0}
   FireTarget: 2
-  ActiveRange: {x: 5, y: 1000}
+  ActiveRange: {x: 5, y: 1500}
   UpdateRate: 60
   TurretRotateSpeed: 5
-  GuidanceType: 0
+  GuidanceType: 1
   turretBase: {fileID: 1015750911}
   barrels: {fileID: 482787050}
   ElevationSpeed: 30
   MaxElevation: 60
   MaxDepression: 5
   TraverseSpeed: 60
-  hasLimitedTraverse: 0
-  LeftLimit: 160
-  RightLimit: 40
+  hasLimitedTraverse: 1
+  LeftLimit: 120
+  RightLimit: 0
   IsIdle: 0
   AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 5
+  AimedThreshold: 10
 --- !u!1 &1650505397
 GameObject:
   m_ObjectHideFlags: 0
@@ -3459,7 +3455,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
-  FireDelay: 0.8
+  FireDelay: 0.5
   MuzzleVelocity: 200
   Deviation: 0.2
   AutoInheritVelocity: 1
@@ -3473,33 +3469,31 @@ MonoBehaviour:
   - {fileID: 769037777}
   RecoilLength: 0.3
   RecoilRecoverSpeed: 1
-  RecoilingBarrels:
-  - {fileID: 1334081294}
-  - {fileID: 1284213089}
+  RecoilingBarrels: []
   BulletPrefab: {fileID: -3295528032157664246, guid: 933ad824c5d806540a368873edeeb09f, type: 3}
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 0
   IsFiring: 1
-  UseAmmo: 1
+  UseAmmo: 0
   MaxAmmo: 10000
   Targeted: {fileID: 0}
   FireTarget: 2
-  ActiveRange: {x: 5, y: 1000}
+  ActiveRange: {x: 5, y: 1500}
   UpdateRate: 60
   TurretRotateSpeed: 5
-  GuidanceType: 0
+  GuidanceType: 1
   turretBase: {fileID: 2087786749}
   barrels: {fileID: 279001595}
   ElevationSpeed: 30
   MaxElevation: 60
   MaxDepression: 5
   TraverseSpeed: 60
-  hasLimitedTraverse: 0
-  LeftLimit: 40
-  RightLimit: 160
+  hasLimitedTraverse: 1
+  LeftLimit: 0
+  RightLimit: 120
   IsIdle: 0
   AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 5
+  AimedThreshold: 10
 --- !u!1 &1722902472
 GameObject:
   m_ObjectHideFlags: 0
@@ -4456,7 +4450,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
-  FireDelay: 0.8
+  FireDelay: 0.5
   MuzzleVelocity: 200
   Deviation: 0.2
   AutoInheritVelocity: 1
@@ -4470,30 +4464,28 @@ MonoBehaviour:
   - {fileID: 549316514}
   RecoilLength: 0.3
   RecoilRecoverSpeed: 1
-  RecoilingBarrels:
-  - {fileID: 623879082}
-  - {fileID: 783920514}
+  RecoilingBarrels: []
   BulletPrefab: {fileID: -3295528032157664246, guid: 933ad824c5d806540a368873edeeb09f, type: 3}
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 0
   IsFiring: 1
-  UseAmmo: 1
+  UseAmmo: 0
   MaxAmmo: 10000
   Targeted: {fileID: 0}
   FireTarget: 2
-  ActiveRange: {x: 5, y: 1000}
+  ActiveRange: {x: 5, y: 1500}
   UpdateRate: 60
   TurretRotateSpeed: 5
-  GuidanceType: 0
+  GuidanceType: 1
   turretBase: {fileID: 815737709}
   barrels: {fileID: 1752563489}
   ElevationSpeed: 30
   MaxElevation: 60
   MaxDepression: 5
   TraverseSpeed: 60
-  hasLimitedTraverse: 0
-  LeftLimit: 160
-  RightLimit: 40
+  hasLimitedTraverse: 1
+  LeftLimit: 120
+  RightLimit: 0
   IsIdle: 0
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 5
@@ -5282,6 +5274,10 @@ PrefabInstance:
     - target: {fileID: 4717857805148608526, guid: 4ae856ef6c83ce240acbfd1501ac80f0, type: 3}
       propertyPath: m_Name
       value: Player Hud
+      objectReference: {fileID: 0}
+    - target: {fileID: 4717857805148608526, guid: 4ae856ef6c83ce240acbfd1501ac80f0, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6367497764053015575, guid: 4ae856ef6c83ce240acbfd1501ac80f0, type: 3}
       propertyPath: m_Material

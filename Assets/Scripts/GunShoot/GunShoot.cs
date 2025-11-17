@@ -128,13 +128,13 @@ public class GunShoot : WeaponBase
         }
     }
 
-    void OnDrawGizmos()
-    {
-        // Draw a line from the gun to the target point
-        if (Targeted != null)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position, Targeted.position);
-        }
-    }
+    // void OnDrawGizmos()
+    // {
+    //     // Draw a line from the gun to the target point
+    //     if (Targeted != null)
+    //     {
+    //         Gizmos.color = Color.red;
+    //         Gizmos.DrawLine(transform.position, Targeted.position);
+    //     }
+    // }
 }
