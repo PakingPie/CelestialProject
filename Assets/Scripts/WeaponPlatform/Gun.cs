@@ -4,49 +4,37 @@ using System.Collections.Generic;
 public class Gun : MonoBehaviour
 {
     [Header("Ballistics")]
-
     [Tooltip("Time (s) between each shot.")]
     public float FireDelay = .2f;
     [Tooltip("Speed (m/s) that the bullet is fired from the barrel.")]
     public float MuzzleVelocity = 200f;
-
     [Tooltip("Amount of spread the gun has. Higher values result in more spread.")]
     public float Deviation = .1f;
-
     [Tooltip("Automatically inherit the velocity of a parent Rigidbody when firing bullets.")]
     public bool AutoInheritVelocity = true;
 
     [Header("Gimballing")]
-
     [Tooltip("When true, gun will try to gimbal towards the given target position.")]
     public bool UseGimballedAiming = false;
-
     [Tooltip("When true, the gun will gimbal towards the target ONLY when the target is within gimbal range.")]
     public bool GimbalOnlyWhenInRange = false;
-
     [Tooltip("How much the gun is allowed to gimbal. Use SetGimbal")]
     [Range(0f, 180f)] public float GimbalRange = 10f;
-
     [Tooltip("Position gun will try to fire bullets towards.")]
     public Vector3 GimbalTarget = Vector3.zero;
 
     [Header("Fire Points")]
-
     [Tooltip("Cycle between fire points when firing rather than firing from all at once.")]
     public bool IsSequentialFiring = false;
-
     [Tooltip("Where bullets will be fired from. When left blank, this component's transform is used.")]
     [UnityEngine.Serialization.FormerlySerializedAs("Barrels")]
     [SerializeField] private List<Transform> FirePoints = new List<Transform>();
 
     [Header("Barrel Visuals")]
-
     [Tooltip("How far back (m) the barrel gets pushed back when fired.")]
     public float RecoilLength = 0.3f;
-
     [Tooltip("How quickly (m/s) the barrel moves back towards its resting position.")]
     public float RecoilRecoverSpeed = 1f;
-
     [Tooltip("The list of the barrels used for visually recoiling barrels. This list of barrels should map 1:1 with fire points.")]
     [SerializeField] private List<Transform> RecoilingBarrels = new List<Transform>();
 
@@ -55,12 +43,10 @@ public class Gun : MonoBehaviour
     [SerializeField] private ParticleSystem MuzzleFlashPrefab = null;
     [Tooltip("Fire bullets from FixedUpdate. If using a physics based project, this should usually be set to true.")]
     public bool FireInFixed = true;
-
     [Tooltip("Set to true to fire the gun automatically.")]
     public bool IsFiring = false;
 
     [Header("Ammo")]
-
     public bool UseAmmo = false;
     public int MaxAmmo = 10000;
 
@@ -89,12 +75,47 @@ public class Gun : MonoBehaviour
     public float TurretRotateSpeed = 5f;
     public GlobalHelper.GuidanceType GuidanceType = GlobalHelper.GuidanceType.Lead;
 
+    [Header("Turret")]
+    [Tooltip("Transform of the turret's azimuthal rotations.")]
+    [SerializeField] private Transform turretBase = null;
+    [Tooltip("Transform of the turret's elevation rotations. ")]
+    [SerializeField] private Transform barrels = null;
+    [Tooltip("Speed at which the turret's guns elevate up and down.")]
+    public float ElevationSpeed = 30f;
+    [Tooltip("Highest upwards elevation the turret's barrels can aim.")]
+    public float MaxElevation = 60f;
+    [Tooltip("Lowest downwards elevation the turret's barrels can aim.")]
+    public float MaxDepression = 5f;
+    [Tooltip("Speed at which the turret can rotate left/right.")]
+    public float TraverseSpeed = 60f;
+    [Tooltip("When true, the turret can only rotate horizontally with the given limits.")]
+    [SerializeField] private bool hasLimitedTraverse = false;
+    [Range(0, 179)] public float LeftLimit = 120f;
+    [Range(0, 179)] public float RightLimit = 120f;
+    [Tooltip("When idle, the turret does not aim at anything and simply points forwards.")]
+    public bool IsIdle = false;
+    [Tooltip("Position the turret will aim at when not idle. Set this to whatever you want" +
+        "the turret to actively aim at.")]
+    public Vector3 AimPosition = Vector3.zero;
+    [Tooltip("When the turret is within this many degrees of the target, it is considered aimed.")]
+    [SerializeField] private float aimedThreshold = 5f;
+    private float limitedTraverseAngle = 0f;
+    private float angleToTarget = 0f;
+    private float elevation = 0f;
+
+    private bool hasBarrels = false;
+
+    private bool isAimed = false;
+    private bool isBaseAtRest = false;
+    private bool isBarrelAtRest = false;
+
+
     private Vector3 _targetPosLastFrame;
 
     private void Start()
     {
         InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
-        InvokeRepeating("LockOn", 0f, 1.0f / UpdateRate);
+        // InvokeRepeating("LockOn", 0f, 1.0f / UpdateRate);
         if (Targeted != null)
         {
             _targetPosLastFrame = Targeted.position;
@@ -152,6 +173,9 @@ public class Gun : MonoBehaviour
             foreach (var barrel in barrelVisuals)
                 barrel.ResetBarrelOverTime(Time.deltaTime);
         }
+
+        if (Targeted != null)
+            RotateBaseToFaceTarget(Targeted.position);
     }
 
     private void FixedUpdate()
@@ -321,6 +345,87 @@ public class Gun : MonoBehaviour
         {
             Targeted = null;
             IsFiring = false;
+        }
+    }
+
+    private void RotateBaseToFaceTarget(Vector3 targetPosition)
+    {
+        Vector3 turretUp = transform.up;
+
+        Vector3 vecToTarget = targetPosition - turretBase.position;
+        Vector3 flattenedVecForBase = Vector3.ProjectOnPlane(vecToTarget, turretUp);
+
+        if (hasLimitedTraverse)
+        {
+            Vector3 turretForward = transform.forward;
+            float targetTraverse = Vector3.SignedAngle(turretForward, flattenedVecForBase, turretUp);
+
+            targetTraverse = Mathf.Clamp(targetTraverse, -LeftLimit, RightLimit);
+            limitedTraverseAngle = Mathf.MoveTowards(
+                limitedTraverseAngle,
+                targetTraverse,
+                TraverseSpeed * Time.deltaTime);
+
+            if (Mathf.Abs(limitedTraverseAngle) > Mathf.Epsilon)
+                turretBase.localEulerAngles = Vector3.up * limitedTraverseAngle;
+        }
+        else
+        {
+            turretBase.rotation = Quaternion.RotateTowards(
+                Quaternion.LookRotation(turretBase.forward, turretUp),
+                Quaternion.LookRotation(flattenedVecForBase, turretUp),
+                TraverseSpeed * Time.deltaTime);
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (turretBase != null)
+        {
+            const float kArcSize = 10f;
+            Color colorTraverse = new Color(1f, .5f, .5f, .1f);
+            Color colorElevation = new Color(.5f, 1f, .5f, .1f);
+            Color colorDepression = new Color(.5f, .5f, 1f, .1f);
+
+            Transform arcRoot = barrels != null ? barrels : turretBase;
+
+            // Red traverse arc
+            UnityEditor.Handles.color = colorTraverse;
+            if (hasLimitedTraverse)
+            {
+                UnityEditor.Handles.DrawSolidArc(
+                    arcRoot.position, turretBase.up,
+                    transform.forward, RightLimit,
+                    kArcSize);
+                UnityEditor.Handles.DrawSolidArc(
+                    arcRoot.position, turretBase.up,
+                    transform.forward, -LeftLimit,
+                    kArcSize);
+            }
+            else
+            {
+                UnityEditor.Handles.DrawSolidArc(
+                    arcRoot.position, turretBase.up,
+                    transform.forward, 360f,
+                    kArcSize);
+            }
+
+            if (barrels != null)
+            {
+                // Green elevation arc
+                UnityEditor.Handles.color = colorElevation;
+                UnityEditor.Handles.DrawSolidArc(
+                    barrels.position, barrels.right,
+                    turretBase.forward, -MaxElevation,
+                    kArcSize);
+
+                // Blue depression arc
+                UnityEditor.Handles.color = colorDepression;
+                UnityEditor.Handles.DrawSolidArc(
+                    barrels.position, barrels.right,
+                    turretBase.forward, MaxDepression,
+                    kArcSize);
+            }
         }
     }
 }
