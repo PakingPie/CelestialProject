@@ -514,7 +514,10 @@ public class Gun : MonoBehaviour
 
         if (Targeted != null)
         {
-            Gizmos.color = Color.greenYellow;
+            if(FireTarget == GlobalHelper.Faction.Foe)
+                Gizmos.color = Color.red;
+            else
+                Gizmos.color = Color.greenYellow;
             Gizmos.DrawLine(transform.position, Targeted.position);
         }
     }

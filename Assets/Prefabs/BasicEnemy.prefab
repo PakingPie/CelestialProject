@@ -370,7 +370,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2516039646406173720}
-  - component: {fileID: 5740471239668304900}
   - component: {fileID: 6729439401865992429}
   m_Layer: 8
   m_Name: Main Weapon
@@ -395,27 +394,6 @@ Transform:
   - {fileID: 2208432724579300860}
   m_Father: {fileID: 1510646433887854243}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
---- !u!114 &5740471239668304900
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3681519436312465255}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a6614f4d0cd36e8438e59d0f4da6485e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GunShoot
-  Targeted: {fileID: 0}
-  ActiveRange: {x: 5, y: 1000}
-  UpdateRate: 60
-  GunShootInterval: 2
-  TurretRotateSpeed: 5
-  BulletPrefab: {fileID: 6305537667324850647, guid: ab44580e32713cc4d8922fc48bc045ac, type: 3}
-  BulletSpawnPoint: {fileID: 7887085982298261566}
-  FireTarget: 0
-  GuidanceType: 0
 --- !u!114 &6729439401865992429
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -451,15 +429,15 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 0
   ActiveRange: {x: 5, y: 1000}
-  UpdateRate: 60
+  UpdateRate: 30
   TurretRotateSpeed: 5
   GuidanceType: 0
   turretBase: {fileID: 2208432724579300860}
   barrels: {fileID: 1312519066579379706}
-  ElevationSpeed: 30
+  ElevationSpeed: 10
   MaxElevation: 75
   MaxDepression: 15
-  TraverseSpeed: 60
+  TraverseSpeed: 30
   hasLimitedTraverse: 1
   LeftLimit: 150
   RightLimit: 150
