@@ -79,6 +79,50 @@ public class ShieldHitEffect : MonoBehaviour
     private Material _hitEffectMat;
     private Material _cumulativeMat;
 
+    private bool _isInitialized = false;
+
+    private void Init()
+    {
+        if (_cumulativeRT == null)
+        {
+            _cumulativeRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+        }
+        if (_currRT == null)
+        {
+            _currRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+        }
+        if (_singleEffectRT == null)
+        {
+            _singleEffectRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+        }
+
+        if (_cumulativeMat == null)
+        {
+            _cumulativeMat = new Material(CumulativeShader);
+        }
+        if (_hitEffectMat == null)
+        {
+            _hitEffectMat = new Material(HitEffectShader);
+        }
+
+        if (GetComponent<MeshRenderer>() != null)
+            GetComponent<MeshRenderer>().sharedMaterial = _cumulativeMat;
+
+        _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
+        _cumulativeMat.SetTexture("_HitTex", _singleEffectRT);
+
+        _cumulativeMat.SetFloat("_HitTexScale", 0.5f);
+
+        _hitEffectMat.SetFloat("_EdgeMax", 0.0f);
+        _hitEffectMat.SetFloat("_Thickness", 0.1f);
+        // _hitEffectMat.DisableKeyword("Circle_Fill");
+        // _hitEffectMat.DisableKeyword("Circle_FillSDF");
+        // _hitEffectMat.DisableKeyword("Circle_Stroke");
+        // _hitEffectMat.EnableKeyword("Circle_StokeSDF");
+        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitAreaTex", _currRT);
+        _isInitialized = true;
+    }
+
     public void ClearAll()
     {
         if (_cumulativeRT != null)
@@ -105,85 +149,77 @@ public class ShieldHitEffect : MonoBehaviour
         {
             _cumulativeMat = null;
         }
-        
+
     }
 
     public void GetHit(RaycastHit hit)
     {
-        if (_cumulativeRT == null)
+        if (!_isInitialized)
         {
-            _cumulativeRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            Init();
         }
-        if (_currRT == null)
-        {
-            _currRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-        }
-        if (_singleEffectRT == null)
-        {
-            _singleEffectRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-        }
-
-        if (_cumulativeMat == null)
-        {
-            _cumulativeMat = new Material(CumulativeShader);
-        }
-        if (_hitEffectMat == null)
-        {
-            _hitEffectMat = new Material(HitEffectShader);
-        }
-
-        // if (TempGO != null)
-        //     TempGO.GetComponent<MeshRenderer>().sharedMaterial = _hitEffectMat;
-
-        // ShieldGO.GetComponent<MeshRenderer>().sharedMaterial = _cumulativeMat;
-        if (GetComponent<MeshRenderer>() != null)
-            GetComponent<MeshRenderer>().sharedMaterial = _cumulativeMat;
-
-        _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
-        _cumulativeMat.SetTexture("_HitTex", _singleEffectRT);
-
-        _cumulativeMat.SetVector("_HitUV", hit.textureCoord);
-        _cumulativeMat.SetFloat("_HitTexScale", 0.5f);
-
-        _hitEffectMat.SetFloat("_EdgeMax", 0.0f);
-        _hitEffectMat.SetFloat("_Thickness", 0.1f);
-        // _hitEffectMat.DisableKeyword("Circle_Fill");
-        // _hitEffectMat.DisableKeyword("Circle_FillSDF");
-        // _hitEffectMat.DisableKeyword("Circle_Stroke");
-        // _hitEffectMat.EnableKeyword("Circle_StokeSDF");
-
-        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitAreaTex", _currRT);
-
-        float elapsed = 0.0f;
-        StartCoroutine(GetHit(elapsed));
+        StartCoroutine(AnimateSingleHit(hit.textureCoord));
     }
 
-    IEnumerator GetHit(float timer)
+    private static int _coroutineCount = 0;
+
+    IEnumerator AnimateSingleHit(Vector2 hitUV)
     {
-        timer += Time.deltaTime;
-        if (timer < HitImpactDuration)
+        float timer = 0.0f;
+        Material hitInstanceMat = new Material(HitEffectShader);
+        _cumulativeMat.SetVector("_HitUV", hitUV);
+        while(timer < HitImpactDuration)
         {
+            timer += Time.deltaTime;
             float strength = Mathf.Lerp(HitImpactScale, 0.0f, timer / HitImpactDuration);
             strength = Mathf.Clamp(1 - strength, 0.0f, 1.0f);
-            _hitEffectMat.SetFloat("_Size", strength);
-            _hitEffectMat.SetFloat("_Fade", 1 - strength);
+            hitInstanceMat.SetFloat("_Size", strength);
+            hitInstanceMat.SetFloat("_Fade", 1 - strength);
+
+            Graphics.Blit(null, _singleEffectRT, hitInstanceMat, pass: 0);   // Get single hit effect
+
+            RenderTexture tempRT = RenderTexture.GetTemporary(_cumulativeRT.descriptor);
+            Graphics.Blit(_cumulativeRT, tempRT, _cumulativeMat, pass: 0);    // Get cumulative effect
+            Graphics.Blit(tempRT, _cumulativeRT);                          // Copy back to cumulative RT
+            RenderTexture.ReleaseTemporary(tempRT);
+
+            ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitAreaTex", _cumulativeRT);
+
+            yield return null;
         }
 
-        Graphics.Blit(null, _singleEffectRT, _hitEffectMat, pass: 0);   // Get single hit effect
-
-        Graphics.Blit(null, _cumulativeRT, _cumulativeMat, pass: 0);    // Get cumulative effect
-        Graphics.Blit(_cumulativeRT, _currRT);                          // Copy cumulative to current RT
-
-        RenderTexture swap = _currRT;   // Swap current and previous RTs
-        _currRT = _cumulativeRT;
-        _cumulativeRT = swap;
-
-        if(_singleEffectRT != null)
-        _singleEffectRT.Release();
-
-        yield return null;
-        StartCoroutine(GetHit(timer));
+        Destroy(hitInstanceMat);
     }
+    // IEnumerator GetHit(float timer)
+    // {
+    //     _coroutineCount++;
+    //     timer += Time.deltaTime;
+    //     if (timer < HitImpactDuration)
+    //     {
+    //         float strength = Mathf.Lerp(HitImpactScale, 0.0f, timer / HitImpactDuration);
+    //         strength = Mathf.Clamp(1 - strength, 0.0f, 1.0f);
+    //         _hitEffectMat.SetFloat("_Size", strength);
+    //         _hitEffectMat.SetFloat("_Fade", 1 - strength);
+    //     }
+    //     if(_singleEffectRT == null)
+    //         _singleEffectRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+
+
+    //     Graphics.Blit(null, _singleEffectRT, _hitEffectMat, pass: 0);   // Get single hit effect
+
+    //     Graphics.Blit(null, _cumulativeRT, _cumulativeMat, pass: 0);    // Get cumulative effect
+    //     Graphics.Blit(_cumulativeRT, _currRT);                          // Copy cumulative to current RT
+
+    //     RenderTexture swap = _currRT;   // Swap current and previous RTs
+    //     _currRT = _cumulativeRT;
+    //     _cumulativeRT = swap;
+
+    //     if (_singleEffectRT != null)
+    //         _singleEffectRT.Release();
+
+    //     yield return null;
+    //     StartCoroutine(GetHit(timer));
+    // }
 
     // void OnDestroy()
     // {
