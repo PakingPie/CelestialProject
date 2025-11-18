@@ -364,15 +364,14 @@ public class Gun : MonoBehaviour
 
     public void UpdateTarget()
     {
-        if (Targeted != null)
-        {
-            float dist = Vector3.Distance(transform.position, Targeted.position);
-            float angleToEnemy = GetTurretAngleToTarget(Targeted.position);
-            if (angleToEnemy <= AimedThreshold && dist <= ActiveRange.y)
-            {
-                return;
-            }
-        }
+        // if (Targeted != null)
+        // {
+        //     float dist = Vector3.Distance(transform.position, Targeted.position);
+        //     if (dist <= ActiveRange.y)
+        //     {
+        //         return;
+        //     }
+        // }
 
         Targeted = null;
 
@@ -392,14 +391,24 @@ public class Gun : MonoBehaviour
         foreach (GameObject enemy in enemies)
         {
             float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
-            // float angleToEnemy = GetTurretAngleToTarget(enemy.transform.position);
-            if (distance_to_enemy < ActiveRange.y)
+            Vector2 anglesToEnemy = CalcuateRelativeAngles(enemy.transform);
+            if (anglesToEnemy.y > MaxElevation || anglesToEnemy.y < -MaxDepression)
             {
-                if (distance_to_enemy < shortest_distance)
+                continue;
+            }
+
+            if (hasLimitedTraverse)
+            {
+                if (anglesToEnemy.x > RightLimit || anglesToEnemy.x < -LeftLimit)
                 {
-                    shortest_distance = distance_to_enemy;
-                    nearest_enemy = enemy;
+                    continue;
                 }
+            }
+            
+            if (distance_to_enemy < ActiveRange.y && distance_to_enemy < shortest_distance)
+            {
+                shortest_distance = distance_to_enemy;
+                nearest_enemy = enemy;
             }
         }
 
@@ -462,6 +471,28 @@ public class Gun : MonoBehaviour
                 Quaternion.LookRotation(flattenedVecForBase, turretUp),
                 TraverseSpeed * Time.deltaTime);
         }
+    }
+
+    // Calculate the relative angles needed to aim at the target.
+    private Vector2 CalcuateRelativeAngles(Transform target)
+    {   
+        // Azimuth calculation
+        Vector3 vecToTarget = target.position - turretBase.position;
+        Vector3 flattenedVecForBase = Vector3.ProjectOnPlane(vecToTarget, transform.up);
+        float azimuth = Vector3.SignedAngle(transform.forward, flattenedVecForBase, transform.up);
+
+        // Elevation calculation
+        float elevation = 0f;
+        if (_hasBarrels && barrels != null)
+        {
+            Vector3 localTargetPos = turretBase.InverseTransformDirection(target.position - barrels.position);
+            Vector3 flattenedVecForBarrels = Vector3.ProjectOnPlane(localTargetPos, Vector3.up);
+
+            elevation = Vector3.Angle(flattenedVecForBarrels, localTargetPos);
+            elevation *= Mathf.Sign(localTargetPos.y);
+        }
+
+        return new Vector2(azimuth, elevation);
     }
 
     private void OnDrawGizmos()
