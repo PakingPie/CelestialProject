@@ -185,10 +185,10 @@ public class ShieldHitEffect : MonoBehaviour
         StartCoroutine(GetHit(timer));
     }
 
-    void OnDestroy()
-    {
-        ClearAll();        
-    }
+    // void OnDestroy()
+    // {
+    //     ClearAll();        
+    // }
 
     // IEnumerator GetHit(float timer)
     // {

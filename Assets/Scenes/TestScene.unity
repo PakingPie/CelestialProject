@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: f642c3c6310b27245ba8f325c6e02f8d, type: 2}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -2753,7 +2753,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1463880843
 Transform:
   m_ObjectHideFlags: 0
@@ -2783,7 +2783,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
-  FireDelay: 0.5
+  FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.2
   AutoInheritVelocity: 1
@@ -2817,11 +2817,12 @@ MonoBehaviour:
   MaxDepression: 5
   TraverseSpeed: 60
   hasLimitedTraverse: 1
-  LeftLimit: 0
+  LeftLimit: 30
   RightLimit: 120
   IsIdle: 0
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 5
+  DebugMode: 1
 --- !u!21 &1471847403
 Material:
   serializedVersion: 8
@@ -3120,7 +3121,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefab: {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 500
-  spawnCount: 200
+  spawnCount: 5
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 1
   HeightRange: {x: -100, y: 100}
@@ -3229,7 +3230,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1630889159
 Transform:
   m_ObjectHideFlags: 0
@@ -3259,7 +3260,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
-  FireDelay: 0.5
+  FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.2
   AutoInheritVelocity: 1
@@ -3294,10 +3295,11 @@ MonoBehaviour:
   TraverseSpeed: 60
   hasLimitedTraverse: 1
   LeftLimit: 120
-  RightLimit: 0
+  RightLimit: 30
   IsIdle: 0
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 10
+  DebugMode: 1
 --- !u!1 &1650505397
 GameObject:
   m_ObjectHideFlags: 0
@@ -3425,7 +3427,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1695574712
 Transform:
   m_ObjectHideFlags: 0
@@ -3455,7 +3457,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
-  FireDelay: 0.5
+  FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.2
   AutoInheritVelocity: 1
@@ -3489,11 +3491,12 @@ MonoBehaviour:
   MaxDepression: 5
   TraverseSpeed: 60
   hasLimitedTraverse: 1
-  LeftLimit: 0
+  LeftLimit: 30
   RightLimit: 120
   IsIdle: 0
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 10
+  DebugMode: 1
 --- !u!1 &1722902472
 GameObject:
   m_ObjectHideFlags: 0
@@ -4450,7 +4453,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
-  FireDelay: 0.5
+  FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.2
   AutoInheritVelocity: 1
@@ -4485,10 +4488,11 @@ MonoBehaviour:
   TraverseSpeed: 60
   hasLimitedTraverse: 1
   LeftLimit: 120
-  RightLimit: 0
+  RightLimit: 30
   IsIdle: 0
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 5
+  DebugMode: 1
 --- !u!33 &53536991684636927
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -4792,7 +4796,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &2730056857101270275
 GameObject:
   m_ObjectHideFlags: 0
@@ -5689,7 +5693,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8502438397938148729}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1db5bcea85ac7604abda9a00766f20dc, type: 3}
   m_Name: 
@@ -5747,7 +5751,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0

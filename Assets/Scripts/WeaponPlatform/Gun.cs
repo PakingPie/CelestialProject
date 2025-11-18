@@ -113,6 +113,8 @@ public class Gun : MonoBehaviour
     public bool IsAimed { get { return _isAimed; } }
     public float AngleToTarget { get { return IsIdle ? 999f : _angleToTarget; } }
 
+
+    public bool DebugMode = false;
     private Vector3 _targetPosLastFrame;
 
     private void Start()
@@ -147,7 +149,7 @@ public class Gun : MonoBehaviour
 
     private void Update()
     {
-        
+
         if (!_isAimed)
             IsFiring = false;
         else
@@ -172,11 +174,7 @@ public class Gun : MonoBehaviour
         else
         {
             Vector3 aimPosition = Targeted.position;
-            if (GuidanceType == GlobalHelper.GuidanceType.Pursuit)
-            {
-                // Do nothing, already aiming at target
-            }
-            else
+            if (GuidanceType == GlobalHelper.GuidanceType.Lead)
             {
                 // Calculate where to aim based on target movement
                 Vector3 targetVelocity = Targeted.position - _targetPosLastFrame;
@@ -366,15 +364,15 @@ public class Gun : MonoBehaviour
 
     public void UpdateTarget()
     {
-        // if(Targeted != null)
-        // {
-        //     float dist = Vector3.Distance(transform.position, Targeted.position);
-        //     float angleToEnemy = GetTurretAngleToTarget(Targeted.position);
-        //     if (angleToEnemy <= AimedThreshold && dist <= ActiveRange.y)
-        //     {
-        //         return;
-        //     }
-        // }
+        if (Targeted != null)
+        {
+            float dist = Vector3.Distance(transform.position, Targeted.position);
+            float angleToEnemy = GetTurretAngleToTarget(Targeted.position);
+            if (angleToEnemy <= AimedThreshold && dist <= ActiveRange.y)
+            {
+                return;
+            }
+        }
 
         Targeted = null;
 
@@ -394,8 +392,8 @@ public class Gun : MonoBehaviour
         foreach (GameObject enemy in enemies)
         {
             float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
-            float angleToEnemy = GetTurretAngleToTarget(enemy.transform.position);
-            if (distance_to_enemy < ActiveRange.y && angleToEnemy < AimedThreshold)
+            // float angleToEnemy = GetTurretAngleToTarget(enemy.transform.position);
+            if (distance_to_enemy < ActiveRange.y)
             {
                 if (distance_to_enemy < shortest_distance)
                 {
@@ -415,6 +413,10 @@ public class Gun : MonoBehaviour
             IsFiring = false;
             _isAimed = false;
         }
+        // if (DebugMode)
+        //     Debug.Log(enemies.Length + " enemies found.");
+        // if(Targeted != null && DebugMode)
+        //     Debug.Log("Target acquired: " + Targeted.name);
     }
 
     private void RotateBarrelsToFaceTarget(Vector3 targetPosition)
@@ -514,7 +516,7 @@ public class Gun : MonoBehaviour
 
         if (Targeted != null)
         {
-            if(FireTarget == GlobalHelper.Faction.Foe)
+            if (FireTarget == GlobalHelper.Faction.Foe)
                 Gizmos.color = Color.red;
             else
                 Gizmos.color = Color.greenYellow;
