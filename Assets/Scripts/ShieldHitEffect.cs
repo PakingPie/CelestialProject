@@ -69,32 +69,59 @@ public class ShieldHitEffect : MonoBehaviour
     // public GameObject TempGO;
     public float HitImpactDuration = 1.0f;
     public float HitImpactScale = 0.1f;
-    public int TextureSize = 8;
+    public int TextureSize = 64;
     public Shader HitEffectShader;
     public Shader CumulativeShader;
-    private RenderTexture _cumulativeRT;
-    private RenderTexture _currRT;
-    private RenderTexture _singleEffectRT;
 
+    public GameObject DebugQuad;
+
+    private RenderTexture _cumulativeRT;
+    private RenderTexture _outputRT;
+    private RenderTexture _singleEffectRT;
+    private RenderTexture _tempRT;
+    private Texture2D _blackRT;
     private Material _hitEffectMat;
     private Material _cumulativeMat;
 
     private bool _isInitialized = false;
 
+    private class ActiveRipple
+    {
+        public Vector2 uv;
+        public float timer;
+    }
+    private List<ActiveRipple> _activeRipples = new List<ActiveRipple>();
+
+    private RenderTexture CreateRT()
+    {
+        RenderTexture rt = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+        rt.wrapMode = TextureWrapMode.Clamp;
+        rt.Create();
+        return rt;
+    }
+
     private void Init()
     {
         if (_cumulativeRT == null)
         {
-            _cumulativeRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            _cumulativeRT = CreateRT();
         }
-        if (_currRT == null)
+        if (_outputRT == null)
         {
-            _currRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            _outputRT = CreateRT();
         }
         if (_singleEffectRT == null)
         {
-            _singleEffectRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            _singleEffectRT = CreateRT();
         }
+        if (_tempRT == null)
+        {
+            _tempRT = CreateRT();
+        }
+
+        Texture2D _clearTex = new Texture2D(1, 1);
+        _clearTex.SetPixel(0, 0, Color.black);
+        _clearTex.Apply();
 
         if (_cumulativeMat == null)
         {
@@ -115,40 +142,29 @@ public class ShieldHitEffect : MonoBehaviour
 
         _hitEffectMat.SetFloat("_EdgeMax", 0.0f);
         _hitEffectMat.SetFloat("_Thickness", 0.1f);
-        // _hitEffectMat.DisableKeyword("Circle_Fill");
-        // _hitEffectMat.DisableKeyword("Circle_FillSDF");
-        // _hitEffectMat.DisableKeyword("Circle_Stroke");
-        // _hitEffectMat.EnableKeyword("Circle_StokeSDF");
-        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitAreaTex", _currRT);
+
+        _hitEffectMat.DisableKeyword("_CIRCLE_FILL");
+        _hitEffectMat.DisableKeyword("_CIRCLE_FILLSDF");
+        _hitEffectMat.EnableKeyword("_CIRCLE_STROKE");
+        _hitEffectMat.DisableKeyword("_CIRCLE_STROKESDF");
+
+        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitAreaTex", _cumulativeRT);
         _isInitialized = true;
+
+        DebugQuad.GetComponent<MeshRenderer>().sharedMaterial = _hitEffectMat;
     }
 
     public void ClearAll()
     {
-        if (_cumulativeRT != null)
-        {
-            _cumulativeRT.Release();
-            _cumulativeRT = null;
-        }
-        if (_currRT != null)
-        {
-            _currRT.Release();
-            _currRT = null;
-        }
-        if (_singleEffectRT != null)
-        {
-            _singleEffectRT.Release();
-            _singleEffectRT = null;
-        }
+        if (_cumulativeRT != null) _cumulativeRT.Release();
+        if (_outputRT != null) _outputRT.Release();
+        if (_singleEffectRT != null) _singleEffectRT.Release();
+        if (_tempRT != null) _tempRT.Release();
 
-        if (_hitEffectMat != null)
-        {
-            _hitEffectMat = null;
-        }
-        if (_cumulativeMat != null)
-        {
-            _cumulativeMat = null;
-        }
+        if (_blackRT != null) Destroy(_blackRT);
+
+        if (_hitEffectMat != null) Destroy(_hitEffectMat);
+        if (_cumulativeMat != null) Destroy(_cumulativeMat);
 
         _isInitialized = false;
     }
@@ -159,7 +175,66 @@ public class ShieldHitEffect : MonoBehaviour
         {
             Init();
         }
-        StartCoroutine(AnimateSingleHit(hit.textureCoord));
+        _activeRipples.Add(new ActiveRipple 
+        { 
+            uv = hit.textureCoord, 
+            timer = 0.0f 
+        });
+        // StartCoroutine(AnimateSingleHit(hit.textureCoord));
+    }
+
+
+
+    void Update()
+    {
+        if (!_isInitialized || _cumulativeMat == null || _hitEffectMat == null) return;
+
+        // --- 步骤 1: 全局衰减 (Global Decay) ---
+        // 每一幀都让整张图变暗一点点。
+        // 这里 _HitTex 传入黑图，表示这步不添加新内容，只做衰减。
+        _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
+        _cumulativeMat.SetTexture("_HitTex", _blackRT);
+
+        Graphics.Blit(_cumulativeRT, _tempRT, _cumulativeMat);
+        Graphics.Blit(_tempRT, _cumulativeRT); // 交换回 _cumulativeRT
+
+        // --- 步骤 2: 处理并叠加所有活跃波纹 ---
+        // 倒序遍历以便安全移除
+        for (int i = _activeRipples.Count - 1; i >= 0; i--)
+        {
+            ActiveRipple ripple = _activeRipples[i];
+            ripple.timer += Time.deltaTime;
+
+            // 如果波纹时间结束，从列表中移除
+            if (ripple.timer > HitImpactDuration)
+            {
+                _activeRipples.RemoveAt(i);
+                continue;
+            }
+
+            // 计算当前波纹的状态
+            float progress = ripple.timer / HitImpactDuration;
+            float currentSize = HitImpactScale * progress;
+            float currentFade = 1.0f - progress;
+
+            // 2.1 绘制单个波纹到 _singleEffectRT
+            _hitEffectMat.SetVector("_HitUV", ripple.uv);
+            _hitEffectMat.SetFloat("_Size", currentSize);
+            _hitEffectMat.SetFloat("_Fade", currentFade);
+
+            // 这一步生成的 _singleEffectRT 背景是黑的，只有当前这一个白圈
+            Graphics.Blit(null, _singleEffectRT, _hitEffectMat);
+
+            // 2.2 将单个波纹叠加到累积图上
+            // 关键：这里 _Decay 设为 1.0，因为我们不想让旧的图再变暗一次（步骤1已经暗过了）
+            // 我们只想把新的白圈 Max Blend 上去。
+            _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
+            _cumulativeMat.SetTexture("_HitTex", _singleEffectRT);
+            _cumulativeMat.SetFloat("_Decay", 1.0f);
+
+            Graphics.Blit(_cumulativeRT, _tempRT, _cumulativeMat);
+            Graphics.Blit(_tempRT, _cumulativeRT);
+        }
     }
 
 
@@ -167,7 +242,7 @@ public class ShieldHitEffect : MonoBehaviour
     {
         float timer = 0.0f;
         Material hitInstanceMat = new Material(HitEffectShader);
-        _cumulativeMat.SetVector("_HitUV", hitUV);
+        hitInstanceMat.SetVector("_HitUV", hitUV);
         while (timer < HitImpactDuration)
         {
             timer += Time.deltaTime;
