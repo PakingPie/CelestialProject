@@ -12,7 +12,7 @@ public class PlayerVehicle : VehicleBase
     public GameObject ShieldEffect;
 
     public int ShieldRegenerationRate = 1; // Points per second
-    public float ShieldRegenerationDelay = 3f; // Seconds after taking damage before regeneration starts
+    public float ShieldRegenerationDelay = 5f; // Seconds after taking damage before regeneration starts
     private float _shieldRegenTimer = 0f;
     private float _lastDamageTime = 0f;
 
@@ -260,7 +260,7 @@ public class PlayerVehicle : VehicleBase
             // DestroyVehicle();
         }
 
-        _shieldRegenTimer = 0f; // Reset shield regeneration timer on taking damage
+        _lastDamageTime = 0f; // Reset shield regeneration timer on taking damage
 
         return HitPoints > 0;
     }
