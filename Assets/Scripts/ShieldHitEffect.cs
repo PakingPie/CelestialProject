@@ -188,8 +188,6 @@ public class ShieldHitEffect : MonoBehaviour
             if (ripple.timer > HitImpactDuration)
             {
                 _activeRipples.RemoveAt(i);
-                if (EnableDebugMode)
-                    Debug.Log("Ripple ended and removed. Current active ripples: " + _activeRipples.Count);
                 continue;
             }
 

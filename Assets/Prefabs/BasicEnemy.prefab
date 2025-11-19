@@ -121,10 +121,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3110045092184062921}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -22}
-  m_SizeDelta: {x: 100, y: 8}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3134253914197984826
 CanvasRenderer:
@@ -196,10 +196,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3110045092184062921}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -30.5}
-  m_SizeDelta: {x: 100, y: 3}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2312192323488569684
 CanvasRenderer:
@@ -547,12 +547,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5fd111861f695545934d2f021080e53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
-  HitPoints: 500
-  MaxHitPoints: 500
+  HitPoints: 50
+  MaxHitPoints: 50
   ArmorPoints: 20
   MaxArmorPoints: 20
-  ShieldPoints: 500
-  MaxShieldPoints: 500
+  ShieldPoints: 20
+  MaxShieldPoints: 20
   Speed: 1
   FactionType: 2
   Type: 0
@@ -582,10 +582,15 @@ MonoBehaviour:
   ShieldGO: {fileID: 124679239445400308}
   HitImpactDuration: 1
   HitImpactScale: 1
+  DecayPerSecond: 0.9
   TextureSize: 8
   HitEffectShader: {fileID: 4800000, guid: 9d4680f053a4c804784f0d8d0d3302d7, type: 3}
   CumulativeShader: {fileID: 4800000, guid: a63a745ff69d80e46a11d9e8f34dd690, type: 3}
+  EnableDebugMode: 0
   DebugQuad: {fileID: 0}
+  _blackTex: {fileID: 0}
+  _hitEffectMat: {fileID: 0}
+  _cumulativeMat: {fileID: 0}
 --- !u!64 &506681942887901699
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -892,10 +897,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3110045092184062921}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -27.5}
-  m_SizeDelta: {x: 100, y: 3}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3180118109876081506
 CanvasRenderer:
@@ -1099,7 +1104,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2595131329914410010
 RectTransform:
   m_ObjectHideFlags: 0
