@@ -150,6 +150,7 @@ public class ShieldHitEffect : MonoBehaviour
             _cumulativeMat = null;
         }
 
+        _isInitialized = false;
     }
 
     public void GetHit(RaycastHit hit)
@@ -161,14 +162,13 @@ public class ShieldHitEffect : MonoBehaviour
         StartCoroutine(AnimateSingleHit(hit.textureCoord));
     }
 
-    private static int _coroutineCount = 0;
 
     IEnumerator AnimateSingleHit(Vector2 hitUV)
     {
         float timer = 0.0f;
         Material hitInstanceMat = new Material(HitEffectShader);
         _cumulativeMat.SetVector("_HitUV", hitUV);
-        while(timer < HitImpactDuration)
+        while (timer < HitImpactDuration)
         {
             timer += Time.deltaTime;
             float strength = Mathf.Lerp(HitImpactScale, 0.0f, timer / HitImpactDuration);
@@ -190,6 +190,7 @@ public class ShieldHitEffect : MonoBehaviour
 
         Destroy(hitInstanceMat);
     }
+
     // IEnumerator GetHit(float timer)
     // {
     //     _coroutineCount++;
