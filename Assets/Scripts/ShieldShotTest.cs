@@ -7,9 +7,13 @@ public class GunshotTest : MonoBehaviour
     public float HitImpactDuration = 5.0f;
     public float HitImpactScale = 0.1f;
 
-    public void Start()
+    public void AutoShoot()
     {
         InvokeRepeating("Shoot", 0.0f, 0.5f);   
+    }
+    public void StopAutoShoot()
+    {
+        CancelInvoke("Shoot");
     }
     public void Shoot()
     {
@@ -52,6 +56,16 @@ public class GunshotEditor : Editor
         if (GUILayout.Button("Shoot"))
         {
             gunshotTest.Shoot();
+        }
+
+        if(GUILayout.Button("Start Auto Shoot"))
+        {
+            gunshotTest.AutoShoot();
+        }
+
+        if(GUILayout.Button("Stop Auto Shoot"))
+        {
+            gunshotTest.StopAutoShoot();
         }
     }
 }
