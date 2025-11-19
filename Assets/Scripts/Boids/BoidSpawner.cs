@@ -8,7 +8,7 @@ public class Spawner : MonoBehaviour
         Never, SelectedOnly, Always
     }
 
-    public Boid prefab;
+    public Boid[] prefabs;
     public float spawnRadius = 10.0f;
     public int spawnCount = 10;
     public Color color;
@@ -22,7 +22,7 @@ public class Spawner : MonoBehaviour
         {
             Vector3 randomSphere = Random.insideUnitSphere * spawnRadius;
             Vector3 pos = transform.position + new Vector3(randomSphere.x, Mathf.Clamp(randomSphere.y, HeightRange.x, HeightRange.y), randomSphere.z); // originly Random.insideUnitSphere
-            Boid boid = Instantiate(prefab);
+            Boid boid = Instantiate(prefabs[Random.Range(0, prefabs.Length)]);
             boid.transform.position = pos;
             randomSphere = Random.insideUnitSphere;
             boid.transform.forward = new Vector3(randomSphere.x, Mathf.Clamp(randomSphere.y, HeightRange.x, HeightRange.y), randomSphere.z); // originly Random.insideUnitSphere
