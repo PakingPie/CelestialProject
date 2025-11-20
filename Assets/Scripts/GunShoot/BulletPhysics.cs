@@ -104,7 +104,9 @@ public class BulletPhysics : MonoBehaviour
         // }
         // else
         // {
-        // Find if any enemy is within FuseDetonationDistance
+        // Find if any enemy is within FuseDetonationDistance, this should be done more efficiently with spatial partitioning or call from a manager
+        // I plan to place it outside of this scope later.
+        // Should be only called when enemy number is changed, i.e. enemy spawned or destroyed.
         GameObject[] enemies = GameObject.FindGameObjectsWithTag(GlobalHelper.FactionNames[(int)FireTarget]);
         List<GameObject> enemiesToBeDamaged = new List<GameObject>();
         

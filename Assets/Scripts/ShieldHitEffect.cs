@@ -116,7 +116,6 @@ public class ShieldHitEffect : MonoBehaviour
 
         _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
         _cumulativeMat.SetTexture("_HitTex", _singleEffectRT);
-        _cumulativeMat.SetFloat("_Decay", DecayPerSecond);
 
         // _cumulativeMat.SetFloat("_HitTexScale", 0.5f);
 
@@ -209,7 +208,7 @@ public class ShieldHitEffect : MonoBehaviour
             // We only want to max blend the new white circle.
             _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
             _cumulativeMat.SetTexture("_HitTex", _singleEffectRT);
-            _cumulativeMat.SetFloat("_Decay", 1.0f);
+            _cumulativeMat.SetFloat("_Decay", DecayPerSecond);
 
             Graphics.Blit(_cumulativeRT, _tempRT, _cumulativeMat);
             Graphics.Blit(_tempRT, _cumulativeRT);
