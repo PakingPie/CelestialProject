@@ -11,7 +11,8 @@ Material:
   m_Shader: {fileID: 4800000, guid: 9d4680f053a4c804784f0d8d0d3302d7, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _CIRCLE_FILL
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -42,13 +43,20 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _CIRCLE: 0
+    - _EdgeMax: 0.15
+    - _EdgeMin: 0
+    - _Fade: 1
     - _Hardness: 1
     - _QueueControl: 0
     - _QueueOffset: 0
     - _Radius: 0.05
+    - _Size: 0.5
+    - _Thickness: 0.01
     m_Colors:
     - _BaseColor: {r: 0, g: 1, b: 0.26267958, a: 1}
     - _Center: {r: -0.297, g: 0.305, b: -0.38509792, a: 0}
+    - _HitUV: {r: 0.5, g: 0.5, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &5226727945049221227
