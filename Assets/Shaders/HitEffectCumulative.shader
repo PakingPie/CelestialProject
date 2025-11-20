@@ -59,6 +59,7 @@ Shader "Custom/HitEffectCumulative"
             float4 frag (v2f i) : SV_Target 
             {
                 float4 oldColor = tex2D(_MainTex, i.uv) * _Decay;
+                // Find differece between current hit and previous hit
                 float4 newHit = tex2D(_HitTex, i.uv);
 
                 float3 color = lerp(oldColor.rgb, newHit.rgb, newHit.a);

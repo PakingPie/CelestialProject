@@ -120,13 +120,13 @@ public class ShieldHitEffect : MonoBehaviour
 
         // _cumulativeMat.SetFloat("_HitTexScale", 0.5f);
 
-        _hitEffectMat.SetFloat("_EdgeMax", 0.0f);
-        _hitEffectMat.SetFloat("_Thickness", 0.1f);
+        _hitEffectMat.SetFloat("_EdgeMax", 0.05f);
+        _hitEffectMat.SetFloat("_Thickness", 0.01f);
 
         _hitEffectMat.DisableKeyword("_CIRCLE_FILL");
-        _hitEffectMat.DisableKeyword("_CIRCLE_FILLSDF");
+        _hitEffectMat.DisableKeyword("_CIRCLE_FILL_SDF");
         _hitEffectMat.EnableKeyword("_CIRCLE_STROKE");
-        _hitEffectMat.DisableKeyword("_CIRCLE_STROKESDF");
+        _hitEffectMat.DisableKeyword("_CIRCLE_STROKE_SDF");
 
         ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitAreaTex", _cumulativeRT);
         _isInitialized = true;
@@ -213,8 +213,62 @@ public class ShieldHitEffect : MonoBehaviour
 
             Graphics.Blit(_cumulativeRT, _tempRT, _cumulativeMat);
             Graphics.Blit(_tempRT, _cumulativeRT);
+
+            // _cumulativeMat.SetTexture("_PrevHitTex", _singleEffectRT);
         }
     }
+
+    // void Update()
+    // {
+    //     if (!_isInitialized || _cumulativeMat == null || _hitEffectMat == null) return;
+    //     // Debug.Log("Active Ripples Count: " + _activeRipples.Count);
+    //     // --- Step 1: Global Decay ---
+    //     // Each frame, darken the entire texture slightly.
+    //     // Here, _HitTex is set to a black texture, indicating no new additions, only decay.
+    //     _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
+    //     _cumulativeMat.SetTexture("_HitTex", _blackTex);
+
+    //     Graphics.Blit(_cumulativeRT, _tempRT, _cumulativeMat);
+    //     Graphics.Blit(_tempRT, _cumulativeRT); // Swap back to _cumulativeRT
+
+    //     // --- Step 2: Process and blend all active ripples ---
+    //     // Iterate in reverse order for safe removal
+    //     for (int i = _activeRipples.Count - 1; i >= 0; i--)
+    //     {
+    //         ActiveRipple ripple = _activeRipples[i];
+    //         ripple.timer += Time.deltaTime;
+
+    //         // If the ripple duration has ended, remove it from the list
+    //         if (ripple.timer > HitImpactDuration)
+    //         {
+    //             _activeRipples.RemoveAt(i);
+    //             continue;
+    //         }
+
+    //         // Calculate the current state of the ripple
+    //         float progress = ripple.timer / HitImpactDuration;
+    //         float currentSize = HitImpactScale * progress;
+    //         float currentFade = 1.0f - progress;
+
+    //         // 2.1 Draw single ripple to _singleEffectRT
+    //         _hitEffectMat.SetVector("_HitUV", ripple.uv);
+    //         _hitEffectMat.SetFloat("_Size", currentSize);
+    //         _hitEffectMat.SetFloat("_Fade", currentFade);
+
+    //         // This step generates a black background on _singleEffectRT, with only the current white circle
+    //         Graphics.Blit(null, _singleEffectRT, _hitEffectMat);
+
+    //         // 2.2 Blend the single ripple onto the cumulative texture
+    //         // Key: Here _Decay is set to 1.0 because we don't want the old texture to darken again (step 1 already darkened it)
+    //         // We only want to max blend the new white circle.
+    //         _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
+    //         _cumulativeMat.SetTexture("_HitTex", _singleEffectRT);
+    //         _cumulativeMat.SetFloat("_Decay", 1.0f);
+
+    //         Graphics.Blit(_cumulativeRT, _tempRT, _cumulativeMat);
+    //         Graphics.Blit(_tempRT, _cumulativeRT);
+    //     }
+    // }
 
     // Coroutine to animate a single hit effect over time. Not used in current implementation.
     IEnumerator AnimateSingleHit(Vector2 hitUV)
@@ -245,113 +299,9 @@ public class ShieldHitEffect : MonoBehaviour
         Destroy(hitInstanceMat);
     }
 
-    // IEnumerator GetHit(float timer)
-    // {
-    //     _coroutineCount++;
-    //     timer += Time.deltaTime;
-    //     if (timer < HitImpactDuration)
-    //     {
-    //         float strength = Mathf.Lerp(HitImpactScale, 0.0f, timer / HitImpactDuration);
-    //         strength = Mathf.Clamp(1 - strength, 0.0f, 1.0f);
-    //         _hitEffectMat.SetFloat("_Size", strength);
-    //         _hitEffectMat.SetFloat("_Fade", 1 - strength);
-    //     }
-    //     if(_singleEffectRT == null)
-    //         _singleEffectRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-
-
-    //     Graphics.Blit(null, _singleEffectRT, _hitEffectMat, pass: 0);   // Get single hit effect
-
-    //     Graphics.Blit(null, _cumulativeRT, _cumulativeMat, pass: 0);    // Get cumulative effect
-    //     Graphics.Blit(_cumulativeRT, _currRT);                          // Copy cumulative to current RT
-
-    //     RenderTexture swap = _currRT;   // Swap current and previous RTs
-    //     _currRT = _cumulativeRT;
-    //     _cumulativeRT = swap;
-
-    //     if (_singleEffectRT != null)
-    //         _singleEffectRT.Release();
-
-    //     yield return null;
-    //     StartCoroutine(GetHit(timer));
-    // }
-
-    // void OnDestroy()
-    // {
-    //     ClearAll();        
-    // }
-
-    // IEnumerator GetHit(float timer)
-    // {
-    //     timer += Time.deltaTime;
-
-    //     RenderTexture tempRT = RenderTexture.GetTemporary(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-    //     Graphics.Blit(_cumulativeRT, tempRT, _cumulativeMat, pass: 0);
-    //     Graphics.Blit(tempRT, _cumulativeRT);
-    //     RenderTexture.ReleaseTemporary(tempRT);
-
-    //     if (timer < HitImpactDuration)
-    //     {
-    //         float strength = Mathf.Lerp(HitImpactScale, 0.0f, timer / HitImpactDuration);
-    //         strength = Mathf.Clamp(1 - strength, 0.0f, 0.7f);
-    //         _hitEffectMat.SetFloat("_Size", strength);
-    //         _hitEffectMat.SetFloat("_Fade", 1 - strength);
-    //     }
-
-    //     _currRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-    //     _singleEffectRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-
-    //     Graphics.Blit(null, _singleEffectRT, _hitEffectMat, pass: 0);
-    //     Graphics.Blit(_singleEffectRT, _currRT);
-
-    //     _cumulativeMat.SetTexture("_HitTex", _currRT);
-    //     _cumulativeMat.SetTexture("_LastFrameTex", _prevRT);
-
-    //     RenderTexture swap = _prevRT;
-    //     _prevRT = _cumulativeRT;
-    //     _cumulativeRT = swap;
-
-    //     // else
-    //     // {
-    //     //     _hitEffectMat.SetFloat("_Size", 0.0f);
-    //     //     _hitEffectMat.SetFloat("_EdgeMax", 0.0f);
-    //     //     _hitEffectMat.SetFloat("_Thickness", 0.0f);
-
-    //     //     Graphics.Blit(Texture2D.blackTexture, _singleEffectRT);
-    //     //     Graphics.Blit(Texture2D.blackTexture, _prevRT);
-    //     //     _cumulativeMat.SetFloat("_Fade", 0.0f);
-    //     //     StopCoroutine(GetHit(timer));
-    //     //     yield break;
-    //     // }
-    //     yield return null;
-    //     StartCoroutine(GetHit(timer));
-    // }
-
-    /*
-        RenderTexture tempRT = RenderTexture.GetTemporary(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-        Graphics.Blit(_cumulativeRT, tempRT, _cumulativeMat, pass: 0);
-        Graphics.Blit(tempRT, _cumulativeRT);
-        RenderTexture.ReleaseTemporary(tempRT);
-        float strength = Mathf.Lerp(HitImpactScale, 0.0f, timer / HitImpactDuration);
-        strength = Mathf.Clamp(1 - strength, 0.0f, 0.7f);
-        _hitEffectMat.SetFloat("_Size", strength);
-
-        _hitEffectRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-        _singleEffectRT = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-
-        Graphics.Blit(null, _singleEffectRT, _hitEffectMat, pass: 0);
-        Graphics.Blit(_singleEffectRT, _hitEffectRT);
-
-        _cumulativeMat.SetTexture("_HitTex", _hitEffectRT);
-    */
-
-    IEnumerator EffectFade(float timer)
+    void OnDestroy()
     {
-        RenderTexture tempRT = RenderTexture.GetTemporary(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-        Graphics.Blit(_cumulativeRT, tempRT, _cumulativeMat, pass: 1);
-        Graphics.Blit(tempRT, _cumulativeRT);
-        RenderTexture.ReleaseTemporary(tempRT);
-        yield return null;
+        ClearAll();
     }
 }
 

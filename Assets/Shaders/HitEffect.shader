@@ -119,7 +119,7 @@ Shader "Custom/HitEffect"
             #pragma fragment frag
             #pragma target 4.5
 
-            #pragma shader_feature _CIRCLE_FILL _CIRCLE_SDF _CIRCLE_STROKE _CIRCLE_STROKE_SDF
+            #pragma multi_compile _CIRCLE_FILL _CIRCLE_SDF _CIRCLE_STROKE _CIRCLE_STROKE_SDF
 
             float _Size;
             float _EdgeMin;
