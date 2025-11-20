@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using static GlobalHelper;
 using UnityEngine.UI;
-using Unity.Burst.Intrinsics;
 
 [ExecuteAlways]
 public class EnemyVehicle : VehicleBase

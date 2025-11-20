@@ -23,7 +23,7 @@ public class Boid : MonoBehaviour
     Transform cachedTransform;
     Transform target;
 
-    public Vector2 HeightRange = new Vector2(-1.0f, 1.0f);
+    public Vector2 HeightRange = new Vector2(-100.0f, 100.0f);
 
     void Awake()
     {
@@ -43,6 +43,11 @@ public class Boid : MonoBehaviour
         velocity = transform.forward * startSpeed;
     }
 
+    public void UpdateTarget()
+    {
+        target = GetComponentInChildren<Gun>().Targeted;
+    }
+
     public void SetColor(Color color)
     {
         if (material != null)
@@ -59,6 +64,10 @@ public class Boid : MonoBehaviour
         {
             Vector3 offsetToTarget = target.position - position;
             acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
+        }
+        else
+        {
+            UpdateTarget();
         }
 
         if (numPerceivedFlockmates != 0)
