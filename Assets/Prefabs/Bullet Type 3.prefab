@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 2}
+  m_LocalScale: {x: 0.4, y: 0.4, z: 8}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -104,16 +104,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletPhysics
   _impactFXPrefab: {fileID: 4353961468635224783, guid: 816964e01681d0d4c8627ea16975cef0, type: 3}
-  _explodeFXPrefab: {fileID: 0}
+  _explodeFXPrefab: {fileID: 7698972359503818749, guid: 4bcc1ca72af25564c8ae4a0166d1de6c, type: 3}
   _childTrails: []
   Damage: 100
-  Speed: 250
+  Speed: 300
   LifeTime: 10
-  FuseDetonationDistance: 10
+  FuseDetonationDistance: 20
+  ExplosionRadius: 100
   DamageType: 0
   FireTarget: 2
-  ExplodeOnImpact: 0
-  ExplodeOnTimeout: 0
+  ExplodeOnImpact: 1
   TargetObject: {fileID: 0}
 --- !u!96 &2255675834001492738
 TrailRenderer:
@@ -163,7 +163,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 0.5
+  m_Time: 1
   m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3

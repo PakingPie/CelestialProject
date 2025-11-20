@@ -21,13 +21,13 @@ public class BulletPhysics : MonoBehaviour
     public float LifeTime = 5f;
     private float lifeTimer;
     public int FuseDetonationDistance = 1;
+    public int ExplosionRadius = 5;
 
     public GlobalHelper.AmmoType DamageType = GlobalHelper.AmmoType.Kinetic;
     public GlobalHelper.Faction FireTarget = GlobalHelper.Faction.Foe;
 
     [Header("Explosions")]
     public bool ExplodeOnImpact = false;
-    public bool ExplodeOnTimeout = false;
 
     public Transform TargetObject;
     private RaycastHit _hit;
@@ -46,10 +46,29 @@ public class BulletPhysics : MonoBehaviour
         UpdateBullet();
     }
 
-    public void DestroyBulletFromImpact(Vector3 impactedPoint, Quaternion impactRotation)
+    public void DestroyBulletFromImpact(Vector3 impactedPoint, Quaternion impactRotation, List<GameObject> enemiesToBeDamaged = null)
     {
-        if (_impactFXPrefab != null)
+        if (enemiesToBeDamaged != null)
+        {
+            foreach (var enemy in enemiesToBeDamaged)
+            {
+                Vector3 dir = (enemy.transform.position - transform.position).normalized;
+                Physics.Raycast(transform.position - 10 * dir, dir, out _hit);
+                if (_hit.collider != null)
+                {
+                    if (_hit.collider.GetComponent<ShieldHitEffect>())
+                    {
+                        _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
+                    }
+                }
+                enemy.GetComponent<VehicleBase>().TakeDamage(Damage, DamageType);
+            }
+        }
+
+        if (!ExplodeOnImpact && _impactFXPrefab != null)
             Instantiate(_impactFXPrefab, impactedPoint, impactRotation).Play();
+        else
+            Instantiate(_explodeFXPrefab, impactedPoint, impactRotation).Play();
 
         CleanUpTrails();
         Destroy(gameObject);
@@ -64,6 +83,8 @@ public class BulletPhysics : MonoBehaviour
             trail.transform.SetParent(null);
         }
     }
+
+    float _minDist = float.MaxValue;
 
     void UpdateBullet()
     {
@@ -85,22 +106,23 @@ public class BulletPhysics : MonoBehaviour
         // {
         // Find if any enemy is within FuseDetonationDistance
         GameObject[] enemies = GameObject.FindGameObjectsWithTag(GlobalHelper.FactionNames[(int)FireTarget]);
+        List<GameObject> enemiesToBeDamaged = new List<GameObject>();
+        
         foreach (var enemy in enemies)
         {
-            if (Vector3.Distance(transform.position, enemy.transform.position) <= FuseDetonationDistance)
+            float distToEnemy = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distToEnemy <= ExplosionRadius)
             {
-                Vector3 dir = (enemy.transform.position - transform.position).normalized;
-                Physics.Raycast(transform.position - 10 * dir, dir, out _hit);
-                if (_hit.collider != null)
-                {
-                    if (_hit.collider.GetComponent<ShieldHitEffect>())
-                    {
-                        _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
-                    }
-                }
-                enemy.GetComponent<VehicleBase>().TakeDamage(Damage, DamageType);
-                DestroyBulletFromImpact(transform.position, transform.rotation);
+                enemiesToBeDamaged.Add(enemy);
             }
+            if(distToEnemy < _minDist)
+            {
+                _minDist = distToEnemy;
+            }
+        }
+        if (_minDist < FuseDetonationDistance)
+        {
+            DestroyBulletFromImpact(transform.position, transform.rotation, enemiesToBeDamaged);
         }
         // }
     }
