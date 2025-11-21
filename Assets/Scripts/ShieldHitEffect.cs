@@ -130,7 +130,7 @@ public class ShieldHitEffect : MonoBehaviour
         ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitAreaTex", _cumulativeRT);
         _isInitialized = true;
 
-        if (EnableDebugMode)
+        if (EnableDebugMode && DebugQuad != null)
             DebugQuad.GetComponent<MeshRenderer>().sharedMaterial = _hitEffectMat;
     }
 

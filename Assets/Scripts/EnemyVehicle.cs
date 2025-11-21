@@ -22,6 +22,7 @@ public class EnemyVehicle : VehicleBase
     public float ShieldRegenerationDelay = 5f; // Seconds after taking damage before regeneration starts
     private float _shieldRegenTimer = 0f;
     private float _lastDamageTime = 0f;
+
     void Start()
     {
         HealthBar.GetComponent<Image>().material = new Material(HealthBarShader);
@@ -287,10 +288,9 @@ public class EnemyVehicle : VehicleBase
     {   
 
         var boid = GetComponent<Boid>();
-        var boidManager = FindAnyObjectByType<BoidsManager>();
-        if (boid != null && boidManager != null)
+        if (boid != null && BoidManager != null)
         {
-            boidManager.RemoveBoid(boid);
+            BoidManager.RemoveBoid(boid);
         }
 
         if(ExplodeEffect != null)

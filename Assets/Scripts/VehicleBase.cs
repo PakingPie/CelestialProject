@@ -38,5 +38,5 @@ public abstract class VehicleBase : MonoBehaviour
     public int ShieldPoints = 10;
     public int MaxShieldPoints = 10;
     public int Speed = 10;
-    
+    [HideInInspector] public BoidsManager BoidManager;
 }

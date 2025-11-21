@@ -1,7 +1,8 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class Spawner : MonoBehaviour
+public class BoidSpawner : MonoBehaviour
 {
     public enum GizmoType
     {
@@ -15,18 +16,20 @@ public class Spawner : MonoBehaviour
     public GizmoType showSpawnRegion;
 
     public Vector2 HeightRange = new Vector2(-1.0f, 1.0f);
+    public List<GameObject> SpawnedObjects;
 
     void Awake()
     {
+        SpawnedObjects = new List<GameObject>();
         for (int i = 0; i < spawnCount; i++)
         {
             Vector3 randomSphere = Random.insideUnitSphere * spawnRadius;
             Vector3 pos = transform.position + new Vector3(randomSphere.x, Mathf.Clamp(randomSphere.y, HeightRange.x, HeightRange.y), randomSphere.z); // originly Random.insideUnitSphere
             Boid boid = Instantiate(prefabs[Random.Range(0, prefabs.Length)]);
+            SpawnedObjects.Add(boid.gameObject);
             boid.transform.position = pos;
             randomSphere = Random.insideUnitSphere;
             boid.transform.forward = new Vector3(randomSphere.x, Mathf.Clamp(randomSphere.y, HeightRange.x, HeightRange.y), randomSphere.z); // originly Random.insideUnitSphere
-
             boid.SetColor(color);
         }
     }

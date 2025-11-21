@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 
 public class BoidsManager : MonoBehaviour
 {
@@ -8,18 +9,35 @@ public class BoidsManager : MonoBehaviour
 
     public BoidSettings settings;
     public ComputeShader computeShader;
-    Boid[] boids;
+    List<Boid> boids;
 
     public Transform target;
     public Vector2 HeightRange = new Vector2(-1.0f, 1.0f);
 
     void Start()
     {
-        boids = FindObjectsByType<Boid>(FindObjectsSortMode.None);
-        foreach (Boid boid in boids)
+        var spawners = GetComponentsInChildren<BoidSpawner>();
+        boids = new List<Boid>();
+        foreach (BoidSpawner spawner in spawners)
         {
-            boid.Initialize(settings, target); // target can be null
+            var spawnedBoids = spawner.SpawnedObjects;
+            foreach (GameObject boidObj in spawnedBoids)
+            {
+                var boid = boidObj.GetComponent<Boid>();
+                if (boid != null)
+                {
+                    boids.Add(boid);
+                    boid.Initialize(settings, target); // target can be null
+                    boid.transform.gameObject.GetComponent<VehicleBase>().BoidManager = this;
+                }
+            }
         }
+
+        // foreach (Boid boid in boids)
+        // {
+        //     boid.Initialize(settings, target); // target can be null
+        //     boid.transform.gameObject.GetComponent<VehicleBase>().BoidManager = this;
+        // }
     }
 
     void Update()
@@ -27,7 +45,7 @@ public class BoidsManager : MonoBehaviour
         if (boids == null)
             return;
 
-        int numBoids = boids.Length;
+        int numBoids = boids.Count;
 
         if (numBoids <= 0)
             return;
@@ -68,14 +86,27 @@ public class BoidsManager : MonoBehaviour
 
     public void UpdateBoidList()
     {
-        boids = FindObjectsByType<Boid>(FindObjectsSortMode.None);
+        var spawners = GetComponentsInChildren<BoidSpawner>();
+        boids = new List<Boid>();
+        foreach (BoidSpawner spawner in spawners)
+        {
+            var spawnedBoids = spawner.SpawnedObjects;
+            foreach (GameObject boidObj in spawnedBoids)
+            {
+                var boid = boidObj.GetComponent<Boid>();
+                if (boid != null)
+                {
+                    boids.Add(boid);
+                    boid.Initialize(settings, target); // target can be null
+                    boid.transform.gameObject.GetComponent<VehicleBase>().BoidManager = this;
+                }
+            }
+        }
     }
 
     public void RemoveBoid(Boid boid)
     {
-        List<Boid> boidList = new List<Boid>(boids);
-        boidList.Remove(boid);
-        boids = boidList.ToArray();
+        boids.Remove(boid);
     }
 
     public struct BoidData
