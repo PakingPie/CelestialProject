@@ -2,7 +2,7 @@ Shader "Custom/Atmosphere"
 {
     Properties
     {
-        [KeywordEnum(USE_SUN_POSITION, USE_DIRECTION)] _SUN_MODE("Sun Mode", Float) = 0
+        [KeywordEnum(USE_SUN_POSITION, USE_DIRECTIONAL)] _SUN_MODE("Sun Mode", Float) = 0
         _SunPosition("Sun Position", Vector) = (0, 0, 0, 0)
         _LightIntensity("Light Intensity", Float) = 10
         _PlanetRadius("Planet Radius", Float) = 1    // Earth radius in km
@@ -65,7 +65,7 @@ Shader "Custom/Atmosphere"
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _SUN_MODE_USE_SUN_POSITION _SUN_MODE_USE_DIRECTION
+            #pragma multi_compile _SUN_MODE_USE_SUN_POSITION _SUN_MODE_USE_DIRECTIONAL
             
             struct Attributes
             {
