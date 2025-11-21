@@ -3,6 +3,8 @@ Shader "Custom/EvenSphereMapping"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _TextureScale ("Texture Scale", Float) = 1.0
+        _BlendSharpness ("Blend Sharpness", Range(1, 20)) = 4.0
     }
     SubShader
     {
@@ -21,61 +23,61 @@ Shader "Custom/EvenSphereMapping"
             {
                 float4 vertex : POSITION;
                 float3 normal : NORMAL; // 1. We need the mesh normal
+                float4 texcoord : TEXCOORD0;
             };
 
             struct v2f
             {
-                float4 vertex : SV_POSITION;
-                float3 normal : TEXCOORD0; // Pass normal to fragment
+                float4 pos : SV_POSITION;
+                float3 worldPos : TEXCOORD0;
+                float3 worldNormal : TEXCOORD1;
+                float2 uv : TEXCOORD2;
             };
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
-
-            // --- THE MAGIC FUNCTION ---
-            // Converts a 3D Normal vector into 2D Octahedral UVs
-            float2 GetOctahedralUV(float3 N)
-            {
-                // Project to Octahedron
-                N /= dot(float3(1, 1, 1), abs(N));
-                
-                // Unfold the back face
-                if (N.z < 0)
-                {
-                    float2 temp = (1.0 - abs(N.yx)) * (N.xy >= 0 ? 1.0 : -1.0);
-                    N.x = temp.x;
-                    N.y = temp.y;
-                }
-                
-                // Map from [-1,1] to [0,1]
-                return N.xy * 0.5 + 0.5;
-            }
+            float _TextureScale;
+            float _BlendSharpness;
 
             v2f vert (appdata v)
             {
                 v2f o;
-                o.vertex = TransformObjectToHClip(v.vertex);
-                
-                // 2. Pass the Object Space Normal
-                // We use object space so the texture sticks to the sphere when it rotates
-                o.normal = v.normal; 
+                o.pos = TransformObjectToHClip(v.vertex);
+                o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+                o.worldNormal = TransformObjectToWorldNormal(v.normal);
+                o.uv = v.texcoord.xy;
                 
                 return o;
             }
 
             half4 frag (v2f i) : SV_Target
             {
-                // 3. Normalize the interpolated normal
-                float3 normal = normalize(i.normal);
+                // 3. Calculate Blending Weights
+                // We take the absolute value of the normal to determine 
+                // if the face is pointing mostly X, Y, or Z.
+                float3 weights = abs(i.worldNormal);
+                
+                // Make the blend sharper (higher values = less fading between sides)
+                weights = pow(weights, _BlendSharpness);
+                
+                // Normalize weights so they add up to 1.0
+                weights = weights / (weights.x + weights.y + weights.z);
 
-                // 4. Generate the new Even UVs
-                float2 evenUV = GetOctahedralUV(normal);
+                // 4. Calculate UVs based on World Position
+                // We divide by scale to adjust texture size
+                float2 uvX = i.worldPos.zy / _TextureScale; // Side projection
+                float2 uvY = i.worldPos.xz / _TextureScale; // Top projection
+                float2 uvZ = i.worldPos.xy / _TextureScale; // Front projection
 
-                // Apply texture tiling/offset if needed
-                evenUV = evenUV * _MainTex_ST.xy + _MainTex_ST.zw;
+                // 5. Sample the texture 3 times
+                half4 colX = tex2D(_MainTex, uvX);
+                half4 colY = tex2D(_MainTex, uvY);
+                half4 colZ = tex2D(_MainTex, uvZ);
 
-                // Sample texture
-                return tex2D(_MainTex, evenUV);
+                // 6. Blend them together
+                half4 finalColor = colX * weights.x + colY * weights.y + colZ * weights.z;
+
+                return finalColor;
             }
             ENDHLSL
         }

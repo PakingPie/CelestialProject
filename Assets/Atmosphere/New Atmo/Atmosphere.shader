@@ -2,6 +2,7 @@ Shader "Custom/Atmosphere"
 {
     Properties
     {
+        [KeywordEnum(USE_SUN_POSITION, USE_DIRECTION)] _SUN_MODE("Sun Mode", Float) = 0
         _SunPosition("Sun Position", Vector) = (0, 0, 0, 0)
         _LightIntensity("Light Intensity", Float) = 10
         _PlanetRadius("Planet Radius", Float) = 1    // Earth radius in km
@@ -62,7 +63,9 @@ Shader "Custom/Atmosphere"
             #pragma target 3.5
 
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile _SUN_MODE_USE_SUN_POSITION _SUN_MODE_USE_DIRECTION
             
             struct Attributes
             {
@@ -313,9 +316,11 @@ Shader "Custom/Atmosphere"
                 float3 normalWS = normalize(IN.normalWS);
                 // Camera to Pixel Direction
                 float3 viewDir = -normalize(cameraPosWS - positionWS);
-
+#if defined(_SUN_MODE_USE_SUN_POSITION)
+                float3 sunDir = normalize(_SunPosition - planetPos);
+#else
                 float3 sunDir = GetMainLight(0).direction; // normalize(_SunPosition - planetPos);
-
+#endif
                 // // Get object scale
                 // float3 scale = 0;
                 // scale.x = length(unity_ObjectToWorld._m00_m10_m20);
