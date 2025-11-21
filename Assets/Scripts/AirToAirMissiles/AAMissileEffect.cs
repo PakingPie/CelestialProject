@@ -4,7 +4,8 @@ using UnityEngine;
 public class AAMissileEffects : MonoBehaviour
 {
     new Transform transform;
-
+    [Tooltip("Enable or disable all missile effects.")]
+    public bool EnableEffects = true;
     [Tooltip("Trail remains on whether or not the motor is running. For most games using this kind of arcade missile, this looks/works best.")]
     public bool trailAlwaysOn = true;
 
@@ -129,6 +130,8 @@ public class AAMissileEffects : MonoBehaviour
 
     private void Update()
     {
+        if(!EnableEffects)
+            return;
         // When motor gets activated, start playing effects.
         if (!motorHasActivated && missile.MotorActive)
         {

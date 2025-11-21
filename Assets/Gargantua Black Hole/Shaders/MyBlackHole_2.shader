@@ -18,7 +18,7 @@ Shader "Custom/MyBlackHole_2"
         Tags { "RenderType" = "Transparent" "RenderPipeline" = "UniversalRenderPipeline" "Queue" = "Transparent" }
         Cull Front
         ZWrite Off
-        Blend One OneMinusSrcAlpha
+        Blend One OneMinusDstAlpha
         Pass
         {
             HLSLPROGRAM

@@ -342,7 +342,7 @@ Shader "Custom/Atmosphere"
 
                 float fresnel = saturate(pow(dot(normalWS, viewDir), 1.0));
                 float4 color = float4(scatter, (1 - fresnel));
-                float NoL = saturate(pow(saturate(dot(normalWS, sunDir) + 0.3), 0.5));
+                float NoL = saturate(pow(saturate(dot(normalWS, sunDir) + 0.2), 0.5));
                 color *= clamp(fresnel + 0.1, 0, 1);
 
                 color *= NoL;
