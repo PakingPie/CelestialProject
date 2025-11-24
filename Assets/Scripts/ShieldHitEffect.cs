@@ -43,7 +43,7 @@ public class ShieldHitEffect : MonoBehaviour
     // public GameObject TempGO;
     public float HitImpactDuration = 1.0f;
     public float HitImpactScale = 0.1f;
-    public float DecayPerSecond = 0.9f;
+    public float DecayPerSecond = 0.75f;
     public int TextureSize = 64;
     public Shader HitEffectShader;
     public Shader CumulativeShader;
@@ -163,15 +163,33 @@ public class ShieldHitEffect : MonoBehaviour
         // StartCoroutine(AnimateSingleHit(hit.textureCoord));
     }
 
+    public float ClearInterval = 5.0f;
+    private float _clearTimer = 0f;
+    [Range(0.0f, 0.1f)]
+    public float MinThreshold = 0.02f;
+    public float ForceClearInterval = 3.0f;
+    
     void Update()
     {
         if (!_isInitialized || _cumulativeMat == null || _hitEffectMat == null) return;
-        // Debug.Log("Active Ripples Count: " + _activeRipples.Count);
-        // --- Step 1: Global Decay ---
+
+        _clearTimer += Time.deltaTime;
+
+        // 如果没有活跃涟漪且经过一定时间，强制清理
+        if (_activeRipples.Count == 0 && _clearTimer > ClearInterval)
+        {
+            Graphics.Blit(_blackTex, _cumulativeRT);
+            _clearTimer = 0f;
+        }
+
         // Each frame, darken the entire texture slightly.
         // Here, _HitTex is set to a black texture, indicating no new additions, only decay.
         _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
         _cumulativeMat.SetTexture("_HitTex", _blackTex);
+
+        float frameDecay = Mathf.Pow(DecayPerSecond, Time.deltaTime * 60f);
+        _cumulativeMat.SetFloat("_Decay", frameDecay);
+        _cumulativeMat.SetFloat("_MinThreshold", 0.02f);
 
         Graphics.Blit(_cumulativeRT, _tempRT, _cumulativeMat);
         Graphics.Blit(_tempRT, _cumulativeRT); // Swap back to _cumulativeRT
@@ -208,7 +226,7 @@ public class ShieldHitEffect : MonoBehaviour
             // We only want to max blend the new white circle.
             _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
             _cumulativeMat.SetTexture("_HitTex", _singleEffectRT);
-            _cumulativeMat.SetFloat("_Decay", DecayPerSecond);
+            _cumulativeMat.SetFloat("_Decay", 1.0f);
 
             Graphics.Blit(_cumulativeRT, _tempRT, _cumulativeMat);
             Graphics.Blit(_tempRT, _cumulativeRT);

@@ -24,7 +24,8 @@ Material:
   m_Shader: {fileID: 4800000, guid: e465be2e7f370694590effdafc0e1a72, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _SUN_MODE_USE_SUN_POSITION
   m_InvalidKeywords:
   - _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
@@ -55,7 +56,7 @@ Material:
     - _AbsorptionFalloff: 8
     - _AlphaClip: 0
     - _AlphaToMask: 0
-    - _AtmosphereHeight: 1
+    - _AtmosphereHeight: 10
     - _AtmosphereRadius: 10000
     - _Blend: 0
     - _BlendModePreserveSpecular: 0
@@ -68,14 +69,14 @@ Material:
     - _HeightAbsoption: 30000
     - _HeightAbsorption: 30
     - _HeightMie: 1.2
-    - _HeightRayleigh: 8
+    - _HeightRayleigh: 4000
     - _IsPlanet: 1
-    - _LightIntensity: 40
+    - _LightIntensity: 10
     - _LightStep: 4
     - _LightSteps: 4
     - _MainStep: 16
     - _MieHeight: 1200
-    - _PlanetRadius: 400
+    - _PlanetRadius: 1000
     - _PlanetScale: 1
     - _PrimarySteps: 40
     - _QueueControl: 0
@@ -83,6 +84,7 @@ Material:
     - _RayLeighHeight: 8000
     - _ReceiveShadows: 1
     - _RimPower: 1.07
+    - _SUN_MODE: 0
     - _SrcBlend: 5
     - _SunDiskSize: 0.99999
     - _Surface: 1
@@ -92,7 +94,7 @@ Material:
     - _ZWriteControl: 2
     m_Colors:
     - _AbsorptionBeta: {r: 0.0204, g: 0.0497, b: 0.00195, a: 1}
-    - _AmbientBeta: {r: 1, g: 1, b: 1, a: 1}
+    - _AmbientBeta: {r: 1, g: 0.7453749, b: 0.44070077, a: 1}
     - _BackgroundColor: {r: 0, g: 0, b: 0, a: 1}
     - _Beta: {r: 0, g: 0, b: 0, a: 1}
     - _BetaAbsorption: {r: 0.0000204, g: 0.0000497, b: 0.00000195, a: 0}
@@ -101,6 +103,6 @@ Material:
     - _BetaRayLeigh: {r: 0.0000055, g: 0.000013, b: 0.0000224, a: 0}
     - _MieBeta: {r: 0.021, g: 0.021, b: 0.021, a: 1}
     - _RayleighBeta: {r: 0.0055, g: 0.013, b: 0.0224, a: 1}
-    - _SunPosition: {r: 0, g: 0, b: 0, a: 0}
+    - _SunPosition: {r: 15000, g: 1000, b: -3000, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
