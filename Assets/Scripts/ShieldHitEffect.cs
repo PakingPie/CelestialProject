@@ -40,14 +40,23 @@ public class ShieldHitEffect : MonoBehaviour
 public class ShieldHitEffect : MonoBehaviour
 {
     public GameObject ShieldGO;
-    // public GameObject TempGO;
-    public float HitImpactDuration = 1.0f;
-    public float HitImpactScale = 0.1f;
-    public float DecayPerSecond = 0.75f;
+    [Header("Settings")]
     public int TextureSize = 64;
+    public float HitImpactScale = 0.1f;
+    public float HitImpactDuration = 1.0f;
+
+    [Header("Decay Settings")]
+    [Range(0.1f, 0.99f)]
+    public float DecayPerSecond = 0.75f;
+    [Range(0.0f, 0.1f)]
+    public float MinDecayThreshold = 0.02f;
+    public float ForceClearInterval = 3.0f;
+
+    [Header("Shaders")]
     public Shader HitEffectShader;
     public Shader CumulativeShader;
 
+    [Header("Debug")]
     public bool EnableDebugMode = false;
     public GameObject DebugQuad;
 
@@ -55,25 +64,29 @@ public class ShieldHitEffect : MonoBehaviour
     private RenderTexture _outputRT;
     private RenderTexture _singleEffectRT;
     private RenderTexture _tempRT;
-    [SerializeField]
+
     private Texture2D _blackTex;
-    [SerializeField]
+
     private Material _hitEffectMat;
-    [SerializeField]
     private Material _cumulativeMat;
 
+    private List<ActiveRipple> _activeRipples = new List<ActiveRipple>();
+
     private bool _isInitialized = false;
+
+    private float _forceClearTimer = 0f;
 
     private class ActiveRipple
     {
         public Vector2 uv;
         public float timer;
     }
-    private List<ActiveRipple> _activeRipples = new List<ActiveRipple>();
+
 
     private RenderTexture CreateRT()
     {
         RenderTexture rt = new RenderTexture(TextureSize, TextureSize, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+        rt.filterMode = FilterMode.Bilinear;
         rt.wrapMode = TextureWrapMode.Clamp;
         rt.Create();
         return rt;
@@ -98,8 +111,11 @@ public class ShieldHitEffect : MonoBehaviour
             _tempRT = CreateRT();
         }
 
-        _blackTex = new Texture2D(1, 1);
+        _blackTex = new Texture2D(2, 2);
         _blackTex.SetPixel(0, 0, Color.black);
+        _blackTex.SetPixel(1, 0, Color.black);
+        _blackTex.SetPixel(0, 1, Color.black);
+        _blackTex.SetPixel(1, 1, Color.black);
         _blackTex.Apply();
 
         if (_cumulativeMat == null)
@@ -111,8 +127,8 @@ public class ShieldHitEffect : MonoBehaviour
             _hitEffectMat = new Material(HitEffectShader);
         }
 
-        if (GetComponent<MeshRenderer>() != null)
-            GetComponent<MeshRenderer>().sharedMaterial = _cumulativeMat;
+        // if (GetComponent<MeshRenderer>() != null)
+        //     GetComponent<MeshRenderer>().sharedMaterial = _cumulativeMat;
 
         _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
         _cumulativeMat.SetTexture("_HitTex", _singleEffectRT);
@@ -160,26 +176,30 @@ public class ShieldHitEffect : MonoBehaviour
             uv = hit.textureCoord,
             timer = 0.0f
         });
+
+        _forceClearTimer = 0f;
         // StartCoroutine(AnimateSingleHit(hit.textureCoord));
     }
 
-    public float ClearInterval = 5.0f;
-    private float _clearTimer = 0f;
-    [Range(0.0f, 0.1f)]
-    public float MinThreshold = 0.02f;
-    public float ForceClearInterval = 3.0f;
-    
+
+
     void Update()
     {
         if (!_isInitialized || _cumulativeMat == null || _hitEffectMat == null) return;
 
-        _clearTimer += Time.deltaTime;
-
-        // 如果没有活跃涟漪且经过一定时间，强制清理
-        if (_activeRipples.Count == 0 && _clearTimer > ClearInterval)
+        if (_activeRipples.Count == 0)
         {
-            Graphics.Blit(_blackTex, _cumulativeRT);
-            _clearTimer = 0f;
+            _forceClearTimer += Time.deltaTime;
+            if (_forceClearTimer > ForceClearInterval)
+            {
+                Graphics.Blit(_blackTex, _cumulativeRT);
+                _forceClearTimer = 0.0f;
+                return;
+            }
+        }
+        else
+        {
+            _forceClearTimer = 0f;
         }
 
         // Each frame, darken the entire texture slightly.
@@ -189,11 +209,10 @@ public class ShieldHitEffect : MonoBehaviour
 
         float frameDecay = Mathf.Pow(DecayPerSecond, Time.deltaTime * 60f);
         _cumulativeMat.SetFloat("_Decay", frameDecay);
-        _cumulativeMat.SetFloat("_MinThreshold", 0.02f);
+        _cumulativeMat.SetFloat("_MinThreshold", MinDecayThreshold);
 
         Graphics.Blit(_cumulativeRT, _tempRT, _cumulativeMat);
         Graphics.Blit(_tempRT, _cumulativeRT); // Swap back to _cumulativeRT
-
         // --- Step 2: Process and blend all active ripples ---
         // Iterate in reverse order for safe removal
         for (int i = _activeRipples.Count - 1; i >= 0; i--)
@@ -227,11 +246,10 @@ public class ShieldHitEffect : MonoBehaviour
             _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
             _cumulativeMat.SetTexture("_HitTex", _singleEffectRT);
             _cumulativeMat.SetFloat("_Decay", 1.0f);
+            _cumulativeMat.SetFloat("_MinThreshold", 0.0f);
 
             Graphics.Blit(_cumulativeRT, _tempRT, _cumulativeMat);
             Graphics.Blit(_tempRT, _cumulativeRT);
-
-            // _cumulativeMat.SetTexture("_PrevHitTex", _singleEffectRT);
         }
     }
 
@@ -319,6 +337,16 @@ public class ShieldHitEffect : MonoBehaviour
     void OnDestroy()
     {
         ClearAll();
+    }
+
+    void OnGUI()
+    {
+        if (_cumulativeRT != null && Event.current.type == EventType.Repaint)
+        {
+            GUI.DrawTexture(new Rect(10, 10, 128, 128), _cumulativeRT);
+            GUI.Label(new Rect(10, 145, 200, 20), $"Active Ripples: {_activeRipples.Count}");
+            GUI.Label(new Rect(10, 165, 200, 20), $"Clear Timer: {_forceClearTimer:F2}s");
+        }
     }
 }
 

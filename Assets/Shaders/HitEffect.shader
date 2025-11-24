@@ -109,9 +109,9 @@ Shader "Custom/HitEffect"
         Pass
         {
             Cull Off
-            ZWrite On        
-            ZTest LEqual       
-            Blend SrcAlpha OneMinusSrcAlpha 
+            ZWrite Off        
+            ZTest Always       
+            Blend Off
             HLSLPROGRAM
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -178,17 +178,18 @@ Shader "Custom/HitEffect"
                 float fill = 0, sdfFill = 0, stroke = 0, sdfStroke = 0;
                 Circle(i.UV, _HitUV.xy, _Size, _EdgeMin, _EdgeMax, _Thickness, false, fill, sdfFill, stroke, sdfStroke);
                 
+                float intensity = 0;
                 #ifdef _CIRCLE_FILL
-                    return fill * _Fade;
+                    intensity = fill * _Fade;
                 #elif defined(_CIRCLE_SDF)
-                    return sdfFill * _Fade;
+                    intensity = sdfFill * _Fade;
                 #elif defined(_CIRCLE_STROKE)
-                    return stroke * _Fade;
+                    intensity = stroke * _Fade;
                 #elif defined(_CIRCLE_STROKE_SDF)
-                    return sdfStroke * _Fade;
-                #else
-                    return 0;
+                    intensity = sdfStroke * _Fade;
                 #endif
+                
+                return float4(intensity, intensity, intensity, intensity);
             }
             ENDHLSL
         }

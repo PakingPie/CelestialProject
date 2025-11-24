@@ -5,6 +5,7 @@ Shader "Custom/HitEffectCumulative"
         _MainTex ("Current Texture", 2D) = "black" {}
         _HitTex ("Hit Texture", 2D) = "black" {}
         _Decay ("Decay", Range(0,1)) = 0.5
+        _MinThreshold ("Minimum Threshold", Range(0,1)) = 0.02
         // _PrevTex ("Previous Texture", 2D) = "black" {}
         // _HitTexScale ("Scale", Float) = 0.5
         // _HitUV ("Center", Vector) = (0,0,0,0)
@@ -23,9 +24,9 @@ Shader "Custom/HitEffectCumulative"
         Pass
         {
             Cull Off
-            ZWrite On        
-            ZTest LEqual       
-            Blend SrcAlpha OneMinusSrcAlpha
+            ZWrite Off        
+            ZTest Always       
+            Blend Off
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -35,6 +36,7 @@ Shader "Custom/HitEffectCumulative"
             sampler2D _MainTex;
             sampler2D _HitTex;
             float _Decay;
+            float _MinThreshold;
 
             struct appdata 
             {
@@ -58,13 +60,25 @@ Shader "Custom/HitEffectCumulative"
 
             float4 frag (v2f i) : SV_Target 
             {
-                float4 oldColor = tex2D(_MainTex, i.uv) * _Decay;
-                // Find differece between current hit and previous hit
+                float4 oldCumulative = tex2D(_MainTex, i.uv);
+                
+                // 衰减
+                float4 decayed = oldCumulative * _Decay;
+                
+                // 新击中
                 float4 newHit = tex2D(_HitTex, i.uv);
-
-                float3 color = lerp(oldColor.rgb, newHit.rgb, newHit.a);
-                float alpha = max(oldColor.a, newHit.a);
-                return float4(color, alpha);
+                
+                // Max混合
+                float4 result = max(decayed, newHit);
+                
+                // 阈值裁剪 - 这是关键！
+                float maxChannel = max(max(result.r, result.g), result.b);
+                if (maxChannel < _MinThreshold)
+                {
+                    result = float4(0, 0, 0, 0);
+                }
+                
+                return result;
             }
             ENDHLSL
         }
