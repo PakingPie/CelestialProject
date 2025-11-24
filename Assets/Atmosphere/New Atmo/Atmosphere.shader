@@ -4,41 +4,38 @@ Shader "Custom/Atmosphere"
     {
         [KeywordEnum(USE_SUN_POSITION, USE_DIRECTIONAL)] _SUN_MODE("Sun Mode", Float) = 0
         _SunPosition("Sun Position", Vector) = (0, 0, 0, 0)
-        _LightIntensity("Light Intensity", Float) = 10
-        _PlanetRadius("Planet Radius", Float) = 1    // Earth radius in km
-        _AtmosphereHeight("Atmosphere Height", Float) = 0.5 // Atmosphere height in km
-        _RayleighBeta("Rayleigh Scattering Coefficients", Vector) = (0.0055, 0.013, 0.0224)
-        _MieBeta("Mie Scattering Coefficients", Vector) = (0.021, 0.021, 0.021)
-        _AmbientBeta("Ambient Coefficients", Color) = (0, 0, 0, 1)
-        _AbsorptionBeta("Absorption Coefficients", Vector) = (0.0204, 0.0497, 0.00195)
-        _G("G", Range(0, 1)) = 0.76
-        _HeightRayleigh("Height Rayleigh", Float) = 8
-        _HeightMie("Height Mie", Float) = 1.2
-        _HeightAbsorption("Height Absorption", Float) = 30
-        _AbsorptionFalloff("Absorption Falloff", Float) = 4
-
-        _PrimarySteps("Primary Steps", Int) = 40
-        _LightSteps("Light Steps", Int) = 4
+        _LightIntensity("Light Intensity", Float) = 22
+        _PlanetRadius("Planet Radius (km)", Float) = 6371    // Earth radius in km
+        _AtmosphereHeight("Atmosphere Height (km)", Float) = 100 // Atmosphere height in km
+        
+        _RayleighScaleHeight("Rayleigh Scale Height (km)", Float) = 8
+        _MieScaleHeight("Mie Scale Height (km)", Float) = 1.2
+    
+        _RayleighBeta("Rayleigh Beta", Vector) = (0.0000055, 0.000013, 0.0000224, 0)
+        _MieBeta("Mie Beta", Float) = 0.000021
+        
+        _G("Mie Anisotropy", Range(-0.99, 0.99)) = 0.76
+        
+        _PrimarySteps("Primary Steps", Int) = 16
+        _LightSteps("Light Steps", Int) = 8
     }
 
     SubShader
     {
         Pass
         {
-            // Name "Universal Forward"
             Tags { "RenderPipeline"="UniversalPipeline" 
                 "Queue"="Transparent" 
-            "RenderType"="Transparent"}
+                "RenderType"="Transparent"}
             Cull Off
             ZWrite Off
             ZTest LEqual
-            Blend SrcAlpha OneMinusSrcAlpha
+            Blend One OneMinusSrcAlpha
 
             HLSLPROGRAM
             
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
             CBUFFER_START(UnityPerMaterial)
                 float _LightIntensity;
@@ -46,14 +43,10 @@ Shader "Custom/Atmosphere"
                 float _PlanetRadius;
                 float _AtmosphereHeight;
                 float3 _RayleighBeta;
-                float3 _MieBeta;
-                float3 _AmbientBeta;
-                float3 _AbsorptionBeta;
+                float _MieBeta;
                 float _G;
-                float _HeightRayleigh;
-                float _HeightMie;
-                float _HeightAbsorption;
-                float _AbsorptionFalloff;
+                float _RayleighScaleHeight;
+                float _MieScaleHeight;
                 uint _PrimarySteps;
                 uint _LightSteps;
             CBUFFER_END
@@ -62,9 +55,6 @@ Shader "Custom/Atmosphere"
             #pragma fragment frag
             #pragma target 3.5
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _SUN_MODE_USE_SUN_POSITION _SUN_MODE_USE_DIRECTIONAL
             
             struct Attributes
@@ -81,9 +71,6 @@ Shader "Custom/Atmosphere"
                 float3 positionWS : TEXCOORD1;
                 float3 normalWS : TEXCOORD2;
             };
-            
-
-            #include "AtmoUtilities.hlsl"
 
             Varyings vert(Attributes IN)
             {
@@ -95,403 +82,165 @@ Shader "Custom/Atmosphere"
                 return OUT;
             }
 
-            float PhaseMie( float g, float c, float cc ) {
-                float gg = g * g;
+            // Rayleigh phase function
+            float PhaseRayleigh(float cosTheta)
+            {
+                return (3.0 / (16.0 * PI)) * (1.0 + cosTheta * cosTheta);
+            }
+
+            // Cornette-Shanks phase function (better than Henyey-Greenstein)
+            float PhaseMie(float cosTheta, float g)
+            {
+                float g2 = g * g;
+                float num = (1.0 - g2) * (1.0 + cosTheta * cosTheta);
+                float denom = (2.0 + g2) * pow(abs(1.0 + g2 - 2.0 * g * cosTheta), 1.5);
+                return (3.0 / (8.0 * PI)) * num / denom;
+            }
+
+            // Ray-sphere intersection
+            float2 RaySphereIntersection(float3 rayOrigin, float3 rayDir, float3 sphereCenter, float sphereRadius)
+            {
+                float3 oc = rayOrigin - sphereCenter;
+                float b = dot(oc, rayDir);
+                float c = dot(oc, oc) - sphereRadius * sphereRadius;
+                float discriminant = b * b - c;
                 
-                float a = ( 1.0 - gg ) * ( 1.0 + cc );
-
-                float b = 1.0 + gg - 2.0 * g * c;
-                b *= sqrt( b );
-                b *= 2.0 + gg;	
+                if (discriminant < 0.0)
+                    return float2(1e6, -1e6);
                 
-                return ( 3.0 / 8.0 / PI ) * a / b;
+                float sqrtDisc = sqrt(discriminant);
+                return float2(-b - sqrtDisc, -b + sqrtDisc);
             }
 
-            float PhaseRayleigh( float cc ) 
+            // Density at height using exponential falloff
+            float DensityAtHeight(float height, float scaleHeight)
             {
-                return ( 3.0 / 16.0 / PI ) * ( 1.0 + cc );
+                return exp(-height / scaleHeight);
             }
-            
 
-            float2 RayIntersectSphere( float3 p, float3 dir, float r ) 
+            // Calculate optical depth between two points
+            float3 OpticalDepth(float3 startPos, float3 endPos, float3 planetCenter, uint steps)
             {
-                float b = dot( p, dir );
-                float c = dot( p, p ) - r * r;
+                float3 step = (endPos - startPos) / float(steps);
+                float stepLength = length(step);
+                float3 samplePos = startPos + step * 0.5;
                 
-                float d = b * b -c;
-                if ( d < 0.0 ) {
-                    return float2( maxFloat, -maxFloat );
-                }
-                d = sqrt( d );
-
-                return float2(-b - d, -b + d);
-            }
-
-            float SampleDensity( float3 p, float ph ) 
-            {
-                return exp( -max( length( p ) - _PlanetRadius, 0.0 ) / ph );
-            }
-
-            float optic( float3 p, float3 q, float ph ) 
-            {
-                float3 s = ( q - p ) / float( _LightSteps ); // Light Step Size
-                float3 v = p + s * 0.5; // Light Step Position
-
-                float sum = 0.0;
-                for ( int i = 0; i < _LightSteps; i++ ) 
+                float opticalDepthRayleigh = 0.0;
+                float opticalDepthMie = 0.0;
+                
+                for (uint i = 0; i < steps; i++)
                 {
-                    sum += SampleDensity( v, ph );  // Sample Density
-                    v += s;
+                    float height = length(samplePos - planetCenter) - _PlanetRadius;
+                    
+                    opticalDepthRayleigh += DensityAtHeight(height, _RayleighScaleHeight);
+                    opticalDepthMie += DensityAtHeight(height, _MieScaleHeight);
+                    
+                    samplePos += step;
                 }
-                sum *= length( s );
                 
-                return sum;
+                return float3(opticalDepthRayleigh, opticalDepthMie, 0) * stepLength;
             }
 
-            float3 CalculateOpticalDepth(float3 pos1, 
-            float3 pos2, 
-            float3 lightDir, 
-            float2 phaseHeight,
-            float heightAbsorption,
-            float absorptionFalloff)
+            float3 CalculateScattering(float3 rayOrigin, float3 rayDir, float tMin, float tMax, float3 lightDir, float3 planetCenter)
             {
-                float3 stepSizeL = ( pos2 - pos1 ) / float( _LightSteps ); // Light Step Size
-                float3 rayPosL = pos1 + stepSizeL * 0.5;
-                float3 opticalDepthL = 0;
-                for ( int i = 0; i < _LightSteps; i++ ) 
-                {
-                    float3 posL = pos2 + lightDir * rayPosL;
-                    float heightL = length(posL) - _PlanetRadius;
-                    float densityRayleigh = SampleDensity( posL, phaseHeight.x );
-                    float densityMie = SampleDensity( posL, phaseHeight.y );
-                    float3 densityL = float3(densityRayleigh, densityMie, 0);  // Sample Density
-                    float denomL = (heightAbsorption - heightL) / absorptionFalloff;
-                    densityL.z = (1 / (denomL * denomL + 1)) * densityL.x;
-                    densityL *= stepSizeL;
-                    opticalDepthL += densityL;
-                    rayPosL += stepSizeL;
-                }
-
-                return opticalDepthL;
-            }
-
-            float3 InScatteringFull( float3 rayOri, float3 viewDir, float2 rayLength, float3 lightDir) 
-            {
-                const float heightRayleigh = _HeightRayleigh * 1e-3;
-                const float heightMie = _HeightMie * 1e-3;
-                const float heightAbsorption = _HeightAbsorption * 1e-3;
-                const float absorptionFalloff = _AbsorptionFalloff * 1e-3;
-
-                const float3 kRayleigh = _RayleighBeta * 1e3;
-                const float3 kMie = _MieBeta * 1e3;
-                const float kMieEx = 1.1;
-                const float3 kAbs = _AbsorptionBeta * 1e3;
-
-                // bool allowMie = maxFloat > rayLength.y;
-
-                float stepSizeI = (rayLength.y - rayLength.x) / float(_PrimarySteps);
-                float3 posI = rayOri + viewDir * (rayLength.x + stepSizeI * 0.5);
-
-                float3 sumRayleigh = 0; // total rayleigh
-                float3 sumMie = 0; // total mie
-
-                float3 opticalDepthI = 0; // optical depth from camera to sample point
-                float2 scaleHeight = float2(heightRayleigh, heightMie);
-
-                float mu = dot(viewDir, -lightDir);
-                float mumu = mu * mu;
-
-                float phaseRayleigh = PhaseRayleigh(mumu);
-                float phaseMie = PhaseMie(-_G, mu, mumu);
-
-                float3 opticalDepthL = 0;
-
-                for(int i = 0; i < _PrimarySteps; i++, posI += viewDir * stepSizeI)
-                {
-                    float densityRayleigh = SampleDensity(posI, heightRayleigh);
-                    float densityMie = SampleDensity(posI, heightMie);
-                    float denom = (heightAbsorption - (length(posI) - _PlanetRadius)) / absorptionFalloff;
-                    float densityAbsorption = (1 / (denom * denom + 1)) * densityRayleigh;
-                    
-                    densityRayleigh *= stepSizeI;
-                    densityMie *= stepSizeI;
-                    densityAbsorption *= stepSizeI;
-
-                    opticalDepthI += float3(densityRayleigh, densityMie, densityAbsorption); 
+                float stepSize = (tMax - tMin) / float(_PrimarySteps);
+                float3 samplePos = rayOrigin + rayDir * (tMin + stepSize * 0.5);
                 
-                    float2 rayIntersect = RayIntersectSphere(posI, lightDir, _PlanetRadius + _AtmosphereHeight);
-                    float3 posL = posI + lightDir * rayIntersect.y; // posI + lightDir * rayIntersect.y
-                    
-                    opticalDepthL = CalculateOpticalDepth(posI, posL, lightDir, scaleHeight, heightAbsorption, absorptionFalloff);
-                    
-                    float3 att = exp( - ( opticalDepthI.x + opticalDepthL.x ) * kRayleigh 
-                                    - ( opticalDepthI.y + opticalDepthL.y ) * kMie * kMieEx
-                                    - ( opticalDepthI.z + opticalDepthL.z ) * kAbs );
-
-                    sumRayleigh += densityRayleigh * att;
-                    sumMie += densityMie * att;
-                }
-
-                float3 scatter = 
-                    (sumRayleigh * kRayleigh * phaseRayleigh + 
-                    sumMie * kMie * phaseMie + 
-                    opticalDepthI.x * _AmbientBeta.rgb) * _LightIntensity;
-                                
-
-                // float opticalDepthI = 0;
+                float3 totalRayleigh = 0;
+                float3 totalMie = 0;
                 
-                // float3 opticalDepthL = CalculateOpticalDepth(v, u, l, float2(ph_ray, ph_mie), height_absorption, absorption_falloff);
-                // float n_ray1 = opticalDepthL.x;
-                // float n_mie1 = opticalDepthL.y;
-                // float n_abs1 = opticalDepthL.z;
-                return scatter;
-            }
-
-            float3 InScattering( float3 o, float3 dir, float2 e, float3 l ) 
-            {
-                const float ph_ray = _HeightRayleigh * 1e-3;
-                const float ph_mie = _HeightMie * 1e-3;
-                const float height_absorption = _HeightAbsorption * 1e-3;
-                const float absorption_falloff = _AbsorptionFalloff * 1e-3;
-
-                const float3 k_ray = _RayleighBeta * 1e3;
-                const float3 k_mie = _MieBeta * 1e3;
-                const float k_mie_ex = 1.1;
-                const float3 k_abs = _AbsorptionBeta * 1e3;
-
-                float3 sum_ray = 0; // total rayleigh
-                float3 sum_mie = 0; // total mie
-
-                float n_ray0 = 0.0; // 
-                float n_mie0 = 0.0;
+                float2 opticalDepthPA = 0; // From camera to sample point (P->A)
                 
-                float len = ( e.y - e.x ) / float( _PrimarySteps );
-                float3 s = dir * len;
-                float3 v = o + dir * ( e.x + len * 0.5 );
-
-                for ( int i = 0; i < _PrimarySteps; i++, v += s ) 
+                float cosTheta = dot(rayDir, lightDir);
+                float phaseRayleigh = PhaseRayleigh(cosTheta);
+                float phaseMie = PhaseMie(cosTheta, _G);
+                
+                for (uint i = 0; i < _PrimarySteps; i++)
                 {
-                    float d_ray = SampleDensity( v, ph_ray ) * len;
-                    float d_mie = SampleDensity( v, ph_mie ) * len;
+                    float height = length(samplePos - planetCenter) - _PlanetRadius;
                     
-                    n_ray0 += d_ray;
-                    n_mie0 += d_mie;
-
-                    // #if 0
-                    // float2 e = RayIntersectSphere( v, l, _PlanetRadius );
-                    // e.x = max( e.x, 0.0 );
-                    // if ( e.x < e.y ) 
-                    // {
-                        //     continue;
-                    // }
-                    // #endif
-
-                    float2 f = RayIntersectSphere( v, l, _PlanetRadius + _AtmosphereHeight );
-                    float3 u = v + l * f.y; // posI
-
-                    float n_ray1 = optic( v, u, ph_ray );
-                    float n_mie1 = optic( v, u, ph_mie );
-
-                    float3 att = exp( - ( n_ray0 + n_ray1 ) * k_ray - ( n_mie0 + n_mie1 ) * k_mie * k_mie_ex );
+                    // Density at current sample point
+                    float densityRayleigh = DensityAtHeight(height, _RayleighScaleHeight);
+                    float densityMie = DensityAtHeight(height, _MieScaleHeight);
                     
-                    sum_ray += d_ray * att;
-                    sum_mie += d_mie * att;
+                    // Accumulate optical depth from camera to sample
+                    opticalDepthPA += float2(densityRayleigh, densityMie) * stepSize;
+                    
+                    // Calculate optical depth from sample to sun
+                    float2 lightIntersect = RaySphereIntersection(samplePos, lightDir, planetCenter, _PlanetRadius + _AtmosphereHeight);
+                    
+                    if (lightIntersect.y > 0) // Ray reaches atmosphere boundary
+                    {
+                        float3 opticalDepthAB = OpticalDepth(samplePos, samplePos + lightDir * lightIntersect.y, planetCenter, _LightSteps);
+                        
+                        // Total optical depth = camera to sample + sample to sun
+                        float2 totalOpticalDepth = opticalDepthPA + opticalDepthAB.xy;
+                        
+                        // Calculate transmittance using Beer's law
+                        float3 transmittanceRayleigh = exp(-_RayleighBeta * totalOpticalDepth.x);
+                        float3 transmittanceMie = exp(-_MieBeta * totalOpticalDepth.y);
+                        float3 transmittance = transmittanceRayleigh * transmittanceMie;
+                        
+                        // Accumulate scattered light
+                        totalRayleigh += transmittance * densityRayleigh * stepSize;
+                        totalMie += transmittance * densityMie * stepSize;
+                    }
+                    
+                    samplePos += rayDir * stepSize;
                 }
                 
-                float c  = dot( dir, -l );
-                float cc = c * c;
-                float3 scatter =
-                sum_ray * k_ray * PhaseRayleigh( cc ) +
-                sum_mie * k_mie * PhaseMie( -_G, c, cc );// + n_ray0 * _AmbientBeta.rgb;
+                // Combine Rayleigh and Mie scattering
+                float3 scattering = totalRayleigh * _RayleighBeta * phaseRayleigh + 
+                                   totalMie * _MieBeta * phaseMie;
                 
-                
-                return _LightIntensity * scatter;
+                return scattering * _LightIntensity;
             }
 
             float4 frag(Varyings IN) : SV_Target
             {
-                float3 planetPos = unity_ObjectToWorld._m03_m13_m23;
-                float3 cameraPosWS = _WorldSpaceCameraPos.xyz;
-                float3 positionWS = IN.positionWS;
-                float3 normalWS = normalize(IN.normalWS);
-                // Camera to Pixel Direction
-                float3 viewDir = -normalize(cameraPosWS - positionWS);
-#if defined(_SUN_MODE_USE_SUN_POSITION)
-                float3 sunDir = normalize(_SunPosition - planetPos);
-#else
-                float3 sunDir = GetMainLight(0).direction; // normalize(_SunPosition - planetPos);
-#endif
-                // // Get object scale
-                // float3 scale = 0;
-                // scale.x = length(unity_ObjectToWorld._m00_m10_m20);
-                // scale.y = length(unity_ObjectToWorld._m01_m11_m21);
-                // scale.z = length(unity_ObjectToWorld._m02_m12_m22);
+                float3 planetCenter = unity_ObjectToWorld._m03_m13_m23;
+                float3 cameraPos = _WorldSpaceCameraPos.xyz;
+                float3 viewDir = normalize(IN.positionWS - cameraPos);
+                
+                #if defined(_SUN_MODE_USE_SUN_POSITION)
+                    float3 sunDir = normalize(_SunPosition - planetCenter);
+                #else
+                    float3 sunDir = -GetMainLight().direction;
+                #endif
 
-                float2 inter1 = RayIntersectSphere(cameraPosWS - planetPos, viewDir, _PlanetRadius + _AtmosphereHeight);
-                if(inter1.x > inter1.y)
-                {
+                // Intersect with atmosphere
+                float2 atmosphereIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius + _AtmosphereHeight);
+                
+                if (atmosphereIntersect.x > atmosphereIntersect.y)
                     discard;
-                }
-
-                float2 inter2 = RayIntersectSphere(cameraPosWS - planetPos, viewDir, _PlanetRadius);
-                inter1.y = min(inter1.y, inter2.x);
-                float3 scatter = InScatteringFull(cameraPosWS - planetPos, viewDir, inter1, sunDir);
-                // scatter = 1 - exp(-scatter);
-                scatter = pow(scatter, 1/2.2);
-                // float4 color = float4(scatter + _AmbientBeta.rgb, 1);
-
-                float fresnel = saturate(pow(dot(normalWS, viewDir), 1.0));
-                float4 color = float4(scatter, (1 - fresnel));
-                float NoL = saturate(pow(saturate(dot(normalWS, sunDir) + 0.1), 0.5));
-                color *= clamp(fresnel + 0.1, 0, 1);
-
-                color *= NoL;
-
-                clip(0.5 - color.a);
-                // color.xyz *= _AmbientBeta.rgb;
-                return color;
-            }
-            
-
-            // float4 frag(Varyings IN) : SV_Target
-            // {
-                //     float3 planetPos = unity_ObjectToWorld._m03_m13_m23;
-                //     float3 cameraPosWS = _WorldSpaceCameraPos.xyz;
-                //     float3 positionWS = IN.positionWS;
-                //     float3 normalWS = normalize(IN.normalWS);
-                //     // Camera to Pixel Direction
-                //     float3 viewDir = normalize(cameraPosWS - positionWS);
-
-                //     float sceneDepth = SampleSceneDepth(IN.uv);
-                //     float depth = LinearEyeDepth(sceneDepth, _ZBufferParams);
                 
-                //     // viewDir = normalize(viewDir);
-                //     // Main Light Direction
-                //     float3 sunDir = GetMainLight(0).direction; // normalize(_SunPosition - planetPos);
-
-                //     float4 color = float4(0, 0, 0, 1);
-                //     float3 opacity = 0;
-
-                //     color.rgb += CalculateScattering(
-                //     cameraPosWS,
-                //     viewDir,
-                //     1e12,
-                //     float3(0,0,0),
-                //     sunDir,
-                //     planetPos,
-                //     _PlanetRadius,
-                //     _PlanetRadius + _AtmosphereHeight,
-                //     _PrimarySteps,
-                //     _LightSteps,
-                //     opacity
-                //     );
-
-                //     color.rgb = 1 - exp(-color.rgb);
-                //     color.a = opacity.r + opacity.g + opacity.b;
-                //     // // float3 mainLightDir = GetMainLight(0).direction;
-                //     // float NoL = saturate(pow(saturate(dot(normalWS, sunDir)), 1.1));
-                //     float fresnel = saturate(pow(dot(normalWS, viewDir), 1));
-                //     color.rgb *= fresnel;
-
+                // Intersect with planet surface
+                float2 planetIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius);
                 
-                //     // color.rgb *= NoL;
-
-                //     return color;
-            // }
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "DepthOnly"
-            Tags {"LightMode" = "DepthOnly"}
-
-            ZWrite On
-            ColorMask 0
-            Cull Off
-
-            HLSLPROGRAM
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
-
-            #pragma vertex vert
-            #pragma fragment frag
-
-            struct Attributes
-            {
-                float4 positionOS : POSITION;
-                float3 normalOS : NORMAL;
-                float2 uv : TEXCOORD0;
-            };
-
-            struct Varyings
-            {
-                float4 positionHCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            Varyings vert(Attributes v)
-            {
-                Varyings o = (Varyings)0;
-                o.positionHCS = TransformObjectToHClip(v.positionOS.xyz);
-                o.uv = v.uv;
-                return o;
-            }
-
-            void frag(Varyings input, out float DEPTH : SV_DEPTH)
-            {
-                DEPTH =  LinearEyeDepth(SampleSceneDepth(input.uv), _ZBufferParams);
-                // input.positionHCS.z / input.positionHCS.w; //
-            }
-            ENDHLSL
-        }
-        Pass
-        {
-            Name "DepthNormals"
-            Tags {"LightMode" = "DepthNormals"}
-
-            ZWrite On
-
-            HLSLPROGRAM
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
-
-            #pragma vertex vert
-            #pragma fragment frag
-
-            struct Attributes
-            {
-                float4 positionOS : POSITION;
-                float3 normalOS : NORMAL;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
-
-            struct Varyings
-            {
-                float4 positionHCS : SV_POSITION;
-                float3 normalWS : TEXCOORD0;
-                UNITY_VERTEX_OUTPUT_STEREO
-            };
-
-            Varyings vert(Attributes v)
-            {
-                Varyings o = (Varyings)0;
-                o.positionHCS = TransformObjectToHClip(v.positionOS.xyz);
-                o.normalWS = TransformObjectToWorldNormal(v.normalOS);
-                return o;
-            }
-
-            float4 frag(Varyings i) : SV_Target
-            {
-                return float4(NormalizeNormalPerPixel(i.normalWS), 0.0);
+                // Ray enters atmosphere at atmosphereIntersect.x
+                float tMin = max(0, atmosphereIntersect.x);
+                // Ray exits atmosphere or hits planet, whichever comes first
+                float tMax = planetIntersect.x > 0 ? min(atmosphereIntersect.y, planetIntersect.x) : atmosphereIntersect.y;
+                
+                if (tMin >= tMax)
+                    discard;
+                
+                // Calculate scattering
+                float3 scatter = CalculateScattering(cameraPos, viewDir, tMin, tMax, sunDir, planetCenter);
+                
+                // Tone mapping
+                scatter = 1.0 - exp(-scatter);
+                
+                // Gamma correction
+                scatter = pow(scatter, 1.0 / 2.2);
+                
+                // Calculate alpha based on optical depth
+                float distance = tMax - tMin;
+                float alpha = 1.0 - exp(-distance / (_AtmosphereHeight * 0.5));
+                
+                return float4(scatter, alpha);
             }
             ENDHLSL
         }
     }
-    // FallBack "Diffuse"
 }

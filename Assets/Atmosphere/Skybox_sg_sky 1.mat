@@ -31,7 +31,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
@@ -56,7 +56,7 @@ Material:
     - _AbsorptionFalloff: 8
     - _AlphaClip: 0
     - _AlphaToMask: 0
-    - _AtmosphereHeight: 10
+    - _AtmosphereHeight: 100
     - _AtmosphereRadius: 10000
     - _Blend: 0
     - _BlendModePreserveSpecular: 0
@@ -65,23 +65,29 @@ Material:
     - _ClipThreshold: 0
     - _Cull: 0
     - _DstBlend: 10
-    - _G: 0.7
+    - _Exposure: 1
+    - _G: 0.845
     - _HeightAbsoption: 30000
     - _HeightAbsorption: 30
     - _HeightMie: 1.2
     - _HeightRayleigh: 4000
     - _IsPlanet: 1
-    - _LightIntensity: 10
+    - _LightIntensity: 100
     - _LightStep: 4
-    - _LightSteps: 4
+    - _LightSteps: 6
     - _MainStep: 16
+    - _MieAbsorption: 0.0000044
+    - _MieBeta: 0.000021
     - _MieHeight: 1200
-    - _PlanetRadius: 1000
+    - _MieScaleHeight: 1.2
+    - _MultipleScatteringFactor: 0.3
+    - _PlanetRadius: 6371
     - _PlanetScale: 1
-    - _PrimarySteps: 40
+    - _PrimarySteps: 16
     - _QueueControl: 0
     - _QueueOffset: 0
     - _RayLeighHeight: 8000
+    - _RayleighScaleHeight: 8
     - _ReceiveShadows: 1
     - _RimPower: 1.07
     - _SUN_MODE: 0
@@ -102,7 +108,8 @@ Material:
     - _BetaMie: {r: 0.000021, g: 0.000021, b: 0.000021, a: 0}
     - _BetaRayLeigh: {r: 0.0000055, g: 0.000013, b: 0.0000224, a: 0}
     - _MieBeta: {r: 0.021, g: 0.021, b: 0.021, a: 1}
-    - _RayleighBeta: {r: 0.0055, g: 0.013, b: 0.0224, a: 1}
-    - _SunPosition: {r: 15000, g: 1000, b: -3000, a: 0}
+    - _OzoneAbsorption: {r: 0.00000065, g: 0.00000188, b: 0.000000085, a: 0}
+    - _RayleighBeta: {r: 0.0000055, g: 0.000013, b: 0.0000224, a: 1}
+    - _SunPosition: {r: 15000, g: 0, b: -3000, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
