@@ -5,24 +5,24 @@ Shader "Custom/Atmosphere"
         [KeywordEnum(USE_SUN_POSITION, USE_DIRECTIONAL)] _SUN_MODE("Sun Mode", Float) = 0
         _SunPosition("Sun Position", Vector) = (0, 0, 0, 0)
         _LightIntensity("Light Intensity", Float) = 20
-        _PlanetRadius("Planet Radius (km)", Float) = 6371    // Earth radius in km
-        _AtmosphereHeight("Atmosphere Height (km)", Float) = 100 // Atmosphere height in km
+        _PlanetRadius("Planet Radius (km)", Float) = 6371
+        _AtmosphereHeight("Atmosphere Height (km)", Float) = 100
         
         _RayleighScaleHeight("Rayleigh Scale Height (km)", Float) = 8
         _MieScaleHeight("Mie Scale Height (km)", Float) = 1.2
         _OzoneLayerCenter("Ozone Layer Center (km)", Float) = 25
         _OzoneLayerWidth("Ozone Layer Width (km)", Float) = 15
     
-        _RayleighBeta("Rayleigh Beta", Vector) = (0.0000058, 0.0000135, 0.0000331, 0)
-        _MieBeta("Mie Beta", Vector) = (0.000021, 0.000021, 0.000021, 0)
-        _OzoneAbsorption("Ozone Absorption", Vector) = (0.0000004, 0.0000011, 0.0000001, 0)
+        _RayleighScatteringCoeff("Rayleigh Scattering Coeff", Float) = 1.0
+        _MieScatteringCoeff("Mie Scattering Coeff", Float) = 1.0
+        _OzoneAbsorptionCoeff("Ozone Absorption Coeff", Float) = 1.0
         
         _G("Mie Anisotropy", Range(-0.99, 0.99)) = 0.76
         
         _PrimarySteps("Primary Steps", Int) = 16
         _LightSteps("Light Steps", Int) = 8
         
-        _Exposure("Exposure", Float) = 1.5
+        _Exposure("Exposure", Float) = 2.0
     }
 
     SubShader
@@ -47,9 +47,9 @@ Shader "Custom/Atmosphere"
                 float3 _SunPosition;
                 float _PlanetRadius;
                 float _AtmosphereHeight;
-                float3 _RayleighBeta;
-                float3 _MieBeta;
-                float3 _OzoneAbsorption;
+                float _RayleighScatteringCoeff;
+                float _MieScatteringCoeff;
+                float _OzoneAbsorptionCoeff;
                 float _G;
                 float _RayleighScaleHeight;
                 float _MieScaleHeight;
@@ -91,13 +91,43 @@ Shader "Custom/Atmosphere"
                 return OUT;
             }
 
+            // Wavelength-dependent scattering coefficients
+            // These are scaled by wavelength^-4 for Rayleigh
+            float3 GetRayleighCoefficients()
+            {
+                // Wavelengths in nm: Red=700, Green=530, Blue=440
+                // Relative scattering: proportional to 1/wavelength^4
+                float3 wavelengths = float3(700.0, 530.0, 440.0);
+                float3 scattering = pow(440.0 / wavelengths, 4.0);
+                
+                // Base coefficient scaled to realistic values (per km)
+                float baseCoeff = 0.0058 * _RayleighScatteringCoeff;
+                return scattering * baseCoeff;
+            }
+
+            float3 GetMieCoefficients()
+            {
+                // Mie scattering is wavelength independent (or nearly so)
+                float baseCoeff = 0.0021 * _MieScatteringCoeff;
+                return float3(baseCoeff, baseCoeff, baseCoeff);
+            }
+
+            float3 GetOzoneAbsorption()
+            {
+                // Ozone strongly absorbs in green/yellow
+                // Peak absorption around 600nm (orange-red boundary)
+                // Less absorption in red and blue
+                float3 absorption = float3(0.4, 2.0, 0.05) * 0.00006 * _OzoneAbsorptionCoeff;
+                return absorption;
+            }
+
             // Rayleigh phase function
             float PhaseRayleigh(float cosTheta)
             {
                 return (3.0 / (16.0 * PI)) * (1.0 + cosTheta * cosTheta);
             }
 
-            // Cornette-Shanks phase function
+            // Cornette-Shanks phase function for Mie
             float PhaseMie(float cosTheta, float g)
             {
                 float g2 = g * g;
@@ -124,18 +154,18 @@ Shader "Custom/Atmosphere"
             // Density at height using exponential falloff
             float DensityAtHeight(float height, float scaleHeight)
             {
-                return exp(-height / scaleHeight);
+                return exp(-max(0.0, height) / scaleHeight);
             }
 
-            // Ozone density distribution (peaks at certain altitude)
+            // Ozone density distribution
             float OzoneDensity(float height)
             {
                 float x = (height - _OzoneLayerCenter) / _OzoneLayerWidth;
-                return exp(-x * x);
+                return max(0.0, exp(-x * x));
             }
 
             // Calculate optical depth between two points
-            float4 OpticalDepth(float3 startPos, float3 endPos, float3 planetCenter, uint steps)
+            float3 OpticalDepth(float3 startPos, float3 endPos, float3 planetCenter, uint steps)
             {
                 float3 step = (endPos - startPos) / float(steps);
                 float stepLength = length(step);
@@ -156,18 +186,22 @@ Shader "Custom/Atmosphere"
                     samplePos += step;
                 }
                 
-                return float4(opticalDepthRayleigh, opticalDepthMie, opticalDepthOzone, 0) * stepLength;
+                return float3(opticalDepthRayleigh, opticalDepthMie, opticalDepthOzone) * stepLength;
             }
 
             float3 CalculateScattering(float3 rayOrigin, float3 rayDir, float tMin, float tMax, float3 lightDir, float3 planetCenter)
             {
+                float3 betaRayleigh = GetRayleighCoefficients();
+                float3 betaMie = GetMieCoefficients();
+                float3 betaOzone = GetOzoneAbsorption();
+                
                 float stepSize = (tMax - tMin) / float(_PrimarySteps);
                 float3 samplePos = rayOrigin + rayDir * (tMin + stepSize * 0.5);
                 
                 float3 totalRayleigh = 0;
                 float3 totalMie = 0;
                 
-                float3 opticalDepthPA = 0; // From camera to sample point (P->A)
+                float3 opticalDepthPA = 0;
                 
                 float cosTheta = dot(rayDir, lightDir);
                 float phaseRayleigh = PhaseRayleigh(cosTheta);
@@ -177,33 +211,28 @@ Shader "Custom/Atmosphere"
                 {
                     float height = length(samplePos - planetCenter) - _PlanetRadius;
                     
-                    // Density at current sample point
                     float densityRayleigh = DensityAtHeight(height, _RayleighScaleHeight);
                     float densityMie = DensityAtHeight(height, _MieScaleHeight);
                     float densityOzone = OzoneDensity(height);
                     
-                    // Accumulate optical depth from camera to sample
                     opticalDepthPA += float3(densityRayleigh, densityMie, densityOzone) * stepSize;
                     
-                    // Calculate optical depth from sample to sun
+                    // Calculate sun ray optical depth
                     float2 lightIntersect = RaySphereIntersection(samplePos, lightDir, planetCenter, _PlanetRadius + _AtmosphereHeight);
                     
-                    if (lightIntersect.y > 0) // Ray reaches atmosphere boundary
+                    if (lightIntersect.y > 0)
                     {
-                        float4 opticalDepthAB = OpticalDepth(samplePos, samplePos + lightDir * lightIntersect.y, planetCenter, _LightSteps);
+                        float3 opticalDepthAB = OpticalDepth(samplePos, samplePos + lightDir * lightIntersect.y, planetCenter, _LightSteps);
                         
-                        // Total optical depth = camera to sample + sample to sun
-                        float3 totalOpticalDepth = opticalDepthPA + opticalDepthAB.xyz;
+                        float3 totalOpticalDepth = opticalDepthPA + opticalDepthAB;
                         
-                        // Calculate transmittance using Beer's law
-                        // Include Rayleigh scattering, Mie scattering, and Ozone absorption
-                        float3 attenuation = _RayleighBeta * totalOpticalDepth.x + 
-                                           _MieBeta * totalOpticalDepth.y + 
-                                           _OzoneAbsorption * totalOpticalDepth.z;
+                        // Calculate total extinction (scattering + absorption)
+                        float3 extinction = betaRayleigh * totalOpticalDepth.x + 
+                                          betaMie * totalOpticalDepth.y + 
+                                          betaOzone * totalOpticalDepth.z;
                         
-                        float3 transmittance = exp(-attenuation);
+                        float3 transmittance = exp(-extinction);
                         
-                        // Accumulate scattered light
                         totalRayleigh += transmittance * densityRayleigh;
                         totalMie += transmittance * densityMie;
                     }
@@ -211,13 +240,12 @@ Shader "Custom/Atmosphere"
                     samplePos += rayDir * stepSize;
                 }
                 
-                // Apply step size to accumulated values
                 totalRayleigh *= stepSize;
                 totalMie *= stepSize;
                 
-                // Combine Rayleigh and Mie scattering with their phase functions
-                float3 scattering = totalRayleigh * _RayleighBeta * phaseRayleigh + 
-                                   totalMie * _MieBeta * phaseMie;
+                // Combine scattering
+                float3 scattering = totalRayleigh * betaRayleigh * phaseRayleigh + 
+                                   totalMie * betaMie * phaseMie;
                 
                 return scattering * _LightIntensity;
             }
@@ -234,41 +262,29 @@ Shader "Custom/Atmosphere"
                     float3 sunDir = -GetMainLight().direction;
                 #endif
 
-                // Intersect with atmosphere
                 float2 atmosphereIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius + _AtmosphereHeight);
                 
                 if (atmosphereIntersect.x > atmosphereIntersect.y)
                     discard;
                 
-                // Intersect with planet surface
                 float2 planetIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius);
                 
-                // Ray enters atmosphere at atmosphereIntersect.x
                 float tMin = max(0, atmosphereIntersect.x);
-                // Ray exits atmosphere or hits planet, whichever comes first
                 float tMax = planetIntersect.x > 0 ? min(atmosphereIntersect.y, planetIntersect.x) : atmosphereIntersect.y;
                 
                 if (tMin >= tMax)
                     discard;
                 
-                // Calculate scattering
                 float3 scatter = CalculateScattering(cameraPos, viewDir, tMin, tMax, sunDir, planetCenter);
                 
-                // Apply exposure
                 scatter *= _Exposure;
                 
-                // ACES tone mapping (better color preservation than Reinhard)
-                const float a = 2.51;
-                const float b = 0.03;
-                const float c = 2.43;
-                const float d = 0.59;
-                const float e = 0.14;
-                scatter = saturate((scatter * (a * scatter + b)) / (scatter * (c * scatter + d) + e));
+                // Filmic tonemapping
+                scatter = saturate(scatter / (scatter + 1.0));
                 
                 // Gamma correction
                 scatter = pow(max(scatter, 0.0), 1.0 / 2.2);
                 
-                // Calculate alpha based on optical depth
                 float distance = tMax - tMin;
                 float alpha = saturate(1.0 - exp(-distance / (_AtmosphereHeight * 0.3)));
                 
