@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class Gun : MonoBehaviour
+public class Gun : WeaponBase
 {
     [Header("Ballistics")]
     [Tooltip("Time (s) between each shot.")]
@@ -36,7 +36,7 @@ public class Gun : MonoBehaviour
     public float RecoilLength = 0.3f;
     [Tooltip("How quickly (m/s) the barrel moves back towards its resting position.")]
     public float RecoilRecoverSpeed = 1f;
-    [Tooltip("The list of the barrels used for visually recoiling barrels. This list of barrels should map 1:1 with fire points.")]
+    [Tooltip("The list of the Barrels used for visually recoiling Barrels. This list of Barrels should map 1:1 with fire points.")]
     [SerializeField] private List<Transform> RecoilingBarrels = new List<Transform>();
 
     [Header("Firing")]
@@ -68,53 +68,8 @@ public class Gun : MonoBehaviour
     public bool HasAmmo => !UseAmmo || (UseAmmo && AmmoCount > 0);
     public int AmmoCount { get; private set; } = 10000;
 
-    [Header("Targeting")]
-    public Transform Targeted;
-    public GlobalHelper.Faction FireTarget = GlobalHelper.Faction.Foe;
-    public Vector2 ActiveRange = new Vector2(5f, 1000f);
-    public int UpdateRate = 60;
-    public float TurretRotateSpeed = 5f;
-    public GlobalHelper.GuidanceType GuidanceType = GlobalHelper.GuidanceType.Lead;
 
-    [Header("Turret")]
-    [Tooltip("Transform of the turret's azimuthal rotations.")]
-    [SerializeField] private Transform turretBase = null;
-    [Tooltip("Transform of the turret's elevation rotations. ")]
-    [SerializeField] private Transform barrels = null;
-    [Tooltip("Speed at which the turret's guns elevate up and down.")]
-    public float ElevationSpeed = 30f;
-    [Tooltip("Highest upwards elevation the turret's barrels can aim.")]
-    public float MaxElevation = 60f;
-    [Tooltip("Lowest downwards elevation the turret's barrels can aim.")]
-    public float MaxDepression = 5f;
-    [Tooltip("Speed at which the turret can rotate left/right.")]
-    public float TraverseSpeed = 60f;
-    [Tooltip("When true, the turret can only rotate horizontally with the given limits.")]
-    [SerializeField] private bool hasLimitedTraverse = false;
-    [Range(0, 179)] public float LeftLimit = 120f;
-    [Range(0, 179)] public float RightLimit = 120f;
-    [Tooltip("When idle, the turret does not aim at anything and simply points forwards.")]
-    public bool IsIdle = false;
-    [Tooltip("Position the turret will aim at when not idle. Set this to whatever you want" +
-        "the turret to actively aim at.")]
-    public Vector3 AimPosition = Vector3.zero;
-    [Tooltip("When the turret is within this many degrees of the target, it is considered aimed.")]
-    public float AimedThreshold = 5f;
-    private float _limitedTraverseAngle = 0f;
-    private float _angleToTarget = 0f;
-    private float _elevation = 0f;
-
-    private bool _hasBarrels = true;
-
-    private bool _isAimed = false;
-    private bool _isBaseAtRest = false;
-    private bool _isBarrelAtRest = false;
-    public bool HasLimitedTraverse { get { return hasLimitedTraverse; } }
-    public bool IsTurretAtRest { get { return _isBarrelAtRest && _isBaseAtRest; } }
-    public bool IsAimed { get { return _isAimed; } }
-    public float AngleToTarget { get { return IsIdle ? 999f : _angleToTarget; } }
-
-
+    [Header("Debug")]
     public bool DebugMode = false;
     private Vector3 _targetPosLastFrame;
 
@@ -151,7 +106,7 @@ public class Gun : MonoBehaviour
     private void Update()
     {
 
-        if (!_isAimed)
+        if (!IsAimed)
             IsFiring = false;
         else
             IsFiring = true;
@@ -170,7 +125,7 @@ public class Gun : MonoBehaviour
         {
             if (!IsTurretAtRest)
                 RotateTurretToIdle();
-            _isAimed = false;
+            IsAimed = false;
         }
         else
         {
@@ -192,17 +147,17 @@ public class Gun : MonoBehaviour
 
             RotateBaseToFaceTarget(aimPosition);
 
-            if (_hasBarrels)
+            if (HasBarrels)
                 RotateBarrelsToFaceTarget(aimPosition);
 
             // Turret is considered "aimed" when it's pointed at the target.
-            _angleToTarget = GetTurretAngleToTarget(aimPosition);
+            AngleToTarget = GetTurretAngleToTarget(aimPosition);
 
             // Turret is considered "aimed" when it's pointed at the target.
-            _isAimed = _angleToTarget < AimedThreshold;
+            IsAimed = AngleToTarget < AimedThreshold;
 
-            _isBarrelAtRest = false;
-            _isBaseAtRest = false;
+            IsBarrelAtRest = false;
+            IsBaseAtRest = false;
         }
 
     }
@@ -282,7 +237,7 @@ public class Gun : MonoBehaviour
             _firePointIndex += 1;
 
             AmmoCount -= 1;
-            // If use sequential firing, add a small delay between each of the shots. Then use the main delay after all barrels have fired.
+            // If use sequential firing, add a small delay between each of the shots. Then use the main delay after all Barrels have fired.
             if( _firePointIndex % FirePoints.Count == 0)
             {
                 _lastShotTime = Time.time;
@@ -294,7 +249,7 @@ public class Gun : MonoBehaviour
         }
         else
         {
-            // Fire from all barrels at once.
+            // Fire from all Barrels at once.
             foreach (var firePoint in FirePoints)
             {
                 FireBulletFromFirePoint(firePoint, inheritedVelocity);
@@ -340,38 +295,6 @@ public class Gun : MonoBehaviour
             firePointToMuzzleFlash[firePoint].Play();
     }
 
-    void LockOn()
-    {
-        if (Targeted == null)
-        {
-            return;
-        }
-        if (GuidanceType == GlobalHelper.GuidanceType.Pursuit)
-        {
-            Vector3 dir = Targeted.position - transform.position;
-            Quaternion look_rotation = Quaternion.LookRotation(dir);
-            Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
-            transform.rotation = Quaternion.Euler(rotation);
-        }
-        else
-        {
-            // Get where target will be in one second.
-            Vector3 targetVelocity = Targeted.position - _targetPosLastFrame;
-            targetVelocity /= 1;
-            //=====================================================
-
-            // Figure out time to impact based on distance.          
-            float bulletSpeed = BulletPrefab.GetComponent<BulletPhysics>().Speed;
-            float distanceToTarget = Vector3.Distance(transform.position, Targeted.position);
-            float timeToImpact = distanceToTarget / bulletSpeed;
-            Vector3 futureTargetPos = Targeted.position + targetVelocity * timeToImpact;
-            Vector3 dir = futureTargetPos - transform.position;
-            Quaternion look_rotation = Quaternion.LookRotation(dir);
-            Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
-            transform.rotation = Quaternion.Euler(rotation);
-        }
-    }
-
     public void UpdateTarget()
     {
         // if (Targeted != null)
@@ -391,7 +314,7 @@ public class Gun : MonoBehaviour
         {
             Targeted = null;
             IsFiring = false;
-            _isAimed = false;
+            IsAimed = false;
             return;
         }
 
@@ -407,7 +330,7 @@ public class Gun : MonoBehaviour
                 continue;
             }
 
-            if (hasLimitedTraverse)
+            if (HasLimitedTraverse)
             {
                 if (anglesToEnemy.x > RightLimit || anglesToEnemy.x < -LeftLimit)
                 {
@@ -430,7 +353,7 @@ public class Gun : MonoBehaviour
         {
             Targeted = null;
             IsFiring = false;
-            _isAimed = false;
+            IsAimed = false;
         }
         // if (DebugMode)
         //     Debug.Log(enemies.Length + " enemies found.");
@@ -438,119 +361,52 @@ public class Gun : MonoBehaviour
         //     Debug.Log("Target acquired: " + Targeted.name);
     }
 
-    private void RotateBarrelsToFaceTarget(Vector3 targetPosition)
-    {
-        Vector3 localTargetPos = turretBase.InverseTransformDirection(targetPosition - barrels.position);
-        Vector3 flattenedVecForBarrels = Vector3.ProjectOnPlane(localTargetPos, Vector3.up);
-
-        float targetElevation = Vector3.Angle(flattenedVecForBarrels, localTargetPos);
-        targetElevation *= Mathf.Sign(localTargetPos.y);
-
-        targetElevation = Mathf.Clamp(targetElevation, -MaxDepression, MaxElevation);
-        _elevation = Mathf.MoveTowards(_elevation, targetElevation, ElevationSpeed * Time.deltaTime);
-
-        if (Mathf.Abs(_elevation) > Mathf.Epsilon)
-            barrels.localEulerAngles = Vector3.right * -_elevation;
-    }
-
-    private void RotateBaseToFaceTarget(Vector3 targetPosition)
-    {
-        Vector3 turretUp = transform.up;
-
-        Vector3 vecToTarget = targetPosition - turretBase.position;
-        Vector3 flattenedVecForBase = Vector3.ProjectOnPlane(vecToTarget, turretUp);
-
-        if (hasLimitedTraverse)
-        {
-            Vector3 turretForward = transform.forward;
-            float targetTraverse = Vector3.SignedAngle(turretForward, flattenedVecForBase, turretUp);
-
-            targetTraverse = Mathf.Clamp(targetTraverse, -LeftLimit, RightLimit);
-            _limitedTraverseAngle = Mathf.MoveTowards(
-                _limitedTraverseAngle,
-                targetTraverse,
-                TraverseSpeed * Time.deltaTime);
-
-            if (Mathf.Abs(_limitedTraverseAngle) > Mathf.Epsilon)
-                turretBase.localEulerAngles = Vector3.up * _limitedTraverseAngle;
-        }
-        else
-        {
-            turretBase.rotation = Quaternion.RotateTowards(
-                Quaternion.LookRotation(turretBase.forward, turretUp),
-                Quaternion.LookRotation(flattenedVecForBase, turretUp),
-                TraverseSpeed * Time.deltaTime);
-        }
-    }
-
-    // Calculate the relative angles needed to aim at the target.
-    private Vector2 CalcuateRelativeAngles(Transform target)
-    {   
-        // Azimuth calculation
-        Vector3 vecToTarget = target.position - turretBase.position;
-        Vector3 flattenedVecForBase = Vector3.ProjectOnPlane(vecToTarget, transform.up);
-        float azimuth = Vector3.SignedAngle(transform.forward, flattenedVecForBase, transform.up);
-
-        // Elevation calculation
-        float elevation = 0f;
-        if (_hasBarrels && barrels != null)
-        {
-            Vector3 localTargetPos = turretBase.InverseTransformDirection(target.position - barrels.position);
-            Vector3 flattenedVecForBarrels = Vector3.ProjectOnPlane(localTargetPos, Vector3.up);
-
-            elevation = Vector3.Angle(flattenedVecForBarrels, localTargetPos);
-            elevation *= Mathf.Sign(localTargetPos.y);
-        }
-
-        return new Vector2(azimuth, elevation);
-    }
-
     private void OnDrawGizmos()
     {
-        if (turretBase != null)
+        if (TurretBase != null)
         {
             const float kArcSize = 10f;
             Color colorTraverse = new Color(1f, .5f, .5f, .1f);
             Color colorElevation = new Color(.5f, 1f, .5f, .1f);
             Color colorDepression = new Color(.5f, .5f, 1f, .1f);
 
-            Transform arcRoot = barrels != null ? barrels : turretBase;
+            Transform arcRoot = Barrels != null ? Barrels : TurretBase;
 
             // Red traverse arc
             UnityEditor.Handles.color = colorTraverse;
-            if (hasLimitedTraverse)
+            if (HasLimitedTraverse)
             {
                 UnityEditor.Handles.DrawSolidArc(
-                    arcRoot.position, turretBase.up,
+                    arcRoot.position, TurretBase.up,
                     transform.forward, RightLimit,
                     kArcSize);
                 UnityEditor.Handles.DrawSolidArc(
-                    arcRoot.position, turretBase.up,
+                    arcRoot.position, TurretBase.up,
                     transform.forward, -LeftLimit,
                     kArcSize);
             }
             else
             {
                 UnityEditor.Handles.DrawSolidArc(
-                    arcRoot.position, turretBase.up,
+                    arcRoot.position, TurretBase.up,
                     transform.forward, 360f,
                     kArcSize);
             }
 
-            if (barrels != null)
+            if (Barrels != null)
             {
                 // Green elevation arc
                 UnityEditor.Handles.color = colorElevation;
                 UnityEditor.Handles.DrawSolidArc(
-                    barrels.position, barrels.right,
-                    turretBase.forward, -MaxElevation,
+                    Barrels.position, Barrels.right,
+                    TurretBase.forward, -MaxElevation,
                     kArcSize);
 
                 // Blue depression arc
                 UnityEditor.Handles.color = colorDepression;
                 UnityEditor.Handles.DrawSolidArc(
-                    barrels.position, barrels.right,
-                    turretBase.forward, MaxDepression,
+                    Barrels.position, Barrels.right,
+                    TurretBase.forward, MaxDepression,
                     kArcSize);
             }
         }
@@ -568,56 +424,56 @@ public class Gun : MonoBehaviour
     private void RotateTurretToIdle()
     {
         // Rotate the base to its default position.
-        if (hasLimitedTraverse)
+        if (HasLimitedTraverse)
         {
-            _limitedTraverseAngle = Mathf.MoveTowards(
-                _limitedTraverseAngle, 0f,
+            LimitedTraverseAngle = Mathf.MoveTowards(
+                LimitedTraverseAngle, 0f,
                 TraverseSpeed * Time.deltaTime);
 
-            if (Mathf.Abs(_limitedTraverseAngle) > Mathf.Epsilon)
-                turretBase.localEulerAngles = Vector3.up * _limitedTraverseAngle;
+            if (Mathf.Abs(LimitedTraverseAngle) > Mathf.Epsilon)
+                TurretBase.localEulerAngles = Vector3.up * LimitedTraverseAngle;
             else
-                _isBaseAtRest = true;
+                IsBaseAtRest = true;
         }
         else
         {
-            turretBase.rotation = Quaternion.RotateTowards(
-                turretBase.rotation,
+            TurretBase.rotation = Quaternion.RotateTowards(
+                TurretBase.rotation,
                 transform.rotation,
                 TraverseSpeed * Time.deltaTime);
 
-            _isBaseAtRest = Mathf.Abs(turretBase.localEulerAngles.y) < Mathf.Epsilon;
+            IsBaseAtRest = Mathf.Abs(TurretBase.localEulerAngles.y) < Mathf.Epsilon;
         }
 
-        if (_hasBarrels)
+        if (HasBarrels)
         {
-            _elevation = Mathf.MoveTowards(_elevation, 0f, ElevationSpeed * Time.deltaTime);
-            if (Mathf.Abs(_elevation) > Mathf.Epsilon)
-                barrels.localEulerAngles = Vector3.right * -_elevation;
+            Elevation = Mathf.MoveTowards(Elevation, 0f, ElevationSpeed * Time.deltaTime);
+            if (Mathf.Abs(Elevation) > Mathf.Epsilon)
+                Barrels.localEulerAngles = Vector3.right * -Elevation;
             else
-                _isBarrelAtRest = true;
+                IsBarrelAtRest = true;
         }
-        else // Barrels automatically at rest if there are no barrels.
-            _isBarrelAtRest = true;
+        else // Barrels automatically at rest if there are no Barrels.
+            IsBarrelAtRest = true;
     }
 
     private float GetTurretAngleToTarget(Vector3 targetPosition)
     {
         float angle = 999f;
 
-        if (_hasBarrels)
+        if (HasBarrels)
         {
-            angle = Vector3.Angle(targetPosition - barrels.position, barrels.forward);
+            angle = Vector3.Angle(targetPosition - Barrels.position, Barrels.forward);
         }
         else
         {
             Vector3 flattenedTarget = Vector3.ProjectOnPlane(
-                targetPosition - turretBase.position,
-                turretBase.up);
+                targetPosition - TurretBase.position,
+                TurretBase.up);
 
             angle = Vector3.Angle(
-                flattenedTarget - turretBase.position,
-                turretBase.forward);
+                flattenedTarget - TurretBase.position,
+                TurretBase.forward);
         }
 
         return angle;

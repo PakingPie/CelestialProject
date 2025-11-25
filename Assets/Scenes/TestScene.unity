@@ -196,6 +196,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  TurretBase: {fileID: 1735195125}
+  Barrels: {fileID: 1782668048}
+  ElevationSpeed: 30
+  MaxElevation: 75
+  MaxDepression: 15
+  TraverseSpeed: 60
+  _hasLimitedTraverse: 1
+  LeftLimit: 120
+  RightLimit: 30
+  IsIdle: 0
+  AimPosition: {x: 0, y: 0, z: 0}
+  AimedThreshold: 10
+  Targeted: {fileID: 0}
+  FireTarget: 2
+  UpdateRate: 60
+  TurretRotateSpeed: 5
+  GuidanceType: 1
+  ActiveRange: {x: 5, y: 1500}
   FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 8
@@ -205,6 +223,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 130677951}
   - {fileID: 1659960489}
@@ -219,24 +238,6 @@ MonoBehaviour:
   IsFiring: 1
   UseAmmo: 0
   MaxAmmo: 10000
-  Targeted: {fileID: 0}
-  FireTarget: 2
-  ActiveRange: {x: 5, y: 1500}
-  UpdateRate: 60
-  TurretRotateSpeed: 5
-  GuidanceType: 1
-  turretBase: {fileID: 1735195125}
-  barrels: {fileID: 1782668048}
-  ElevationSpeed: 30
-  MaxElevation: 75
-  MaxDepression: 15
-  TraverseSpeed: 60
-  hasLimitedTraverse: 1
-  LeftLimit: 120
-  RightLimit: 30
-  IsIdle: 0
-  AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 10
   DebugMode: 1
 --- !u!1 &60267724
 GameObject:
@@ -683,6 +684,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  TurretBase: {fileID: 2005586266}
+  Barrels: {fileID: 198172596}
+  ElevationSpeed: 30
+  MaxElevation: 75
+  MaxDepression: 15
+  TraverseSpeed: 60
+  _hasLimitedTraverse: 1
+  LeftLimit: 30
+  RightLimit: 120
+  IsIdle: 0
+  AimPosition: {x: 0, y: 0, z: 0}
+  AimedThreshold: 10
+  Targeted: {fileID: 0}
+  FireTarget: 2
+  UpdateRate: 60
+  TurretRotateSpeed: 5
+  GuidanceType: 1
+  ActiveRange: {x: 5, y: 1500}
   FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 8
@@ -691,7 +710,8 @@ MonoBehaviour:
   GimbalOnlyWhenInRange: 0
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
-  IsSequentialFiring: 1
+  IsSequentialFiring: 0
+  SequentialFiringInterval: 0.1
   FirePoints:
   - {fileID: 257400654}
   RecoilLength: 0.3
@@ -704,24 +724,6 @@ MonoBehaviour:
   IsFiring: 1
   UseAmmo: 0
   MaxAmmo: 10000
-  Targeted: {fileID: 0}
-  FireTarget: 2
-  ActiveRange: {x: 5, y: 1500}
-  UpdateRate: 60
-  TurretRotateSpeed: 5
-  GuidanceType: 1
-  turretBase: {fileID: 2005586266}
-  barrels: {fileID: 198172596}
-  ElevationSpeed: 30
-  MaxElevation: 75
-  MaxDepression: 15
-  TraverseSpeed: 60
-  hasLimitedTraverse: 1
-  LeftLimit: 30
-  RightLimit: 120
-  IsIdle: 0
-  AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 10
   DebugMode: 1
 --- !u!1 &120369477
 GameObject:
@@ -978,7 +980,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &189825962
 Transform:
   m_ObjectHideFlags: 0
@@ -1008,6 +1010,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  TurretBase: {fileID: 1833439377}
+  Barrels: {fileID: 1159938384}
+  ElevationSpeed: 60
+  MaxElevation: 85
+  MaxDepression: 10
+  TraverseSpeed: 90
+  _hasLimitedTraverse: 1
+  LeftLimit: 120
+  RightLimit: 120
+  IsIdle: 0
+  AimPosition: {x: 0, y: 0, z: 0}
+  AimedThreshold: 5
+  Targeted: {fileID: 0}
+  FireTarget: 2
+  UpdateRate: 60
+  TurretRotateSpeed: 5
+  GuidanceType: 1
+  ActiveRange: {x: 5, y: 500}
   FireDelay: 0.15
   MuzzleVelocity: 200
   Deviation: 16
@@ -1017,6 +1037,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
+  SequentialFiringInterval: 0.1
   FirePoints:
   - {fileID: 78501831}
   - {fileID: 704241905}
@@ -1029,24 +1050,6 @@ MonoBehaviour:
   IsFiring: 1
   UseAmmo: 0
   MaxAmmo: 10000
-  Targeted: {fileID: 0}
-  FireTarget: 2
-  ActiveRange: {x: 5, y: 500}
-  UpdateRate: 60
-  TurretRotateSpeed: 5
-  GuidanceType: 1
-  turretBase: {fileID: 1833439377}
-  barrels: {fileID: 1159938384}
-  ElevationSpeed: 60
-  MaxElevation: 85
-  MaxDepression: 10
-  TraverseSpeed: 90
-  hasLimitedTraverse: 1
-  LeftLimit: 120
-  RightLimit: 120
-  IsIdle: 0
-  AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 5
   DebugMode: 0
 --- !u!1 &198172595
 GameObject:
@@ -1304,6 +1307,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  TurretBase: {fileID: 1916899758}
+  Barrels: {fileID: 1287519395}
+  ElevationSpeed: 30
+  MaxElevation: 75
+  MaxDepression: 15
+  TraverseSpeed: 60
+  _hasLimitedTraverse: 1
+  LeftLimit: 30
+  RightLimit: 120
+  IsIdle: 0
+  AimPosition: {x: 0, y: 0, z: 0}
+  AimedThreshold: 10
+  Targeted: {fileID: 0}
+  FireTarget: 2
+  UpdateRate: 60
+  TurretRotateSpeed: 5
+  GuidanceType: 1
+  ActiveRange: {x: 5, y: 1500}
   FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 8
@@ -1312,7 +1333,8 @@ MonoBehaviour:
   GimbalOnlyWhenInRange: 0
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
-  IsSequentialFiring: 1
+  IsSequentialFiring: 0
+  SequentialFiringInterval: 0.1
   FirePoints:
   - {fileID: 1455102129}
   RecoilLength: 0.3
@@ -1325,24 +1347,6 @@ MonoBehaviour:
   IsFiring: 1
   UseAmmo: 0
   MaxAmmo: 10000
-  Targeted: {fileID: 0}
-  FireTarget: 2
-  ActiveRange: {x: 5, y: 1500}
-  UpdateRate: 60
-  TurretRotateSpeed: 5
-  GuidanceType: 1
-  turretBase: {fileID: 1916899758}
-  barrels: {fileID: 1287519395}
-  ElevationSpeed: 30
-  MaxElevation: 75
-  MaxDepression: 15
-  TraverseSpeed: 60
-  hasLimitedTraverse: 1
-  LeftLimit: 30
-  RightLimit: 120
-  IsIdle: 0
-  AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 10
   DebugMode: 1
 --- !u!1 &341741263
 GameObject:
@@ -1599,60 +1603,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 380557597}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!21 &409571920
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs/HitpointBar Italia
-  m_Shader: {fileID: -6465566751694194690, guid: 7d61a5a8515e1f1479746c8e2b0518ba, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_Lightmaps:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_LightmapsInd:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_ShadowMasks:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _CurrentHitPoints: 1000
-    - _Grid_Size: 20
-    - _MaxHitPoints: 1000
-    - _Rotation: 2
-    - _SWITCHDIRECTION: 0
-    m_Colors:
-    - _Color1: {r: 1, g: 0.9333334, b: 0.5490196, a: 1}
-    - _Color2: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-    - _Color3: {r: 0.6470588, g: 0.1647059, b: 0.1647059, a: 1}
-    - _ColorChangeThreshold: {r: 0.6, g: 0.3, b: 0, a: 0}
-    - _EdgeColor: {r: 0.5525606, g: 0.5525606, b: 0.5525606, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &442216822
 GameObject:
   m_ObjectHideFlags: 0
@@ -2338,7 +2288,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &520334724
 Transform:
   m_ObjectHideFlags: 0
@@ -2368,6 +2318,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  TurretBase: {fileID: 927886698}
+  Barrels: {fileID: 1022003917}
+  ElevationSpeed: 60
+  MaxElevation: 85
+  MaxDepression: 10
+  TraverseSpeed: 90
+  _hasLimitedTraverse: 1
+  LeftLimit: 120
+  RightLimit: 120
+  IsIdle: 0
+  AimPosition: {x: 0, y: 0, z: 0}
+  AimedThreshold: 5
+  Targeted: {fileID: 0}
+  FireTarget: 2
+  UpdateRate: 60
+  TurretRotateSpeed: 5
+  GuidanceType: 1
+  ActiveRange: {x: 5, y: 500}
   FireDelay: 0.15
   MuzzleVelocity: 200
   Deviation: 16
@@ -2377,6 +2345,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
+  SequentialFiringInterval: 0.1
   FirePoints:
   - {fileID: 1248824094}
   - {fileID: 1300017969}
@@ -2389,79 +2358,7 @@ MonoBehaviour:
   IsFiring: 1
   UseAmmo: 0
   MaxAmmo: 10000
-  Targeted: {fileID: 0}
-  FireTarget: 2
-  ActiveRange: {x: 5, y: 500}
-  UpdateRate: 60
-  TurretRotateSpeed: 5
-  GuidanceType: 1
-  turretBase: {fileID: 927886698}
-  barrels: {fileID: 1022003917}
-  ElevationSpeed: 60
-  MaxElevation: 85
-  MaxDepression: 10
-  TraverseSpeed: 90
-  hasLimitedTraverse: 1
-  LeftLimit: 120
-  RightLimit: 120
-  IsIdle: 0
-  AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 5
   DebugMode: 0
---- !u!21 &539710807
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs/HitpointBar Italia
-  m_Shader: {fileID: -6465566751694194690, guid: 7d61a5a8515e1f1479746c8e2b0518ba, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_Lightmaps:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_LightmapsInd:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_ShadowMasks:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _CurrentHitPoints: 2000
-    - _Grid_Size: 20
-    - _MaxHitPoints: 2000
-    - _Rotation: 2
-    - _SWITCHDIRECTION: 0
-    m_Colors:
-    - _Color1: {r: 0.5647059, g: 0.9333334, b: 0.5647059, a: 1}
-    - _Color2: {r: 1, g: 1, b: 0.8784314, a: 1}
-    - _Color3: {r: 0.8627452, g: 0.1921569, b: 0.1960784, a: 1}
-    - _ColorChangeThreshold: {r: 0.6, g: 0.3, b: 0, a: 0}
-    - _EdgeColor: {r: 0.5525606, g: 0.5525606, b: 0.5525606, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &539839617
 GameObject:
   m_ObjectHideFlags: 0
@@ -2632,14 +2529,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 555973310}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: -0.28986716, z: 0, w: 0.9570669}
   m_LocalPosition: {x: 1500, y: -1500, z: 2000}
   m_LocalScale: {x: 2000, y: 2000, z: 2000}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1692829430}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -33.7, z: 0}
 --- !u!135 &555973315
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -2736,7 +2633,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &635483580
 Transform:
   m_ObjectHideFlags: 0
@@ -2766,6 +2663,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  TurretBase: {fileID: 1009409672}
+  Barrels: {fileID: 77363957}
+  ElevationSpeed: 60
+  MaxElevation: 85
+  MaxDepression: 10
+  TraverseSpeed: 90
+  _hasLimitedTraverse: 1
+  LeftLimit: 120
+  RightLimit: 120
+  IsIdle: 0
+  AimPosition: {x: 0, y: 0, z: 0}
+  AimedThreshold: 5
+  Targeted: {fileID: 0}
+  FireTarget: 2
+  UpdateRate: 60
+  TurretRotateSpeed: 5
+  GuidanceType: 1
+  ActiveRange: {x: 5, y: 500}
   FireDelay: 0.15
   MuzzleVelocity: 200
   Deviation: 16
@@ -2775,6 +2690,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
+  SequentialFiringInterval: 0.1
   FirePoints:
   - {fileID: 1003675839}
   - {fileID: 1638862727}
@@ -2787,24 +2703,6 @@ MonoBehaviour:
   IsFiring: 1
   UseAmmo: 0
   MaxAmmo: 10000
-  Targeted: {fileID: 0}
-  FireTarget: 2
-  ActiveRange: {x: 5, y: 500}
-  UpdateRate: 60
-  TurretRotateSpeed: 5
-  GuidanceType: 1
-  turretBase: {fileID: 1009409672}
-  barrels: {fileID: 77363957}
-  ElevationSpeed: 60
-  MaxElevation: 85
-  MaxDepression: 10
-  TraverseSpeed: 90
-  hasLimitedTraverse: 1
-  LeftLimit: 120
-  RightLimit: 120
-  IsIdle: 0
-  AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 5
   DebugMode: 0
 --- !u!1 &655787698
 GameObject:
@@ -2910,57 +2808,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!21 &669300501
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs/EnergyShieldEffect
-  m_Shader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _HitAreaTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_Lightmaps:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_LightmapsInd:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_ShadowMasks:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _QueueControl: -1
-    - _QueueOffset: 0
-    - _Strength: 1
-    m_Colors:
-    - _Color1: {r: 2.996078, g: 11.98431, b: 11.98431, a: 1}
-    - _Color2: {r: 2.396863, g: 9.587453, b: 11.98432, a: 1}
-    - _Color3: {r: 13.94717, g: 12.90964, b: 3.236795, a: 1}
-    - _Color4: {r: 13.3434, g: 2.895263, b: 2.895263, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &680814439
 GameObject:
   m_ObjectHideFlags: 0
@@ -3088,7 +2935,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &683798406
 Transform:
   m_ObjectHideFlags: 0
@@ -3120,7 +2967,7 @@ MonoBehaviour:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   - {fileID: 3109858766895225120, guid: f822f1bf9e60af043be0e01148c8022a, type: 3}
   spawnRadius: 500
-  spawnCount: 150
+  spawnCount: 50
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 1
   HeightRange: {x: -1000, y: 5000}
@@ -5183,6 +5030,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  TurretBase: {fileID: 2008215527}
+  Barrels: {fileID: 2004160808}
+  ElevationSpeed: 30
+  MaxElevation: 75
+  MaxDepression: 15
+  TraverseSpeed: 60
+  _hasLimitedTraverse: 1
+  LeftLimit: 30
+  RightLimit: 120
+  IsIdle: 0
+  AimPosition: {x: 0, y: 0, z: 0}
+  AimedThreshold: 10
+  Targeted: {fileID: 0}
+  FireTarget: 2
+  UpdateRate: 60
+  TurretRotateSpeed: 5
+  GuidanceType: 1
+  ActiveRange: {x: 5, y: 1500}
   FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 8
@@ -5192,6 +5057,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 980715826}
   - {fileID: 1357669941}
@@ -5206,24 +5072,6 @@ MonoBehaviour:
   IsFiring: 1
   UseAmmo: 0
   MaxAmmo: 10000
-  Targeted: {fileID: 0}
-  FireTarget: 2
-  ActiveRange: {x: 5, y: 1500}
-  UpdateRate: 60
-  TurretRotateSpeed: 5
-  GuidanceType: 1
-  turretBase: {fileID: 2008215527}
-  barrels: {fileID: 2004160808}
-  ElevationSpeed: 30
-  MaxElevation: 75
-  MaxDepression: 15
-  TraverseSpeed: 60
-  hasLimitedTraverse: 1
-  LeftLimit: 30
-  RightLimit: 120
-  IsIdle: 0
-  AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 10
   DebugMode: 1
 --- !u!1 &1159938383
 GameObject:
@@ -5498,7 +5346,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1181223101
 Transform:
   m_ObjectHideFlags: 0
@@ -5528,6 +5376,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  TurretBase: {fileID: 359497836}
+  Barrels: {fileID: 1326640035}
+  ElevationSpeed: 5
+  MaxElevation: 60
+  MaxDepression: 5
+  TraverseSpeed: 20
+  _hasLimitedTraverse: 1
+  LeftLimit: 120
+  RightLimit: 120
+  IsIdle: 0
+  AimPosition: {x: 0, y: 0, z: 0}
+  AimedThreshold: 10
+  Targeted: {fileID: 0}
+  FireTarget: 2
+  UpdateRate: 60
+  TurretRotateSpeed: 5
+  GuidanceType: 1
+  ActiveRange: {x: 5, y: 3000}
   FireDelay: 5
   MuzzleVelocity: 500
   Deviation: 2
@@ -5536,7 +5402,8 @@ MonoBehaviour:
   GimbalOnlyWhenInRange: 0
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
-  IsSequentialFiring: 0
+  IsSequentialFiring: 1
+  SequentialFiringInterval: 0.5
   FirePoints:
   - {fileID: 1890076276}
   - {fileID: 1815608375}
@@ -5553,24 +5420,6 @@ MonoBehaviour:
   IsFiring: 1
   UseAmmo: 0
   MaxAmmo: 10000
-  Targeted: {fileID: 0}
-  FireTarget: 2
-  ActiveRange: {x: 5, y: 2000}
-  UpdateRate: 60
-  TurretRotateSpeed: 5
-  GuidanceType: 1
-  turretBase: {fileID: 359497836}
-  barrels: {fileID: 1326640035}
-  ElevationSpeed: 5
-  MaxElevation: 60
-  MaxDepression: 5
-  TraverseSpeed: 20
-  hasLimitedTraverse: 1
-  LeftLimit: 120
-  RightLimit: 120
-  IsIdle: 0
-  AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 10
   DebugMode: 1
 --- !u!1 &1245198353
 GameObject:
@@ -6656,6 +6505,60 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1287519395}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!21 &1462016199
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shader Graphs/HitpointBar Italia
+  m_Shader: {fileID: -6465566751694194690, guid: 7d61a5a8515e1f1479746c8e2b0518ba, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _CurrentHitPoints: 2000
+    - _Grid_Size: 20
+    - _MaxHitPoints: 2000
+    - _Rotation: 2
+    - _SWITCHDIRECTION: 0
+    m_Colors:
+    - _Color1: {r: 0.5647059, g: 0.9333334, b: 0.5647059, a: 1}
+    - _Color2: {r: 1, g: 1, b: 0.8784314, a: 1}
+    - _Color3: {r: 0.8627452, g: 0.1921569, b: 0.1960784, a: 1}
+    - _ColorChangeThreshold: {r: 0.6, g: 0.3, b: 0, a: 0}
+    - _EdgeColor: {r: 0.5525606, g: 0.5525606, b: 0.5525606, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1463880842
 GameObject:
   m_ObjectHideFlags: 0
@@ -6672,7 +6575,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1463880843
 Transform:
   m_ObjectHideFlags: 0
@@ -6702,6 +6605,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  TurretBase: {fileID: 514873004}
+  Barrels: {fileID: 1791887696}
+  ElevationSpeed: 60
+  MaxElevation: 85
+  MaxDepression: 10
+  TraverseSpeed: 90
+  _hasLimitedTraverse: 1
+  LeftLimit: 120
+  RightLimit: 120
+  IsIdle: 0
+  AimPosition: {x: 0, y: 0, z: 0}
+  AimedThreshold: 5
+  Targeted: {fileID: 0}
+  FireTarget: 2
+  UpdateRate: 60
+  TurretRotateSpeed: 5
+  GuidanceType: 1
+  ActiveRange: {x: 5, y: 500}
   FireDelay: 0.15
   MuzzleVelocity: 200
   Deviation: 16
@@ -6711,6 +6632,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
+  SequentialFiringInterval: 0.1
   FirePoints:
   - {fileID: 120369478}
   - {fileID: 1336983815}
@@ -6723,24 +6645,6 @@ MonoBehaviour:
   IsFiring: 1
   UseAmmo: 0
   MaxAmmo: 10000
-  Targeted: {fileID: 0}
-  FireTarget: 2
-  ActiveRange: {x: 5, y: 500}
-  UpdateRate: 60
-  TurretRotateSpeed: 5
-  GuidanceType: 1
-  turretBase: {fileID: 514873004}
-  barrels: {fileID: 1791887696}
-  ElevationSpeed: 60
-  MaxElevation: 85
-  MaxDepression: 10
-  TraverseSpeed: 90
-  hasLimitedTraverse: 1
-  LeftLimit: 120
-  RightLimit: 120
-  IsIdle: 0
-  AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 5
   DebugMode: 0
 --- !u!21 &1471847403
 Material:
@@ -7767,6 +7671,60 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1601955720}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!21 &1610935783
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shader Graphs/HitpointBar Italia
+  m_Shader: {fileID: -6465566751694194690, guid: 7d61a5a8515e1f1479746c8e2b0518ba, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _CurrentHitPoints: 1000
+    - _Grid_Size: 20
+    - _MaxHitPoints: 1000
+    - _Rotation: 2
+    - _SWITCHDIRECTION: 0
+    m_Colors:
+    - _Color1: {r: 1, g: 0.9333334, b: 0.5490196, a: 1}
+    - _Color2: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+    - _Color3: {r: 0.6470588, g: 0.1647059, b: 0.1647059, a: 1}
+    - _ColorChangeThreshold: {r: 0.6, g: 0.3, b: 0, a: 0}
+    - _EdgeColor: {r: 0.5525606, g: 0.5525606, b: 0.5525606, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1615824815
 GameObject:
   m_ObjectHideFlags: 0
@@ -8077,6 +8035,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  TurretBase: {fileID: 1015750911}
+  Barrels: {fileID: 482787050}
+  ElevationSpeed: 30
+  MaxElevation: 75
+  MaxDepression: 15
+  TraverseSpeed: 60
+  _hasLimitedTraverse: 1
+  LeftLimit: 120
+  RightLimit: 30
+  IsIdle: 0
+  AimPosition: {x: 0, y: 0, z: 0}
+  AimedThreshold: 10
+  Targeted: {fileID: 0}
+  FireTarget: 2
+  UpdateRate: 60
+  TurretRotateSpeed: 5
+  GuidanceType: 1
+  ActiveRange: {x: 5, y: 1500}
   FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 8
@@ -8086,6 +8062,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 179193880}
   - {fileID: 457572258}
@@ -8100,24 +8077,6 @@ MonoBehaviour:
   IsFiring: 1
   UseAmmo: 0
   MaxAmmo: 10000
-  Targeted: {fileID: 0}
-  FireTarget: 2
-  ActiveRange: {x: 5, y: 1500}
-  UpdateRate: 60
-  TurretRotateSpeed: 5
-  GuidanceType: 1
-  turretBase: {fileID: 1015750911}
-  barrels: {fileID: 482787050}
-  ElevationSpeed: 30
-  MaxElevation: 75
-  MaxDepression: 15
-  TraverseSpeed: 60
-  hasLimitedTraverse: 1
-  LeftLimit: 120
-  RightLimit: 30
-  IsIdle: 0
-  AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 10
   DebugMode: 1
 --- !u!1 &1638862726
 GameObject:
@@ -8292,60 +8251,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1782668048}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!21 &1669071851
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs/HitpointBar Italia
-  m_Shader: {fileID: -6465566751694194690, guid: 7d61a5a8515e1f1479746c8e2b0518ba, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_Lightmaps:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_LightmapsInd:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_ShadowMasks:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _CurrentHitPoints: 100
-    - _Grid_Size: 20
-    - _MaxHitPoints: 100
-    - _Rotation: 2
-    - _SWITCHDIRECTION: 0
-    m_Colors:
-    - _Color1: {r: 0.8784314, g: 1, b: 1, a: 1}
-    - _Color2: {r: 0, g: 1, b: 1, a: 1}
-    - _Color3: {r: 0, g: 0.5450981, b: 0.5450981, a: 1}
-    - _ColorChangeThreshold: {r: 0.6, g: 0.3, b: 0, a: 0}
-    - _EdgeColor: {r: 0.5525606, g: 0.5525606, b: 0.5525606, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &1692829429
 GameObject:
   m_ObjectHideFlags: 0
@@ -8374,7 +8279,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2.2, y: 2.2, z: 2.2}
+  m_LocalScale: {x: 2.1, y: 2.1, z: 2.1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 555973314}
@@ -8481,6 +8386,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  TurretBase: {fileID: 2087786749}
+  Barrels: {fileID: 279001595}
+  ElevationSpeed: 30
+  MaxElevation: 75
+  MaxDepression: 15
+  TraverseSpeed: 60
+  _hasLimitedTraverse: 1
+  LeftLimit: 30
+  RightLimit: 120
+  IsIdle: 0
+  AimPosition: {x: 0, y: 0, z: 0}
+  AimedThreshold: 10
+  Targeted: {fileID: 0}
+  FireTarget: 2
+  UpdateRate: 60
+  TurretRotateSpeed: 5
+  GuidanceType: 1
+  ActiveRange: {x: 5, y: 1500}
   FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 8
@@ -8490,6 +8413,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 15818766}
   - {fileID: 769037777}
@@ -8504,24 +8428,6 @@ MonoBehaviour:
   IsFiring: 1
   UseAmmo: 0
   MaxAmmo: 10000
-  Targeted: {fileID: 0}
-  FireTarget: 2
-  ActiveRange: {x: 5, y: 1500}
-  UpdateRate: 60
-  TurretRotateSpeed: 5
-  GuidanceType: 1
-  turretBase: {fileID: 2087786749}
-  barrels: {fileID: 279001595}
-  ElevationSpeed: 30
-  MaxElevation: 75
-  MaxDepression: 15
-  TraverseSpeed: 60
-  hasLimitedTraverse: 1
-  LeftLimit: 30
-  RightLimit: 120
-  IsIdle: 0
-  AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 10
   DebugMode: 1
 --- !u!1 &1701905050
 GameObject:
@@ -9088,7 +8994,7 @@ Transform:
   m_GameObject: {fileID: 1767005497}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.75, z: -0.24}
+  m_LocalPosition: {x: 0, y: 0.6, z: -0.24}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9215,7 +9121,7 @@ Transform:
   m_GameObject: {fileID: 1773146102}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.75, z: -0.7525}
+  m_LocalPosition: {x: 0, y: 0.6, z: -0.7525}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9315,6 +9221,60 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!21 &1781239998
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shader Graphs/HitpointBar Italia
+  m_Shader: {fileID: -6465566751694194690, guid: 7d61a5a8515e1f1479746c8e2b0518ba, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _CurrentHitPoints: 1000
+    - _Grid_Size: 20
+    - _MaxHitPoints: 1000
+    - _Rotation: 2
+    - _SWITCHDIRECTION: 0
+    m_Colors:
+    - _Color1: {r: 0.8784314, g: 1, b: 1, a: 1}
+    - _Color2: {r: 0, g: 1, b: 1, a: 1}
+    - _Color3: {r: 0, g: 0.5450981, b: 0.5450981, a: 1}
+    - _ColorChangeThreshold: {r: 0.6, g: 0.3, b: 0, a: 0}
+    - _EdgeColor: {r: 0.5525606, g: 0.5525606, b: 0.5525606, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1782668047
 GameObject:
   m_ObjectHideFlags: 0
@@ -10334,7 +10294,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 669300501}
+  - {fileID: 2039911955}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -10518,6 +10478,57 @@ Material:
     - _Color3: {r: 0.8627452, g: 0.1921569, b: 0.1960784, a: 1}
     - _ColorChangeThreshold: {r: 0.6, g: 0.3, b: 0, a: 0}
     - _EdgeColor: {r: 0.5525606, g: 0.5525606, b: 0.5525606, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!21 &2039911955
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shader Graphs/EnergyShieldEffect
+  m_Shader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _HitAreaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _QueueControl: -1
+    - _QueueOffset: 0
+    - _Strength: 1
+    m_Colors:
+    - _Color1: {r: 2.996078, g: 11.98431, b: 11.98431, a: 1}
+    - _Color2: {r: 2.396863, g: 9.587453, b: 11.98432, a: 1}
+    - _Color3: {r: 13.94717, g: 12.90964, b: 3.236795, a: 1}
+    - _Color4: {r: 13.3434, g: 2.895263, b: 2.895263, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!1 &2082537118
@@ -11198,7 +11209,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &2730056857101270275
 GameObject:
   m_ObjectHideFlags: 0
@@ -11229,7 +11240,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShipMovement
   controller: {fileID: 6141874323968867814}
   thrust: 50
-  turnTorque: {x: 90, y: 30, z: 45}
+  turnTorque: {x: 0, y: 0, z: 0}
   forceMult: 1
   sensitivity: 5
   aggressiveTurnAngle: 5
@@ -11285,7 +11296,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &3637741635495681090
 GameObject:
   m_ObjectHideFlags: 0
@@ -11302,7 +11313,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &3774630771858066989
 GameObject:
   m_ObjectHideFlags: 0
@@ -12168,8 +12179,8 @@ MonoBehaviour:
   MaxHitPoints: 2000
   ArmorPoints: 1000
   MaxArmorPoints: 1000
-  ShieldPoints: 100
-  MaxShieldPoints: 100
+  ShieldPoints: 1000
+  MaxShieldPoints: 1000
   Speed: 10
   BoidManager: {fileID: 0}
   HealthBar: {fileID: 1079174261}

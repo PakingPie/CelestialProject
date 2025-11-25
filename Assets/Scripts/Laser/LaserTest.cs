@@ -6,7 +6,7 @@ using static GlobalHelper;
 // [ExecuteInEditMode]
 public class LaserTest : WeaponBase
 {
-
+    [Header("Laser Turret Settings")]
     public LineRenderer LaserLineRenderer;
     [Header("Laser Settings")]
     [Tooltip("Number of updates per second for the laser targeting system.")]

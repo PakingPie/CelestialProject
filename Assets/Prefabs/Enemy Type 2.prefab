@@ -406,6 +406,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  TurretBase: {fileID: 2208432724579300860}
+  Barrels: {fileID: 1312519066579379706}
+  ElevationSpeed: 10
+  MaxElevation: 75
+  MaxDepression: 15
+  TraverseSpeed: 30
+  _hasLimitedTraverse: 1
+  LeftLimit: 150
+  RightLimit: 150
+  IsIdle: 0
+  AimPosition: {x: 0, y: 0, z: 0}
+  AimedThreshold: 5
+  Targeted: {fileID: 0}
+  FireTarget: 0
+  UpdateRate: 30
+  TurretRotateSpeed: 5
+  GuidanceType: 1
+  ActiveRange: {x: 5, y: 800}
   FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.1
@@ -414,7 +432,8 @@ MonoBehaviour:
   GimbalOnlyWhenInRange: 0
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
-  IsSequentialFiring: 0
+  IsSequentialFiring: 1
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 7887085982298261566}
   - {fileID: 5031050417146919463}
@@ -427,24 +446,6 @@ MonoBehaviour:
   IsFiring: 0
   UseAmmo: 0
   MaxAmmo: 10000
-  Targeted: {fileID: 0}
-  FireTarget: 0
-  ActiveRange: {x: 5, y: 800}
-  UpdateRate: 30
-  TurretRotateSpeed: 5
-  GuidanceType: 1
-  turretBase: {fileID: 2208432724579300860}
-  barrels: {fileID: 1312519066579379706}
-  ElevationSpeed: 10
-  MaxElevation: 75
-  MaxDepression: 15
-  TraverseSpeed: 30
-  hasLimitedTraverse: 1
-  LeftLimit: 150
-  RightLimit: 150
-  IsIdle: 0
-  AimPosition: {x: 0, y: 0, z: 0}
-  AimedThreshold: 5
   DebugMode: 0
 --- !u!1 &3915756800065681784
 GameObject:
@@ -557,6 +558,7 @@ MonoBehaviour:
   ShieldPoints: 100
   MaxShieldPoints: 100
   Speed: 1
+  BoidManager: {fileID: 0}
   FactionType: 2
   Type: 0
   HealthBar: {fileID: 4407329836811907037}
@@ -583,17 +585,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
   ShieldGO: {fileID: 124679239445400308}
-  HitImpactDuration: 1
-  HitImpactScale: 1
-  DecayPerSecond: 0.9
   TextureSize: 8
+  HitImpactScale: 1
+  HitImpactDuration: 1
+  DecayPerSecond: 0.9
+  MinDecayThreshold: 0.02
+  ForceClearInterval: 3
   HitEffectShader: {fileID: 4800000, guid: 9d4680f053a4c804784f0d8d0d3302d7, type: 3}
   CumulativeShader: {fileID: 4800000, guid: a63a745ff69d80e46a11d9e8f34dd690, type: 3}
   EnableDebugMode: 0
   DebugQuad: {fileID: 0}
-  _blackTex: {fileID: 0}
-  _hitEffectMat: {fileID: 0}
-  _cumulativeMat: {fileID: 0}
 --- !u!64 &506681942887901699
 MeshCollider:
   m_ObjectHideFlags: 0
