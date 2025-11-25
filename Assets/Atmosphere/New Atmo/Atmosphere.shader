@@ -18,6 +18,8 @@ Shader "Custom/Atmosphere"
         _OzoneAbsorptionCoeff("Ozone Absorption Coeff", Float) = 1.0
         
         _G("Mie Anisotropy", Range(-0.99, 0.99)) = 0.76
+
+        _WaveLength("Wavelength Red (nm)", Vector) = (700, 530, 440, 0)
         
         _PrimarySteps("Primary Steps", Int) = 16
         _LightSteps("Light Steps", Int) = 8
@@ -51,6 +53,7 @@ Shader "Custom/Atmosphere"
                 float _MieScatteringCoeff;
                 float _OzoneAbsorptionCoeff;
                 float _G;
+                float3 _WaveLength;
                 float _RayleighScaleHeight;
                 float _MieScaleHeight;
                 float _OzoneLayerCenter;
@@ -97,7 +100,7 @@ Shader "Custom/Atmosphere"
             {
                 // Wavelengths in nm: Red=700, Green=530, Blue=440
                 // Relative scattering: proportional to 1/wavelength^4
-                float3 wavelengths = float3(700.0, 530.0, 440.0);
+                float3 wavelengths = _WaveLength;
                 float3 scattering = pow(440.0 / wavelengths, 4.0);
                 
                 // Base coefficient scaled to realistic values (per km)
@@ -259,7 +262,7 @@ Shader "Custom/Atmosphere"
                 #if defined(_SUN_MODE_USE_SUN_POSITION)
                     float3 sunDir = normalize(_SunPosition - planetCenter);
                 #else
-                    float3 sunDir = -GetMainLight().direction;
+                    float3 sunDir = GetMainLight().direction;
                 #endif
 
                 float2 atmosphereIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius + _AtmosphereHeight);

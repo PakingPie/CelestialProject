@@ -25,7 +25,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _SUN_MODE_USE_SUN_POSITION
+  - _SUN_MODE_USE_DIRECTIONAL
   m_InvalidKeywords:
   - _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
@@ -41,20 +41,27 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _AtmosphereHeight: 200
+    - _AtmosphereHeight: 10
+    - _Exposure: 1
     - _G: 0.76
-    - _LightIntensity: 25
-    - _LightSteps: 8
+    - _LightIntensity: 1
+    - _LightSteps: 6
     - _MieBeta: 0.000021
-    - _MieScaleHeight: 1.2
-    - _PlanetRadius: 6371
+    - _MieScaleHeight: 0.12
+    - _MieScatteringCoeff: 50
+    - _OzoneAbsorptionCoeff: 1
+    - _OzoneLayerCenter: 1
+    - _OzoneLayerWidth: 1
+    - _PlanetRadius: 50
     - _PrimarySteps: 16
-    - _RayleighScaleHeight: 8
-    - _SUN_MODE: 0
+    - _RayleighScaleHeight: 0.8
+    - _RayleighScatteringCoeff: 50
+    - _SUN_MODE: 1
     - _SunIntensity: 20
     m_Colors:
     - _GroundAlbedo: {r: 0.29999998, g: 0.29999998, b: 0.29999998, a: 1}
     - _RayleighBeta: {r: 0.0000058, g: 0.0000135, b: 0.0000331, a: 0}
     - _SunPosition: {r: 15000, g: 0, b: -3000, a: 0}
+    - _WaveLength: {r: 799, g: 530, b: 440, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
