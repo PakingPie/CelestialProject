@@ -28,7 +28,7 @@ public class WeaponBase : MonoBehaviour
 
     [Header("Targeting")]
 
-    [HideInInspector]public Transform Targeted;
+    [HideInInspector] public Transform Targeted;
     [Tooltip("Faction that this weapon will fire upon.")]
     public GlobalHelper.Faction FireTarget = GlobalHelper.Faction.Foe;
     [Tooltip("The type of guidance this weapon uses to track targets.")]
@@ -37,6 +37,9 @@ public class WeaponBase : MonoBehaviour
     public Vector2 ActiveRange = new Vector2(5f, 500f);
     [Tooltip("Number of updates per second for the turret targeting system.")]
     public int UpdateRate = 60;
+
+    [Tooltip("Debug")]
+    public bool ShowGizmos = true;
 
     private float _angleToTarget = 0f;
     private float _limitedTraverseAngle = 0f;
@@ -55,7 +58,7 @@ public class WeaponBase : MonoBehaviour
     public bool IsBarrelAtRest { get { return _isBarrelAtRest; } set { _isBarrelAtRest = value; } }
     public bool IsTurretAtRest { get { return _isBarrelAtRest && _isBaseAtRest; } }
 
-    
+
     public void RotateBaseToFaceTarget(Vector3 targetPosition)
     {
         Vector3 turretUp = transform.up;
@@ -122,8 +125,125 @@ public class WeaponBase : MonoBehaviour
 
         return new Vector2(azimuth, elevation);
     }
-}
 
+    public void RotateTurretToIdle()
+    {
+        // Rotate the base to its default position.
+        if (HasLimitedTraverse)
+        {
+            LimitedTraverseAngle = Mathf.MoveTowards(
+                LimitedTraverseAngle, 0f,
+                TraverseSpeed * Time.deltaTime);
+
+            if (Mathf.Abs(LimitedTraverseAngle) > Mathf.Epsilon)
+                TurretBase.localEulerAngles = Vector3.up * LimitedTraverseAngle;
+            else
+                IsBaseAtRest = true;
+        }
+        else
+        {
+            TurretBase.rotation = Quaternion.RotateTowards(
+                TurretBase.rotation,
+                transform.rotation,
+                TraverseSpeed * Time.deltaTime);
+
+            IsBaseAtRest = Mathf.Abs(TurretBase.localEulerAngles.y) < Mathf.Epsilon;
+        }
+
+        if (HasBarrels)
+        {
+            Elevation = Mathf.MoveTowards(Elevation, 0f, ElevationSpeed * Time.deltaTime);
+            if (Mathf.Abs(Elevation) > Mathf.Epsilon)
+                Barrels.localEulerAngles = Vector3.right * -Elevation;
+            else
+                IsBarrelAtRest = true;
+        }
+        else // Barrels automatically at rest if there are no Barrels.
+            IsBarrelAtRest = true;
+    }
+
+    public float GetTurretAngleToTarget(Vector3 targetPosition)
+    {
+        float angle = 999f;
+
+        if (HasBarrels)
+        {
+            angle = Vector3.Angle(targetPosition - Barrels.position, Barrels.forward);
+        }
+        else
+        {
+            Vector3 flattenedTarget = Vector3.ProjectOnPlane(
+                targetPosition - TurretBase.position,
+                TurretBase.up);
+
+            angle = Vector3.Angle(
+                flattenedTarget - TurretBase.position,
+                TurretBase.forward);
+        }
+
+        return angle;
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (TurretBase != null && ShowGizmos)
+        {
+            const float kArcSize = 10f;
+            Color colorTraverse = new Color(1f, .5f, .5f, .1f);
+            Color colorElevation = new Color(.5f, 1f, .5f, .1f);
+            Color colorDepression = new Color(.5f, .5f, 1f, .1f);
+
+            Transform arcRoot = Barrels != null ? Barrels : TurretBase;
+
+            // Red traverse arc
+            UnityEditor.Handles.color = colorTraverse;
+            if (HasLimitedTraverse)
+            {
+                UnityEditor.Handles.DrawSolidArc(
+                    arcRoot.position, TurretBase.up,
+                    transform.forward, RightLimit,
+                    kArcSize);
+                UnityEditor.Handles.DrawSolidArc(
+                    arcRoot.position, TurretBase.up,
+                    transform.forward, -LeftLimit,
+                    kArcSize);
+            }
+            else
+            {
+                UnityEditor.Handles.DrawSolidArc(
+                    arcRoot.position, TurretBase.up,
+                    transform.forward, 360f,
+                    kArcSize);
+            }
+
+            if (Barrels != null)
+            {
+                // Green elevation arc
+                UnityEditor.Handles.color = colorElevation;
+                UnityEditor.Handles.DrawSolidArc(
+                    Barrels.position, Barrels.right,
+                    TurretBase.forward, -MaxElevation,
+                    kArcSize);
+
+                // Blue depression arc
+                UnityEditor.Handles.color = colorDepression;
+                UnityEditor.Handles.DrawSolidArc(
+                    Barrels.position, Barrels.right,
+                    TurretBase.forward, MaxDepression,
+                    kArcSize);
+            }
+        }
+
+        if (Targeted != null)
+        {
+            if (FireTarget == GlobalHelper.Faction.Foe)
+                Gizmos.color = Color.red;
+            else
+                Gizmos.color = Color.greenYellow;
+            Gizmos.DrawLine(transform.position, Targeted.position);
+        }
+    }
+}
 
 public class GunBarrel
 {

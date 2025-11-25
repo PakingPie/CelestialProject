@@ -15,13 +15,12 @@ public class LaserTest : WeaponBase
     public float TurretRotateSpeed = 5f;
     public int LaserDamageCap = 10;
     public int LaserDPS = 1;
+    public bool IsFiring = false;
 
 
     void Start()
     {
-        InvokeRepeating("Shoot", 0.0f, 5.0f);
         InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
-        InvokeRepeating("LockOn", 0f, 2.0f / UpdateRate);
         LaserLineRenderer.SetPosition(0, transform.position);
 
         if (Targeted != null)
@@ -33,11 +32,48 @@ public class LaserTest : WeaponBase
     {
         LaserLineRenderer.SetPosition(0, transform.position);
         LaserLineRenderer.SetPosition(1, Targeted.position);
+
+        if (!IsAimed)
+            IsFiring = false;
+        else
+            IsFiring = true;
+
+        if (IsFiring)
+        {
+            LaserEnable();
+        }
+        else
+        {
+            LaserDisable();
+        }
+
+        if (IsIdle || Targeted == null)
+        {
+            if (!IsTurretAtRest)
+                RotateTurretToIdle();
+            IsAimed = false;
+        }
+        else
+        {
+            Vector3 aimPosition = Targeted.position;
+            RotateBaseToFaceTarget(aimPosition);
+
+            if (HasBarrels)
+                RotateBarrelsToFaceTarget(aimPosition);
+            
+            AngleToTarget = GetTurretAngleToTarget(aimPosition);
+
+            // Turret is considered "aimed" when it's pointed at the target.
+            IsAimed = AngleToTarget < AimedThreshold;
+
+            IsBarrelAtRest = false;
+            IsBaseAtRest = false;
+        }
     }
 
     void LockOn()
     {
-        if(Targeted == null)
+        if (Targeted == null)
         {
             return;
         }
@@ -54,20 +90,16 @@ public class LaserTest : WeaponBase
 
     public void UpdateTarget()
     {
-        // if (_targetGO != null)
-        // {
-        //     if (Vector3.Distance(transform.position, _targetGO.transform.position) > LaserActiveRange.y)
-        //     {
-        //         _targetGO = null;
-        //         LaserDisable();
-        //     }
-        //     else
-        //     {
-        //         return;
-        //     }
-        // }
+        Targeted = null;
 
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag(GlobalHelper.FactionNames[(int)FireTarget]);
+
+        if (enemies.Length == 0)
+        {
+            Targeted = null;
+            IsAimed = false;
+            return;
+        }
 
         float shortest_distance = Mathf.Infinity;
         GameObject nearest_enemy = null;
@@ -75,19 +107,34 @@ public class LaserTest : WeaponBase
         foreach (GameObject enemy in enemies)
         {
             float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
-            if (distance_to_enemy < shortest_distance)
+            Vector2 anglesToEnemy = CalcuateRelativeAngles(enemy.transform);
+            if (anglesToEnemy.y > MaxElevation || anglesToEnemy.y < -MaxDepression)
+            {
+                continue;
+            }
+
+            if (HasLimitedTraverse)
+            {
+                if (anglesToEnemy.x > RightLimit || anglesToEnemy.x < -LeftLimit)
+                {
+                    continue;
+                }
+            }
+
+            if (distance_to_enemy < ActiveRange.y && distance_to_enemy < shortest_distance)
             {
                 shortest_distance = distance_to_enemy;
                 nearest_enemy = enemy;
             }
         }
 
-        if (nearest_enemy && shortest_distance <= ActiveRange.y)
+        if (nearest_enemy != null)
         {
             Targeted = nearest_enemy.transform;
         }
         else
         {
+            IsAimed = false;
             Targeted = null;
             LaserDisable();
         }
@@ -128,7 +175,7 @@ public class LaserTest : WeaponBase
                 LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(t));
             }
 
-            if (t > 0.5f  && t < LaserEffectDuration - 0.5f)
+            if (t > 0.5f && t < LaserEffectDuration - 0.5f)
             {
                 var enemyVehicle = Targeted.gameObject.GetComponent<EnemyVehicle>();
                 if (enemyVehicle != null)
