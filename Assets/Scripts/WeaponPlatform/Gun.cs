@@ -26,6 +26,7 @@ public class Gun : MonoBehaviour
     [Header("Fire Points")]
     [Tooltip("Cycle between fire points when firing rather than firing from all at once.")]
     public bool IsSequentialFiring = false;
+    public float SequentialFiringInterval = 0.1f;
     [Tooltip("Where bullets will be fired from. When left blank, this component's transform is used.")]
     [UnityEngine.Serialization.FormerlySerializedAs("Barrels")]
     [SerializeField] private List<Transform> FirePoints = new List<Transform>();
@@ -281,6 +282,15 @@ public class Gun : MonoBehaviour
             _firePointIndex += 1;
 
             AmmoCount -= 1;
+            // If use sequential firing, add a small delay between each of the shots. Then use the main delay after all barrels have fired.
+            if( _firePointIndex % FirePoints.Count == 0)
+            {
+                _lastShotTime = Time.time;
+            }
+            else
+            {
+                _lastShotTime = Time.time - FireDelay + SequentialFiringInterval;
+            }
         }
         else
         {
@@ -292,9 +302,9 @@ public class Gun : MonoBehaviour
 
                 AmmoCount -= 1;
             }
+            _lastShotTime = Time.time;
         }
 
-        _lastShotTime = Time.time;
         return true;
     }
 
