@@ -16,42 +16,46 @@ public class WeaponBase : MonoBehaviour
     [Tooltip("Speed at which the turret can rotate left/right.")]
     public float TraverseSpeed = 60f;
     [Tooltip("When true, the turret can only rotate horizontally with the given limits.")]
-    [SerializeField] private bool _hasLimitedTraverse = false;
+    public bool HasLimitedTraverse = false;
     [Range(0, 179)] public float LeftLimit = 120f;
     [Range(0, 179)] public float RightLimit = 120f;
     [Tooltip("When idle, the turret does not aim at anything and simply points forwards.")]
     public bool IsIdle = false;
-    [Tooltip("Position the turret will aim at when not idle. Set this to whatever you want" +
-        "the turret to actively aim at.")]
+    [Tooltip("Position the turret will aim at when not idle. Set this to whatever you want the turret to actively aim at.")]
     public Vector3 AimPosition = Vector3.zero;
     [Tooltip("When the turret is within this many degrees of the target, it is considered aimed.")]
     public float AimedThreshold = 5f;
-    private float _limitedTraverseAngle = 0f;
+
+    [Header("Targeting")]
+
+    [HideInInspector]public Transform Targeted;
+    [Tooltip("Faction that this weapon will fire upon.")]
+    public GlobalHelper.Faction FireTarget = GlobalHelper.Faction.Foe;
+    [Tooltip("The type of guidance this weapon uses to track targets.")]
+    public GlobalHelper.GuidanceType GuidanceType = GlobalHelper.GuidanceType.Lead;
+    [Tooltip("The range within which the gun can target enemies.")]
+    public Vector2 ActiveRange = new Vector2(5f, 500f);
+    [Tooltip("Number of updates per second for the turret targeting system.")]
+    public int UpdateRate = 60;
+
     private float _angleToTarget = 0f;
+    private float _limitedTraverseAngle = 0f;
     private float _elevation = 0f;
     private bool _hasBarrels = true;
     private bool _isAimed = false;
     private bool _isBaseAtRest = false;
     private bool _isBarrelAtRest = false;
 
+    public float AngleToTarget { get { return IsIdle ? 999f : _angleToTarget; } set { _angleToTarget = value; } }
     public float LimitedTraverseAngle { get { return _limitedTraverseAngle; } set { _limitedTraverseAngle = value; } }
     public float Elevation { get { return _elevation; } set { _elevation = value; } }
     public bool HasBarrels { get { return _hasBarrels; } }
-    public bool HasLimitedTraverse { get { return _hasLimitedTraverse; } }
+    public bool IsAimed { get { return _isAimed; } set { _isAimed = value; } }
     public bool IsBaseAtRest { get { return _isBaseAtRest; } set { _isBaseAtRest = value; } }
     public bool IsBarrelAtRest { get { return _isBarrelAtRest; } set { _isBarrelAtRest = value; } }
     public bool IsTurretAtRest { get { return _isBarrelAtRest && _isBaseAtRest; } }
-    public bool IsAimed { get { return _isAimed; } set { _isAimed = value; } }
-    public float AngleToTarget { get { return IsIdle ? 999f : _angleToTarget; } set { _angleToTarget = value; } }
 
-    [Header("Targeting")]
-    public Transform Targeted;
-    public GlobalHelper.Faction FireTarget = GlobalHelper.Faction.Foe;
-    public int UpdateRate = 60;
-    public float TurretRotateSpeed = 5f;
-    public GlobalHelper.GuidanceType GuidanceType = GlobalHelper.GuidanceType.Lead;
-    [Tooltip("The range within which the gun can target enemies.")]
-    public Vector2 ActiveRange = new Vector2(5f, 500f);
+    
     public void RotateBaseToFaceTarget(Vector3 targetPosition)
     {
         Vector3 turretUp = transform.up;
@@ -117,5 +121,40 @@ public class WeaponBase : MonoBehaviour
         }
 
         return new Vector2(azimuth, elevation);
+    }
+}
+
+
+public class GunBarrel
+{
+    public float RecoilLength = 0.3f;
+    public float RecoverSpeed = 1f;
+
+    private Transform barrel = null;
+    private Vector3 startLocalPosition = Vector3.zero;
+    private float recoil = 0f;
+
+    public GunBarrel(Transform barrel, float recoilLength, float recoverSpeed)
+    {
+        this.barrel = barrel;
+        RecoilLength = recoilLength;
+        RecoverSpeed = recoverSpeed;
+        startLocalPosition = this.barrel.localPosition;
+    }
+
+    public void FireRecoil()
+    {
+        recoil = RecoilLength;
+    }
+
+    public void ResetBarrelOverTime(float deltaTime)
+    {
+        recoil = Mathf.MoveTowards(recoil, 0f, RecoverSpeed * deltaTime);
+
+        // This means that when a barrel is fully reset it'll never be EXACTLY
+        // back at where it started, but this distance should be small enough
+        // that hopefully it won't be noticeable.
+        if (recoil > 0f)
+            barrel.transform.localPosition = startLocalPosition + (Vector3.back * recoil);
     }
 }

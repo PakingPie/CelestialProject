@@ -9,11 +9,7 @@ public class LaserTest : WeaponBase
     [Header("Laser Turret Settings")]
     public LineRenderer LaserLineRenderer;
     [Header("Laser Settings")]
-    [Tooltip("Number of updates per second for the laser targeting system.")]
-    public int UpdateRate = 60;
 
-    [Tooltip("The range within which the laser can target enemies.")]
-    public Vector2 LaserActiveRange = new Vector2(20f, 300f);
     [Tooltip("Duration of the laser effect in seconds.")]
     public float LaserEffectDuration = 2.5f;
     public float TurretRotateSpeed = 5f;
@@ -86,7 +82,7 @@ public class LaserTest : WeaponBase
             }
         }
 
-        if (nearest_enemy && shortest_distance <= LaserActiveRange.y)
+        if (nearest_enemy && shortest_distance <= ActiveRange.y)
         {
             Targeted = nearest_enemy.transform;
         }
