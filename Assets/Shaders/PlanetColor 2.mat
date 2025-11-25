@@ -24,7 +24,8 @@ Material:
   m_Shader: {fileID: -6465566751694194690, guid: d647c3a316d53c64a9f18d097cdee507, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _ENABLEFAKECLOUD
   m_InvalidKeywords: []
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
@@ -56,13 +57,15 @@ Material:
     m_Ints: []
     m_Floats:
     - _CloudThreshold: 6
+    - _ENABLEBACKLIGHTING: 0
+    - _ENABLEFAKECLOUD: 1
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
     - _Albedo: {r: 0.07102164, g: 0.3229682, b: 0.5018867, a: 1}
     - _LightPosition: {r: 15000, g: 1000, b: -3000, a: 0}
     - _OceanColor: {r: 0.0111997, g: 0.31504968, b: 0.5396226, a: 1}
-    - _SuntPosition: {r: 15000, g: 1000, b: -3000, a: 0}
+    - _SuntPosition: {r: 15000, g: 0, b: -3000, a: 0}
     - _Terrain_Color: {r: 0.81886786, g: 0.54454714, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
