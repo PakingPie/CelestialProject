@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using static GlobalHelper;
+using System.Numerics;
+using Vector3 = UnityEngine.Vector3;
 
 public abstract class VehicleBase : MonoBehaviour
 {
@@ -38,5 +40,6 @@ public abstract class VehicleBase : MonoBehaviour
     public int ShieldPoints = 10;
     public int MaxShieldPoints = 10;
     public int Speed = 10;
+    public Vector3 Scale = Vector3.one;
     [HideInInspector] public BoidsManager BoidManager;
 }

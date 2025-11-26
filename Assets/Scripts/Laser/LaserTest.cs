@@ -12,41 +12,47 @@ public class LaserTest : WeaponBase
 
     [Tooltip("Duration of the laser effect in seconds.")]
     public float LaserEffectDuration = 2.5f;
+    public float MinimumLaserDamageInterval = 0.1f;
     public float TurretRotateSpeed = 5f;
     public int LaserDamageCap = 10;
     public int LaserDPS = 1;
     public bool IsFiring = false;
 
-
+    private float _laserDurationTimer = 0.0f;
+    private float _laserDamageTimer = 0f;
     void Start()
     {
         InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
         LaserLineRenderer.SetPosition(0, transform.position);
 
-        if (Targeted != null)
+        if (Targeted == null)
         {
-            LaserLineRenderer.SetPosition(1, Targeted.position);
+            IsFiring = false;
         }
     }
     void Update()
     {
-        LaserLineRenderer.SetPosition(0, transform.position);
-        LaserLineRenderer.SetPosition(1, Targeted.position);
-
         if (!IsAimed)
             IsFiring = false;
         else
             IsFiring = true;
 
-        if (IsFiring)
+        if (IsFiring && Targeted != null)
         {
-            LaserEnable();
+            LaserLineRenderer.enabled = true;
+            Shoot();
+        }
+        else if(Targeted == null && _laserDurationTimer > 0.0f)
+        {
+            _laserDurationTimer += Time.deltaTime;
+            LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(LaserEffectDuration / 2f - (_laserDurationTimer - LaserEffectDuration / 2f)));
         }
         else
         {
-            LaserDisable();
+            LaserLineRenderer.enabled = false;
         }
 
+        // Rotate turret logic
         if (IsIdle || Targeted == null)
         {
             if (!IsTurretAtRest)
@@ -60,7 +66,7 @@ public class LaserTest : WeaponBase
 
             if (HasBarrels)
                 RotateBarrelsToFaceTarget(aimPosition);
-            
+
             AngleToTarget = GetTurretAngleToTarget(aimPosition);
 
             // Turret is considered "aimed" when it's pointed at the target.
@@ -71,21 +77,39 @@ public class LaserTest : WeaponBase
         }
     }
 
-    void LockOn()
-    {
-        if (Targeted == null)
-        {
-            return;
-        }
-        Vector3 dir = Targeted.position - transform.position;
-        Quaternion look_rotation = Quaternion.LookRotation(dir);
-        Vector3 rotation = Quaternion.Lerp(transform.rotation, look_rotation, Time.deltaTime * TurretRotateSpeed).eulerAngles;
-        transform.rotation = Quaternion.Euler(0f, rotation.y, 0f);
-    }
-
     public void Shoot()
     {
-        StartCoroutine(LaserBeam());
+        LaserLineRenderer.SetPosition(0, transform.position);
+        LaserLineRenderer.SetPosition(1, Targeted.position);
+
+        if (_laserDurationTimer < LaserEffectDuration)
+        {
+            _laserDurationTimer += Time.deltaTime;
+            _laserDamageTimer += Time.deltaTime;
+            if (_laserDurationTimer > LaserEffectDuration / 2f)   // Fade out
+            {
+                LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(LaserEffectDuration / 2f - (_laserDurationTimer - LaserEffectDuration / 2f)));
+            }
+            else                                // Fade in
+            {
+                LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(_laserDurationTimer));
+            }
+
+            if (_laserDurationTimer > 0.5f && _laserDurationTimer < LaserEffectDuration - 0.5f && _laserDamageTimer >= MinimumLaserDamageInterval)
+            {
+                _laserDamageTimer = 0f;
+                var enemyVehicle = Targeted.gameObject.GetComponent<EnemyVehicle>();
+                if (enemyVehicle != null)
+                {
+                    enemyVehicle.TakeDamage(LaserDPS, AmmoType.Energy);
+                }
+            }
+        }
+        else
+        {
+            _laserDurationTimer = 0.0f;
+        }
+
     }
 
     public void UpdateTarget()
@@ -156,27 +180,30 @@ public class LaserTest : WeaponBase
         {
             LaserLineRenderer.enabled = false;
         }
-        StopCoroutine(LaserBeam());
     }
 
     IEnumerator LaserBeam()
     {
+        if (Targeted == null)
+            yield break;
         LaserLineRenderer.material.SetFloat("_Active_Time", 0.0f);
+        _laserDamageTimer = 0f;
         // int LaserDamageDealt = 0;
-        for (float t = 0.0f; t <= LaserEffectDuration; t += Time.deltaTime)
+        for (float _laserDurationTimer = 0.0f; _laserDurationTimer <= LaserEffectDuration; _laserDurationTimer += Time.deltaTime, _laserDamageTimer += Time.deltaTime)
         {
             yield return null;
-            if (t > LaserEffectDuration / 2f)   // Fade out
+            if (_laserDurationTimer > LaserEffectDuration / 2f)   // Fade out
             {
-                LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(LaserEffectDuration / 2f - (t - LaserEffectDuration / 2f)));
+                LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(LaserEffectDuration / 2f - (_laserDurationTimer - LaserEffectDuration / 2f)));
             }
             else                                // Fade in
             {
-                LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(t));
+                LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(_laserDurationTimer));
             }
 
-            if (t > 0.5f && t < LaserEffectDuration - 0.5f)
+            if (_laserDurationTimer > 0.5f && _laserDurationTimer < LaserEffectDuration - 0.5f && _laserDamageTimer >= MinimumLaserDamageInterval)
             {
+                _laserDamageTimer = 0f;
                 var enemyVehicle = Targeted.gameObject.GetComponent<EnemyVehicle>();
                 if (enemyVehicle != null)
                 {
