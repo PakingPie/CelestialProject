@@ -166,7 +166,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &35413006
 Transform:
   m_ObjectHideFlags: 0
@@ -214,7 +214,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
-  FireDelay: 2
+  FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 8
   AutoInheritVelocity: 1
@@ -653,7 +653,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &108884218
 Transform:
   m_ObjectHideFlags: 0
@@ -701,7 +701,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
-  FireDelay: 2
+  FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 8
   AutoInheritVelocity: 1
@@ -1385,7 +1385,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &306694346
 Transform:
   m_ObjectHideFlags: 0
@@ -1433,7 +1433,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
-  FireDelay: 2
+  FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 8
   AutoInheritVelocity: 1
@@ -1566,57 +1566,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!21 &356637004
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs/EnergyShieldEffect
-  m_Shader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _HitAreaTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_Lightmaps:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_LightmapsInd:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_ShadowMasks:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _QueueControl: -1
-    - _QueueOffset: 0
-    - _Strength: 1
-    m_Colors:
-    - _Color1: {r: 2.996078, g: 11.98431, b: 11.98431, a: 1}
-    - _Color2: {r: 2.396863, g: 9.587453, b: 11.98432, a: 1}
-    - _Color3: {r: 13.94717, g: 12.90964, b: 3.236795, a: 1}
-    - _Color4: {r: 13.3434, g: 2.895263, b: 2.895263, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &359497835
 GameObject:
   m_ObjectHideFlags: 0
@@ -2726,60 +2675,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!21 &578126697
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs/HitpointBar Italia
-  m_Shader: {fileID: -6465566751694194690, guid: 7d61a5a8515e1f1479746c8e2b0518ba, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_Lightmaps:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_LightmapsInd:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_ShadowMasks:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _CurrentHitPoints: 1000
-    - _Grid_Size: 20
-    - _MaxHitPoints: 1000
-    - _Rotation: 2
-    - _SWITCHDIRECTION: 0
-    m_Colors:
-    - _Color1: {r: 1, g: 0.9333334, b: 0.5490196, a: 1}
-    - _Color2: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-    - _Color3: {r: 0.6470588, g: 0.1647059, b: 0.1647059, a: 1}
-    - _ColorChangeThreshold: {r: 0.6, g: 0.3, b: 0, a: 0}
-    - _EdgeColor: {r: 0.5525606, g: 0.5525606, b: 0.5525606, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &619725932
 GameObject:
   m_ObjectHideFlags: 0
@@ -2811,9 +2706,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 990282427}
-  - {fileID: 1246863092}
   - {fileID: 178291925}
+  - {fileID: 665570402}
   m_Father: {fileID: 4585582713564908444}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &619725934
@@ -2828,8 +2722,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 011ea27b80252f74691662dd60e3ad74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LaserTest
-  TurretBase: {fileID: 619725933}
-  Barrels: {fileID: 1246863092}
+  TurretBase: {fileID: 665570402}
+  Barrels: {fileID: 1218004834}
   ElevationSpeed: 30
   MaxElevation: 90
   MaxDepression: 20
@@ -2853,6 +2747,7 @@ MonoBehaviour:
   LaserDamageCap: 10
   LaserDPS: 2
   IsFiring: 0
+  LaserOrigin: {fileID: 725396406}
 --- !u!120 &619725935
 LineRenderer:
   serializedVersion: 2
@@ -2879,7 +2774,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -876546973899608171, guid: 77a2da65be4f996419d293329499cd6c, type: 3}
+  - {fileID: 2100000, guid: bfb58940c29d3e2418ad44969a790ac2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3201,6 +3096,39 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &665570401
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 665570402}
+  m_Layer: 9
+  m_Name: Turret
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &665570402
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 665570401}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.05, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1218004834}
+  - {fileID: 990282427}
+  m_Father: {fileID: 619725933}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &680814439
 GameObject:
   m_ObjectHideFlags: 0
@@ -3610,6 +3538,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1159938384}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &725396405
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 725396406}
+  m_Layer: 9
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &725396406
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 725396405}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.1185}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1218004834}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &769037776
 GameObject:
@@ -4897,12 +4856,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 990282426}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.05, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.10000001, y: 0.10000001, z: 0.10000001}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 619725933}
+  m_Father: {fileID: 665570402}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!135 &990282428
 SphereCollider:
@@ -5488,6 +5447,60 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1115345039}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!21 &1139466629
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shader Graphs/HitpointBar Italia
+  m_Shader: {fileID: -6465566751694194690, guid: 7d61a5a8515e1f1479746c8e2b0518ba, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _CurrentHitPoints: 1000
+    - _Grid_Size: 20
+    - _MaxHitPoints: 1000
+    - _Rotation: 2
+    - _SWITCHDIRECTION: 0
+    m_Colors:
+    - _Color1: {r: 1, g: 0.9333334, b: 0.5490196, a: 1}
+    - _Color2: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+    - _Color3: {r: 0.6470588, g: 0.1647059, b: 0.1647059, a: 1}
+    - _ColorChangeThreshold: {r: 0.6, g: 0.3, b: 0, a: 0}
+    - _EdgeColor: {r: 0.5525606, g: 0.5525606, b: 0.5525606, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1146944226
 GameObject:
   m_ObjectHideFlags: 0
@@ -5504,7 +5517,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1146944227
 Transform:
   m_ObjectHideFlags: 0
@@ -5552,7 +5565,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
-  FireDelay: 2
+  FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 8
   AutoInheritVelocity: 1
@@ -5923,7 +5936,7 @@ MonoBehaviour:
   IsFiring: 1
   UseAmmo: 0
   MaxAmmo: 10000
---- !u!21 &1239670858
+--- !u!21 &1194652714
 Material:
   serializedVersion: 8
   m_ObjectHideFlags: 0
@@ -5964,19 +5977,52 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _CurrentHitPoints: 1000
+    - _CurrentHitPoints: 2000
     - _Grid_Size: 20
-    - _MaxHitPoints: 1000
+    - _MaxHitPoints: 2000
     - _Rotation: 2
     - _SWITCHDIRECTION: 0
     m_Colors:
-    - _Color1: {r: 0.8784314, g: 1, b: 1, a: 1}
-    - _Color2: {r: 0, g: 1, b: 1, a: 1}
-    - _Color3: {r: 0, g: 0.5450981, b: 0.5450981, a: 1}
+    - _Color1: {r: 0.5647059, g: 0.9333334, b: 0.5647059, a: 1}
+    - _Color2: {r: 1, g: 1, b: 0.8784314, a: 1}
+    - _Color3: {r: 0.8627452, g: 0.1921569, b: 0.1960784, a: 1}
     - _ColorChangeThreshold: {r: 0.6, g: 0.3, b: 0, a: 0}
     - _EdgeColor: {r: 0.5525606, g: 0.5525606, b: 0.5525606, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
+--- !u!1 &1218004833
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1218004834}
+  m_Layer: 9
+  m_Name: Barrels
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1218004834
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1218004833}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1246863092}
+  - {fileID: 725396406}
+  m_Father: {fileID: 665570402}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1245198353
 GameObject:
   m_ObjectHideFlags: 0
@@ -6116,11 +6162,11 @@ Transform:
   m_GameObject: {fileID: 1246863091}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0.05, z: 0.05}
-  m_LocalScale: {x: 0.010000001, y: 0.050000004, z: 0.01}
+  m_LocalPosition: {x: 0, y: 0, z: 0.050000012}
+  m_LocalScale: {x: 0.010000001, y: 0.050000004, z: 0.009999999}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 619725933}
+  m_Father: {fileID: 1218004834}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!136 &1246863093
 CapsuleCollider:
@@ -7657,60 +7703,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1495171725}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!21 &1507399384
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs/HitpointBar Italia
-  m_Shader: {fileID: -6465566751694194690, guid: 7d61a5a8515e1f1479746c8e2b0518ba, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_Lightmaps:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_LightmapsInd:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - unity_ShadowMasks:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _CurrentHitPoints: 2000
-    - _Grid_Size: 20
-    - _MaxHitPoints: 2000
-    - _Rotation: 2
-    - _SWITCHDIRECTION: 0
-    m_Colors:
-    - _Color1: {r: 0.5647059, g: 0.9333334, b: 0.5647059, a: 1}
-    - _Color2: {r: 1, g: 1, b: 0.8784314, a: 1}
-    - _Color3: {r: 0.8627452, g: 0.1921569, b: 0.1960784, a: 1}
-    - _ColorChangeThreshold: {r: 0.6, g: 0.3, b: 0, a: 0}
-    - _EdgeColor: {r: 0.5525606, g: 0.5525606, b: 0.5525606, a: 1}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &1526713945
 GameObject:
   m_ObjectHideFlags: 0
@@ -8339,6 +8331,60 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1601955720}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!21 &1604968111
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shader Graphs/HitpointBar Italia
+  m_Shader: {fileID: -6465566751694194690, guid: 7d61a5a8515e1f1479746c8e2b0518ba, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _CurrentHitPoints: 1000
+    - _Grid_Size: 20
+    - _MaxHitPoints: 1000
+    - _Rotation: 2
+    - _SWITCHDIRECTION: 0
+    m_Colors:
+    - _Color1: {r: 0.8784314, g: 1, b: 1, a: 1}
+    - _Color2: {r: 0, g: 1, b: 1, a: 1}
+    - _Color3: {r: 0, g: 0.5450981, b: 0.5450981, a: 1}
+    - _ColorChangeThreshold: {r: 0.6, g: 0.3, b: 0, a: 0}
+    - _EdgeColor: {r: 0.5525606, g: 0.5525606, b: 0.5525606, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1615824815
 GameObject:
   m_ObjectHideFlags: 0
@@ -8619,7 +8665,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1630889159
 Transform:
   m_ObjectHideFlags: 0
@@ -8667,7 +8713,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
-  FireDelay: 2
+  FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 8
   AutoInheritVelocity: 1
@@ -8969,7 +9015,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1695574712
 Transform:
   m_ObjectHideFlags: 0
@@ -9017,7 +9063,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
-  FireDelay: 2
+  FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 8
   AutoInheritVelocity: 1
@@ -9903,6 +9949,57 @@ Transform:
   - {fileID: 1722902473}
   m_Father: {fileID: 514873004}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!21 &1792423294
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shader Graphs/EnergyShieldEffect
+  m_Shader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _HitAreaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _QueueControl: -1
+    - _QueueOffset: 0
+    - _Strength: 1
+    m_Colors:
+    - _Color1: {r: 2.996078, g: 11.98431, b: 11.98431, a: 1}
+    - _Color2: {r: 2.396863, g: 9.587453, b: 11.98432, a: 1}
+    - _Color3: {r: 13.94717, g: 12.90964, b: 3.236795, a: 1}
+    - _Color4: {r: 13.3434, g: 2.895263, b: 2.895263, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1803394343
 GameObject:
   m_ObjectHideFlags: 0
@@ -10852,7 +10949,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 356637004}
+  - {fileID: 1792423294}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -11295,9 +11392,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
-  - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
+  - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 500
-  spawnCount: 1
+  spawnCount: 20
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 1
   HeightRange: {x: -1000, y: 5000}
@@ -12690,6 +12787,7 @@ MonoBehaviour:
   ShieldPoints: 1000
   MaxShieldPoints: 1000
   Speed: 10
+  Scale: {x: 1, y: 1, z: 1}
   BoidManager: {fileID: 0}
   HealthBar: {fileID: 1079174261}
   ArmorBar: {fileID: 557627072}

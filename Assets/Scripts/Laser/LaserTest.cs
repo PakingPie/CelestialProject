@@ -17,13 +17,14 @@ public class LaserTest : WeaponBase
     public int LaserDamageCap = 10;
     public int LaserDPS = 1;
     public bool IsFiring = false;
+    public Transform LaserOrigin;
 
     private float _laserDurationTimer = 0.0f;
     private float _laserDamageTimer = 0f;
     void Start()
     {
         InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
-        LaserLineRenderer.SetPosition(0, transform.position);
+        LaserLineRenderer.SetPosition(0, LaserOrigin.position);
 
         if (Targeted == null)
         {
@@ -79,7 +80,7 @@ public class LaserTest : WeaponBase
 
     public void Shoot()
     {
-        LaserLineRenderer.SetPosition(0, transform.position);
+        LaserLineRenderer.SetPosition(0, LaserOrigin.position);
         LaserLineRenderer.SetPosition(1, Targeted.position);
 
         if (_laserDurationTimer < LaserEffectDuration)
@@ -95,7 +96,7 @@ public class LaserTest : WeaponBase
                 LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(_laserDurationTimer));
             }
 
-            if (_laserDurationTimer > 0.5f && _laserDurationTimer < LaserEffectDuration - 0.5f && _laserDamageTimer >= MinimumLaserDamageInterval)
+            if (_laserDurationTimer > 0.2f && _laserDurationTimer < LaserEffectDuration - 0.2f && _laserDamageTimer >= MinimumLaserDamageInterval)
             {
                 _laserDamageTimer = 0f;
                 var enemyVehicle = Targeted.gameObject.GetComponent<EnemyVehicle>();
@@ -160,78 +161,6 @@ public class LaserTest : WeaponBase
         {
             IsAimed = false;
             Targeted = null;
-            LaserDisable();
-        }
-    }
-
-
-    public void LaserEnable()
-    {
-        if (!LaserLineRenderer.enabled)
-        {
-            LaserLineRenderer.enabled = true;
-        }
-        StartCoroutine(LaserBeam());
-    }
-
-    public void LaserDisable()
-    {
-        if (LaserLineRenderer.enabled)
-        {
-            LaserLineRenderer.enabled = false;
-        }
-    }
-
-    IEnumerator LaserBeam()
-    {
-        if (Targeted == null)
-            yield break;
-        LaserLineRenderer.material.SetFloat("_Active_Time", 0.0f);
-        _laserDamageTimer = 0f;
-        // int LaserDamageDealt = 0;
-        for (float _laserDurationTimer = 0.0f; _laserDurationTimer <= LaserEffectDuration; _laserDurationTimer += Time.deltaTime, _laserDamageTimer += Time.deltaTime)
-        {
-            yield return null;
-            if (_laserDurationTimer > LaserEffectDuration / 2f)   // Fade out
-            {
-                LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(LaserEffectDuration / 2f - (_laserDurationTimer - LaserEffectDuration / 2f)));
-            }
-            else                                // Fade in
-            {
-                LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(_laserDurationTimer));
-            }
-
-            if (_laserDurationTimer > 0.5f && _laserDurationTimer < LaserEffectDuration - 0.5f && _laserDamageTimer >= MinimumLaserDamageInterval)
-            {
-                _laserDamageTimer = 0f;
-                var enemyVehicle = Targeted.gameObject.GetComponent<EnemyVehicle>();
-                if (enemyVehicle != null)
-                {
-                    enemyVehicle.TakeDamage(LaserDPS, AmmoType.Energy);
-                }
-            }
-        }
-        // yield return new WaitForSeconds(LaserEffectDuration);
-    }
-}
-
-[CustomEditor(typeof(LaserTest))]
-public class LaserTestEditor : Editor
-{
-    LaserTest laserTest;
-    public override void OnInspectorGUI()
-    {
-        base.OnInspectorGUI();
-
-        laserTest = (LaserTest)target;
-        if (GUILayout.Button("Enable Laser"))
-        {
-            laserTest.LaserEnable();
-        }
-
-        if (GUILayout.Button("Disable Laser"))
-        {
-            laserTest.LaserDisable();
         }
     }
 }
