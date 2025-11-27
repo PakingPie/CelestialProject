@@ -243,6 +243,12 @@ public class WeaponBase : MonoBehaviour
             Gizmos.DrawLine(transform.position, Targeted.position);
         }
     }
+
+    public GameObject[] GetCurrentAvailableTargets()
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag(GlobalHelper.FactionNames[(int)FireTarget]);
+        return enemies;
+    }
 }
 
 public class GunBarrel

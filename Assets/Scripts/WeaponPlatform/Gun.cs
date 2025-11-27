@@ -235,7 +235,7 @@ public class Gun : WeaponBase
 
             AmmoCount -= 1;
             // If use sequential firing, add a small delay between each of the shots. Then use the main delay after all Barrels have fired.
-            if( _firePointIndex % FirePoints.Count == 0)
+            if (_firePointIndex % FirePoints.Count == 0)
             {
                 _lastShotTime = Time.time;
             }
@@ -334,7 +334,7 @@ public class Gun : WeaponBase
                     continue;
                 }
             }
-            
+
             if (distance_to_enemy < ActiveRange.y && distance_to_enemy < shortest_distance)
             {
                 shortest_distance = distance_to_enemy;

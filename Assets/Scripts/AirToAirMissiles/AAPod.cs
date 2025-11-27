@@ -76,7 +76,7 @@ public class AAPod : AALauncher
             Vector3 randomizedForward = launchPoints[tubeCount].forward + deviation;
             Quaternion randomizedRotation = Quaternion.LookRotation(randomizedForward);
 
-            AAMissile missile = CreateMissile(launchPoints[tubeCount].position, randomizedRotation);
+            AAMissile missile = CreateMissile(launchPoints[tubeCount], randomizedRotation);
             missile.target = target;
             missile.Launch(target, velocity);
             reloadCooldown = fireDelay;
@@ -137,11 +137,11 @@ public class AAPod : AALauncher
     /// <param name="position">Where the missile spawns.</param>
     /// <param name="rotation">Initial rotation of the missile.</param>
     /// <returns></returns>
-    private AAMissile CreateMissile(Vector3 position, Quaternion rotation)
+    private AAMissile CreateMissile(Transform transform, Quaternion rotation)
     {
-        AAMissile mis = Instantiate(missilePrefabToLaunch) as AAMissile;
+        AAMissile mis = Instantiate(missilePrefabToLaunch, transform) as AAMissile;
         mis.ownShip = ownShip;
-        mis.transform.position = position;
+        mis.transform.position = transform.position;
         mis.transform.rotation = rotation;
 
         return mis;
