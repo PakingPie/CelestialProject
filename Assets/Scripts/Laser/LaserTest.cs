@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using static GlobalHelper;
+using UnityEngine.VFX;
 // [ExecuteInEditMode]
 public class LaserTest : WeaponBase
 {
@@ -18,7 +19,7 @@ public class LaserTest : WeaponBase
     public int LaserDPS = 1;
     public bool IsFiring = false;
     public Transform LaserOrigin;
-
+    public VisualEffect LaserLaunchEffect;
     private float _laserDurationTimer = 0.0f;
     private float _laserDamageTimer = 0f;
     void Start()
@@ -41,6 +42,8 @@ public class LaserTest : WeaponBase
         if (IsFiring && Targeted != null)
         {
             LaserLineRenderer.enabled = true;
+            LaserLaunchEffect.transform.position = LaserOrigin.position;
+            LaserLaunchEffect.Play();
             Shoot();
         }
         else if(Targeted == null && _laserDurationTimer > 0.0f)
@@ -51,6 +54,7 @@ public class LaserTest : WeaponBase
         else
         {
             LaserLineRenderer.enabled = false;
+            LaserLaunchEffect.Stop();
         }
 
         // Rotate turret logic

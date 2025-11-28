@@ -85,6 +85,8 @@ public class AAMissile : MonoBehaviour
     public int ExplodeRadius = 5;
     public int DetonationRadius = 3;
 
+    [Header("Apperance")]
+    public Vector3 MissileScale = Vector3.one * 0.5f;
 
     AAMissileEffects missileEffect;
     private Vector3 launchVelocity = Vector3.zero;
@@ -283,6 +285,7 @@ public class AAMissile : MonoBehaviour
             isLaunched = true;
             launchTime = Time.time;
             transform.parent = null;
+            transform.localScale = MissileScale;
             target = newTarget;
             launchVelocity = inheritedVelocity;
             // rigidbody.isKinematic = false;

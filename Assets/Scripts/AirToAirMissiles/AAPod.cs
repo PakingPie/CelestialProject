@@ -1,3 +1,4 @@
+using UnityEditor.EditorTools;
 using UnityEngine;
 
 public class AAPod : AALauncher
@@ -137,11 +138,11 @@ public class AAPod : AALauncher
     /// <param name="position">Where the missile spawns.</param>
     /// <param name="rotation">Initial rotation of the missile.</param>
     /// <returns></returns>
-    private AAMissile CreateMissile(Transform transform, Quaternion rotation)
+    private AAMissile CreateMissile(Transform parentTransform, Quaternion rotation)
     {
-        AAMissile mis = Instantiate(missilePrefabToLaunch, transform) as AAMissile;
+        AAMissile mis = Instantiate(missilePrefabToLaunch, parentTransform) as AAMissile;
         mis.ownShip = ownShip;
-        mis.transform.position = transform.position;
+        mis.transform.position = parentTransform.position;
         mis.transform.rotation = rotation;
 
         return mis;

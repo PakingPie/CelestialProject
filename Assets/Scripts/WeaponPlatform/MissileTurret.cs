@@ -27,22 +27,18 @@ public class MissileTurret : WeaponBase
 
         if (IsFiring && Targeted != null)
         {
-            _fireTimer += Time.deltaTime;
-            if (_fireTimer < FireInterval)
-                return;
-            _fireTimer = 0.0f;
-            
-            Vector3 directionToTarget = (Targeted.position - _launcher.transform.position).normalized;
-            float angleToTarget = Vector3.Angle(_launcher.transform.forward, directionToTarget);
-            if (angleToTarget > _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone / 2f)
-            {
-                return;
-            }
+            // _fireTimer += Time.deltaTime;
+            // if (_fireTimer < FireInterval)
+            //     return;
+            // _fireTimer = 0.0f;
 
-            if (_launcher.missilePrefabToLaunch.GetComponent<AAMissile>().ActiveRange < Vector3.Distance(transform.position, Targeted.position))
-            {
+            // Get Relative angles to target 
+            Vector2 relativeAngles = CalcuateRelativeAngles(Targeted);
+            // Get seeker cone angle from launcher's prebab
+            float seekerCone = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone;
+            if (Mathf.Abs(relativeAngles.x) > seekerCone / 2f || Mathf.Abs(relativeAngles.y) > seekerCone / 2f)
                 return;
-            }
+            
             _launcher.Launch(Targeted);
         }
 
