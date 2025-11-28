@@ -339,15 +339,15 @@ public class ShieldHitEffect : MonoBehaviour
         ClearAll();
     }
 
-    void OnGUI()
-    {
-        if (_cumulativeRT != null && Event.current.type == EventType.Repaint)
-        {
-            GUI.DrawTexture(new Rect(10, 10, 128, 128), _cumulativeRT);
-            GUI.Label(new Rect(10, 145, 200, 20), $"Active Ripples: {_activeRipples.Count}");
-            GUI.Label(new Rect(10, 165, 200, 20), $"Clear Timer: {_forceClearTimer:F2}s");
-        }
-    }
+    // void OnGUI()
+    // {
+    //     if (_cumulativeRT != null && Event.current.type == EventType.Repaint)
+    //     {
+    //         GUI.DrawTexture(new Rect(10, 10, 128, 128), _cumulativeRT);
+    //         GUI.Label(new Rect(10, 145, 200, 20), $"Active Ripples: {_activeRipples.Count}");
+    //         GUI.Label(new Rect(10, 165, 200, 20), $"Clear Timer: {_forceClearTimer:F2}s");
+    //     }
+    // }
 }
 
 [CustomEditor(typeof(ShieldHitEffect))]

@@ -103,7 +103,7 @@ public class LaserTest : WeaponBase
             if (_laserDurationTimer > 0.2f && _laserDurationTimer < LaserEffectDuration - 0.2f && _laserDamageTimer >= MinimumLaserDamageInterval)
             {
                 _laserDamageTimer = 0f;
-                var enemyVehicle = Targeted.gameObject.GetComponent<EnemyVehicle>();
+                var enemyVehicle = Targeted.gameObject.GetComponent<VehicleBase>();
                 if (enemyVehicle != null)
                 {
                     enemyVehicle.TakeDamage(LaserDPS, AmmoType.Energy);

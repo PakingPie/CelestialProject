@@ -299,7 +299,7 @@ Transform:
   m_GameObject: {fileID: 3559267981316310301}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.173}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -387,7 +387,7 @@ Transform:
   m_GameObject: {fileID: 3681519436312465255}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 1, w: 0}
-  m_LocalPosition: {x: 0, y: -0.06, z: 0.2}
+  m_LocalPosition: {x: 0, y: -0.06, z: 0.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -455,7 +455,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1312519066579379706}
   m_Layer: 0
-  m_Name: Barrel
+  m_Name: Barrels
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -470,11 +470,12 @@ Transform:
   m_GameObject: {fileID: 3915756800065681784}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.22}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1816856725787006798}
+  - {fileID: 7887085982298261566}
   m_Father: {fileID: 2208432724579300860}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4103674997823826176
@@ -550,10 +551,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
   HitPoints: 100
   MaxHitPoints: 100
-  ArmorPoints: 50
-  MaxArmorPoints: 50
-  ShieldPoints: 50
-  MaxShieldPoints: 50
+  ArmorPoints: 100
+  MaxArmorPoints: 100
+  ShieldPoints: 100
+  MaxShieldPoints: 100
   Speed: 1
   Scale: {x: 1, y: 1, z: 1}
   BoidManager: {fileID: 0}
@@ -583,7 +584,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
   ShieldGO: {fileID: 124679239445400308}
-  TextureSize: 8
+  TextureSize: 32
   HitImpactScale: 1
   HitImpactDuration: 1
   DecayPerSecond: 0.9
@@ -1091,7 +1092,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1312519066579379706}
-  - {fileID: 7887085982298261566}
   - {fileID: 491672687639998709}
   m_Father: {fileID: 2516039646406173720}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1122,7 +1122,7 @@ Transform:
   m_GameObject: {fileID: 6485054979579631369}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.005, z: 0.05}
+  m_LocalPosition: {x: 0, y: 0.005, z: 0.075}
   m_LocalScale: {x: 0.01, y: 0.01, z: 0.2}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1324,9 +1324,9 @@ Transform:
   m_GameObject: {fileID: 7214037321555109654}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.4}
+  m_LocalPosition: {x: 0, y: 0, z: 0.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2208432724579300860}
+  m_Father: {fileID: 1312519066579379706}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
