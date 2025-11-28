@@ -277,6 +277,7 @@ public class EnemyVehicle : VehicleBase
         if (HitPoints <= 0)
         {
             DestroyVehicle();
+            GetCurrentAvailableTargets(FactionType);
         }
 
         _lastDamageTime = 0f; // Reset shield regeneration timer on taking damage

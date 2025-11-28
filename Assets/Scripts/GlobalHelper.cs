@@ -37,4 +37,10 @@ public static class GlobalHelper
     };
 
     public static string[] FactionNames = { "Player", "Ally", "Foe", "Neutral" };
+
+    public static GameObject[] GetCurrentAvailableTargets(Faction fireTarget)
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag(FactionNames[(int)fireTarget]);
+        return enemies;
+    }
 }

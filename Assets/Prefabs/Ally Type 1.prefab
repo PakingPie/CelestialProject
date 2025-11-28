@@ -419,12 +419,12 @@ MonoBehaviour:
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 5
   Targeted: {fileID: 0}
-  FireTarget: 0
+  FireTarget: 2
   GuidanceType: 1
   ActiveRange: {x: 5, y: 500}
   UpdateRate: 30
   ShowGizmos: 0
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
   Deviation: 0.1
   AutoInheritVelocity: 1
@@ -439,7 +439,7 @@ MonoBehaviour:
   RecoilLength: 0.3
   RecoilRecoverSpeed: 1
   RecoilingBarrels: []
-  BulletPrefab: {fileID: -3295528032157664246, guid: ab44580e32713cc4d8922fc48bc045ac, type: 3}
+  BulletPrefab: {fileID: -3295528032157664246, guid: 933ad824c5d806540a368873edeeb09f, type: 3}
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
@@ -493,8 +493,8 @@ GameObject:
   - component: {fileID: 506681942887901699}
   - component: {fileID: 8601252320548999007}
   m_Layer: 9
-  m_Name: Enemy Type 1
-  m_TagString: Foe
+  m_Name: Ally Type 1
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -558,7 +558,7 @@ MonoBehaviour:
   Speed: 1
   Scale: {x: 1, y: 1, z: 1}
   BoidManager: {fileID: 0}
-  FactionType: 2
+  FactionType: 0
   Type: 0
   HealthBar: {fileID: 4407329836811907037}
   ArmorBar: {fileID: 656281697264504808}
@@ -642,7 +642,7 @@ TrailRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 63deadf3909f1f7499635517fba7ab57, type: 2}
+  - {fileID: 2100000, guid: cae79130ccec73d428140107d010faaf, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
