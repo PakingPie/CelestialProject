@@ -139,12 +139,12 @@ MonoBehaviour:
   TurretBase: {fileID: 5479172773879929837}
   Barrels: {fileID: 6967622900144706132}
   ElevationSpeed: 30
-  MaxElevation: 75
+  MaxElevation: 20
   MaxDepression: 2
   TraverseSpeed: 60
-  HasLimitedTraverse: 0
-  LeftLimit: 120
-  RightLimit: 120
+  HasLimitedTraverse: 1
+  LeftLimit: 60
+  RightLimit: 60
   IsIdle: 0
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 5
@@ -154,10 +154,11 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 500}
   UpdateRate: 60
   ShowGizmos: 0
+  UseManagedUpdates: 1
   LaserLineRenderer: {fileID: 5457200971297131156}
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.2
-  FireInterval: 2
+  FireInterval: 6
   TurretRotateSpeed: 5
   LaserDamageCap: 20
   LaserDPS: 4
@@ -744,8 +745,8 @@ MonoBehaviour:
   MaxDepression: 15
   TraverseSpeed: 30
   HasLimitedTraverse: 1
-  LeftLimit: 150
-  RightLimit: 150
+  LeftLimit: 80
+  RightLimit: 80
   IsIdle: 0
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 5
@@ -755,7 +756,8 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 600}
   UpdateRate: 30
   ShowGizmos: 0
-  FireDelay: 2
+  UseManagedUpdates: 1
+  FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 0.1
   AutoInheritVelocity: 1
@@ -888,7 +890,7 @@ MonoBehaviour:
   Speed: 1
   Scale: {x: 1, y: 1, z: 1}
   BoidManager: {fileID: 0}
-  FactionType: 4
+  VehicleFaction: 4
   Type: 0
   HealthBar: {fileID: 4407329836811907037}
   ArmorBar: {fileID: 656281697264504808}
@@ -914,9 +916,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
   ShieldGO: {fileID: 124679239445400308}
-  TextureSize: 32
-  HitImpactScale: 1
-  HitImpactDuration: 1
+  TextureSize: 16
+  HitImpactScale: 0.1
+  HitImpactDuration: 0.5
   DecayPerSecond: 0.9
   MinDecayThreshold: 0.02
   ForceClearInterval: 3

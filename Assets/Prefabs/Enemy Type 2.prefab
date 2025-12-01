@@ -413,8 +413,8 @@ MonoBehaviour:
   MaxDepression: 15
   TraverseSpeed: 30
   HasLimitedTraverse: 1
-  LeftLimit: 150
-  RightLimit: 150
+  LeftLimit: 80
+  RightLimit: 80
   IsIdle: 0
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 5
@@ -424,6 +424,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 400}
   UpdateRate: 30
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 0.8
   MuzzleVelocity: 200
   Deviation: 0.1
@@ -561,7 +562,7 @@ MonoBehaviour:
   Speed: 1
   Scale: {x: 1, y: 1, z: 1}
   BoidManager: {fileID: 0}
-  FactionType: 4
+  VehicleFaction: 4
   Type: 0
   HealthBar: {fileID: 4407329836811907037}
   ArmorBar: {fileID: 656281697264504808}
@@ -587,9 +588,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
   ShieldGO: {fileID: 124679239445400308}
-  TextureSize: 32
-  HitImpactScale: 1
-  HitImpactDuration: 1
+  TextureSize: 16
+  HitImpactScale: 0.1
+  HitImpactDuration: 0.5
   DecayPerSecond: 0.9
   MinDecayThreshold: 0.02
   ForceClearInterval: 3

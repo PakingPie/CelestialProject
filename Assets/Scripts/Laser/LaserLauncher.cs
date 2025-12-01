@@ -1,16 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using static GlobalHelper;
 using UnityEngine.VFX;
-// [ExecuteInEditMode]
+
 public class LaserLauncher : WeaponBase
 {
     [Header("Laser Turret Settings")]
     public LineRenderer LaserLineRenderer;
-    [Header("Laser Settings")]
 
+    [Header("Laser Settings")]
     [Tooltip("Duration of the laser effect in seconds.")]
     public float LaserEffectDuration = 2.5f;
     public float MinimumLaserDamageInterval = 0.1f;
@@ -21,18 +20,35 @@ public class LaserLauncher : WeaponBase
     public bool IsFiring = false;
     public Transform LaserOrigin;
     public VisualEffect LaserLaunchEffect;
+
     private float _laserDurationTimer = 0.0f;
     private float _laserDamageTimer = 0f;
+    private float _fireCooldownTimer = 0f;
+    private bool _isOnCooldown = false;
 
     private RaycastHit _hit;
+
+    public bool ReadyToFire => !_isOnCooldown;
+
     void Start()
     {
         LaserLineRenderer.SetPosition(0, LaserOrigin.position);
     }
+
     void Update()
     {
-        // base.Update();
-        IsFiring = IsAimed;
+        // Handle cooldown
+        if (_isOnCooldown)
+        {
+            _fireCooldownTimer += Time.deltaTime;
+            if (_fireCooldownTimer >= FireInterval)
+            {
+                _isOnCooldown = false;
+                _fireCooldownTimer = 0f;
+            }
+        }
+
+        IsFiring = IsAimed && ReadyToFire;
 
         if (IsFiring && Targeted != null)
         {
@@ -43,8 +59,17 @@ public class LaserLauncher : WeaponBase
         }
         else if (Targeted == null && _laserDurationTimer > 0.0f)
         {
+            // Fade out laser when target lost mid-fire
             _laserDurationTimer += Time.deltaTime;
             LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(LaserEffectDuration / 2f - (_laserDurationTimer - LaserEffectDuration / 2f)));
+
+            // Reset if fade complete
+            if (_laserDurationTimer >= LaserEffectDuration)
+            {
+                _laserDurationTimer = 0f;
+                LaserLineRenderer.enabled = false;
+                LaserLaunchEffect.Stop();
+            }
         }
         else
         {
@@ -68,8 +93,6 @@ public class LaserLauncher : WeaponBase
                 RotateBarrelsToFaceTarget(aimPosition);
 
             AngleToTarget = GetTurretAngleToTarget(aimPosition);
-
-            // Turret is considered "aimed" when it's pointed at the target.
             IsAimed = AngleToTarget < AimedThreshold;
 
             IsBarrelAtRest = false;
@@ -86,15 +109,18 @@ public class LaserLauncher : WeaponBase
         {
             _laserDurationTimer += Time.deltaTime;
             _laserDamageTimer += Time.deltaTime;
-            if (_laserDurationTimer > LaserEffectDuration / 2f) // Fade out
+
+            // Fade in/out effect
+            if (_laserDurationTimer > LaserEffectDuration / 2f)
             {
                 LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(LaserEffectDuration / 2f - (_laserDurationTimer - LaserEffectDuration / 2f)));
             }
-            else // Fade in
+            else
             {
                 LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(_laserDurationTimer));
             }
 
+            // Deal damage
             var enemyVehicle = Targeted.gameObject.GetComponent<VehicleBase>();
             if (enemyVehicle == null)
                 return;
@@ -102,56 +128,28 @@ public class LaserLauncher : WeaponBase
             if (_laserDurationTimer > 0.2f && _laserDurationTimer < LaserEffectDuration - 0.2f && _laserDamageTimer >= MinimumLaserDamageInterval)
             {
                 _laserDamageTimer = 0f;
-                if (enemyVehicle != null)
+
+                if (enemyVehicle.ShieldPoints > 0)
                 {
-                    if (enemyVehicle.ShieldPoints > 0)
+                    Vector3 dir = (enemyVehicle.transform.position - transform.position).normalized;
+                    Physics.Raycast(transform.position, dir, out _hit);
+
+                    if (_hit.collider != null && _hit.collider.GetComponent<ShieldHitEffect>())
                     {
-                        Vector3 dir = (enemyVehicle.transform.position - transform.position).normalized;
-                        Physics.Raycast(transform.position, dir, out _hit);
-
-                        if (_hit.collider != null && _hit.collider.GetComponent<ShieldHitEffect>())
-                        {
-                            _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
-                        }
+                        _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
                     }
-                    enemyVehicle.TakeDamage(LaserDPS, AmmoType.Energy);
                 }
+                enemyVehicle.TakeDamage(LaserDPS, AmmoType.Energy);
             }
-
-            // Vector3 dir = (enemyVehicle.transform.position - transform.position).normalized;
-            // Physics.Raycast(transform.position, dir, out _hit);
-
-            // if (enemyVehicle.ShieldPoints > 0 && _hit.collider != null && _hit.collider.GetComponent<ShieldHitEffect>())
-            // {
-            //     LaserLineRenderer.SetPosition(1, _hit.point);
-            //     if (_laserDurationTimer > 0.2f && _laserDurationTimer < LaserEffectDuration - 0.2f && _laserDamageTimer >= MinimumLaserDamageInterval)
-            //     {
-            //         _laserDamageTimer = 0f;
-            //         if (enemyVehicle != null)
-            //         {
-            //             _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
-            //             enemyVehicle.TakeDamage(LaserDPS, AmmoType.Energy);
-            //         }
-            //     }
-            // }
-            // else
-            // {
-            //     LaserLineRenderer.SetPosition(1, Targeted.position);
-            //     if (_laserDurationTimer > 0.2f && _laserDurationTimer < LaserEffectDuration - 0.2f && _laserDamageTimer >= MinimumLaserDamageInterval)
-            //     {
-            //         _laserDamageTimer = 0f;
-            //         if (enemyVehicle != null)
-            //         {
-
-            //             enemyVehicle.TakeDamage(LaserDPS, AmmoType.Energy);
-            //         }
-            //     }
-            // }
         }
         else
         {
-            _laserDurationTimer = 0.0f;
+            // Laser duration complete - start cooldown
+            _laserDurationTimer = 0f;
+            _isOnCooldown = true;
+            _fireCooldownTimer = 0f;
+            LaserLineRenderer.enabled = false;
+            LaserLaunchEffect.Stop();
         }
-
     }
 }
