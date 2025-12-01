@@ -1,42 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEditor;
-using UnityEngine.UI;
 
-// [ExecuteInEditMode]
-#if Test1
-public class ShieldHitEffect : MonoBehaviour
-{
-    public float HitImpactDuration = 0.1f;
-    public float HitImpactScale = 0.1f;
-    public GameObject ShieldGO;
-
-    public void GetHit(RaycastHit hit)
-    {
-        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetVector("_Center", hit.point);
-        StartCoroutine(RippleEffect(hit));
-    }
-
-    IEnumerator RippleEffect(RaycastHit hit)
-    {
-        float elapsed = 0f;
-        while (elapsed < HitImpactDuration)
-        {
-            elapsed += Time.deltaTime;
-            float rippleStrength = Mathf.Lerp(HitImpactScale, 0.0f, elapsed / HitImpactDuration);
-            ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Radius", 1 - rippleStrength);
-            ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Hardness", Mathf.Clamp01((elapsed / HitImpactDuration)));
-            yield return null;
-        }
-        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Radius", 0.0f);
-        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Hardness", 1.0f);
-    }
-
-}
-#else
 public class ShieldHitEffect : MonoBehaviour
 {
     public GameObject ShieldGO;
@@ -364,5 +330,3 @@ public class ShieldHitEffectEditor : Editor
         }
     }
 }
-
-#endif

@@ -236,7 +236,7 @@ public class WeaponBase : MonoBehaviour
 
         if (Targeted != null)
         {
-            if (FireTarget == GlobalHelper.Faction.Foe)
+            if (FireTarget.HasFlag(GlobalHelper.Faction.Foe))
                 Gizmos.color = Color.red;
             else
                 Gizmos.color = Color.greenYellow;

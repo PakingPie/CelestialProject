@@ -12,22 +12,24 @@ public static class GlobalHelper
         Battleship
     }
 
+    [System.Flags]
     public enum Faction
     {
-        Player,
-        Ally,
-        Foe,
-        Neutral
+        None = 0,
+        Player = 1 << 0, // 0001
+        Ally = 1 << 1,   // 0010
+        Foe = 1 << 2,    // 0100
+        Neutral = 1 << 3 // 1000
     }
 
     public enum AmmoType
     {
-        Kinetic,
-        Energy,
-        Explosive,
-        EMP,
-        Plasma,
-        Pierce
+        Kinetic,   // 0000
+        Energy,    // 0001
+        Explosive, // 0010
+        EMP,       // 0011
+        Plasma,    // 0100
+        Pierce     // 0101
     }
 
     public enum GuidanceType
@@ -38,9 +40,28 @@ public static class GlobalHelper
 
     public static string[] FactionNames = { "Player", "Ally", "Foe", "Neutral" };
 
-    public static GameObject[] GetCurrentAvailableTargets(Faction fireTarget)
+    public static List<GameObject> FindEnemies(Faction targetFlags)
     {
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag(FactionNames[(int)fireTarget]);
+        List<GameObject> enemies = new List<GameObject>();
+
+        foreach (Faction flag in System.Enum.GetValues(typeof(Faction)))
+        {
+            if (flag == Faction.None) continue;
+
+            if (targetFlags.HasFlag(flag))
+            {
+                int index = GetFlagIndex(flag);
+                GameObject[] found = GameObject.FindGameObjectsWithTag(FactionNames[index]);
+                enemies.AddRange(found);
+            }
+        }
+
         return enemies;
+    }
+
+    // Convert flag to index (0, 1, 2, 3...)
+    private static int GetFlagIndex(Faction flag)
+    {
+        return (int)Mathf.Log((int)flag, 2);
     }
 }

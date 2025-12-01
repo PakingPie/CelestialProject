@@ -14,6 +14,7 @@ public class LaserLauncher : WeaponBase
     [Tooltip("Duration of the laser effect in seconds.")]
     public float LaserEffectDuration = 2.5f;
     public float MinimumLaserDamageInterval = 0.1f;
+    public float FireInterval = 2.0f;
     public float TurretRotateSpeed = 5f;
     public int LaserDamageCap = 10;
     public int LaserDPS = 1;
@@ -40,6 +41,7 @@ public class LaserLauncher : WeaponBase
             IsFiring = false;
         else
             IsFiring = true;
+        
 
         if (IsFiring && Targeted != null)
         {
@@ -166,9 +168,9 @@ public class LaserLauncher : WeaponBase
     {
         Targeted = null;
 
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag(GlobalHelper.FactionNames[(int)FireTarget]);
+        List<GameObject> enemies = GlobalHelper.FindEnemies(FireTarget);
 
-        if (enemies.Length == 0)
+        if (enemies.Count == 0)
         {
             Targeted = null;
             IsAimed = false;

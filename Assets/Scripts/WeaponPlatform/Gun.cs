@@ -305,9 +305,10 @@ public class Gun : WeaponBase
 
         Targeted = null;
 
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag(GlobalHelper.FactionNames[(int)FireTarget]);
+        List<GameObject> enemies = GlobalHelper.FindEnemies(FireTarget);
 
-        if (enemies.Length == 0)
+
+        if (enemies.Count == 0)
         {
             Targeted = null;
             IsFiring = false;
