@@ -2,137 +2,169 @@ using UnityEngine;
 
 public class Boid : MonoBehaviour
 {
-    BoidSettings settings;
+    private BoidSettings _settings;
+    private Transform _cachedTransform;
+    private Transform _target;
+    private Material _material;
+    private Gun _gun;
 
-    [HideInInspector]
-    public Vector3 position;
-    [HideInInspector]
-    public Vector3 forward;
+    private Vector3 _velocity;
 
-    Vector3 velocity;
-    [HideInInspector]
-    public Vector3 avgFlockHeading;
-    [HideInInspector]
-    public Vector3 avgAvoidanceHeading;
-    [HideInInspector]
-    public Vector3 flockmatesCenter;
-    [HideInInspector]
-    public int numPerceivedFlockmates;
-
-    Material material;
-    Transform cachedTransform;
-    Transform target;
+    [HideInInspector] public Vector3 position;
+    [HideInInspector] public Vector3 forward;
+    [HideInInspector] public Vector3 avgFlockHeading;
+    [HideInInspector] public Vector3 avgAvoidanceHeading;
+    [HideInInspector] public Vector3 flockmatesCenter;
+    [HideInInspector] public int numPerceivedFlockmates;
 
     public Vector2 HeightRange = new Vector2(-100.0f, 100.0f);
 
+    // Collision state set by BoidObstacleSystem
+    private bool _isHeadingForCollision;
+    private Vector3 _avoidDirection;
+    private int _avoidDirectionIndex;
+
     void Awake()
     {
-        material = transform.GetComponentInChildren<MeshRenderer>().material;
-        cachedTransform = transform;
+        _cachedTransform = transform;
+
+        var meshRenderer = GetComponentInChildren<MeshRenderer>();
+        if (meshRenderer != null)
+            _material = meshRenderer.material;
+
+        _gun = GetComponentInChildren<Gun>();
+    }
+
+    void OnEnable()
+    {
+        if (BoidObstacleSystem.Instance != null)
+            BoidObstacleSystem.Instance.RegisterBoid(this);
+    }
+
+    void OnDisable()
+    {
+        if (BoidObstacleSystem.Instance != null)
+            BoidObstacleSystem.Instance.UnregisterBoid(this);
     }
 
     public void Initialize(BoidSettings settings, Transform target)
     {
-        this.settings = settings;
-        this.target = target;
+        _settings = settings;
+        _target = target;
 
-        position = cachedTransform.position;
-        forward = cachedTransform.forward;
+        position = _cachedTransform.position;
+        forward = _cachedTransform.forward;
 
-        float startSpeed = (settings.minSpeed + settings.maxSpeed) / 2.0f;
-        velocity = transform.forward * startSpeed;
+        float startSpeed = (_settings.minSpeed + _settings.maxSpeed) * 0.5f;
+        _velocity = _cachedTransform.forward * startSpeed;
+
+        _avoidDirectionIndex = Random.Range(0, BoidDirections.viewDirections.Length);
     }
+
+    // Called by BoidObstacleSystem
+    public void SetCollisionState(bool isColliding)
+    {
+        _isHeadingForCollision = isColliding;
+
+        if (isColliding)
+        {
+            // Find avoid direction incrementally (check a few rays per frame)
+            _avoidDirection = FindUnobstructedDirectionIncremental();
+        }
+    }
+
+    public float GetCollisionDistance() => _settings.collisionAvoidDistance;
+    public LayerMask GetObstacleMask() => _settings.obstacleMask;
 
     public void UpdateTarget()
     {
-        target = GetComponentInChildren<Gun>().Targeted;
+        if (_gun != null)
+            _target = _gun.Targeted;
     }
 
     public void SetColor(Color color)
     {
-        if (material != null)
-        {
-            material.color = color;
-        }
+        if (_material != null)
+            _material.color = color;
     }
 
     public void UpdateBoid()
     {
         Vector3 acceleration = Vector3.zero;
 
-        if (target != null)
+        // Target following
+        if (_target != null)
         {
-            Vector3 offsetToTarget = target.position - position;
-            acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
+            Vector3 offsetToTarget = _target.position - position;
+            acceleration = SteerTowards(offsetToTarget) * _settings.targetWeight;
         }
         else
         {
             UpdateTarget();
         }
 
-        if (numPerceivedFlockmates != 0)
+        // Flocking behavior
+        if (numPerceivedFlockmates > 0)
         {
-            flockmatesCenter /= numPerceivedFlockmates;
+            Vector3 centerOfMass = flockmatesCenter / numPerceivedFlockmates;
+            Vector3 offsetToCenter = centerOfMass - position;
 
-            Vector3 offsetToFlockmatesCenter = flockmatesCenter - position;
-
-            var alignmentForce = SteerTowards(avgFlockHeading) * settings.alignWeight;
-            var cohesionForce = SteerTowards(offsetToFlockmatesCenter) * settings.cohesionWeight;
-            var separationForce = SteerTowards(avgAvoidanceHeading) * settings.separateWeight;
-
-            acceleration += alignmentForce + cohesionForce + separationForce;
+            acceleration += SteerTowards(avgFlockHeading) * _settings.alignWeight;
+            acceleration += SteerTowards(offsetToCenter) * _settings.cohesionWeight;
+            acceleration += SteerTowards(avgAvoidanceHeading) * _settings.separateWeight;
         }
 
-        if (IsHeadingForCollision())
+        // Collision avoidance (state set by BoidObstacleSystem)
+        if (_isHeadingForCollision)
         {
-            Vector3 collisionAvoidDir = ObstacleRays();
-            Vector3 collisionAvoidForce = SteerTowards(collisionAvoidDir) * settings.avoidCollisionWeight;
-            acceleration += collisionAvoidForce;
+            acceleration += SteerTowards(_avoidDirection) * _settings.avoidCollisionWeight;
         }
 
-        velocity += acceleration * Time.deltaTime;
-        float speed = velocity.magnitude;
-        Vector3 dir = velocity / speed;
+        // Apply velocity
+        _velocity += acceleration * Time.deltaTime;
 
-        speed = Mathf.Clamp(speed, settings.minSpeed, settings.maxSpeed);
-        velocity = dir * speed;
+        float speed = _velocity.magnitude;
+        if (speed > 0.001f)
+        {
+            Vector3 dir = _velocity / speed;
+            speed = Mathf.Clamp(speed, _settings.minSpeed, _settings.maxSpeed);
+            _velocity = dir * speed;
 
-        cachedTransform.position += velocity * Time.deltaTime;
-        cachedTransform.forward = dir;
-        cachedTransform.position = new Vector3(cachedTransform.position.x, Mathf.Clamp(cachedTransform.position.y, HeightRange.x, HeightRange.y), cachedTransform.position.z);
-        position = cachedTransform.position;
-        forward = dir;
+            Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
+            newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+
+            _cachedTransform.SetPositionAndRotation(newPos, Quaternion.LookRotation(dir));
+
+            position = newPos;
+            forward = dir;
+        }
     }
 
-    bool IsHeadingForCollision()
+    // Check only a few directions per call instead of all 300
+    private Vector3 FindUnobstructedDirectionIncremental()
     {
-        RaycastHit hit;
-        if (Physics.SphereCast(position, settings.boundsRadius, forward, out hit, settings.collisionAvoidDistance, settings.obstacleMask))
-        {
-            return true;
-        }
-        return false;
-    }
+        Vector3[] directions = BoidDirections.viewDirections;
+        int checksPerFrame = 8;
 
-    Vector3 ObstacleRays()
-    {
-        Vector3[] rayDirections = BoidDirections.viewDirections;
-        for (int i = 0; i < rayDirections.Length; i++)
+        for (int i = 0; i < checksPerFrame; i++)
         {
-            Vector3 dir = cachedTransform.TransformDirection(rayDirections[i]);
-            Ray ray = new Ray(position, dir);
-            if (!Physics.SphereCast(ray, settings.boundsRadius, settings.collisionAvoidDistance, settings.obstacleMask))
+            int idx = (_avoidDirectionIndex + i) % directions.Length;
+            Vector3 dir = _cachedTransform.TransformDirection(directions[idx]);
+
+            if (!Physics.SphereCast(position, _settings.boundsRadius, dir, out _, _settings.collisionAvoidDistance, _settings.obstacleMask))
             {
+                _avoidDirectionIndex = idx;
                 return dir;
             }
         }
+
+        _avoidDirectionIndex = (_avoidDirectionIndex + checksPerFrame) % directions.Length;
         return forward;
     }
 
-    Vector3 SteerTowards(Vector3 direction)
+    private Vector3 SteerTowards(Vector3 direction)
     {
-        Vector3 v = direction.normalized * settings.maxSpeed - velocity;
-        return Vector3.ClampMagnitude(v, settings.maxSteerForce);
+        Vector3 v = direction.normalized * _settings.maxSpeed - _velocity;
+        return Vector3.ClampMagnitude(v, _settings.maxSteerForce);
     }
 }
-

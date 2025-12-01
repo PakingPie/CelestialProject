@@ -20,6 +20,7 @@ public class MissileTurret : WeaponBase
 
     void Update()
     {
+        // base.Update();
         if (!IsAimed)
             IsFiring = false;
         else

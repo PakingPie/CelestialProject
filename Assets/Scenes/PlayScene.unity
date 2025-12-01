@@ -214,6 +214,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 8
@@ -732,6 +733,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 8
@@ -1168,7 +1170,8 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 250}
   UpdateRate: 60
   ShowGizmos: 0
-  FireDelay: 0.5
+  UseManagedUpdates: 1
+  FireDelay: 0.2
   MuzzleVelocity: 200
   Deviation: 16
   AutoInheritVelocity: 1
@@ -1177,7 +1180,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.25
+  SequentialFiringInterval: 0.1
   FirePoints:
   - {fileID: 78501831}
   - {fileID: 704241905}
@@ -1497,6 +1500,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 8
@@ -2391,7 +2395,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
   spawnRadius: 500
-  spawnCount: 50
+  spawnCount: 100
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 5000}
@@ -2752,7 +2756,8 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 250}
   UpdateRate: 60
   ShowGizmos: 0
-  FireDelay: 0.5
+  UseManagedUpdates: 1
+  FireDelay: 0.2
   MuzzleVelocity: 200
   Deviation: 16
   AutoInheritVelocity: 1
@@ -2761,7 +2766,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.25
+  SequentialFiringInterval: 0.1
   FirePoints:
   - {fileID: 1248824094}
   - {fileID: 1300017969}
@@ -3002,7 +3007,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &619725933
 Transform:
   m_ObjectHideFlags: 0
@@ -3050,6 +3055,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
+  UseManagedUpdates: 1
   LaserLineRenderer: {fileID: 619725935}
   LaserEffectDuration: 2.5
   MinimumLaserDamageInterval: 0.2
@@ -3282,7 +3288,8 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 250}
   UpdateRate: 60
   ShowGizmos: 0
-  FireDelay: 0.5
+  UseManagedUpdates: 1
+  FireDelay: 0.2
   MuzzleVelocity: 200
   Deviation: 16
   AutoInheritVelocity: 1
@@ -3291,7 +3298,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.25
+  SequentialFiringInterval: 0.1
   FirePoints:
   - {fileID: 1003675839}
   - {fileID: 1638862727}
@@ -3578,7 +3585,7 @@ Transform:
   m_GameObject: {fileID: 683798405}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 3500}
+  m_LocalPosition: {x: 0, y: 0, z: 1500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5765,7 +5772,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatManager
   _cellSize: 50
-  _maxTurretUpdatesPerFrame: 60
+  _maxTurretUpdatesPerFrame: 100
   _showDebugInfo: 1
 --- !u!4 &1112071339
 Transform:
@@ -6024,6 +6031,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 8
@@ -6369,6 +6377,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 2000}
   UpdateRate: 60
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 8
   MuzzleVelocity: 500
   Deviation: 2
@@ -7731,7 +7740,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1449281945
 Transform:
   m_ObjectHideFlags: 0
@@ -7889,7 +7898,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1455734977
 Transform:
   m_ObjectHideFlags: 0
@@ -8063,7 +8072,8 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 250}
   UpdateRate: 60
   ShowGizmos: 0
-  FireDelay: 0.5
+  UseManagedUpdates: 1
+  FireDelay: 0.2
   MuzzleVelocity: 200
   Deviation: 16
   AutoInheritVelocity: 1
@@ -8072,7 +8082,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.25
+  SequentialFiringInterval: 0.1
   FirePoints:
   - {fileID: 120369478}
   - {fileID: 1336983815}
@@ -8256,7 +8266,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1480128609
 Transform:
   m_ObjectHideFlags: 0
@@ -8990,6 +9000,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1500}
   UpdateRate: 60
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireInterval: 1
   IsFiring: 0
 --- !u!114 &1597702329
@@ -9622,6 +9633,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 8
@@ -9972,6 +9984,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 4
   MuzzleVelocity: 200
   Deviation: 8
@@ -10640,7 +10653,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1767005498
 Transform:
   m_ObjectHideFlags: 0
@@ -10767,7 +10780,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1773146103
 Transform:
   m_ObjectHideFlags: 0
@@ -12179,6 +12192,7 @@ MonoBehaviour:
   ActiveRange: {x: 5, y: 1500}
   UpdateRate: 60
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireInterval: 1
   IsFiring: 0
 --- !u!114 &2060028163
@@ -12445,7 +12459,7 @@ Transform:
   m_GameObject: {fileID: 2101104638}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1500}
+  m_LocalPosition: {x: 0, y: 0, z: 500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -13878,7 +13892,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &8671210974142504998
 MonoBehaviour:
   m_ObjectHideFlags: 0

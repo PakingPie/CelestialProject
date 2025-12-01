@@ -14,6 +14,10 @@ public class BoidsManager : MonoBehaviour
     public Transform target;
     public Vector2 HeightRange = new Vector2(-1.0f, 1.0f);
 
+    private List<WeaponBase> _boidWeapons = new List<WeaponBase>();
+
+
+
     void Start()
     {
         var spawners = GetComponentsInChildren<BoidSpawner>();
@@ -29,6 +33,13 @@ public class BoidsManager : MonoBehaviour
                     boids.Add(boid);
                     boid.Initialize(settings, target); // target can be null
                     boid.transform.gameObject.GetComponent<VehicleBase>().BoidManager = this;
+                }
+
+                var weapons = boidObj.GetComponentsInChildren<WeaponBase>();
+                foreach (var weapon in weapons)
+                {
+                    weapon.UseManagedUpdates = false;  // Don't register with CombatManager
+                    _boidWeapons.Add(weapon);
                 }
             }
         }
@@ -49,7 +60,7 @@ public class BoidsManager : MonoBehaviour
 
         if (numBoids <= 0)
             return;
-            
+
         var boidData = new BoidData[numBoids];
         for (int i = 0; i < numBoids; i++)
         {
@@ -80,14 +91,29 @@ public class BoidsManager : MonoBehaviour
             boids[i].UpdateBoid();
         }
 
+        UpdateBoidWeapons();
+
         boidBuffer.Release();
     }
 
+    private void UpdateBoidWeapons()
+    {
+        for (int i = _boidWeapons.Count - 1; i >= 0; i--)
+        {
+            if (_boidWeapons[i] == null)
+            {
+                _boidWeapons.RemoveAt(i);
+                continue;
+            }
+            _boidWeapons[i].ManagedUpdateTarget();
+        }
+    }
 
     public void UpdateBoidList()
     {
         var spawners = GetComponentsInChildren<BoidSpawner>();
         boids = new List<Boid>();
+        _boidWeapons = new List<WeaponBase>();
         foreach (BoidSpawner spawner in spawners)
         {
             var spawnedBoids = spawner.SpawnedObjects;

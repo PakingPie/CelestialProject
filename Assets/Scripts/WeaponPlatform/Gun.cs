@@ -101,7 +101,7 @@ public class Gun : WeaponBase
 
     private void Update()
     {
-
+        // base.Update();
         if (!IsAimed)
             IsFiring = false;
         else

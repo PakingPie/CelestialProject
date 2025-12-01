@@ -28,14 +28,10 @@ public class LaserLauncher : WeaponBase
     void Start()
     {
         LaserLineRenderer.SetPosition(0, LaserOrigin.position);
-
-        if (Targeted == null)
-        {
-            IsFiring = false;
-        }
     }
     void Update()
     {
+        // base.Update();
         IsFiring = IsAimed;
 
         if (IsFiring && Targeted != null)

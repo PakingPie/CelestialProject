@@ -28,7 +28,7 @@ public class WeaponBase : MonoBehaviour
     public float AimedThreshold = 5f;
 
     [Header("Targeting")]
-    [HideInInspector] public Transform Targeted;
+    public Transform Targeted;
     [Tooltip("Faction that this weapon will fire upon.")]
     public GlobalHelper.Faction FireTarget = GlobalHelper.Faction.Foe;
     [Tooltip("The type of guidance this weapon uses to track targets.")]
@@ -66,6 +66,7 @@ public class WeaponBase : MonoBehaviour
 
     // Reusable list for nearby enemies - no allocations
     protected List<VehicleBase> _nearbyEnemies = new List<VehicleBase>(64);
+    [HideInInspector] public bool UseManagedUpdates = true;
 
     protected virtual void Awake()
     {
@@ -75,9 +76,15 @@ public class WeaponBase : MonoBehaviour
         CacheRangeValues();
     }
 
+    // protected virtual void Update()
+    // {
+    //     ManagedUpdateTarget();
+    // }
+
     protected virtual void OnEnable()
     {
-        CombatManager.Instance?.RegisterTurret(this);
+        if (UseManagedUpdates)
+            CombatManager.Instance?.RegisterTurret(this);
     }
 
     protected virtual void OnDisable()
