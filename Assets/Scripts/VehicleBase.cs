@@ -42,4 +42,19 @@ public abstract class VehicleBase : MonoBehaviour
     public int Speed = 10;
     public Vector3 Scale = Vector3.one;
     [HideInInspector] public BoidsManager BoidManager;
+
+    // Add faction to base class for efficient lookup
+    public virtual Faction FactionType => Faction.None;
+
+    // Cache transform for performance
+    private Transform _cachedTransform;
+    public Transform CachedTransform
+    {
+        get
+        {
+            if (_cachedTransform == null)
+                _cachedTransform = transform;
+            return _cachedTransform;
+        }
+    }
 }

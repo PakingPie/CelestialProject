@@ -72,8 +72,6 @@ public class Gun : WeaponBase
 
     private void Start()
     {
-        InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
-        // InvokeRepeating("LockOn", 0f, 1.0f / UpdateRate);
         if (Targeted != null)
         {
             _targetPosLastFrame = Targeted.position;
@@ -82,6 +80,7 @@ public class Gun : WeaponBase
 
     private void Awake()
     {
+        base.Awake();
         if (FirePoints.Count == 0)
         {
             // If no fire points were assigned, fall back on self as a barrel.
@@ -292,70 +291,11 @@ public class Gun : WeaponBase
             firePointToMuzzleFlash[firePoint].Play();
     }
 
-    public void UpdateTarget()
+    public override void ManagedUpdateTarget()
     {
-        // if (Targeted != null)
-        // {
-        //     float dist = Vector3.Distance(transform.position, Targeted.position);
-        //     if (dist <= ActiveRange.y)
-        //     {
-        //         return;
-        //     }
-        // }
-
-        Targeted = null;
-
-        List<GameObject> enemies = GlobalHelper.FindEnemies(FireTarget);
-
-
-        if (enemies.Count == 0)
-        {
-            Targeted = null;
+        base.ManagedUpdateTarget();
+        
+        if (Targeted == null)
             IsFiring = false;
-            IsAimed = false;
-            return;
-        }
-
-        float shortest_distance = Mathf.Infinity;
-        GameObject nearest_enemy = null;
-
-        foreach (GameObject enemy in enemies)
-        {
-            float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
-            Vector2 anglesToEnemy = CalcuateRelativeAngles(enemy.transform);
-            if (anglesToEnemy.y > MaxElevation || anglesToEnemy.y < -MaxDepression)
-            {
-                continue;
-            }
-
-            if (HasLimitedTraverse)
-            {
-                if (anglesToEnemy.x > RightLimit || anglesToEnemy.x < -LeftLimit)
-                {
-                    continue;
-                }
-            }
-
-            if (distance_to_enemy < ActiveRange.y && distance_to_enemy < shortest_distance)
-            {
-                shortest_distance = distance_to_enemy;
-                nearest_enemy = enemy;
-            }
-        }
-
-        if (nearest_enemy != null)
-        {
-            Targeted = nearest_enemy.transform;
-        }
-        else
-        {
-            Targeted = null;
-            IsFiring = false;
-            IsAimed = false;
-        }
-        // if (DebugMode)
-        //     Debug.Log(enemies.Length + " enemies found.");
-        // if(Targeted != null && DebugMode)
-        //     Debug.Log("Target acquired: " + Targeted.name);
     }
 }

@@ -27,7 +27,6 @@ public class LaserLauncher : WeaponBase
     private RaycastHit _hit;
     void Start()
     {
-        InvokeRepeating("UpdateTarget", 0f, 1.0f / UpdateRate);
         LaserLineRenderer.SetPosition(0, LaserOrigin.position);
 
         if (Targeted == null)
@@ -37,11 +36,7 @@ public class LaserLauncher : WeaponBase
     }
     void Update()
     {
-        if (!IsAimed)
-            IsFiring = false;
-        else
-            IsFiring = true;
-        
+        IsFiring = IsAimed;
 
         if (IsFiring && Targeted != null)
         {
@@ -162,56 +157,5 @@ public class LaserLauncher : WeaponBase
             _laserDurationTimer = 0.0f;
         }
 
-    }
-
-    public void UpdateTarget()
-    {
-        Targeted = null;
-
-        List<GameObject> enemies = GlobalHelper.FindEnemies(FireTarget);
-
-        if (enemies.Count == 0)
-        {
-            Targeted = null;
-            IsAimed = false;
-            return;
-        }
-
-        float shortest_distance = Mathf.Infinity;
-        GameObject nearest_enemy = null;
-
-        foreach (GameObject enemy in enemies)
-        {
-            float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
-            Vector2 anglesToEnemy = CalcuateRelativeAngles(enemy.transform);
-            if (anglesToEnemy.y > MaxElevation || anglesToEnemy.y < -MaxDepression)
-            {
-                continue;
-            }
-
-            if (HasLimitedTraverse)
-            {
-                if (anglesToEnemy.x > RightLimit || anglesToEnemy.x < -LeftLimit)
-                {
-                    continue;
-                }
-            }
-
-            if (distance_to_enemy < ActiveRange.y && distance_to_enemy < shortest_distance)
-            {
-                shortest_distance = distance_to_enemy;
-                nearest_enemy = enemy;
-            }
-        }
-
-        if (nearest_enemy != null)
-        {
-            Targeted = nearest_enemy.transform;
-        }
-        else
-        {
-            IsAimed = false;
-            Targeted = null;
-        }
     }
 }

@@ -7,7 +7,7 @@ using UnityEngine.UI;
 [ExecuteAlways]
 public class EnemyVehicle : VehicleBase
 {
-    public Faction FactionType = Faction.Foe;
+    public Faction VehicleFaction = Faction.Foe;
     public VehicleType Type = VehicleType.Frigate;
     public Image HealthBar;
     public Image ArmorBar;
@@ -22,6 +22,17 @@ public class EnemyVehicle : VehicleBase
     public float ShieldRegenerationDelay = 5f; // Seconds after taking damage before regeneration starts
     private float _shieldRegenTimer = 0f;
     private float _lastDamageTime = 0f;
+    public override Faction FactionType => VehicleFaction;
+
+    void OnEnable()
+    {
+        CombatRegistry.Register(this, FactionType);
+    }
+
+    void OnDisable()
+    {
+        CombatRegistry.Unregister(this, FactionType);
+    }
 
     void Start()
     {
@@ -79,7 +90,7 @@ public class EnemyVehicle : VehicleBase
     public override void RestoreShield()
     {
         _shieldRegenTimer += Time.deltaTime;
-        if (_shieldRegenTimer >= 0.1f && ShieldPoints < MaxShieldPoints ) // Regenerate shield every 0.1 second
+        if (_shieldRegenTimer >= 0.1f && ShieldPoints < MaxShieldPoints) // Regenerate shield every 0.1 second
         {
             ShieldPoints += ShieldRegenerationRate;
             if (ShieldPoints > MaxShieldPoints)
@@ -277,7 +288,6 @@ public class EnemyVehicle : VehicleBase
         if (HitPoints <= 0)
         {
             DestroyVehicle();
-            GlobalHelper.FindEnemies(FactionType);
         }
 
         _lastDamageTime = 0f; // Reset shield regeneration timer on taking damage
@@ -286,7 +296,7 @@ public class EnemyVehicle : VehicleBase
     }
 
     public override void DestroyVehicle()
-    {   
+    {
 
         var boid = GetComponent<Boid>();
         if (boid != null && BoidManager != null)
@@ -294,7 +304,7 @@ public class EnemyVehicle : VehicleBase
             BoidManager.RemoveBoid(boid);
         }
 
-        if(ExplodeEffect != null)
+        if (ExplodeEffect != null)
         {
             Instantiate(ExplodeEffect, transform.position, transform.rotation);
         }

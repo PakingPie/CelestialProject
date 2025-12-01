@@ -1,5 +1,6 @@
 using UnityEngine;
-
+using static GlobalHelper;
+using System.Collections.Generic;
 public class WeaponBase : MonoBehaviour
 {
     [Header("Turret")]
@@ -27,7 +28,6 @@ public class WeaponBase : MonoBehaviour
     public float AimedThreshold = 5f;
 
     [Header("Targeting")]
-
     [HideInInspector] public Transform Targeted;
     [Tooltip("Faction that this weapon will fire upon.")]
     public GlobalHelper.Faction FireTarget = GlobalHelper.Faction.Foe;
@@ -58,6 +58,89 @@ public class WeaponBase : MonoBehaviour
     public bool IsBarrelAtRest { get { return _isBarrelAtRest; } set { _isBarrelAtRest = value; } }
     public bool IsTurretAtRest { get { return _isBarrelAtRest && _isBaseAtRest; } }
 
+    // Cached values
+    protected Transform _cachedTransform;
+    protected VehicleBase _owner;
+    protected float _maxRangeSqr;
+    protected float _minRangeSqr;
+
+    // Reusable list for nearby enemies - no allocations
+    protected List<VehicleBase> _nearbyEnemies = new List<VehicleBase>(64);
+
+    protected virtual void Awake()
+    {
+        _cachedTransform = transform;
+        _owner = GetComponentInParent<VehicleBase>();
+        _hasBarrels = Barrels != null;
+        CacheRangeValues();
+    }
+
+    protected virtual void OnEnable()
+    {
+        CombatManager.Instance?.RegisterTurret(this);
+    }
+
+    protected virtual void OnDisable()
+    {
+        CombatManager.Instance?.UnregisterTurret(this);
+    }
+
+    protected void CacheRangeValues()
+    {
+        _maxRangeSqr = ActiveRange.y * ActiveRange.y;
+        _minRangeSqr = ActiveRange.x * ActiveRange.x;
+    }
+
+    /// <summary>
+    /// Called by CombatManager. Override in subclasses if needed.
+    /// </summary>
+    public virtual void ManagedUpdateTarget()
+    {
+        Vector3 myPosition = _cachedTransform.position;
+
+        // Use spatial partitioning for efficiency
+        CombatRegistry.GetNearbyEnemies(myPosition, ActiveRange.y, FireTarget, _nearbyEnemies);
+
+        if (_nearbyEnemies.Count == 0)
+        {
+            Targeted = null;
+            IsAimed = false;
+            return;
+        }
+
+        float shortestDistanceSqr = Mathf.Infinity;
+        Transform nearestEnemy = null;
+
+        for (int i = 0; i < _nearbyEnemies.Count; i++)
+        {
+            VehicleBase enemy = _nearbyEnemies[i];
+
+            if (enemy == _owner) continue;
+
+            Transform enemyTransform = enemy.transform;
+            Vector3 enemyPos = enemyTransform.position;
+
+            float distanceSqr = (enemyPos - myPosition).sqrMagnitude;
+
+            if (distanceSqr < _minRangeSqr || distanceSqr >= shortestDistanceSqr)
+                continue;
+
+            Vector2 angles = CalcuateRelativeAngles(enemyTransform);
+
+            if (angles.y > MaxElevation || angles.y < -MaxDepression)
+                continue;
+
+            if (HasLimitedTraverse && (angles.x > RightLimit || angles.x < -LeftLimit))
+                continue;
+
+            shortestDistanceSqr = distanceSqr;
+            nearestEnemy = enemyTransform;
+        }
+
+        Targeted = nearestEnemy;
+        if (nearestEnemy == null)
+            IsAimed = false;
+    }
 
     public void RotateBaseToFaceTarget(Vector3 targetPosition)
     {
