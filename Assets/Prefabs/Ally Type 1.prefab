@@ -684,7 +684,7 @@ MonoBehaviour:
   UpdateRate: 30
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 5
   MuzzleVelocity: 200
   Deviation: 0.1
   AutoInheritVelocity: 1
@@ -795,7 +795,10 @@ MonoBehaviour:
   avgAvoidanceHeading: {x: 0, y: 0, z: 0}
   flockmatesCenter: {x: 0, y: 0, z: 0}
   numPerceivedFlockmates: 0
-  HeightRange: {x: -1000, y: 5000}
+  HeightRange: {x: -500, y: 500}
+  IsInCombat: 0
+  FormationIndex: 0
+  FormationLeader: {fileID: 0}
 --- !u!114 &-2094783752960322070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1771,7 +1774,7 @@ MonoBehaviour:
   LaserLineRenderer: {fileID: 4483844168222004942}
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.2
-  FireInterval: 4
+  FireInterval: 10
   TurretRotateSpeed: 5
   LaserDamageCap: 20
   LaserDPS: 4

@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0f79a97a8f3d566438e5fbb617fd1c0f, type: 3}
-  m_Name: Ally Boid Setting 2
+  m_Name: Enemy Boid Setting 1
   m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
-  minSpeed: 10
-  maxSpeed: 20
+  minSpeed: 30
+  maxSpeed: 40
   perceptionRadius: 100
   avoidanceRadius: 40
-  maxSteerForce: 5
+  maxSteerForce: 10
   alignWeight: 1
   cohesionWeight: 1
   separateWeight: 1
@@ -28,11 +28,11 @@ MonoBehaviour:
   avoidCollisionWeight: 50
   collisionAvoidDistance: 50
   useFormation: 1
-  formationType: 3
+  formationType: 0
   formationSpacing: 50
   formationTightness: 50
   formationMatchSpeed: 50
-  combatCohesionMultiplier: 0.2
-  combatSeparationMultiplier: 2
-  combatAlignmentMultiplier: 0.5
+  combatCohesionMultiplier: 5
+  combatSeparationMultiplier: 1
+  combatAlignmentMultiplier: 5
   returnToFormationDelay: 3

@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 
 public class BoidsManager : MonoBehaviour
 {
@@ -14,14 +13,18 @@ public class BoidsManager : MonoBehaviour
     public Transform target;
     public Vector2 HeightRange = new Vector2(-1.0f, 1.0f);
 
+    [Header("Formation")]
+    public bool syncCombatState = true;
+
     private List<WeaponBase> _boidWeapons = new List<WeaponBase>();
-
-
+    private Boid _formationLeader = null;
 
     void Start()
     {
         var spawners = GetComponentsInChildren<BoidSpawner>();
         boids = new List<Boid>();
+        _boidWeapons = new List<WeaponBase>();
+
         foreach (BoidSpawner spawner in spawners)
         {
             var spawnedBoids = spawner.SpawnedObjects;
@@ -31,24 +34,37 @@ public class BoidsManager : MonoBehaviour
                 if (boid != null)
                 {
                     boids.Add(boid);
-                    boid.Initialize(settings, target); // target can be null
+                    boid.Initialize(settings, target);
                     boid.transform.gameObject.GetComponent<VehicleBase>().BoidManager = this;
                 }
 
                 var weapons = boidObj.GetComponentsInChildren<WeaponBase>();
                 foreach (var weapon in weapons)
                 {
-                    weapon.UseManagedUpdates = false;  // Don't register with CombatManager
+                    weapon.UseManagedUpdates = false;
                     _boidWeapons.Add(weapon);
                 }
             }
         }
 
-        // foreach (Boid boid in boids)
-        // {
-        //     boid.Initialize(settings, target); // target can be null
-        //     boid.transform.gameObject.GetComponent<VehicleBase>().BoidManager = this;
-        // }
+        AssignFormationPositions();
+    }
+
+    void AssignFormationPositions()
+    {
+        if (boids == null || boids.Count == 0) return;
+
+        // First boid is the leader
+        _formationLeader = boids[0];
+        _formationLeader.FormationIndex = 0;
+        _formationLeader.FormationLeader = null;
+
+        // Assign positions to followers
+        for (int i = 1; i < boids.Count; i++)
+        {
+            boids[i].FormationIndex = i;
+            boids[i].FormationLeader = _formationLeader;
+        }
     }
 
     void Update()
@@ -56,10 +72,18 @@ public class BoidsManager : MonoBehaviour
         if (boids == null)
             return;
 
-        int numBoids = boids.Count;
+        // Clean up destroyed boids
+        CleanupDestroyedBoids();
 
+        int numBoids = boids.Count;
         if (numBoids <= 0)
             return;
+
+        // Sync combat state across all boids
+        if (syncCombatState)
+        {
+            SyncCombatState();
+        }
 
         var boidData = new BoidData[numBoids];
         for (int i = 0; i < numBoids; i++)
@@ -96,6 +120,50 @@ public class BoidsManager : MonoBehaviour
         boidBuffer.Release();
     }
 
+    private void CleanupDestroyedBoids()
+    {
+        bool leaderRemoved = false;
+
+        for (int i = boids.Count - 1; i >= 0; i--)
+        {
+            if (boids[i] == null)
+            {
+                if (i == 0) leaderRemoved = true;
+                boids.RemoveAt(i);
+            }
+        }
+
+        if (leaderRemoved)
+        {
+            AssignFormationPositions();
+        }
+    }
+
+    private void SyncCombatState()
+    {
+        bool anyInCombat = false;
+
+        // Check if any boid is in combat
+        for (int i = 0; i < boids.Count; i++)
+        {
+            if (boids[i] != null && boids[i].IsInCombat)
+            {
+                anyInCombat = true;
+                break;
+            }
+        }
+
+        // If any boid is in combat, all enter combat mode
+        if (anyInCombat)
+        {
+            for (int i = 0; i < boids.Count; i++)
+            {
+                if (boids[i] != null)
+                    boids[i].EnterCombat();
+            }
+        }
+    }
+
     private void UpdateBoidWeapons()
     {
         for (int i = _boidWeapons.Count - 1; i >= 0; i--)
@@ -114,6 +182,7 @@ public class BoidsManager : MonoBehaviour
         var spawners = GetComponentsInChildren<BoidSpawner>();
         boids = new List<Boid>();
         _boidWeapons = new List<WeaponBase>();
+
         foreach (BoidSpawner spawner in spawners)
         {
             var spawnedBoids = spawner.SpawnedObjects;
@@ -123,16 +192,57 @@ public class BoidsManager : MonoBehaviour
                 if (boid != null)
                 {
                     boids.Add(boid);
-                    boid.Initialize(settings, target); // target can be null
+                    boid.Initialize(settings, target);
                     boid.transform.gameObject.GetComponent<VehicleBase>().BoidManager = this;
+                }
+
+                var weapons = boidObj.GetComponentsInChildren<WeaponBase>();
+                foreach (var weapon in weapons)
+                {
+                    weapon.UseManagedUpdates = false;
+                    _boidWeapons.Add(weapon);
                 }
             }
         }
+
+        AssignFormationPositions();
     }
 
     public void RemoveBoid(Boid boid)
     {
+        bool wasLeader = (boid == _formationLeader);
         boids.Remove(boid);
+
+        if (wasLeader)
+        {
+            AssignFormationPositions();
+        }
+    }
+
+    // Change formation type at runtime
+    public void SetFormationType(FormationType type)
+    {
+        settings.formationType = type;
+    }
+
+    // Force all boids into combat mode
+    public void ForceCombatMode()
+    {
+        foreach (var boid in boids)
+        {
+            if (boid != null)
+                boid.EnterCombat();
+        }
+    }
+
+    // Force all boids back to formation
+    public void ForceFormationMode()
+    {
+        foreach (var boid in boids)
+        {
+            if (boid != null)
+                boid.IsInCombat = false;
+        }
     }
 
     public struct BoidData
@@ -144,6 +254,6 @@ public class BoidsManager : MonoBehaviour
         public Vector3 seperationHeading;
         public int numFlockmates;
 
-        public static int Size => sizeof(float) * 3 * 5 + sizeof(int); // 5 Vector3 + 1 int
+        public static int Size => sizeof(float) * 3 * 5 + sizeof(int);
     }
 }

@@ -24,6 +24,15 @@ public class Boid : MonoBehaviour
     private Vector3 _avoidDirection;
     private int _avoidDirectionIndex;
 
+    // Formation state
+    [HideInInspector] public bool IsInCombat = false;
+    [HideInInspector] public int FormationIndex = 0;
+    [HideInInspector] public Boid FormationLeader = null;
+    private float _combatTimer = 0f;
+
+    public BoidSettings Settings => _settings;
+    public Vector3 Velocity => _velocity;
+
     void Awake()
     {
         _cachedTransform = transform;
@@ -68,7 +77,6 @@ public class Boid : MonoBehaviour
 
         if (isColliding)
         {
-            // Find avoid direction incrementally (check a few rays per frame)
             _avoidDirection = FindUnobstructedDirectionIncremental();
         }
     }
@@ -88,13 +96,151 @@ public class Boid : MonoBehaviour
             _material.color = color;
     }
 
+    public void EnterCombat()
+    {
+        IsInCombat = true;
+        _combatTimer = 0f;
+    }
+
+    public void UpdateCombatState()
+    {
+        if (!IsInCombat) return;
+
+        bool hasTarget = false;
+        var weapons = GetComponentsInChildren<WeaponBase>();
+        foreach (var weapon in weapons)
+        {
+            if (weapon.Targeted != null)
+            {
+                hasTarget = true;
+                _combatTimer = 0f;
+                break;
+            }
+        }
+
+        if (!hasTarget)
+        {
+            _combatTimer += Time.deltaTime;
+            if (_combatTimer >= _settings.returnToFormationDelay)
+            {
+                IsInCombat = false;
+            }
+        }
+    }
+
+    public Vector3 GetFormationOffset()
+    {
+        return CalculateFormationOffset(FormationIndex, _settings.formationType, _settings.formationSpacing);
+    }
+
+    private Vector3 CalculateFormationOffset(int index, FormationType type, float spacing)
+    {
+        switch (type)
+        {
+            case FormationType.V:
+                return GetVFormationOffset(index, spacing);
+            case FormationType.Line:
+                return GetLineFormationOffset(index, spacing);
+            case FormationType.Wedge:
+                return GetWedgeFormationOffset(index, spacing);
+            case FormationType.Box:
+                return GetBoxFormationOffset(index, spacing);
+            case FormationType.Circle:
+                return GetCircleFormationOffset(index, spacing);
+            case FormationType.Echelon:
+                return GetEchelonFormationOffset(index, spacing);
+            default:
+                return Vector3.zero;
+        }
+    }
+
+    private Vector3 GetVFormationOffset(int index, float spacing)
+    {
+        if (index == 0) return Vector3.zero;
+
+        int side = (index % 2 == 0) ? 1 : -1;
+        int row = (index + 1) / 2;
+
+        return new Vector3(side * row * spacing, 0f, -row * spacing);
+    }
+
+    private Vector3 GetLineFormationOffset(int index, float spacing)
+    {
+        if (index == 0) return Vector3.zero;
+
+        int side = (index % 2 == 0) ? 1 : -1;
+        int position = (index + 1) / 2;
+
+        return new Vector3(side * position * spacing, 0f, 0f);
+    }
+
+    private Vector3 GetWedgeFormationOffset(int index, float spacing)
+    {
+        if (index == 0) return Vector3.zero;
+
+        int side = (index % 2 == 0) ? 1 : -1;
+        int row = (index + 1) / 2;
+
+        return new Vector3(side * row * spacing * 0.5f, 0f, -row * spacing);
+    }
+
+    private Vector3 GetBoxFormationOffset(int index, float spacing)
+    {
+        if (index == 0) return Vector3.zero;
+
+        int gridSize = Mathf.CeilToInt(Mathf.Sqrt(index + 1));
+        int x = index % gridSize;
+        int z = index / gridSize;
+
+        float offsetX = (x - gridSize / 2f) * spacing;
+        float offsetZ = -z * spacing;
+
+        return new Vector3(offsetX, 0f, offsetZ);
+    }
+
+    private Vector3 GetCircleFormationOffset(int index, float spacing)
+    {
+        if (index == 0) return Vector3.zero;
+
+        int ring = 1;
+        int ringStart = 1;
+        int boidsPerRing = 6;
+
+        while (index >= ringStart + boidsPerRing * ring)
+        {
+            ringStart += boidsPerRing * ring;
+            ring++;
+        }
+
+        int indexInRing = index - ringStart;
+        int totalInRing = boidsPerRing * ring;
+        float angle = (indexInRing / (float)totalInRing) * Mathf.PI * 2f;
+        float radius = spacing * ring;
+
+        return new Vector3(Mathf.Sin(angle) * radius, 0f, Mathf.Cos(angle) * radius);
+    }
+
+    private Vector3 GetEchelonFormationOffset(int index, float spacing)
+    {
+        if (index == 0) return Vector3.zero;
+
+        return new Vector3(index * spacing * 0.7f, 0f, -index * spacing);
+    }
+
     public void UpdateBoid()
     {
+        UpdateCombatState();
+
         Vector3 acceleration = Vector3.zero;
 
-        // Target following
-        if (_target != null)
+        // Formation behavior when not in combat
+        if (_settings.useFormation && !IsInCombat && FormationLeader != null && FormationIndex > 0)
         {
+            acceleration += CalculateFormationAcceleration();
+        }
+        else if (_target != null)
+        {
+            // Normal target following
             Vector3 offsetToTarget = _target.position - position;
             acceleration = SteerTowards(offsetToTarget) * _settings.targetWeight;
         }
@@ -103,18 +249,29 @@ public class Boid : MonoBehaviour
             UpdateTarget();
         }
 
-        // Flocking behavior
+        // Flocking behavior with combat modifiers
         if (numPerceivedFlockmates > 0)
         {
             Vector3 centerOfMass = flockmatesCenter / numPerceivedFlockmates;
             Vector3 offsetToCenter = centerOfMass - position;
 
-            acceleration += SteerTowards(avgFlockHeading) * _settings.alignWeight;
-            acceleration += SteerTowards(offsetToCenter) * _settings.cohesionWeight;
-            acceleration += SteerTowards(avgAvoidanceHeading) * _settings.separateWeight;
+            float alignMult = IsInCombat ? _settings.combatAlignmentMultiplier : 1f;
+            float cohesionMult = IsInCombat ? _settings.combatCohesionMultiplier : 1f;
+            float separateMult = IsInCombat ? _settings.combatSeparationMultiplier : 1f;
+
+            // In formation mode (not combat), reduce normal flocking
+            if (_settings.useFormation && !IsInCombat && FormationLeader != null && FormationIndex > 0)
+            {
+                alignMult *= 0.3f;
+                cohesionMult *= 0.1f;
+            }
+
+            acceleration += SteerTowards(avgFlockHeading) * _settings.alignWeight * alignMult;
+            acceleration += SteerTowards(offsetToCenter) * _settings.cohesionWeight * cohesionMult;
+            acceleration += SteerTowards(avgAvoidanceHeading) * _settings.separateWeight * separateMult;
         }
 
-        // Collision avoidance (state set by BoidObstacleSystem)
+        // Collision avoidance (always active)
         if (_isHeadingForCollision)
         {
             acceleration += SteerTowards(_avoidDirection) * _settings.avoidCollisionWeight;
@@ -140,7 +297,38 @@ public class Boid : MonoBehaviour
         }
     }
 
-    // Check only a few directions per call instead of all 300
+    private Vector3 CalculateFormationAcceleration()
+    {
+        Vector3 acceleration = Vector3.zero;
+
+        if (FormationLeader == null) return acceleration;
+
+        // Calculate target formation position in world space
+        Vector3 formationOffset = GetFormationOffset();
+        Vector3 formationTarget = FormationLeader.position +
+            FormationLeader._cachedTransform.TransformDirection(formationOffset);
+
+        Vector3 toFormation = formationTarget - position;
+        float distanceToFormation = toFormation.magnitude;
+
+        if (distanceToFormation > 0.5f)
+        {
+            // Steer towards formation position
+            Vector3 formationForce = SteerTowards(toFormation) * _settings.formationTightness;
+            acceleration += formationForce;
+        }
+
+        // Match leader's velocity for smooth following
+        Vector3 leaderVelocity = FormationLeader.Velocity;
+        if (leaderVelocity.sqrMagnitude > 0.01f)
+        {
+            Vector3 matchForce = SteerTowards(leaderVelocity - _velocity) * _settings.formationMatchSpeed;
+            acceleration += matchForce;
+        }
+
+        return acceleration;
+    }
+
     private Vector3 FindUnobstructedDirectionIncremental()
     {
         Vector3[] directions = BoidDirections.viewDirections;

@@ -147,6 +147,15 @@ public class WeaponBase : MonoBehaviour
         Targeted = nearestEnemy;
         if (nearestEnemy == null)
             IsAimed = false;
+
+        if (Targeted != null)
+        {
+            Boid boid = GetComponentInParent<Boid>();
+            if (boid != null)
+            {
+                boid.EnterCombat();
+            }
+        }
     }
 
     public void RotateBaseToFaceTarget(Vector3 targetPosition)

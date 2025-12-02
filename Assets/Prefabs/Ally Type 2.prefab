@@ -155,7 +155,7 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 1
   UseManagedUpdates: 1
-  FireInterval: 4
+  FireInterval: 15
   IsFiring: 0
 --- !u!114 &820695434009433348
 MonoBehaviour:
@@ -181,7 +181,7 @@ MonoBehaviour:
   minDistance: 10
   maxDistance: 200
   dispersionAngle: 0
-  magazineCount: 6
+  magazineCount: 2
   magazineReloadTime: 40
 --- !u!1 &423974094598886166
 GameObject:
@@ -248,7 +248,7 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 0.6
+  FireDelay: 0.8
   MuzzleVelocity: 200
   Deviation: 16
   AutoInheritVelocity: 1
@@ -257,7 +257,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.3
+  SequentialFiringInterval: 0.4
   FirePoints:
   - {fileID: 1041067058342489748}
   - {fileID: 3280129885485415978}
@@ -1062,7 +1062,10 @@ MonoBehaviour:
   avgAvoidanceHeading: {x: 0, y: 0, z: 0}
   flockmatesCenter: {x: 0, y: 0, z: 0}
   numPerceivedFlockmates: 0
-  HeightRange: {x: -1000, y: 5000}
+  HeightRange: {x: -500, y: 500}
+  IsInCombat: 0
+  FormationIndex: 0
+  FormationLeader: {fileID: 0}
 --- !u!114 &-2094783752960322070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1952,7 +1955,7 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 0.6
+  FireDelay: 0.8
   MuzzleVelocity: 200
   Deviation: 16
   AutoInheritVelocity: 1
@@ -1961,7 +1964,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.3
+  SequentialFiringInterval: 0.4
   FirePoints:
   - {fileID: 5960161014334223559}
   - {fileID: 8139205141292626662}
