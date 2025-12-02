@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-
+using TMPro;
+using UnityEngine.UI;
+using System.Collections.Generic;
 public class PlayerHud : MonoBehaviour
 {
     [Header("Components")]
@@ -15,6 +17,16 @@ public class PlayerHud : MonoBehaviour
     [Header("Throttle Display")]
     [SerializeField] private UnityEngine.UI.Slider _throttleSlider = null;
     [SerializeField] private TMPro.TextMeshProUGUI _throttleText = null;
+
+    [Header("Weapon Display")]
+    [SerializeField] private List<Gun> _primaryGuns = new List<Gun>();
+    [SerializeField] private Slider _reloadSlider;
+    [SerializeField] private TextMeshProUGUI _reloadText;
+    [SerializeField] private Image _reloadFill; // Optional: to change color
+
+    [Header("Weapon Display Settings")]
+    [SerializeField] private Color readyColor = Color.green;
+    [SerializeField] private Color reloadingColor = Color.yellow;
 
     private Camera _playerCam = null;
 
@@ -47,6 +59,7 @@ public class PlayerHud : MonoBehaviour
 
         UpdateCrosshairs();
         UpdateThrottleDisplay();
+        UpdateWeaponDisplay();
     }
 
     private void UpdateCrosshairs()
@@ -89,6 +102,46 @@ public class PlayerHud : MonoBehaviour
         if (_throttleText != null)
         {
             _throttleText.text = $"{_shipMovement.CurrentThrust:F0}";
+        }
+    }
+
+    private void UpdateWeaponDisplay()
+    {
+        if (_primaryGuns == null || _primaryGuns.Count == 0)
+            return;
+
+        // Get the first gun's reload status (or you can average all guns)
+        Gun gun = _primaryGuns[0];
+        if (gun == null) return;
+
+        float timeSinceLastShot = Time.time - gun.LastShotTime;
+        float reloadProgress = Mathf.Clamp01(timeSinceLastShot / gun.FireDelay);
+        bool isReady = gun.ReadyToFire;
+
+        // Update slider
+        if (_reloadSlider != null)
+        {
+            _reloadSlider.value = reloadProgress;
+        }
+
+        // Update fill color
+        if (_reloadFill != null)
+        {
+            _reloadFill.color = isReady ? readyColor : reloadingColor;
+        }
+
+        // Update text
+        if (_reloadText != null)
+        {
+            if (isReady)
+            {
+                _reloadText.text = "READY";
+            }
+            else
+            {
+                float remainingTime = gun.FireDelay - timeSinceLastShot;
+                _reloadText.text = $"{remainingTime:F1}s";
+            }
         }
     }
 

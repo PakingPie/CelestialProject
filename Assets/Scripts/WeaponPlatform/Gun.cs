@@ -115,16 +115,13 @@ public class Gun : WeaponBase
         // Handle manual vs automatic mode
         if (IsManualMode)
         {
-            // Always track the aim position
             if (_manualAimPosition != Vector3.zero)
             {
+                // Always try to rotate towards target
                 RotateBaseToFaceTarget(_manualAimPosition);
 
                 if (HasBarrels)
                     RotateBarrelsToFaceTarget(_manualAimPosition);
-
-                AngleToTarget = GetTurretAngleToTarget(_manualAimPosition);
-                IsAimed = AngleToTarget < AimedThreshold;
 
                 GimbalTarget = _manualAimPosition;
                 UseGimballedAiming = true;
@@ -133,8 +130,8 @@ public class Gun : WeaponBase
                 IsBaseAtRest = false;
             }
 
-            // Fire immediately when clicking - no IsAimed check
-            IsFiring = _isManualFiring;
+            // Only fire if clicking AND target is within traverse limits
+            IsFiring = _isManualFiring && IsTargetWithinTraverseLimits(_manualAimPosition);
         }
         else
         {
@@ -348,5 +345,41 @@ public class Gun : WeaponBase
     {
         IsManualMode = false;
         _isManualFiring = false;
+    }
+
+    /// <summary>
+    /// Check if target position is within the turret's traverse and elevation limits
+    /// </summary>
+    public bool IsTargetWithinTraverseLimits(Vector3 targetPosition)
+    {
+        // Calculate direction to target
+        Vector3 vecToTarget = targetPosition - TurretBase.position;
+        Vector3 flattenedVecForBase = Vector3.ProjectOnPlane(vecToTarget, transform.up);
+
+        // Calculate azimuth (horizontal angle)
+        float azimuth = Vector3.SignedAngle(transform.forward, flattenedVecForBase, transform.up);
+
+        // Check horizontal limits
+        if (HasLimitedTraverse)
+        {
+            if (azimuth < -LeftLimit || azimuth > RightLimit)
+                return false;
+        }
+
+        // Calculate elevation (vertical angle)
+        if (HasBarrels && Barrels != null)
+        {
+            Vector3 localTargetPos = TurretBase.InverseTransformDirection(targetPosition - Barrels.position);
+            Vector3 flattenedVecForBarrels = Vector3.ProjectOnPlane(localTargetPos, Vector3.up);
+
+            float elevation = Vector3.Angle(flattenedVecForBarrels, localTargetPos);
+            elevation *= Mathf.Sign(localTargetPos.y);
+
+            // Check vertical limits
+            if (elevation > MaxElevation || elevation < -MaxDepression)
+                return false;
+        }
+
+        return true;
     }
 }

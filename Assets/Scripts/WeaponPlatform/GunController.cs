@@ -99,7 +99,7 @@ public class GunController : MonoBehaviour
         {
             // Mouse button input
             isPrimaryFiring = mouse.leftButton.isPressed;
-            isSecondaryFiring = mouse.rightButton.isPressed;
+            isSecondaryFiring = mouse.leftButton.isPressed;
             isTertiaryFiring = mouse.middleButton.isPressed;
         }
 
