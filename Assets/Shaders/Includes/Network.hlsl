@@ -99,15 +99,17 @@ float speckle(float2 p, float density)
     return m;
 }
 
-void map_float(float3 p, out float3 c)
+float3 map(float3 p)
 {
     float lat = 90. - acos(p.y / length(p)) * 180. / PI;
     float lon = atan2(p.x, p.z) * 180. / PI;
     float2 uv = float2(lon / 360., lat / 180.) + 0.5;
+    float3 c = 0;
     c.xy = SampleNetwork(uv).xy;
     c.x = max(c.x, 0.);
     c.z = speckle(1000. * uv, c.y);
-    // c.z *= 0.5 * FBM(float3(50.0 * uv, _Time.y));
+    c.z *= 0.5 * FBM(float3(50.0 * uv, _Time.y));
+    return c;
 }
 
 #endif

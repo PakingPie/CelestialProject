@@ -12,7 +12,7 @@ Shader "Custom/Atmosphere"
         _MieScaleHeight("Mie Scale Height (km)", Float) = 1.2
         _OzoneLayerCenter("Ozone Layer Center (km)", Float) = 25
         _OzoneLayerWidth("Ozone Layer Width (km)", Float) = 15
-    
+        
         _RayleighScatteringCoeff("Rayleigh Scattering Coeff", Float) = 1.0
         _MieScatteringCoeff("Mie Scattering Coeff", Float) = 1.0
         _OzoneAbsorptionCoeff("Ozone Absorption Coeff", Float) = 1.0
@@ -25,6 +25,21 @@ Shader "Custom/Atmosphere"
         _LightSteps("Light Steps", Int) = 8
         
         _Exposure("Exposure", Float) = 2.0
+        
+        [Header(Clouds)]
+        _CloudsEnabled("Clouds Enabled", Float) = 1
+        _CloudLayerHeight("Cloud Layer Height (km)", Float) = 5
+        _CloudLayerThickness("Cloud Layer Thickness (km)", Float) = 3
+        _CloudDensity("Cloud Density", Range(0, 2)) = 0.5
+        _CloudCoverage("Cloud Coverage", Range(0, 1)) = 0.5
+        _CloudScale("Cloud Scale", Float) = 0.01
+        _CloudDetailScale("Cloud Detail Scale", Float) = 0.05
+        _CloudSpeed("Cloud Speed", Float) = 0.001
+        _CloudSteps("Cloud Steps", Int) = 8
+        _CloudLightSteps("Cloud Light Steps", Int) = 4
+        _CloudLightAbsorption("Cloud Light Absorption", Range(0, 2)) = 0.5
+        _CloudAmbient("Cloud Ambient Light", Range(0, 1)) = 0.2
+        _CloudColor("Cloud Color", Color) = (1, 1, 1, 1)
     }
 
     SubShader
@@ -33,7 +48,7 @@ Shader "Custom/Atmosphere"
         {
             Tags { "RenderPipeline"="UniversalPipeline" 
                 "Queue"="Transparent" 
-                "RenderType"="Transparent"}
+            "RenderType"="Transparent"}
             Cull Off
             ZWrite Off
             ZTest LEqual
@@ -61,6 +76,21 @@ Shader "Custom/Atmosphere"
                 uint _PrimarySteps;
                 uint _LightSteps;
                 float _Exposure;
+                
+                // Cloud parameters
+                float _CloudsEnabled;
+                float _CloudLayerHeight;
+                float _CloudLayerThickness;
+                float _CloudDensity;
+                float _CloudCoverage;
+                float _CloudScale;
+                float _CloudDetailScale;
+                float _CloudSpeed;
+                uint _CloudSteps;
+                uint _CloudLightSteps;
+                float _CloudLightAbsorption;
+                float _CloudAmbient;
+                float4 _CloudColor;
             CBUFFER_END
 
             #pragma vertex vert
@@ -94,43 +124,281 @@ Shader "Custom/Atmosphere"
                 return OUT;
             }
 
-            // Wavelength-dependent scattering coefficients
-            // These are scaled by wavelength^-4 for Rayleigh
+            // ============================================
+            // NOISE FUNCTIONS FOR CLOUDS
+            // ============================================
+            
+            float hash13(float3 p3)
+            {
+                p3 = frac(p3 * 0.1031);
+                p3 += dot(p3, p3.zyx + 31.32);
+                return frac((p3.x + p3.y) * p3.z);
+            }
+            
+            float3 hash33(float3 p3)
+            {
+                p3 = frac(p3 * float3(0.1031, 0.1030, 0.0973));
+                p3 += dot(p3, p3.yxz + 33.33);
+                return frac((p3.xxy + p3.yxx) * p3.zyx);
+            }
+
+            float ValueNoise(float3 p)
+            {
+                float3 i = floor(p);
+                float3 f = frac(p);
+                f = f * f * (3.0 - 2.0 * f);
+                
+                float n000 = hash13(i + float3(0, 0, 0));
+                float n100 = hash13(i + float3(1, 0, 0));
+                float n010 = hash13(i + float3(0, 1, 0));
+                float n110 = hash13(i + float3(1, 1, 0));
+                float n001 = hash13(i + float3(0, 0, 1));
+                float n101 = hash13(i + float3(1, 0, 1));
+                float n011 = hash13(i + float3(0, 1, 1));
+                float n111 = hash13(i + float3(1, 1, 1));
+                
+                float n00 = lerp(n000, n100, f.x);
+                float n10 = lerp(n010, n110, f.x);
+                float n01 = lerp(n001, n101, f.x);
+                float n11 = lerp(n011, n111, f.x);
+                
+                float n0 = lerp(n00, n10, f.y);
+                float n1 = lerp(n01, n11, f.y);
+                
+                return lerp(n0, n1, f.z);
+            }
+            
+            float FBM(float3 p, int octaves)
+            {
+                float value = 0.0;
+                float amplitude = 0.5;
+                float frequency = 1.0;
+                float totalAmplitude = 0.0;
+                
+                for (int i = 0; i < octaves; i++)
+                {
+                    value += amplitude * ValueNoise(p * frequency);
+                    totalAmplitude += amplitude;
+                    amplitude *= 0.5;
+                    frequency *= 2.0;
+                }
+                
+                return value / totalAmplitude;
+            }
+            
+            float WorleyNoise(float3 p)
+            {
+                float3 i = floor(p);
+                float3 f = frac(p);
+                
+                float minDist = 1.0;
+                
+                for (int z = -1; z <= 1; z++)
+                {
+                    for (int y = -1; y <= 1; y++)
+                    {
+                        for (int x = -1; x <= 1; x++)
+                        {
+                            float3 offset = float3(x, y, z);
+                            float3 cellPoint = hash33(i + offset);
+                            float3 diff = offset + cellPoint - f;
+                            float dist = length(diff);
+                            minDist = min(minDist, dist);
+                        }
+                    }
+                }
+                
+                return minDist;
+            }
+
+            // ============================================
+            // CLOUD DENSITY SAMPLING
+            // ============================================
+            
+            float GetHeightFraction(float3 pos, float3 planetCenter)
+            {
+                float height = length(pos - planetCenter) - _PlanetRadius;
+                float cloudBottom = _CloudLayerHeight;
+                float cloudTop = _CloudLayerHeight + _CloudLayerThickness;
+                return saturate((height - cloudBottom) / (cloudTop - cloudBottom));
+            }
+
+            float HeightGradient(float heightFraction)
+            {
+                // Smoother gradient using smoothstep instead of hard multipliers
+                float bottom = smoothstep(0.0, 0.2, heightFraction);
+                float top = smoothstep(1.0, 0.7, heightFraction);
+                return bottom * top;
+            }
+            
+            float SampleCloudDensity(float3 pos, float3 planetCenter, bool cheap)
+            {
+                float heightFraction = GetHeightFraction(pos, planetCenter);
+                
+                // Outside cloud layer
+                if (heightFraction <= 0.0 || heightFraction >= 1.0)
+                return 0.0;
+                
+                // Convert to spherical coordinates for seamless wrapping
+                float3 relPos = pos - planetCenter;
+                float3 normalizedPos = normalize(relPos);
+                
+                // Use spherical position for noise sampling
+                float3 noisePos = normalizedPos * (_PlanetRadius + _CloudLayerHeight);
+                float time = _Time.y * _CloudSpeed;
+                
+                // Base shape noise (low frequency)
+                float3 baseNoisePos = noisePos * _CloudScale + float3(time, 0, time * 0.5);
+                float baseNoise = FBM(baseNoisePos, 4);
+                
+                // Softer coverage remapping - avoid hard cutoff
+                float coverage = _CloudCoverage;
+                float coverageMin = 1.0 - coverage;
+                baseNoise = saturate((baseNoise - coverageMin) / (1.0 - coverageMin + 0.001));
+                
+                // Smoother height gradient - less pronounced layers
+                float heightGrad = HeightGradient(heightFraction);
+                // Reduce height influence to prevent visible layering
+                heightGrad = lerp(0.5, heightGrad, 0.6);
+                
+                float density = baseNoise * heightGrad;
+                
+                // Add detail noise (only for non-cheap samples)
+                if (!cheap && density > 0.01)
+                {
+                    float3 detailNoisePos = noisePos * _CloudDetailScale + float3(time * 2.0, time, 0);
+                    float detailNoise = FBM(detailNoisePos, 3);
+                    
+                    // Remove Worley noise - it causes the hollow outlines
+                    // Instead use only FBM detail with soft erosion
+                    float erosion = detailNoise * 0.4;
+                    
+                    // Only erode where there's already density (prevents hollow edges)
+                    erosion *= smoothstep(0.0, 0.3, density);
+                    
+                    density = saturate(density - erosion);
+                }
+                
+                // Soft fade at edges to prevent hard outlines
+                density *= smoothstep(0.0, 0.1, density);
+                
+                return density * _CloudDensity;
+            }
+
+            
+
+            // ============================================
+            // CLOUD LIGHTING
+            // ============================================
+            
+            float GetCloudLightTransmittance(float3 pos, float3 lightDir, float3 planetCenter)
+            {
+                float stepSize = _CloudLayerThickness / float(_CloudLightSteps);
+                float transmittance = 1.0;
+                
+                for (uint i = 0; i < _CloudLightSteps; i++)
+                {
+                    float3 samplePos = pos + lightDir * stepSize * (float(i) + 0.5);
+                    float density = SampleCloudDensity(samplePos, planetCenter, true);
+                    transmittance *= exp(-density * stepSize * _CloudLightAbsorption);
+                    
+                    if (transmittance < 0.01)
+                    break;
+                }
+                
+                return transmittance;
+            }
+            
+            float HenyeyGreenstein(float cosTheta, float g)
+            {
+                float g2 = g * g;
+                return (1.0 - g2) / (4.0 * PI * pow(1.0 + g2 - 2.0 * g * cosTheta, 1.5));
+            }
+            
+            float4 RaymarchClouds(float3 rayOrigin, float3 rayDir, float tMin, float tMax, float3 lightDir, float3 planetCenter)
+            {
+                if (_CloudsEnabled < 0.5)
+                return float4(0, 0, 0, 0);
+                
+                float stepSize = (tMax - tMin) / float(_CloudSteps);
+                
+                // Jitter the starting position to reduce banding
+                float jitter = hash13(rayDir * 1000.0 + _Time.y) * stepSize;
+                float3 pos = rayOrigin + rayDir * (tMin + jitter);
+                
+                float transmittance = 1.0;
+                float3 luminance = 0;
+                
+                float cosTheta = dot(rayDir, lightDir);
+                float phase = lerp(HenyeyGreenstein(cosTheta, 0.3), HenyeyGreenstein(cosTheta, -0.3), 0.5);
+                
+                for (uint i = 0; i < _CloudSteps; i++)
+                {
+                    float density = SampleCloudDensity(pos, planetCenter, false);
+                    
+                    if (density > 0.001)
+                    {
+                        float3 normal = normalize(pos - planetCenter);
+                        float dayFactor = smoothstep(-0.1, 0.3, dot(normal, lightDir));
+                        
+                        float lightTransmittance = GetCloudLightTransmittance(pos, lightDir, planetCenter);
+                        
+                        float3 directLight = lightTransmittance * phase * _LightIntensity * dayFactor;
+                        
+                        float heightFrac = GetHeightFraction(pos, planetCenter);
+                        float3 ambientLight = _CloudAmbient * lerp(float3(0.4, 0.5, 0.7), float3(0.8, 0.9, 1.0), heightFrac) * dayFactor;
+                        
+                        float3 cloudLight = (directLight + ambientLight) * _CloudColor.rgb;
+                        
+                        float sampleTransmittance = exp(-density * stepSize * _CloudLightAbsorption);
+                        
+                        float3 integScatter = (cloudLight - cloudLight * sampleTransmittance) / max(_CloudLightAbsorption, 0.0001);
+                        luminance += transmittance * integScatter;
+                        transmittance *= sampleTransmittance;
+                        
+                        if (transmittance < 0.01)
+                        break;
+                    }
+                    
+                    pos += rayDir * stepSize;
+                }
+                
+                // Soften the final alpha to reduce hard edges
+                float alpha = 1.0 - transmittance;
+                alpha = smoothstep(0.0, 0.1, alpha) * alpha;
+                
+                return float4(luminance, alpha);
+            }
+
+            // ============================================
+            // ATMOSPHERE FUNCTIONS (Original)
+            // ============================================
+
             float3 GetRayleighCoefficients()
             {
-                // Wavelengths in nm: Red=700, Green=530, Blue=440
-                // Relative scattering: proportional to 1/wavelength^4
                 float3 wavelengths = _WaveLength;
                 float3 scattering = pow(440.0 / wavelengths, 4.0);
-                
-                // Base coefficient scaled to realistic values (per km)
                 float baseCoeff = 0.0058 * _RayleighScatteringCoeff;
                 return scattering * baseCoeff;
             }
 
             float3 GetMieCoefficients()
             {
-                // Mie scattering is wavelength independent (or nearly so)
                 float baseCoeff = 0.0021 * _MieScatteringCoeff;
                 return float3(baseCoeff, baseCoeff, baseCoeff);
             }
 
             float3 GetOzoneAbsorption()
             {
-                // Ozone strongly absorbs in green/yellow
-                // Peak absorption around 600nm (orange-red boundary)
-                // Less absorption in red and blue
                 float3 absorption = float3(0.4, 2.0, 0.05) * 0.00006 * _OzoneAbsorptionCoeff;
                 return absorption;
             }
 
-            // Rayleigh phase function
             float PhaseRayleigh(float cosTheta)
             {
                 return (3.0 / (16.0 * PI)) * (1.0 + cosTheta * cosTheta);
             }
 
-            // Cornette-Shanks phase function for Mie
             float PhaseMie(float cosTheta, float g)
             {
                 float g2 = g * g;
@@ -139,7 +407,6 @@ Shader "Custom/Atmosphere"
                 return (3.0 / (8.0 * PI)) * num / denom;
             }
 
-            // Ray-sphere intersection
             float2 RaySphereIntersection(float3 rayOrigin, float3 rayDir, float3 sphereCenter, float sphereRadius)
             {
                 float3 oc = rayOrigin - sphereCenter;
@@ -148,26 +415,23 @@ Shader "Custom/Atmosphere"
                 float discriminant = b * b - c;
                 
                 if (discriminant < 0.0)
-                    return float2(1e6, -1e6);
+                return float2(1e6, -1e6);
                 
                 float sqrtDisc = sqrt(discriminant);
                 return float2(-b - sqrtDisc, -b + sqrtDisc);
             }
 
-            // Density at height using exponential falloff
             float DensityAtHeight(float height, float scaleHeight)
             {
                 return exp(-max(0.0, height) / scaleHeight);
             }
 
-            // Ozone density distribution
             float OzoneDensity(float height)
             {
                 float x = (height - _OzoneLayerCenter) / _OzoneLayerWidth;
                 return max(0.0, exp(-x * x));
             }
 
-            // Calculate optical depth between two points
             float3 OpticalDepth(float3 startPos, float3 endPos, float3 planetCenter, uint steps)
             {
                 float3 step = (endPos - startPos) / float(steps);
@@ -220,7 +484,6 @@ Shader "Custom/Atmosphere"
                     
                     opticalDepthPA += float3(densityRayleigh, densityMie, densityOzone) * stepSize;
                     
-                    // Calculate sun ray optical depth
                     float2 lightIntersect = RaySphereIntersection(samplePos, lightDir, planetCenter, _PlanetRadius + _AtmosphereHeight);
                     
                     if (lightIntersect.y > 0)
@@ -229,10 +492,9 @@ Shader "Custom/Atmosphere"
                         
                         float3 totalOpticalDepth = opticalDepthPA + opticalDepthAB;
                         
-                        // Calculate total extinction (scattering + absorption)
                         float3 extinction = betaRayleigh * totalOpticalDepth.x + 
-                                          betaMie * totalOpticalDepth.y + 
-                                          betaOzone * totalOpticalDepth.z;
+                        betaMie * totalOpticalDepth.y + 
+                        betaOzone * totalOpticalDepth.z;
                         
                         float3 transmittance = exp(-extinction);
                         
@@ -246,12 +508,15 @@ Shader "Custom/Atmosphere"
                 totalRayleigh *= stepSize;
                 totalMie *= stepSize;
                 
-                // Combine scattering
                 float3 scattering = totalRayleigh * betaRayleigh * phaseRayleigh + 
-                                   totalMie * betaMie * phaseMie;
+                totalMie * betaMie * phaseMie;
                 
                 return scattering * _LightIntensity;
             }
+
+            // ============================================
+            // FRAGMENT SHADER
+            // ============================================
 
             float4 frag(Varyings IN) : SV_Target
             {
@@ -268,7 +533,7 @@ Shader "Custom/Atmosphere"
                 float2 atmosphereIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius + _AtmosphereHeight);
                 
                 if (atmosphereIntersect.x > atmosphereIntersect.y)
-                    discard;
+                discard;
                 
                 float2 planetIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius);
                 
@@ -276,22 +541,42 @@ Shader "Custom/Atmosphere"
                 float tMax = planetIntersect.x > 0 ? min(atmosphereIntersect.y, planetIntersect.x) : atmosphereIntersect.y;
                 
                 if (tMin >= tMax)
-                    discard;
+                discard;
                 
+                // Calculate atmosphere scattering
                 float3 scatter = CalculateScattering(cameraPos, viewDir, tMin, tMax, sunDir, planetCenter);
                 
-                scatter *= _Exposure;
+                // Calculate cloud layer intersection
+                float2 cloudBottomIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius + _CloudLayerHeight);
+                float2 cloudTopIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius + _CloudLayerHeight + _CloudLayerThickness);
+                
+                float cloudTMin = max(tMin, min(cloudBottomIntersect.x, cloudTopIntersect.x));
+                float cloudTMax = min(tMax, max(cloudBottomIntersect.y, cloudTopIntersect.y));
+                
+                // Raymarch clouds
+                float4 clouds = float4(0, 0, 0, 0);
+                if (cloudTMin < cloudTMax && _CloudsEnabled > 0.5)
+                {
+                    clouds = RaymarchClouds(cameraPos, viewDir, cloudTMin, cloudTMax, sunDir, planetCenter);
+                }
+                
+                // Combine atmosphere and clouds
+                // Clouds are in front of atmosphere, so blend accordingly
+                float3 combined = scatter * (1.0 - clouds.a) + clouds.rgb;
+                
+                combined *= _Exposure;
                 
                 // Filmic tonemapping
-                scatter = saturate(scatter / (scatter + 1.0));
+                combined = saturate(combined / (combined + 1.0));
                 
                 // Gamma correction
-                scatter = pow(max(scatter, 0.0), 1.0 / 2.2);
+                combined = pow(max(combined, 0.0), 1.0 / 2.2);
                 
                 float distance = tMax - tMin;
                 float alpha = saturate(1.0 - exp(-distance / (_AtmosphereHeight * 0.3)));
+                alpha = max(alpha, clouds.a);
                 
-                return float4(scatter, alpha);
+                return float4(combined, alpha);
             }
             ENDHLSL
         }
