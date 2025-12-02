@@ -222,12 +222,12 @@ Shader "Custom/Atmosphere"
                 float cloudTop = _CloudLayerHeight + _CloudLayerThickness;
                 return saturate((height - cloudBottom) / (cloudTop - cloudBottom));
             }
-
+            
             float HeightGradient(float heightFraction)
             {
-                // Smoother gradient using smoothstep instead of hard multipliers
-                float bottom = smoothstep(0.0, 0.2, heightFraction);
-                float top = smoothstep(1.0, 0.7, heightFraction);
+                // Rounded bottom, flat top cloud shape
+                float bottom = saturate(heightFraction * 4.0);
+                float top = saturate((1.0 - heightFraction) * 2.0);
                 return bottom * top;
             }
             
@@ -285,8 +285,6 @@ Shader "Custom/Atmosphere"
                 return density * _CloudDensity;
             }
 
-            
-
             // ============================================
             // CLOUD LIGHTING
             // ============================================
@@ -321,10 +319,7 @@ Shader "Custom/Atmosphere"
                 return float4(0, 0, 0, 0);
                 
                 float stepSize = (tMax - tMin) / float(_CloudSteps);
-                
-                // Jitter the starting position to reduce banding
-                float jitter = hash13(rayDir * 1000.0 + _Time.y) * stepSize;
-                float3 pos = rayOrigin + rayDir * (tMin + jitter);
+                float3 pos = rayOrigin + rayDir * (tMin + stepSize * 0.5);
                 
                 float transmittance = 1.0;
                 float3 luminance = 0;
@@ -338,20 +333,31 @@ Shader "Custom/Atmosphere"
                     
                     if (density > 0.001)
                     {
+                        // Calculate surface normal at this position
                         float3 normal = normalize(pos - planetCenter);
-                        float dayFactor = smoothstep(-0.1, 0.3, dot(normal, lightDir));
                         
+                        // Day/night factor - fade clouds on dark side
+                        float dayFactor = saturate(dot(normal, lightDir) * 2.0 + 0.5);
+                        // Use smoothstep for softer transition at terminator
+                        dayFactor = smoothstep(0.0, 0.3, dayFactor);
+                        
+                        // Sample light transmittance
                         float lightTransmittance = GetCloudLightTransmittance(pos, lightDir, planetCenter);
                         
+                        // Direct lighting (affected by day factor)
                         float3 directLight = lightTransmittance * phase * _LightIntensity * dayFactor;
                         
+                        // Ambient lighting - also reduce on night side
                         float heightFrac = GetHeightFraction(pos, planetCenter);
                         float3 ambientLight = _CloudAmbient * lerp(float3(0.4, 0.5, 0.7), float3(0.8, 0.9, 1.0), heightFrac) * dayFactor;
                         
+                        // Combined lighting
                         float3 cloudLight = (directLight + ambientLight) * _CloudColor.rgb;
                         
+                        // Beer-Lambert absorption
                         float sampleTransmittance = exp(-density * stepSize * _CloudLightAbsorption);
                         
+                        // Energy-conserving scattering integration
                         float3 integScatter = (cloudLight - cloudLight * sampleTransmittance) / max(_CloudLightAbsorption, 0.0001);
                         luminance += transmittance * integScatter;
                         transmittance *= sampleTransmittance;
@@ -363,11 +369,7 @@ Shader "Custom/Atmosphere"
                     pos += rayDir * stepSize;
                 }
                 
-                // Soften the final alpha to reduce hard edges
-                float alpha = 1.0 - transmittance;
-                alpha = smoothstep(0.0, 0.1, alpha) * alpha;
-                
-                return float4(luminance, alpha);
+                return float4(luminance, 1.0 - transmittance);
             }
 
             // ============================================
