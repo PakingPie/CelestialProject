@@ -100,7 +100,7 @@ Shader "Custom/PlanetNoise"
                 float2 uv = fragCoord / iResolution.y + 1.0;
                 float2 wiggle = float2(FBM(float3(50.0 * uv, 1.0)), FBM(float3(50.0 * uv, 2.0))) - 0.5;
                 
-                float height = FBM(3.0 * p) - 0.5;
+                float height = FBM(3.0 * p) - 0.6;
                 
                 float4 fragColor;
                 fragColor.x = height;

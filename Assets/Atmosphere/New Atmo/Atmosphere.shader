@@ -19,6 +19,9 @@ Shader "Custom/Atmosphere"
         
         _G("Mie Anisotropy", Range(-0.99, 0.99)) = 0.76
 
+        _TerminatorStart("Terminator Start", Range(-0.3, 0.3)) = 0.0
+        _TerminatorEnd("Terminator End", Range(0.1, 0.5)) = 0.2
+
         _WaveLength("Wavelength Red (nm)", Vector) = (700, 530, 440, 0)
         
         _PrimarySteps("Primary Steps", Int) = 16
@@ -68,6 +71,8 @@ Shader "Custom/Atmosphere"
                 float _MieScatteringCoeff;
                 float _OzoneAbsorptionCoeff;
                 float _G;
+                float _TerminatorStart;
+                float _TerminatorEnd;
                 float3 _WaveLength;
                 float _RayleighScaleHeight;
                 float _MieScaleHeight;
@@ -336,10 +341,8 @@ Shader "Custom/Atmosphere"
                         // Calculate surface normal at this position
                         float3 normal = normalize(pos - planetCenter);
                         
-                        // Day/night factor - fade clouds on dark side
-                        float dayFactor = saturate(dot(normal, lightDir) * 2.0 + 0.5);
-                        // Use smoothstep for softer transition at terminator
-                        dayFactor = smoothstep(0.0, 0.3, dayFactor);
+                        // Day/night factor - adjustable terminator
+                        float dayFactor = smoothstep(_TerminatorStart, _TerminatorEnd, dot(normal, lightDir));
                         
                         // Sample light transmittance
                         float lightTransmittance = GetCloudLightTransmittance(pos, lightDir, planetCenter);
@@ -490,6 +493,10 @@ Shader "Custom/Atmosphere"
                     
                     if (lightIntersect.y > 0)
                     {
+                        // Calculate day/night factor for this sample point
+                        float3 sampleNormal = normalize(samplePos - planetCenter);
+                        float dayFactor = smoothstep(_TerminatorStart, _TerminatorEnd, dot(sampleNormal, lightDir));
+                        
                         float3 opticalDepthAB = OpticalDepth(samplePos, samplePos + lightDir * lightIntersect.y, planetCenter, _LightSteps);
                         
                         float3 totalOpticalDepth = opticalDepthPA + opticalDepthAB;
@@ -500,8 +507,8 @@ Shader "Custom/Atmosphere"
                         
                         float3 transmittance = exp(-extinction);
                         
-                        totalRayleigh += transmittance * densityRayleigh;
-                        totalMie += transmittance * densityMie;
+                        totalRayleigh += transmittance * densityRayleigh * dayFactor;
+                        totalMie += transmittance * densityMie * dayFactor;
                     }
                     
                     samplePos += rayDir * stepSize;
