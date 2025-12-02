@@ -1,343 +1,237 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerShipMovement : MonoBehaviour
 {
     [Header("Components")]
-    [SerializeField] private PlayerMovementController controller = null;
+    [SerializeField] private PlayerMovementController cameraController = null;
 
-    [Header("Physics")]
-    [Tooltip("Force to push plane forwards with")] public float thrust = 100f;
-    [Tooltip("Pitch, Yaw, Roll")] public Vector3 turnTorque = new Vector3(90f, 25f, 45f);
-    [Tooltip("Multiplier for all forces")] public float forceMult = 1000f;
+    [Header("Movement Settings")]
+    [Tooltip("Maximum forward/backward thrust")]
+    public float maxThrust = 100f;
+    [Tooltip("Minimum thrust (can be negative for reverse)")]
+    public float minThrust = -50f;
+    [Tooltip("How quickly thrust changes")]
+    public float thrustAcceleration = 100f;
+    [Tooltip("Current thrust level")]
+    [SerializeField] private float currentThrust = 0f;
 
-    [Header("Autopilot")]
-    [Tooltip("Sensitivity for autopilot flight.")] public float sensitivity = 5f;
-    [Tooltip("Angle at which airplane banks fully into target.")] public float aggressiveTurnAngle = 10f;
+    [Header("Rotation Settings")]
+    [Tooltip("Pitch speed (up/down tilt)")]
+    public float pitchSpeed = 45f;
+    [Tooltip("Yaw speed (left/right turn)")]
+    public float yawSpeed = 30f;
+    [Tooltip("Roll speed (barrel roll)")]
+    public float rollSpeed = 60f;
 
-    [Header("Input")]
-    [SerializeField][Range(-1f, 1f)] private float pitch = 0f;
-    [SerializeField][Range(-1f, 1f)] private float yaw = 0f;
-    [SerializeField][Range(-1f, 1f)] private float roll = 0f;
+    [Header("Stabilization")]
+    [Tooltip("Automatically level roll when no input")]
+    public bool autoLevelRoll = true;
+    [Tooltip("Speed of auto-leveling")]
+    public float autoLevelSpeed = 2f;
 
-    public float Pitch { set { pitch = Mathf.Clamp(value, -1f, 1f); } get { return pitch; } }
-    public float Yaw { set { yaw = Mathf.Clamp(value, -1f, 1f); } get { return yaw; } }
-    public float Roll { set { roll = Mathf.Clamp(value, -1f, 1f); } get { return roll; } }
+    [Header("Vertical Movement")]
+    [Tooltip("Enable direct vertical thrust (spaceship style)")]
+    public bool enableVerticalThrust = true;
+    [Tooltip("Vertical thrust speed")]
+    public float verticalThrustSpeed = 50f;
 
-    private bool rollOverride = false;
-    private bool pitchOverride = false;
+    [Header("Strafe Movement")]
+    [Tooltip("Enable horizontal strafing")]
+    public bool enableStrafe = true;
+    [Tooltip("Strafe speed")]
+    public float strafeSpeed = 30f;
+
+    [Header("Debug")]
+    [SerializeField] private Vector3 currentInputs = Vector3.zero;
+
+    // Input values
+    private float pitchInput = 0f;
+    private float yawInput = 0f;
+    private float rollInput = 0f;
+    private float verticalInput = 0f;
+    private float strafeInput = 0f;
+    private float throttleInput = 0f;
+
+    // Properties for external access
+    public float CurrentThrust => currentThrust;
+    public float ThrustPercent => Mathf.InverseLerp(minThrust, maxThrust, currentThrust);
+    public Vector3 Velocity => transform.forward * currentThrust;
 
     private void Awake()
     {
-        if (controller == null)
-            Debug.LogError(name + ": Plane - Missing reference to MouseFlightController!");
+        if (cameraController == null)
+        {
+            cameraController = FindObjectOfType<PlayerMovementController>();
+            if (cameraController == null)
+                Debug.LogWarning(name + ": PlayerShipMovement - No PlayerMovementController found. Camera will not follow ship.");
+        }
     }
 
     private void Update()
     {
-        // When the player commands their own stick input, it should override what the
-        // autopilot is trying to do.
-        rollOverride = false;
-        pitchOverride = false;
-
-        // Read from the new Input System (Gamepad/Keyboard) and fallback to legacy Input if not available.
-        float keyboardRoll = 0f;
-        float keyboardPitch = 0f;
-        var gp = UnityEngine.InputSystem.Gamepad.current;
-        var kb = UnityEngine.InputSystem.Keyboard.current;
-
-        if (gp != null)
-        {
-            keyboardRoll = gp.leftStick.ReadValue().x;
-        }
-        else if (kb != null)
-        {
-            keyboardRoll = (kb.dKey.isPressed ? 1f : 0f) + (kb.aKey.isPressed ? -1f : 0f);
-        }
-
-        if (Mathf.Abs(keyboardRoll) > .25f)
-        {
-            rollOverride = true;
-        }
-
-        if (gp != null)
-        {
-            keyboardPitch = gp.leftStick.ReadValue().y;
-        }
-        else if (kb != null)
-        {
-            keyboardPitch = (kb.wKey.isPressed ? 1f : 0f) + (kb.sKey.isPressed ? -1f : 0f);
-        }
-
-        if (Mathf.Abs(keyboardPitch) > .25f)
-        {
-            pitchOverride = true;
-            rollOverride = true;
-        }
-
-        // Calculate the autopilot stick inputs.
-        float autoYaw = 0f;
-        float autoPitch = 0f;
-        float autoRoll = 0f;
-        if (controller != null)
-            RunAutopilot(controller.MouseAimPos, out autoYaw, out autoPitch, out autoRoll);
-
-        // Use either keyboard or autopilot input.
-        yaw = autoYaw;
-        pitch = (pitchOverride) ? keyboardPitch : autoPitch;
-        roll = (rollOverride) ? keyboardRoll : autoRoll;
-
-        // Simple throttle control.
-        float throttleInput = 0f;
-        if (gp != null)
-        {
-            throttleInput = gp.rightTrigger.ReadValue() - gp.leftTrigger.ReadValue();
-        }
-        else if (kb != null)
-        {
-            throttleInput = (kb.leftShiftKey.isPressed ? 1f : 0f) + (kb.leftCtrlKey.isPressed ? -1f : 0f);
-        }
-
-        thrust += throttleInput * Time.deltaTime * forceMult;
-        // thrust = Mathf.Clamp(thrust, 0f, 500f);
-
-        // Appply forces without using Rigidbody.
-        transform.position += transform.forward * (thrust * Time.deltaTime);
-        transform.Rotate(new Vector3(turnTorque.x * pitch,
-                                     turnTorque.y * yaw,
-                                     -turnTorque.z * roll) * Time.deltaTime);
-
+        ReadInput();
+        ApplyThrust();
+        ApplyRotation();
+        ApplyMovement();
     }
 
-    private void RunAutopilot(Vector3 flyTarget, out float yaw, out float pitch, out float roll)
+    private void ReadInput()
     {
-        // This is my usual trick of converting the fly to position to local space.
-        // You can derive a lot of information from where the target is relative to self.
-        var localFlyTarget = transform.InverseTransformPoint(flyTarget).normalized * sensitivity;
-        var angleOffTarget = Vector3.Angle(transform.forward, flyTarget - transform.position);
+        var kb = Keyboard.current;
+        var gp = Gamepad.current;
 
-        // IMPORTANT!
-        // These inputs are created proportionally. This means it can be prone to
-        // overshooting. The physics in this example are tweaked so that it's not a big
-        // issue, but in something with different or more realistic physics this might
-        // not be the case. Use of a PID controller for each axis is highly recommended.
+        // Reset inputs
+        pitchInput = 0f;
+        yawInput = 0f;
+        rollInput = 0f;
+        verticalInput = 0f;
+        strafeInput = 0f;
+        throttleInput = 0f;
 
-        // ====================
-        // PITCH AND YAW
-        // ====================
+        if (gp != null)
+        {
+            // Gamepad controls
+            // Left stick: Pitch and Yaw
+            pitchInput = -gp.leftStick.y.ReadValue(); // Inverted: push forward to pitch down
+            yawInput = gp.leftStick.x.ReadValue();
 
-        // Yaw/Pitch into the target so as to put it directly in front of the aircraft.
-        // A target is directly in front the aircraft if the relative X and Y are both
-        // zero. Note this does not handle for the case where the target is directly behind.
-        yaw = Mathf.Clamp(localFlyTarget.x, -1f, 1f);
-        pitch = -Mathf.Clamp(localFlyTarget.y, -1f, 1f);
+            // Bumpers: Roll
+            rollInput = (gp.rightShoulder.isPressed ? 1f : 0f) - (gp.leftShoulder.isPressed ? 1f : 0f);
 
-        // ====================
-        // ROLL
-        // ====================
+            // Triggers: Throttle
+            throttleInput = gp.rightTrigger.ReadValue() - gp.leftTrigger.ReadValue();
 
-        // Roll is a little special because there are two different roll commands depending
-        // on the situation. When the target is off axis, then the plane should roll into it.
-        // When the target is directly in front, the plane should fly wings level.
+            // Right stick: Vertical and Strafe
+            if (enableVerticalThrust)
+                verticalInput = gp.rightStick.y.ReadValue();
+            if (enableStrafe)
+                strafeInput = gp.rightStick.x.ReadValue();
+        }
+        
+        if (kb != null)
+        {
+            // Keyboard controls (can combine with gamepad)
+            
+            // WASD: Pitch and Yaw
+            if (kb.wKey.isPressed) pitchInput = -1f; // W pitches down (nose down)
+            if (kb.sKey.isPressed) pitchInput = 1f;  // S pitches up (nose up)
+            if (kb.aKey.isPressed) yawInput = -1f;   // A turns left
+            if (kb.dKey.isPressed) yawInput = 1f;    // D turns right
 
-        // An "aggressive roll" is input such that the aircraft rolls into the target so
-        // that pitching up (handled above) will put the nose onto the target. This is
-        // done by rolling such that the X component of the target's position is zeroed.
-        var agressiveRoll = Mathf.Clamp(localFlyTarget.x, -1f, 1f);
+            // Q/E: Roll
+            if (kb.qKey.isPressed) rollInput = 1f;   // Q rolls left
+            if (kb.eKey.isPressed) rollInput = -1f;  // E rolls right
 
-        // A "wings level roll" is a roll commands the aircraft to fly wings level.
-        // This can be done by zeroing out the Y component of the aircraft's right.
-        var wingsLevelRoll = transform.right.y;
+            // Shift/Ctrl: Throttle
+            if (kb.leftShiftKey.isPressed) throttleInput = 1f;
+            if (kb.leftCtrlKey.isPressed) throttleInput = -1f;
 
-        // Blend between auto level and banking into the target.
-        var wingsLevelInfluence = Mathf.InverseLerp(0f, aggressiveTurnAngle, angleOffTarget);
-        roll = Mathf.Lerp(wingsLevelRoll, agressiveRoll, wingsLevelInfluence);
+            // Space/C: Vertical thrust (spaceship mode)
+            if (enableVerticalThrust)
+            {
+                if (kb.spaceKey.isPressed) verticalInput = 1f;
+                if (kb.leftAltKey.isPressed) verticalInput = -1f;
+            }
+
+            // Z/X: Strafe (optional)
+            if (enableStrafe)
+            {
+                if (kb.zKey.isPressed) strafeInput = -1f;
+                if (kb.xKey.isPressed) strafeInput = 1f;
+            }
+        }
+
+        currentInputs = new Vector3(pitchInput, yawInput, rollInput);
+    }
+
+    private void ApplyThrust()
+    {
+        // Gradually change thrust based on input
+        if (Mathf.Abs(throttleInput) > 0.01f)
+        {
+            currentThrust += throttleInput * thrustAcceleration * Time.deltaTime;
+        }
+        else
+        {
+            // Optional: slowly decay thrust when no input (like drag)
+            // currentThrust = Mathf.MoveTowards(currentThrust, 0f, thrustDecay * Time.deltaTime);
+        }
+
+        // Clamp thrust to limits
+        currentThrust = Mathf.Clamp(currentThrust, minThrust, maxThrust);
+    }
+
+    private void ApplyRotation()
+    {
+        // Calculate rotation this frame
+        float pitch = pitchInput * pitchSpeed * Time.deltaTime;
+        float yaw = yawInput * yawSpeed * Time.deltaTime;
+        float roll = rollInput * rollSpeed * Time.deltaTime;
+
+        // Apply rotation
+        transform.Rotate(pitch, yaw, roll, Space.Self);
+
+        // Auto-level roll if enabled and no roll input
+        if (autoLevelRoll && Mathf.Abs(rollInput) < 0.01f)
+        {
+            // Get current roll angle
+            Vector3 flatForward = transform.forward;
+            flatForward.y = 0f;
+            
+            if (flatForward.sqrMagnitude > 0.01f)
+            {
+                flatForward.Normalize();
+                
+                // Calculate target rotation with zero roll
+                Quaternion targetRotation = Quaternion.LookRotation(transform.forward, Vector3.up);
+                
+                // Only correct roll, preserve pitch and yaw
+                Vector3 currentEuler = transform.eulerAngles;
+                Vector3 targetEuler = targetRotation.eulerAngles;
+                
+                float correctedRoll = Mathf.LerpAngle(currentEuler.z, 0f, autoLevelSpeed * Time.deltaTime);
+                transform.eulerAngles = new Vector3(currentEuler.x, currentEuler.y, correctedRoll);
+            }
+        }
+    }
+
+    private void ApplyMovement()
+    {
+        Vector3 movement = Vector3.zero;
+
+        // Forward/backward thrust
+        movement += transform.forward * currentThrust * Time.deltaTime;
+
+        // Vertical thrust
+        if (enableVerticalThrust && Mathf.Abs(verticalInput) > 0.01f)
+        {
+            movement += transform.up * verticalInput * verticalThrustSpeed * Time.deltaTime;
+        }
+
+        // Strafe
+        if (enableStrafe && Mathf.Abs(strafeInput) > 0.01f)
+        {
+            movement += transform.right * strafeInput * strafeSpeed * Time.deltaTime;
+        }
+
+        // Apply movement
+        transform.position += movement;
+    }
+
+    // Public methods for external control (AI, cutscenes, etc.)
+    public void SetThrust(float thrust)
+    {
+        currentThrust = Mathf.Clamp(thrust, minThrust, maxThrust);
+    }
+
+    public void AddThrust(float amount)
+    {
+        currentThrust = Mathf.Clamp(currentThrust + amount, minThrust, maxThrust);
+    }
+
+    public void StopThrust()
+    {
+        currentThrust = 0f;
     }
 }
-
-
-// //
-// // Copyright (c) Brian Hernandez. All rights reserved.
-// // Licensed under the MIT license. See LICENSE file in the project root for details.
-// //
-
-// using UnityEngine;
-
-
-// /// <summary>
-// /// This is a very demo-ey example of how to interpret the input generated by the
-// /// MouseFlightController. The plane flies towards the MouseAimPos automatically in
-// /// a similar fashion to how War Thunder's Instructor does it. There are also
-// /// keyboard overrides for flight control. It's not perfect, but it works well enough
-// /// for an example.
-// /// </summary>
-// [RequireComponent(typeof(Rigidbody))]
-// public class PlayerShipMovement : MonoBehaviour
-// {
-//     [Header("Components")]
-//     [SerializeField] private PlayerMovementController controller = null;
-
-//     [Header("Physics")]
-//     [Tooltip("Force to push plane forwards with")] public float thrust = 100f;
-//     [Tooltip("Pitch, Yaw, Roll")] public Vector3 turnTorque = new Vector3(90f, 25f, 45f);
-//     [Tooltip("Multiplier for all forces")] public float forceMult = 1000f;
-
-//     [Header("Autopilot")]
-//     [Tooltip("Sensitivity for autopilot flight.")] public float sensitivity = 5f;
-//     [Tooltip("Angle at which airplane banks fully into target.")] public float aggressiveTurnAngle = 10f;
-
-//     [Header("Input")]
-//     [SerializeField][Range(-1f, 1f)] private float pitch = 0f;
-//     [SerializeField][Range(-1f, 1f)] private float yaw = 0f;
-//     [SerializeField][Range(-1f, 1f)] private float roll = 0f;
-
-//     public float Pitch { set { pitch = Mathf.Clamp(value, -1f, 1f); } get { return pitch; } }
-//     public float Yaw { set { yaw = Mathf.Clamp(value, -1f, 1f); } get { return yaw; } }
-//     public float Roll { set { roll = Mathf.Clamp(value, -1f, 1f); } get { return roll; } }
-
-//     private Rigidbody rigid;
-
-//     private bool rollOverride = false;
-//     private bool pitchOverride = false;
-
-//     private void Awake()
-//     {
-//         rigid = GetComponent<Rigidbody>();
-
-//         if (controller == null)
-//             Debug.LogError(name + ": Plane - Missing reference to MouseFlightController!");
-//     }
-
-//     private void Update()
-//     {
-//         // When the player commands their own stick input, it should override what the
-//         // autopilot is trying to do.
-//         rollOverride = false;
-//         pitchOverride = false;
-
-//         // Read from the new Input System (Gamepad/Keyboard) and fallback to legacy Input if not available.
-//         float keyboardRoll = 0f;
-//         float keyboardPitch = 0f;
-//         var gp = UnityEngine.InputSystem.Gamepad.current;
-//         var kb = UnityEngine.InputSystem.Keyboard.current;
-
-//         if (gp != null)
-//         {
-//             keyboardRoll = gp.leftStick.ReadValue().x;
-//         }
-//         else if (kb != null)
-//         {
-//             keyboardRoll = (kb.dKey.isPressed ? 1f : 0f) + (kb.aKey.isPressed ? -1f : 0f);
-//         }
-
-//         if (Mathf.Abs(keyboardRoll) > .25f)
-//         {
-//             rollOverride = true;
-//         }
-
-//         if (gp != null)
-//         {
-//             keyboardPitch = gp.leftStick.ReadValue().y;
-//         }
-//         else if (kb != null)
-//         {
-//             keyboardPitch = (kb.wKey.isPressed ? 1f : 0f) + (kb.sKey.isPressed ? -1f : 0f);
-//         }
-
-//         if (Mathf.Abs(keyboardPitch) > .25f)
-//         {
-//             pitchOverride = true;
-//             rollOverride = true;
-//         }
-
-//         // Calculate the autopilot stick inputs.
-//         float autoYaw = 0f;
-//         float autoPitch = 0f;
-//         float autoRoll = 0f;
-//         if (controller != null)
-//             RunAutopilot(controller.MouseAimPos, out autoYaw, out autoPitch, out autoRoll);
-
-//         // Use either keyboard or autopilot input.
-//         yaw = autoYaw;
-//         pitch = (pitchOverride) ? keyboardPitch : autoPitch;
-//         roll = (rollOverride) ? keyboardRoll : autoRoll;
-
-        
-
-//         // // Simple throttle control.
-//         // float throttleInput = 0f;
-//         // if (gp != null)
-//         // {
-//         //     throttleInput = gp.rightTrigger.ReadValue() - gp.leftTrigger.ReadValue();
-//         // }
-//         // else if (kb != null)
-//         // {
-//         //     throttleInput = (kb.leftShiftKey.isPressed ? 1f : 0f) + (kb.leftCtrlKey.isPressed ? -1f : 0f);
-//         // }
-
-//         // thrust += throttleInput * Time.deltaTime * forceMult;
-//         // // thrust = Mathf.Clamp(thrust, 0f, 500f);
-
-//         // // Appply forces without using Rigidbody.
-//         // transform.position += transform.forward * (thrust * Time.deltaTime);
-//         // transform.Rotate(new Vector3(turnTorque.x * pitch,
-//         //                              turnTorque.y * yaw,
-//         //                              -turnTorque.z * roll) * Time.deltaTime);
-
-//     }
-
-//     private void RunAutopilot(Vector3 flyTarget, out float yaw, out float pitch, out float roll)
-//     {
-//         // This is my usual trick of converting the fly to position to local space.
-//         // You can derive a lot of information from where the target is relative to self.
-//         var localFlyTarget = transform.InverseTransformPoint(flyTarget).normalized * sensitivity;
-//         var angleOffTarget = Vector3.Angle(transform.forward, flyTarget - transform.position);
-
-//         // IMPORTANT!
-//         // These inputs are created proportionally. This means it can be prone to
-//         // overshooting. The physics in this example are tweaked so that it's not a big
-//         // issue, but in something with different or more realistic physics this might
-//         // not be the case. Use of a PID controller for each axis is highly recommended.
-
-//         // ====================
-//         // PITCH AND YAW
-//         // ====================
-
-//         // Yaw/Pitch into the target so as to put it directly in front of the aircraft.
-//         // A target is directly in front the aircraft if the relative X and Y are both
-//         // zero. Note this does not handle for the case where the target is directly behind.
-//         yaw = Mathf.Clamp(localFlyTarget.x, -1f, 1f);
-//         pitch = -Mathf.Clamp(localFlyTarget.y, -1f, 1f);
-
-//         // ====================
-//         // ROLL
-//         // ====================
-
-//         // Roll is a little special because there are two different roll commands depending
-//         // on the situation. When the target is off axis, then the plane should roll into it.
-//         // When the target is directly in front, the plane should fly wings level.
-
-//         // An "aggressive roll" is input such that the aircraft rolls into the target so
-//         // that pitching up (handled above) will put the nose onto the target. This is
-//         // done by rolling such that the X component of the target's position is zeroed.
-//         var agressiveRoll = Mathf.Clamp(localFlyTarget.x, -1f, 1f);
-
-//         // A "wings level roll" is a roll commands the aircraft to fly wings level.
-//         // This can be done by zeroing out the Y component of the aircraft's right.
-//         var wingsLevelRoll = transform.right.y;
-
-//         // Blend between auto level and banking into the target.
-//         var wingsLevelInfluence = Mathf.InverseLerp(0f, aggressiveTurnAngle, angleOffTarget);
-//         roll = Mathf.Lerp(wingsLevelRoll, agressiveRoll, wingsLevelInfluence);
-//     }
-
-//     private void FixedUpdate()
-//     {
-//         // Ultra simple flight where the plane just gets pushed forward and manipulated
-//         // with torques to turn.
-//         rigid.AddRelativeForce(Vector3.forward * thrust * forceMult, ForceMode.Force);
-//         rigid.AddRelativeTorque(new Vector3(turnTorque.x * pitch,
-//                                             turnTorque.y * yaw,
-//                                             -turnTorque.z * roll) * forceMult,
-//                                 ForceMode.Force);
-//     }
-// }

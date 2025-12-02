@@ -51,6 +51,17 @@ public class Gun : WeaponBase
     public bool UseAmmo = false;
     public int MaxAmmo = 10000;
 
+    // Add these fields at the top of Gun.cs with other fields
+    [Header("Manual Control")]
+    [Tooltip("When true, gun is in manual firing mode controlled by player")]
+    public bool IsManualMode = false;
+
+    private bool _isManualFiring = false;
+    private Vector3 _manualAimPosition = Vector3.zero;
+    public float LastShotTime => _lastShotTime;
+
+
+
     private Dictionary<Transform, ParticleSystem> firePointToMuzzleFlash = new Dictionary<Transform, ParticleSystem>();
     private List<GunBarrel> barrelVisuals = new List<GunBarrel>();
 
@@ -101,11 +112,73 @@ public class Gun : WeaponBase
 
     private void Update()
     {
-        // base.Update();
-        if (!IsAimed)
-            IsFiring = false;
+        // Handle manual vs automatic mode
+        if (IsManualMode)
+        {
+            // Always track the aim position
+            if (_manualAimPosition != Vector3.zero)
+            {
+                RotateBaseToFaceTarget(_manualAimPosition);
+
+                if (HasBarrels)
+                    RotateBarrelsToFaceTarget(_manualAimPosition);
+
+                AngleToTarget = GetTurretAngleToTarget(_manualAimPosition);
+                IsAimed = AngleToTarget < AimedThreshold;
+
+                GimbalTarget = _manualAimPosition;
+                UseGimballedAiming = true;
+
+                IsBarrelAtRest = false;
+                IsBaseAtRest = false;
+            }
+
+            // Fire immediately when clicking - no IsAimed check
+            IsFiring = _isManualFiring;
+        }
         else
-            IsFiring = true;
+        {
+            IsFiring = IsAimed;
+
+            if (IsIdle || Targeted == null)
+            {
+                if (!IsTurretAtRest)
+                    RotateTurretToIdle();
+                IsAimed = false;
+            }
+            else
+            {
+                Vector3 aimPosition = Targeted.position;
+                if (GuidanceType == GlobalHelper.GuidanceType.Lead)
+                {
+                    // Calculate where to aim based on target movement
+                    Vector3 targetVelocity = Targeted.position - _targetPosLastFrame;
+                    targetVelocity /= Time.deltaTime;
+                    // Figure out time to impact based on distance.          
+                    float bulletSpeed = BulletPrefab.GetComponent<BulletPhysics>().Speed;
+                    float distanceToTarget = Vector3.Distance(transform.position, Targeted.position);
+                    float timeToImpact = distanceToTarget / bulletSpeed;
+                    Vector3 futureTargetPos = Targeted.position + targetVelocity * timeToImpact;
+                    aimPosition = futureTargetPos;
+
+                    _targetPosLastFrame = Targeted.position;
+                }
+
+                RotateBaseToFaceTarget(aimPosition);
+
+                if (HasBarrels)
+                    RotateBarrelsToFaceTarget(aimPosition);
+
+                // Turret is considered "aimed" when it's pointed at the target.
+                AngleToTarget = GetTurretAngleToTarget(aimPosition);
+
+                // Turret is considered "aimed" when it's pointed at the target.
+                IsAimed = AngleToTarget < AimedThreshold;
+
+                IsBarrelAtRest = false;
+                IsBaseAtRest = false;
+            }
+        }
 
         if (!FireInFixed)
         {
@@ -115,47 +188,6 @@ public class Gun : WeaponBase
             foreach (var barrel in barrelVisuals)
                 barrel.ResetBarrelOverTime(Time.deltaTime);
         }
-
-
-        if (IsIdle || Targeted == null)
-        {
-            if (!IsTurretAtRest)
-                RotateTurretToIdle();
-            IsAimed = false;
-        }
-        else
-        {
-            Vector3 aimPosition = Targeted.position;
-            if (GuidanceType == GlobalHelper.GuidanceType.Lead)
-            {
-                // Calculate where to aim based on target movement
-                Vector3 targetVelocity = Targeted.position - _targetPosLastFrame;
-                targetVelocity /= Time.deltaTime;
-                // Figure out time to impact based on distance.          
-                float bulletSpeed = BulletPrefab.GetComponent<BulletPhysics>().Speed;
-                float distanceToTarget = Vector3.Distance(transform.position, Targeted.position);
-                float timeToImpact = distanceToTarget / bulletSpeed;
-                Vector3 futureTargetPos = Targeted.position + targetVelocity * timeToImpact;
-                aimPosition = futureTargetPos;
-
-                _targetPosLastFrame = Targeted.position;
-            }
-
-            RotateBaseToFaceTarget(aimPosition);
-
-            if (HasBarrels)
-                RotateBarrelsToFaceTarget(aimPosition);
-
-            // Turret is considered "aimed" when it's pointed at the target.
-            AngleToTarget = GetTurretAngleToTarget(aimPosition);
-
-            // Turret is considered "aimed" when it's pointed at the target.
-            IsAimed = AngleToTarget < AimedThreshold;
-
-            IsBarrelAtRest = false;
-            IsBaseAtRest = false;
-        }
-
     }
 
     private void RegisterFirePoint(Transform firePoint)
@@ -294,8 +326,27 @@ public class Gun : WeaponBase
     public override void ManagedUpdateTarget()
     {
         base.ManagedUpdateTarget();
-        
+
         if (Targeted == null)
             IsFiring = false;
+    }
+
+    /// <summary>
+    /// Called by GunController to set manual firing state
+    /// </summary>
+    public void SetManualFiring(bool isFiring, Vector3 aimPosition)
+    {
+        IsManualMode = true;
+        _isManualFiring = isFiring;
+        _manualAimPosition = aimPosition;
+    }
+
+    /// <summary>
+    /// Switch back to automatic mode
+    /// </summary>
+    public void SetAutomaticMode()
+    {
+        IsManualMode = false;
+        _isManualFiring = false;
     }
 }
