@@ -52,6 +52,9 @@ public class Boid : MonoBehaviour
     private const float FormationUrgencyRange = 10f;
     private const float TargetSmoothSpeed = 10f;
 
+    // Add field
+    private Collider[] _nearbyEnemies = new Collider[20];
+
     public BoidSettings Settings => _settings;
     public Vector3 Velocity => _velocity;
     public Transform CurrentTarget => _target;
@@ -145,12 +148,12 @@ public class Boid : MonoBehaviour
                 return info.LastKnownPosition;
             }
         }
-        
+
         if (_target != null)
         {
             return _target.position;
         }
-        
+
         return position + forward * 100f;
     }
 
@@ -313,10 +316,16 @@ public class Boid : MonoBehaviour
         }
         else
         {
-            // Target following with smoothing
             Vector3 targetPos = GetTargetPosition();
+
+            // Add engagement distance offset
+            if (_targetManager != null)
+            {
+                targetPos += _targetManager.GetEngagementOffset(this, targetPos);
+            }
+
             _smoothedTargetPosition = Vector3.Lerp(_smoothedTargetPosition, targetPos, Time.deltaTime * TargetSmoothSpeed);
-            
+
             Vector3 offsetToTarget = _smoothedTargetPosition - position;
             acceleration = SteerTowards(offsetToTarget) * _settings.targetWeight;
         }
@@ -340,6 +349,13 @@ public class Boid : MonoBehaviour
             acceleration += SteerTowards(_smoothedFlockHeading) * _settings.alignWeight * alignMult;
             acceleration += SteerTowards(offsetToCenter) * _settings.cohesionWeight * cohesionMult;
             acceleration += SteerTowards(avgAvoidanceHeading) * _settings.separateWeight * separateMult;
+        }
+
+        // Enemy avoidance
+        Vector3 enemyAvoidance = CalculateEnemyAvoidance();
+        if (enemyAvoidance.sqrMagnitude > 0.01f)
+        {
+            acceleration += SteerTowards(enemyAvoidance) * _settings.enemyAvoidanceWeight;
         }
 
         // Collision avoidance
@@ -434,6 +450,57 @@ public class Boid : MonoBehaviour
     {
         Vector3 v = direction.normalized * _settings.maxSpeed - _velocity;
         return Vector3.ClampMagnitude(v, _settings.maxSteerForce);
+    }
+
+    // Add method
+    private Vector3 CalculateEnemyAvoidance()
+    {
+        if (_targetManager == null) return Vector3.zero;
+
+        Vector3 avoidance = Vector3.zero;
+        int enemyCount = 0;
+
+        // Get nearby colliders
+        int count = Physics.OverlapSphereNonAlloc(
+            position,
+            _settings.enemyAvoidanceRadius,
+            _nearbyEnemies
+        );
+
+        for (int i = 0; i < count; i++)
+        {
+            if (_nearbyEnemies[i] == null) continue;
+
+            Transform other = _nearbyEnemies[i].transform;
+
+            // Skip self
+            if (other == _cachedTransform) continue;
+
+            // Check if it's an enemy (has Boid component but not in our flock)
+            Boid otherBoid = other.GetComponent<Boid>();
+            if (otherBoid == null) continue;
+
+            // Skip if same flock
+            if (otherBoid._targetManager == _targetManager) continue;
+
+            Vector3 toSelf = position - other.position;
+            float distance = toSelf.magnitude;
+
+            if (distance < _settings.enemyAvoidanceRadius && distance > 0.01f)
+            {
+                // Stronger repulsion when closer
+                float strength = 1f - (distance / _settings.enemyAvoidanceRadius);
+                avoidance += toSelf.normalized * strength;
+                enemyCount++;
+            }
+        }
+
+        if (enemyCount > 0)
+        {
+            avoidance /= enemyCount;
+        }
+
+        return avoidance;
     }
 
     void OnDrawGizmos()

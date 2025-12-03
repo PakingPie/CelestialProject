@@ -35,6 +35,10 @@ public class BoidSettings : ScriptableObject
     public float combatSeparationMultiplier = 2f;
     public float combatAlignmentMultiplier = 0.5f;
     public float returnToFormationDelay = 3f;
+
+    [Header("Enemy Avoidance")]
+    public float enemyAvoidanceRadius = 50f;
+    public float enemyAvoidanceWeight = 5f;
 }
 
 public enum FormationType

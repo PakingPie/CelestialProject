@@ -28,6 +28,10 @@ public class BoidsManager : MonoBehaviour
     [Header("Detection")]
     [SerializeField] private int _maxOverlapResults = 256;
 
+    [Header("Enemy Avoidance")]
+    [SerializeField] private float _minEngagementDistance = 80f;
+    [SerializeField] private float _preferredEngagementDistance = 150f;
+
     private List<WeaponBase> _boidWeapons = new List<WeaponBase>();
     private Boid _formationLeader = null;
 
@@ -39,7 +43,7 @@ public class BoidsManager : MonoBehaviour
             _targetManager = gameObject.AddComponent<FlockTargetManager>();
         }
 
-        _targetManager.Initialize(_flockId, _team, _detectionRadius, _targetLayers, _maxOverlapResults, _targetTags, _ignoreTags);
+        _targetManager.Initialize(_flockId, _team, _detectionRadius, _targetLayers, _maxOverlapResults, _minEngagementDistance, _preferredEngagementDistance, _targetTags, _ignoreTags);
 
         var spawners = GetComponentsInChildren<BoidSpawner>();
         boids = new List<Boid>();

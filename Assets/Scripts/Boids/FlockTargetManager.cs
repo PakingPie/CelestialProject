@@ -28,6 +28,11 @@ public class FlockTargetManager : MonoBehaviour
 
     [Header("Detection")]
     [SerializeField] private int _maxOverlapResults = 256;
+
+    [Header("Enemy Avoidance")]
+    [SerializeField] private float _minEngagementDistance = 80f;
+    [SerializeField] private float _preferredEngagementDistance = 150f;
+
     public string FlockId => _flockId;
     public GlobalHelper.Team Team => _team;
 
@@ -48,6 +53,8 @@ public class FlockTargetManager : MonoBehaviour
     float detectionRadius,
     LayerMask targetLayers,
     int maxOverlapResults,
+    float minEngagementDistance,
+    float preferredEngagementDistance,
     List<string> targetTags,
     List<string> ignoreTags)
     {
@@ -56,6 +63,8 @@ public class FlockTargetManager : MonoBehaviour
         _detectionRadius = detectionRadius;
         _targetLayers = targetLayers;
         _maxOverlapResults = maxOverlapResults;
+        _minEngagementDistance = minEngagementDistance;
+        _preferredEngagementDistance = preferredEngagementDistance;
         _targetTags = targetTags ?? new List<string>();
         _ignoreTags = ignoreTags ?? new List<string>();
     }
@@ -424,6 +433,21 @@ public class FlockTargetManager : MonoBehaviour
         float timeToTarget = distance / projectileSpeed;
 
         return info.LastKnownPosition + info.EstimatedVelocity * timeToTarget;
+    }
+
+    public Vector3 GetEngagementOffset(Boid boid, Vector3 targetPosition)
+    {
+        Vector3 toTarget = targetPosition - boid.position;
+        float distance = toTarget.magnitude;
+
+        if (distance < _minEngagementDistance)
+        {
+            // Too close - back off
+            float backoffStrength = 1f - (distance / _minEngagementDistance);
+            return -toTarget.normalized * backoffStrength * _minEngagementDistance;
+        }
+
+        return Vector3.zero;
     }
 
     void OnDrawGizmosSelected()
