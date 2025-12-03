@@ -7,7 +7,7 @@ Shader "UI/SDFReloadCircle"
         _BackgroundColor ("Background Color", Color) = (0.2, 0.2, 0.2, 0.8)
         _FillAmount ("Fill Amount", Range(0, 1)) = 1
         _Radius ("Radius", Range(0, 0.5)) = 0.4
-        _Thickness ("Thickness", Range(0, 0.5)) = 0.1
+        _Thickness ("Thickness", Range(0, 0.5)) = 0.05
         _Smoothness ("Edge Smoothness", Range(0, 0.1)) = 0.01
     }
     

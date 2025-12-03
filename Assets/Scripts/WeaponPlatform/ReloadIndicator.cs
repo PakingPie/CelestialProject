@@ -13,6 +13,7 @@ public class ReloadIndicator : MonoBehaviour
     
     [Header("Colors")]
     [SerializeField] private Color _readyColor = Color.green;
+    [SerializeField] private Color _readyButNotAimedColor = new Color(0f, 0.5f, 0f, 1f); // Dark green
     [SerializeField] private Color _reloadingColor = Color.yellow;
     [SerializeField] private Color _outOfTraverseColor = Color.red;
     
@@ -40,19 +41,48 @@ public class ReloadIndicator : MonoBehaviour
         {
             if (!_gun.IsTargetWithinTraverseLimits(_gun.ManualAimPosition))
             {
+                // Target is outside traverse limits
                 color = _outOfTraverseColor;
             }
             else if (_gun.ReadyToFire)
             {
-                color = _readyColor;
+                // Ready to fire, check if aimed
+                if (IsGunAimedAtTarget())
+                {
+                    color = _readyColor;
+                }
+                else
+                {
+                    color = _readyButNotAimedColor;
+                }
             }
         }
         else if (_gun.ReadyToFire)
         {
-            color = _readyColor;
+            // Automatic mode
+            if (_gun.IsAimed)
+            {
+                color = _readyColor;
+            }
+            else
+            {
+                color = _readyButNotAimedColor;
+            }
         }
         
         ReloadCircleMaterial.SetColor(_colorID, color);
+    }
+    
+    /// <summary>
+    /// Check if the gun is currently aimed at the target position
+    /// </summary>
+    private bool IsGunAimedAtTarget()
+    {
+        if (_gun.ManualAimPosition == Vector3.zero)
+            return false;
+        
+        float angleToTarget = _gun.GetTurretAngleToTarget(_gun.ManualAimPosition);
+        return angleToTarget < _gun.AimedThreshold;
     }
     
     private void OnDestroy()

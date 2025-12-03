@@ -9,6 +9,7 @@ public class PlayerHud : MonoBehaviour
     [Header("Components")]
     [SerializeField] private PlayerMovementController _cameraController = null;
     [SerializeField] private PlayerShipMovement _shipMovement = null;
+    [SerializeField] private GunController _gunController = null;
 
     [Header("HUD Elements")]
     [SerializeField] private RectTransform _boresight = null;
@@ -20,9 +21,11 @@ public class PlayerHud : MonoBehaviour
     [SerializeField] private TMPro.TextMeshProUGUI _throttleText = null;
 
     [Header("Weapon Reload Display")]
-    [SerializeField] private List<Gun> _guns = new List<Gun>();
+    [SerializeField] private List<Gun> _mainGuns = new List<Gun>();
+    [SerializeField] private List<Gun> _secondaryGuns = new List<Gun>();
     [SerializeField] private GameObject _reloadIndicatorPrefab;
-    [SerializeField] private Transform _reloadIndicatorContainer;
+    [SerializeField] private Transform _reloadIndicatorContainerForMainGuns;
+    [SerializeField] private Transform _reloadIndicatorContainerForSecondaryGuns;
     [SerializeField] private float _indicatorSpacing = 40f;
     
     private List<ReloadIndicator> _reloadIndicators = new List<ReloadIndicator>();
@@ -62,11 +65,14 @@ public class PlayerHud : MonoBehaviour
 
         UpdateCrosshairs();
         UpdateThrottleDisplay();
+
+        _reloadIndicatorContainerForMainGuns.gameObject.SetActive(_gunController.IsManualMode);
+        _reloadIndicatorContainerForSecondaryGuns.gameObject.SetActive(_gunController.IsManualMode);
     }
 
     private void CreateReloadIndicators()
     {
-        if (_reloadIndicatorPrefab == null || _reloadIndicatorContainer == null)
+        if (_reloadIndicatorPrefab == null || _reloadIndicatorContainerForMainGuns == null)
         {
             Debug.LogWarning("PlayerHud: Reload indicator prefab or container not assigned!");
             return;
@@ -81,22 +87,25 @@ public class PlayerHud : MonoBehaviour
         _reloadIndicators.Clear();
 
         // Create indicator for each gun
-        for (int i = 0; i < _guns.Count; i++)
+        for (int i = 0; i < _mainGuns.Count; i++)
         {
-            if (_guns[i] == null) continue;
-
-            GameObject indicatorObj = Instantiate(_reloadIndicatorPrefab, _reloadIndicatorContainer);
-
-
-            // Position the indicator
-            RectTransform rect = indicatorObj.GetComponent<RectTransform>();
-            rect.anchoredPosition = new Vector2(i * _indicatorSpacing, 0);
-
+            if (_mainGuns[i] == null) continue;
+            GameObject indicatorObj = Instantiate(_reloadIndicatorPrefab, _reloadIndicatorContainerForMainGuns);
             // Initialize with gun reference
             ReloadIndicator indicator = indicatorObj.GetComponent<ReloadIndicator>();
-            indicator.Initialize(_guns[i]);
+            indicator.Initialize(_mainGuns[i]);
             indicatorObj.GetComponent<Image>().material = indicator.ReloadCircleMaterial;
+            _reloadIndicators.Add(indicator);
+        }
 
+        for (int i = 0; i < _secondaryGuns.Count; i++)
+        {
+            if (_secondaryGuns[i] == null) continue;
+            GameObject indicatorObj = Instantiate(_reloadIndicatorPrefab, _reloadIndicatorContainerForSecondaryGuns);
+            // Initialize with gun reference
+            ReloadIndicator indicator = indicatorObj.GetComponent<ReloadIndicator>();
+            indicator.Initialize(_secondaryGuns[i]);
+            indicatorObj.GetComponent<Image>().material = indicator.ReloadCircleMaterial;
             _reloadIndicators.Add(indicator);
         }
     }
@@ -153,7 +162,7 @@ public class PlayerHud : MonoBehaviour
     /// </summary>
     public void RefreshGuns(List<Gun> guns)
     {
-        _guns = guns;
+        _mainGuns = guns;
         CreateReloadIndicators();
     }
 }

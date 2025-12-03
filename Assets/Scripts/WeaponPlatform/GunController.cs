@@ -37,6 +37,7 @@ public class GunController : MonoBehaviour
 
     // Current aim position in world space
     public Vector3 AimWorldPosition { get; private set; }
+    public bool IsManualMode => firingMode == FiringMode.Manual;
 
     private bool isPrimaryFiring = false;
     private bool isSecondaryFiring = false;
