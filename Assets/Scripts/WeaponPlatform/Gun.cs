@@ -51,13 +51,14 @@ public class Gun : WeaponBase
     public bool UseAmmo = false;
     public int MaxAmmo = 10000;
 
-    // Add these fields at the top of Gun.cs with other fields
     [Header("Manual Control")]
     [Tooltip("When true, gun is in manual firing mode controlled by player")]
     public bool IsManualMode = false;
-
     private bool _isManualFiring = false;
     private Vector3 _manualAimPosition = Vector3.zero;
+    private bool _isSequentialBurstActive = false;
+    private int _sequentialBurstShotsRemaining = 0;
+
     public float LastShotTime => _lastShotTime;
 
 
@@ -118,7 +119,6 @@ public class Gun : WeaponBase
         {
             if (_manualAimPosition != Vector3.zero)
             {
-                // Always try to rotate towards target
                 RotateBaseToFaceTarget(_manualAimPosition);
 
                 if (HasBarrels)
@@ -131,8 +131,25 @@ public class Gun : WeaponBase
                 IsBaseAtRest = false;
             }
 
-            // Only fire if clicking AND target is within traverse limits
-            IsFiring = _isManualFiring && IsTargetWithinTraverseLimits(_manualAimPosition);
+            bool withinLimits = IsTargetWithinTraverseLimits(_manualAimPosition);
+
+            if (IsSequentialFiring)
+            {
+                // Start a new burst when clicking AND not already in a burst
+                if (_isManualFiring && withinLimits && !_isSequentialBurstActive && ReadyToFire)
+                {
+                    _isSequentialBurstActive = true;
+                    _sequentialBurstShotsRemaining = FirePoints.Count;
+                }
+
+                // Continue firing if burst is active
+                IsFiring = _isSequentialBurstActive && withinLimits;
+            }
+            else
+            {
+                // Non-sequential: fire while holding
+                IsFiring = _isManualFiring && withinLimits;
+            }
         }
         else
         {
@@ -263,6 +280,17 @@ public class Gun : WeaponBase
             _firePointIndex += 1;
 
             AmmoCount -= 1;
+
+            // Decrement burst counter in manual mode
+            if (IsManualMode && _isSequentialBurstActive)
+            {
+                _sequentialBurstShotsRemaining -= 1;
+                if (_sequentialBurstShotsRemaining <= 0)
+                {
+                    _isSequentialBurstActive = false;
+                }
+            }
+
             // If use sequential firing, add a small delay between each of the shots. Then use the main delay after all Barrels have fired.
             if (_firePointIndex % FirePoints.Count == 0)
             {
@@ -346,6 +374,8 @@ public class Gun : WeaponBase
     {
         IsManualMode = false;
         _isManualFiring = false;
+        _isSequentialBurstActive = false;
+        _sequentialBurstShotsRemaining = 0;
     }
 
     /// <summary>

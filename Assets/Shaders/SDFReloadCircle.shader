@@ -2,6 +2,7 @@ Shader "UI/SDFReloadCircle"
 {
     Properties
     {
+        _MainTex ("Texture", 2D) = "white" {}
         _Color ("Color", Color) = (0, 1, 0, 1)
         _BackgroundColor ("Background Color", Color) = (0.2, 0.2, 0.2, 0.8)
         _FillAmount ("Fill Amount", Range(0, 1)) = 1
@@ -44,6 +45,7 @@ Shader "UI/SDFReloadCircle"
                 float4 color : COLOR;
             };
             
+            sampler2D _MainTex;
             float4 _Color;
             float4 _BackgroundColor;
             float _FillAmount;
