@@ -32,6 +32,12 @@ public class EnemyPredictionManager : MonoBehaviour
     [SerializeField] private Color _leadIndicatorColor = Color.yellow;
     [Tooltip("Minimum velocity magnitude to show lead indicator")]
     [SerializeField] private float _minVelocityToShowLead = 5f;
+    [Tooltip("Enable/disable lead indicator entirely")]
+    [SerializeField] private bool _showLeadIndicator = true;
+    [Tooltip("Maximum prediction time (caps how far ahead the lead shows)")]
+    [SerializeField] private float _maxPredictionTime = 2f;
+    [Tooltip("Multiplier to shorten lead distance (0.5 = half distance)")]
+    [SerializeField] private float _leadDistanceMultiplier = 1f;
 
     [Header("Connecting Line")]
     [SerializeField] private Material _lineMaterial;
@@ -108,23 +114,22 @@ public class EnemyPredictionManager : MonoBehaviour
                 // Calculate positions
                 Vector3 enemyWorldPos = enemy.transform.position;
                 Vector3 predictedPos = CalculatePredictedPosition(enemy, distance);
-                bool showLead = enemy.Velocity.magnitude >= _minVelocityToShowLead;
+                bool showLead = _showLeadIndicator && enemy.Velocity.magnitude >= _minVelocityToShowLead;
 
                 if (_useWorldSpace)
                 {
                     Vector3 offsetEnemyPos = GetOffsetPosition(enemyWorldPos);
                     float worldScale = scale * distance * _worldSpaceScaleMultiplier;
 
-                    // Update enemy indicator
-                    UpdateIndicatorWorldPosition(indicatorSet.EnemyIndicator, offsetEnemyPos, worldScale);
+                    // Update enemy indicator - pass enemy.transform
+                    UpdateIndicatorWorldPosition(indicatorSet.EnemyIndicator, offsetEnemyPos, worldScale, enemy.transform);
 
-                    // Update lead indicator
+                    // Update lead indicator - also tracks the same enemy
                     if (showLead)
                     {
                         Vector3 offsetPredictedPos = GetOffsetPosition(predictedPos);
-                        UpdateIndicatorWorldPosition(indicatorSet.LeadIndicator, offsetPredictedPos, worldScale);
+                        UpdateIndicatorWorldPosition(indicatorSet.LeadIndicator, offsetPredictedPos, worldScale, enemy.transform);
 
-                        // Update connecting line
                         UpdateConnectingLine(indicatorSet, offsetEnemyPos, offsetPredictedPos, worldScale, true);
                     }
                     else
@@ -135,14 +140,13 @@ public class EnemyPredictionManager : MonoBehaviour
                 }
                 else
                 {
-                    // Screen space mode
-                    UpdateIndicatorScreenPosition(indicatorSet.EnemyIndicator, enemyWorldPos, scale);
+                    // Screen space mode - pass enemy.transform
+                    UpdateIndicatorScreenPosition(indicatorSet.EnemyIndicator, enemyWorldPos, scale, enemy.transform);
 
                     if (showLead)
                     {
-                        UpdateIndicatorScreenPosition(indicatorSet.LeadIndicator, predictedPos, scale);
+                        UpdateIndicatorScreenPosition(indicatorSet.LeadIndicator, predictedPos, scale, enemy.transform);
 
-                        // Update connecting line in screen space
                         Vector3 screenPosEnemy = _playerCamera.WorldToScreenPoint(enemyWorldPos);
                         Vector3 screenPosLead = _playerCamera.WorldToScreenPoint(predictedPos);
                         UpdateConnectingLineScreenSpace(indicatorSet, screenPosEnemy, screenPosLead, scale, true);
@@ -192,23 +196,33 @@ public class EnemyPredictionManager : MonoBehaviour
             timeToTarget = _predictionTime;
         }
 
-        return enemy.transform.position + enemyVelocity * timeToTarget;
+        // Cap prediction time
+        timeToTarget = Mathf.Min(timeToTarget, _maxPredictionTime);
+
+        // Calculate predicted position with multiplier
+        Vector3 leadOffset = enemyVelocity * timeToTarget * _leadDistanceMultiplier;
+
+        return enemy.transform.position + leadOffset;
     }
 
-    private void UpdateIndicatorWorldPosition(PredictionIndicator indicator, Vector3 worldPosition, float scale)
+    private void UpdateIndicatorWorldPosition(PredictionIndicator indicator, Vector3 worldPosition, float scale, Transform target = null)
     {
         indicator.SetActive(true);
+        if (target != null)
+            indicator.SetTarget(target);
         indicator.SetWorldPosition(worldPosition);
         indicator.SetScale(scale);
     }
 
-    private void UpdateIndicatorScreenPosition(PredictionIndicator indicator, Vector3 worldPosition, float scale)
+    private void UpdateIndicatorScreenPosition(PredictionIndicator indicator, Vector3 worldPosition, float scale, Transform target = null)
     {
         Vector3 screenPos = _playerCamera.WorldToScreenPoint(worldPosition);
 
         if (screenPos.z > 0)
         {
             indicator.SetActive(true);
+            if (target != null)
+                indicator.SetTarget(target);
             indicator.SetPosition(screenPos);
             indicator.SetScale(scale);
         }
@@ -347,6 +361,21 @@ public class EnemyPredictionManager : MonoBehaviour
     public void SetReferenceGun(Gun gun)
     {
         _referenceGun = gun;
+    }
+
+    public void SetLeadIndicatorEnabled(bool enabled)
+    {
+        _showLeadIndicator = enabled;
+    }
+
+    public void SetLeadDistanceMultiplier(float multiplier)
+    {
+        _leadDistanceMultiplier = Mathf.Clamp01(multiplier);
+    }
+
+    public void SetMaxPredictionTime(float maxTime)
+    {
+        _maxPredictionTime = Mathf.Max(0f, maxTime);
     }
 
     public void ClearAll()
