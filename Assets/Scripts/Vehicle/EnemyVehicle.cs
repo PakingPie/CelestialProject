@@ -15,14 +15,16 @@ public class EnemyVehicle : VehicleBase
     public Shader HealthBarShader;
     public Shader EnergyShieldShader;
     public GameObject ShieldEffect;
-    public GameObject Turret;
-    public Transform FireSpawn;
     public ParticleSystem ExplodeEffect;
     public int ShieldRegenerationRate = 1; // Points per second
     public float ShieldRegenerationDelay = 5f; // Seconds after taking damage before regeneration starts
     private float _shieldRegenTimer = 0f;
     private float _lastDamageTime = 0f;
     public override Faction FactionType => VehicleFaction;
+
+    private Vector3 _lastPosition;
+    private Vector3 _velocity;
+    public Vector3 Velocity => _velocity;
 
     void OnEnable()
     {
