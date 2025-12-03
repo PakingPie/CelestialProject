@@ -46,6 +46,15 @@ public class EnemyVehicle : VehicleBase
 
     void Start()
     {
+        if(FactionType == Faction.Foe)
+        {
+            PawnCountManager.EnemiesRemainingCount++;
+        }
+        else if (FactionType == Faction.Ally)
+        {
+            PawnCountManager.AlliesRemainingCount++;
+        }
+
         _lastPosition = transform.position;
 
         // Register with manager
@@ -305,8 +314,17 @@ public class EnemyVehicle : VehicleBase
 
     public override void DestroyVehicle()
     {
+        if (VehicleFaction == Faction.Foe)
+        {
+            PawnCountManager.EnemyDestroyedCount++;
+        }
+        else if (VehicleFaction == Faction.Ally)
+        {
+            PawnCountManager.AlliesRemainingCount--;
+        }
 
         var boid = GetComponent<Boid>();
+
         if (boid != null && BoidManager != null)
         {
             BoidManager.RemoveBoid(boid);

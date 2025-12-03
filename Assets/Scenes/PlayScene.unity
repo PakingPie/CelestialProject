@@ -4707,7 +4707,7 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: 983d9d1f7c702e1488fb76954bf52876, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 7103346325574244501}
-  HeightRange: {x: -1000, y: 5000}
+  HeightRange: {x: -1000, y: 1000}
   syncCombatState: 1
 --- !u!4 &539839619
 Transform:
@@ -6313,7 +6313,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 700, y: 100}
+  m_SizeDelta: {x: 800, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &675739146
 MonoBehaviour:
@@ -10425,6 +10425,7 @@ GameObject:
   - component: {fileID: 1112071339}
   - component: {fileID: 1112071338}
   - component: {fileID: 1112071340}
+  - component: {fileID: 1112071341}
   m_Layer: 0
   m_Name: GlobalHelper
   m_TagString: Untagged
@@ -10498,6 +10499,20 @@ MonoBehaviour:
   _scaleDistanceReference: 2500
   _worldSpaceScaleMultiplier: 0.1
   _updateInterval: 0.05
+--- !u!114 &1112071341
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1112071337}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b05ac8133783c4746a5578bb90a30496, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PawnCountManager
+  EnemyDestroyedText: {fileID: 2036666902}
+  AllyRemainsText: {fileID: 794230082}
 --- !u!1 &1115345039
 GameObject:
   m_ObjectHideFlags: 0
@@ -11110,7 +11125,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 500, y: 50}
+  m_SizeDelta: {x: 600, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1168441373
 MonoBehaviour:
@@ -11132,7 +11147,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Ally Remains:'
+  m_text: 'Allies Remaining:'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -12988,7 +13003,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 500, y: 50}
+  m_SizeDelta: {x: 600, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1333725039
 MonoBehaviour:
@@ -13010,7 +13025,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Enemy Destroyed:'
+  m_text: 'Enemies Destroyed:'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -18137,7 +18152,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 700, y: 100}
+  m_SizeDelta: {x: 800, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1757800836
 MonoBehaviour:
