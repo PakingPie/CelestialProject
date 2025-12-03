@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class BoidsManager : MonoBehaviour
@@ -16,11 +15,31 @@ public class BoidsManager : MonoBehaviour
     [Header("Formation")]
     public bool syncCombatState = true;
 
+    [Header("Target Management")]
+    [SerializeField] private FlockTargetManager _targetManager;
+
+    [Header("Flock Identity")]
+    [SerializeField] private string _flockId = "Flock_01";
+    [SerializeField] private GlobalHelper.Team _team = GlobalHelper.Team.Player;
+    [SerializeField] private List<string> _targetTags = new List<string>();
+    [SerializeField] private List<string> _ignoreTags = new List<string>();
+    [SerializeField] private LayerMask _targetLayers;
+    [SerializeField] private float _detectionRadius = 5000f;
+
+
     private List<WeaponBase> _boidWeapons = new List<WeaponBase>();
     private Boid _formationLeader = null;
 
     void Start()
     {
+        // Create target manager if not assigned
+        if (_targetManager == null)
+        {
+            _targetManager = gameObject.AddComponent<FlockTargetManager>();
+        }
+
+        _targetManager.Initialize(_flockId, _team, _detectionRadius, _targetLayers, _targetTags, _ignoreTags);
+
         var spawners = GetComponentsInChildren<BoidSpawner>();
         boids = new List<Boid>();
         _boidWeapons = new List<WeaponBase>();
@@ -35,7 +54,10 @@ public class BoidsManager : MonoBehaviour
                 {
                     boids.Add(boid);
                     boid.Initialize(settings, target);
+                    boid.SetTargetManager(_targetManager);
                     boid.transform.gameObject.GetComponent<VehicleBase>().BoidManager = this;
+
+                    _targetManager.RegisterBoid(boid);
                 }
 
                 var weapons = boidObj.GetComponentsInChildren<WeaponBase>();
@@ -54,12 +76,10 @@ public class BoidsManager : MonoBehaviour
     {
         if (boids == null || boids.Count == 0) return;
 
-        // First boid is the leader
         _formationLeader = boids[0];
         _formationLeader.FormationIndex = 0;
         _formationLeader.FormationLeader = null;
 
-        // Assign positions to followers
         for (int i = 1; i < boids.Count; i++)
         {
             boids[i].FormationIndex = i;
@@ -72,14 +92,12 @@ public class BoidsManager : MonoBehaviour
         if (boids == null)
             return;
 
-        // Clean up destroyed boids
         CleanupDestroyedBoids();
 
         int numBoids = boids.Count;
         if (numBoids <= 0)
             return;
 
-        // Sync combat state across all boids
         if (syncCombatState)
         {
             SyncCombatState();
@@ -129,6 +147,7 @@ public class BoidsManager : MonoBehaviour
             if (boids[i] == null)
             {
                 if (i == 0) leaderRemoved = true;
+                _targetManager.UnregisterBoid(boids[i]);
                 boids.RemoveAt(i);
             }
         }
@@ -143,7 +162,6 @@ public class BoidsManager : MonoBehaviour
     {
         bool anyInCombat = false;
 
-        // Check if any boid is in combat
         for (int i = 0; i < boids.Count; i++)
         {
             if (boids[i] != null && boids[i].IsInCombat)
@@ -153,7 +171,6 @@ public class BoidsManager : MonoBehaviour
             }
         }
 
-        // If any boid is in combat, all enter combat mode
         if (anyInCombat)
         {
             for (int i = 0; i < boids.Count; i++)
@@ -193,7 +210,10 @@ public class BoidsManager : MonoBehaviour
                 {
                     boids.Add(boid);
                     boid.Initialize(settings, target);
+                    boid.SetTargetManager(_targetManager);
                     boid.transform.gameObject.GetComponent<VehicleBase>().BoidManager = this;
+
+                    _targetManager.RegisterBoid(boid);
                 }
 
                 var weapons = boidObj.GetComponentsInChildren<WeaponBase>();
@@ -211,6 +231,7 @@ public class BoidsManager : MonoBehaviour
     public void RemoveBoid(Boid boid)
     {
         bool wasLeader = (boid == _formationLeader);
+        _targetManager.UnregisterBoid(boid);
         boids.Remove(boid);
 
         if (wasLeader)
@@ -219,13 +240,11 @@ public class BoidsManager : MonoBehaviour
         }
     }
 
-    // Change formation type at runtime
     public void SetFormationType(FormationType type)
     {
         settings.formationType = type;
     }
 
-    // Force all boids into combat mode
     public void ForceCombatMode()
     {
         foreach (var boid in boids)
@@ -235,7 +254,6 @@ public class BoidsManager : MonoBehaviour
         }
     }
 
-    // Force all boids back to formation
     public void ForceFormationMode()
     {
         foreach (var boid in boids)
@@ -244,6 +262,8 @@ public class BoidsManager : MonoBehaviour
                 boid.IsInCombat = false;
         }
     }
+
+    public FlockTargetManager TargetManager => _targetManager;
 
     public struct BoidData
     {

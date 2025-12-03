@@ -332,15 +332,6 @@ public class WeaponBase : MonoBehaviour
                     kArcSize);
             }
         }
-
-        if (Targeted != null)
-        {
-            if (FireTarget.HasFlag(GlobalHelper.Faction.Foe))
-                Gizmos.color = Color.red;
-            else
-                Gizmos.color = Color.greenYellow;
-            Gizmos.DrawLine(transform.position, Targeted.position);
-        }
     }
 }
 

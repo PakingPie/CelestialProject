@@ -3587,9 +3587,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoidsManager
   settings: {fileID: 11400000, guid: 97a514ce400477348ac008ee9f0adfae, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
-  target: {fileID: 7103346325574244501}
+  target: {fileID: 0}
   HeightRange: {x: -500, y: 500}
   syncCombatState: 1
+  _targetManager: {fileID: 0}
+  _flockId: Flock_01
+  _team: 3
+  _targetTags:
+  - Foe
+  _ignoreTags:
+  - Ally
+  - Player
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _detectionRadius: 5000
 --- !u!4 &413969323
 Transform:
   m_ObjectHideFlags: 0
@@ -3599,7 +3611,7 @@ Transform:
   m_GameObject: {fileID: 413969321}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -500, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -2500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4392,7 +4404,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
   spawnRadius: 500
-  spawnCount: 40
+  spawnCount: 80
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -500, y: 500}
@@ -4706,9 +4718,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoidsManager
   settings: {fileID: 11400000, guid: 983d9d1f7c702e1488fb76954bf52876, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
-  target: {fileID: 7103346325574244501}
+  target: {fileID: 0}
   HeightRange: {x: -1000, y: 1000}
   syncCombatState: 1
+  _targetManager: {fileID: 0}
+  _flockId: Flock_01
+  _team: 2
+  _targetTags:
+  - Player
+  - Ally
+  _ignoreTags:
+  - Foe
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _detectionRadius: 5000
 --- !u!4 &539839619
 Transform:
   m_ObjectHideFlags: 0
@@ -4718,7 +4742,7 @@ Transform:
   m_GameObject: {fileID: 539839617}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1500}
+  m_LocalPosition: {x: 0, y: 0, z: 2500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -15299,6 +15323,15 @@ MonoBehaviour:
   target: {fileID: 7103346325574244501}
   HeightRange: {x: -1000, y: 5000}
   syncCombatState: 1
+  _targetManager: {fileID: 0}
+  _flockId: Flock_01
+  _team: 1
+  _targetTags: []
+  _ignoreTags: []
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  _detectionRadius: 5000
 --- !u!4 &1530042875
 Transform:
   m_ObjectHideFlags: 0
@@ -19005,6 +19038,15 @@ MonoBehaviour:
   target: {fileID: 7103346325574244501}
   HeightRange: {x: -1000, y: 5000}
   syncCombatState: 1
+  _targetManager: {fileID: 0}
+  _flockId: Flock_01
+  _team: 1
+  _targetTags: []
+  _ignoreTags: []
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  _detectionRadius: 5000
 --- !u!4 &1830248437
 Transform:
   m_ObjectHideFlags: 0
@@ -22031,7 +22073,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 500
-  spawnCount: 50
+  spawnCount: 80
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 5000}
@@ -24048,7 +24090,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &8507254586779519082
 MonoBehaviour:
   m_ObjectHideFlags: 0

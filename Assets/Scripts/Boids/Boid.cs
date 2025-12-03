@@ -6,7 +6,7 @@ public class Boid : MonoBehaviour
     private Transform _cachedTransform;
     private Transform _target;
     private Material _material;
-    private Gun _gun;
+    private FlockTargetManager _targetManager;
 
     private Vector3 _velocity;
 
@@ -19,17 +19,12 @@ public class Boid : MonoBehaviour
 
     public Vector2 HeightRange = new Vector2(-100.0f, 100.0f);
 
-    // Collision state set by BoidObstacleSystem
+    // Collision state
     private bool _isHeadingForCollision;
     private Vector3 _avoidDirection;
     private int _avoidDirectionIndex;
 
     // Smoothing state
-    [Header("Smoothing")]
-    public float RotationSmoothSpeed = 8f;
-    public float SpeedSmoothSpeed = 8f;
-    public float AccelerationSmoothSpeed = 10f;
-    public float CollisionSmoothSpeed = 5f;
     private Vector3 _smoothedAvoidDirection;
     private float _collisionUrgency = 0f;
     private Vector3 _smoothedFlockHeading;
@@ -37,6 +32,7 @@ public class Boid : MonoBehaviour
     private Vector3 _smoothedFormationTarget;
     private Vector3 _previousAcceleration;
     private float _smoothedSpeed;
+    private Vector3 _smoothedTargetPosition;
 
     // Formation state
     [HideInInspector] public bool IsInCombat = false;
@@ -45,14 +41,20 @@ public class Boid : MonoBehaviour
     private float _combatTimer = 0f;
 
     // Smoothing parameters
-    private const float AvoidDirectionSmoothSpeed = 8f;
-    private const float FlockDataSmoothSpeed = 12f;
+    private const float CollisionSmoothSpeed = 8f;
+    private const float AvoidDirectionSmoothSpeed = 12f;
+    private const float RotationSmoothSpeed = 6f;
+    private const float SpeedSmoothSpeed = 5f;
+    private const float FlockDataSmoothSpeed = 15f;
     private const float FormationTargetSmoothSpeed = 4f;
+    private const float AccelerationSmoothSpeed = 8f;
     private const float FormationDeadZone = 1.5f;
     private const float FormationUrgencyRange = 10f;
+    private const float TargetSmoothSpeed = 10f;
 
     public BoidSettings Settings => _settings;
     public Vector3 Velocity => _velocity;
+    public Transform CurrentTarget => _target;
 
     void Awake()
     {
@@ -61,8 +63,6 @@ public class Boid : MonoBehaviour
         var meshRenderer = GetComponentInChildren<MeshRenderer>();
         if (meshRenderer != null)
             _material = meshRenderer.material;
-
-        _gun = GetComponentInChildren<Gun>();
     }
 
     void OnEnable()
@@ -77,10 +77,10 @@ public class Boid : MonoBehaviour
             BoidObstacleSystem.Instance.UnregisterBoid(this);
     }
 
-    public void Initialize(BoidSettings settings, Transform target)
+    public void Initialize(BoidSettings settings, Transform fallbackTarget)
     {
         _settings = settings;
-        _target = target;
+        _target = fallbackTarget;
 
         position = _cachedTransform.position;
         forward = _cachedTransform.forward;
@@ -91,21 +91,24 @@ public class Boid : MonoBehaviour
 
         _avoidDirectionIndex = Random.Range(0, BoidDirections.viewDirections.Length);
 
-        // Initialize smoothing state
         _smoothedAvoidDirection = forward;
         _smoothedFlockHeading = forward;
         _smoothedFlockCenter = position;
         _smoothedFormationTarget = position;
+        _smoothedTargetPosition = position + forward * 50f;
         _previousAcceleration = Vector3.zero;
         _collisionUrgency = 0f;
     }
 
-    // Called by BoidObstacleSystem
+    public void SetTargetManager(FlockTargetManager manager)
+    {
+        _targetManager = manager;
+    }
+
     public void SetCollisionState(bool isColliding)
     {
         _isHeadingForCollision = isColliding;
 
-        // Smooth the collision urgency instead of binary switching
         float targetUrgency = isColliding ? 1f : 0f;
         _collisionUrgency = Mathf.Lerp(_collisionUrgency, targetUrgency, Time.deltaTime * CollisionSmoothSpeed);
 
@@ -121,8 +124,43 @@ public class Boid : MonoBehaviour
 
     public void UpdateTarget()
     {
-        if (_gun != null)
-            _target = _gun.Targeted;
+        if (_targetManager != null)
+        {
+            Transform assignedTarget = _targetManager.GetAssignedTarget(this);
+            if (assignedTarget != null)
+            {
+                _target = assignedTarget;
+                return;
+            }
+        }
+    }
+
+    public Vector3 GetTargetPosition()
+    {
+        if (_targetManager != null)
+        {
+            TargetInfo info = _targetManager.GetTargetInfo(this);
+            if (info != null && info.IsValid)
+            {
+                return info.LastKnownPosition;
+            }
+        }
+        
+        if (_target != null)
+        {
+            return _target.position;
+        }
+        
+        return position + forward * 100f;
+    }
+
+    public Vector3 GetInterceptPosition(float projectileSpeed)
+    {
+        if (_targetManager != null)
+        {
+            return _targetManager.GetInterceptPoint(this, projectileSpeed);
+        }
+        return GetTargetPosition();
     }
 
     public void SetColor(Color color)
@@ -139,27 +177,23 @@ public class Boid : MonoBehaviour
 
     public void UpdateCombatState()
     {
-        if (!IsInCombat) return;
-
-        bool hasTarget = false;
-        var weapons = GetComponentsInChildren<WeaponBase>();
-        foreach (var weapon in weapons)
+        if (_targetManager != null)
         {
-            if (weapon.Targeted != null)
+            TargetInfo info = _targetManager.GetTargetInfo(this);
+            if (info != null && info.IsValid)
             {
-                hasTarget = true;
+                IsInCombat = true;
                 _combatTimer = 0f;
-                break;
+                return;
             }
         }
 
-        if (!hasTarget)
+        if (!IsInCombat) return;
+
+        _combatTimer += Time.deltaTime;
+        if (_combatTimer >= _settings.returnToFormationDelay)
         {
-            _combatTimer += Time.deltaTime;
-            if (_combatTimer >= _settings.returnToFormationDelay)
-            {
-                IsInCombat = false;
-            }
+            IsInCombat = false;
         }
     }
 
@@ -204,9 +238,9 @@ public class Boid : MonoBehaviour
         if (index == 0) return Vector3.zero;
 
         int side = (index % 2 == 0) ? 1 : -1;
-        int position = (index + 1) / 2;
+        int pos = (index + 1) / 2;
 
-        return new Vector3(side * position * spacing, 0f, 0f);
+        return new Vector3(side * pos * spacing, 0f, 0f);
     }
 
     private Vector3 GetWedgeFormationOffset(int index, float spacing)
@@ -264,9 +298,9 @@ public class Boid : MonoBehaviour
 
     public void UpdateBoid()
     {
+        UpdateTarget();
         UpdateCombatState();
 
-        // Smooth the incoming flock data to reduce frame-to-frame jitter
         _smoothedFlockHeading = Vector3.Lerp(_smoothedFlockHeading, avgFlockHeading, Time.deltaTime * FlockDataSmoothSpeed);
         _smoothedFlockCenter = Vector3.Lerp(_smoothedFlockCenter, flockmatesCenter, Time.deltaTime * FlockDataSmoothSpeed);
 
@@ -277,18 +311,17 @@ public class Boid : MonoBehaviour
         {
             acceleration += CalculateFormationAcceleration();
         }
-        else if (_target != null)
-        {
-            // Normal target following
-            Vector3 offsetToTarget = _target.position - position;
-            acceleration = SteerTowards(offsetToTarget) * _settings.targetWeight;
-        }
         else
         {
-            UpdateTarget();
+            // Target following with smoothing
+            Vector3 targetPos = GetTargetPosition();
+            _smoothedTargetPosition = Vector3.Lerp(_smoothedTargetPosition, targetPos, Time.deltaTime * TargetSmoothSpeed);
+            
+            Vector3 offsetToTarget = _smoothedTargetPosition - position;
+            acceleration = SteerTowards(offsetToTarget) * _settings.targetWeight;
         }
 
-        // Flocking behavior with combat modifiers
+        // Flocking behavior
         if (numPerceivedFlockmates > 0)
         {
             Vector3 centerOfMass = _smoothedFlockCenter / numPerceivedFlockmates;
@@ -298,7 +331,6 @@ public class Boid : MonoBehaviour
             float cohesionMult = IsInCombat ? _settings.combatCohesionMultiplier : 1f;
             float separateMult = IsInCombat ? _settings.combatSeparationMultiplier : 1f;
 
-            // In formation mode (not combat), reduce normal flocking
             if (_settings.useFormation && !IsInCombat && FormationLeader != null && FormationIndex > 0)
             {
                 alignMult *= 0.3f;
@@ -310,13 +342,13 @@ public class Boid : MonoBehaviour
             acceleration += SteerTowards(avgAvoidanceHeading) * _settings.separateWeight * separateMult;
         }
 
-        // Collision avoidance with smoothed urgency
+        // Collision avoidance
         if (_collisionUrgency > 0.01f)
         {
             acceleration += SteerTowards(_smoothedAvoidDirection) * _settings.avoidCollisionWeight * _collisionUrgency;
         }
 
-        // Smooth the acceleration to prevent sudden force changes
+        // Smooth acceleration
         acceleration = Vector3.Lerp(_previousAcceleration, acceleration, Time.deltaTime * AccelerationSmoothSpeed);
         _previousAcceleration = acceleration;
 
@@ -328,7 +360,6 @@ public class Boid : MonoBehaviour
         {
             Vector3 dir = _velocity / speed;
 
-            // Smooth speed clamping instead of hard clamp
             float targetSpeed = Mathf.Clamp(speed, _settings.minSpeed, _settings.maxSpeed);
             _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, targetSpeed, Time.deltaTime * SpeedSmoothSpeed);
             _velocity = dir * _smoothedSpeed;
@@ -336,7 +367,6 @@ public class Boid : MonoBehaviour
             Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
             newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
 
-            // Smooth rotation instead of instant snap
             Quaternion targetRotation = Quaternion.LookRotation(dir);
             Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
 
@@ -353,27 +383,22 @@ public class Boid : MonoBehaviour
 
         Vector3 acceleration = Vector3.zero;
 
-        // Calculate target formation position in world space
         Vector3 formationOffset = GetFormationOffset();
         Vector3 rawTarget = FormationLeader.position +
             FormationLeader._cachedTransform.TransformDirection(formationOffset);
 
-        // Smooth the target position to prevent jitter from leader movement
         _smoothedFormationTarget = Vector3.Lerp(_smoothedFormationTarget, rawTarget, Time.deltaTime * FormationTargetSmoothSpeed);
 
         Vector3 toFormation = _smoothedFormationTarget - position;
         float distanceToFormation = toFormation.magnitude;
 
-        // Use dead zone to prevent micro-corrections when close to formation position
         if (distanceToFormation > FormationDeadZone)
         {
-            // Urgency increases with distance from formation
             float urgency = Mathf.Clamp01((distanceToFormation - FormationDeadZone) / FormationUrgencyRange);
             Vector3 formationForce = SteerTowards(toFormation) * _settings.formationTightness * urgency;
             acceleration += formationForce;
         }
 
-        // Match leader's velocity for smooth following
         Vector3 leaderVelocity = FormationLeader.Velocity;
         if (leaderVelocity.sqrMagnitude > 0.01f)
         {
@@ -409,5 +434,17 @@ public class Boid : MonoBehaviour
     {
         Vector3 v = direction.normalized * _settings.maxSpeed - _velocity;
         return Vector3.ClampMagnitude(v, _settings.maxSteerForce);
+    }
+
+    void OnDrawGizmos()
+    {
+        if (_target != null)
+        {
+            if (_target.tag != gameObject.tag)
+                Gizmos.color = Color.red;
+            else
+                Gizmos.color = Color.green;
+            Gizmos.DrawLine(transform.position, _target.position);
+        }
     }
 }
