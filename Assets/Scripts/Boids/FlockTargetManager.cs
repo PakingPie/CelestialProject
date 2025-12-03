@@ -26,6 +26,8 @@ public class FlockTargetManager : MonoBehaviour
     [SerializeField] private string _flockId = "";
     [SerializeField] private GlobalHelper.Team _team = GlobalHelper.Team.Neutral;
 
+    [Header("Detection")]
+    [SerializeField] private int _maxOverlapResults = 256;
     public string FlockId => _flockId;
     public GlobalHelper.Team Team => _team;
 
@@ -37,7 +39,7 @@ public class FlockTargetManager : MonoBehaviour
     private float _lastAssignmentTime;
     private Transform _flockCenter;
 
-    private Collider[] _overlapResults = new Collider[50];
+    private Collider[] _overlapResults;
 
     public IReadOnlyDictionary<Boid, TargetInfo> BoidAssignments => _boidAssignments;
 
@@ -45,6 +47,7 @@ public class FlockTargetManager : MonoBehaviour
     GlobalHelper.Team team,
     float detectionRadius,
     LayerMask targetLayers,
+    int maxOverlapResults,
     List<string> targetTags,
     List<string> ignoreTags)
     {
@@ -52,6 +55,7 @@ public class FlockTargetManager : MonoBehaviour
         _team = team;
         _detectionRadius = detectionRadius;
         _targetLayers = targetLayers;
+        _maxOverlapResults = maxOverlapResults;
         _targetTags = targetTags ?? new List<string>();
         _ignoreTags = ignoreTags ?? new List<string>();
     }
@@ -94,6 +98,7 @@ public class FlockTargetManager : MonoBehaviour
     void Awake()
     {
         _flockCenter = transform;
+        _overlapResults = new Collider[_maxOverlapResults];
     }
 
     public void RegisterBoid(Boid boid)
@@ -189,8 +194,23 @@ public class FlockTargetManager : MonoBehaviour
             center = transform.position;
         }
 
+        // if (_debugMode)
+        // {
+        //     Debug.Log($"[{_flockId}] Scanning at center {center}, radius {_detectionRadius}");
+        //     Debug.Log($"[{_flockId}] Target Layers: {_targetLayers.value}");
+        //     Debug.Log($"[{_flockId}] Target Tags: {string.Join(", ", _targetTags)}");
+
+        //     // Test without layer mask
+        //     Collider[] testResults = Physics.OverlapSphere(center, _detectionRadius);
+        //     Debug.Log($"[{_flockId}] Without layer filter: {testResults.Length} colliders found");
+        // }
         // Detect potential targets
         int hitCount = Physics.OverlapSphereNonAlloc(center, _detectionRadius, _overlapResults, _targetLayers);
+
+        // if (_debugMode)
+        // {
+        //     Debug.Log($"[{_flockId}] With layer filter: {hitCount} colliders found");
+        // }
 
         HashSet<Transform> currentTargets = new HashSet<Transform>();
 
@@ -424,4 +444,27 @@ public class FlockTargetManager : MonoBehaviour
             }
         }
     }
+
+
+    // [SerializeField] private bool _debugMode = true;
+    // void OnGUI()
+    // {
+    //     if (!_debugMode) return;
+
+    //     // Offset based on flock ID hash to separate each manager's GUI
+    //     int yOffset = Mathf.Abs(_flockId.GetHashCode()) % 4 * 80;
+
+    //     GUILayout.BeginArea(new Rect(10, 10 + yOffset, 300, 75));
+    //     GUILayout.Box($"[{_flockId}]");
+    //     GUILayout.Label($"Known Targets: {_knownTargets.Count}");
+    //     GUILayout.Label($"Managed Boids: {_managedBoids.Count}");
+
+    //     int assigned = 0;
+    //     foreach (var kvp in _boidAssignments)
+    //     {
+    //         if (kvp.Value != null) assigned++;
+    //     }
+    //     GUILayout.Label($"Assigned: {assigned}");
+    //     GUILayout.EndArea();
+    // }
 }

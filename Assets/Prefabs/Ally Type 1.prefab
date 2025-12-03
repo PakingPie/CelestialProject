@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3449610485239219872}
   - component: {fileID: 8381651718303398464}
   - component: {fileID: 2368025303835637834}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Shield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -100,8 +100,7 @@ GameObject:
   - component: {fileID: 6093027237951676670}
   - component: {fileID: 481408855031488094}
   - component: {fileID: 3599100614674948192}
-  - component: {fileID: 4916743979266157998}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: Cylinder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -179,29 +178,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &4916743979266157998
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 199005582857661132}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!1 &307819947994523911
 GameObject:
   m_ObjectHideFlags: 0
@@ -213,8 +189,7 @@ GameObject:
   - component: {fileID: 7976806859779131053}
   - component: {fileID: 6890843503291047242}
   - component: {fileID: 4918919262452517002}
-  - component: {fileID: 2537017503672107035}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -292,27 +267,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &2537017503672107035
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 307819947994523911}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1007471231402458588
 GameObject:
   m_ObjectHideFlags: 0
@@ -397,7 +351,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 807667675599332317}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: Turret
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -630,7 +584,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2516039646406173720}
   - component: {fileID: 6729439401865992429}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Main Weapon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -705,6 +659,7 @@ MonoBehaviour:
   IsFiring: 0
   UseAmmo: 0
   MaxAmmo: 10000
+  IsManualMode: 0
 --- !u!1 &3915756800065681784
 GameObject:
   m_ObjectHideFlags: 0
@@ -795,7 +750,7 @@ MonoBehaviour:
   avgAvoidanceHeading: {x: 0, y: 0, z: 0}
   flockmatesCenter: {x: 0, y: 0, z: 0}
   numPerceivedFlockmates: 0
-  HeightRange: {x: -500, y: 500}
+  HeightRange: {x: -2500, y: 2500}
   IsInCombat: 0
   FormationIndex: 0
   FormationLeader: {fileID: 0}
@@ -828,11 +783,10 @@ MonoBehaviour:
   HealthBarShader: {fileID: -6465566751694194690, guid: 4a53868445a75a246b83a1f930cbdccd, type: 3}
   EnergyShieldShader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
   ShieldEffect: {fileID: 124679239445400308}
-  Turret: {fileID: 0}
-  FireSpawn: {fileID: 0}
   ExplodeEffect: {fileID: 7698972359503818749, guid: dc871d3822e9f3649a40eba6bb930974, type: 3}
   ShieldRegenerationRate: 1
   ShieldRegenerationDelay: 5
+  EnablePrediction: 0
 --- !u!114 &6621555047069784344
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1169,7 +1123,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6584174107223591114}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: Barrels
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1204,8 +1158,7 @@ GameObject:
   - component: {fileID: 9103538917916696996}
   - component: {fileID: 7894010199304735265}
   - component: {fileID: 8820270867365689398}
-  - component: {fileID: 4919213873875753951}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: TurretBase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1283,27 +1236,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &4919213873875753951
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5696349135929743188}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6203095802678969073
 GameObject:
   m_ObjectHideFlags: 0
@@ -1477,7 +1409,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2208432724579300860}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Gun
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1512,7 +1444,7 @@ GameObject:
   - component: {fileID: 1816856725787006798}
   - component: {fileID: 4707192083081058814}
   - component: {fileID: 3361539209355218596}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Barrel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1716,7 +1648,7 @@ GameObject:
   - component: {fileID: 4145047058784792995}
   - component: {fileID: 1123101682874812547}
   - component: {fileID: 4483844168222004942}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: LaserTurret 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1900,7 +1832,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7887085982298261566}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Fire Position
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1931,7 +1863,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7605343164443067794}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
