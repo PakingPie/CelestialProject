@@ -78,6 +78,7 @@ public class Gun : WeaponBase
 
     public bool HasAmmo => !UseAmmo || (UseAmmo && AmmoCount > 0);
     public int AmmoCount { get; private set; } = 10000;
+    public Vector3 ManualAimPosition => _manualAimPosition;
 
     private Vector3 _targetPosLastFrame;
 

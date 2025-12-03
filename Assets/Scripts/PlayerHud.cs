@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using TMPro;
 using UnityEngine.UI;
 using System.Collections.Generic;
+
 public class PlayerHud : MonoBehaviour
 {
     [Header("Components")]
@@ -18,16 +19,13 @@ public class PlayerHud : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Slider _throttleSlider = null;
     [SerializeField] private TMPro.TextMeshProUGUI _throttleText = null;
 
-    [Header("Weapon Display")]
-    [SerializeField] private List<Gun> _primaryGuns = new List<Gun>();
-    [SerializeField] private Slider _reloadSlider;
-    [SerializeField] private TextMeshProUGUI _reloadText;
-    [SerializeField] private Image _reloadFill; // Optional: to change color
-
-    [Header("Weapon Display Settings")]
-    [SerializeField] private Color readyColor = Color.green;
-    [SerializeField] private Color reloadingColor = Color.yellow;
-
+    [Header("Weapon Reload Display")]
+    [SerializeField] private List<Gun> _guns = new List<Gun>();
+    [SerializeField] private GameObject _reloadIndicatorPrefab;
+    [SerializeField] private Transform _reloadIndicatorContainer;
+    [SerializeField] private float _indicatorSpacing = 40f;
+    
+    private List<ReloadIndicator> _reloadIndicators = new List<ReloadIndicator>();
     private Camera _playerCam = null;
 
     private void Awake()
@@ -52,6 +50,11 @@ public class PlayerHud : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        CreateReloadIndicators();
+    }
+
     private void Update()
     {
         if (_cameraController == null || _playerCam == null)
@@ -59,12 +62,47 @@ public class PlayerHud : MonoBehaviour
 
         UpdateCrosshairs();
         UpdateThrottleDisplay();
-        UpdateWeaponDisplay();
+    }
+
+    private void CreateReloadIndicators()
+    {
+        if (_reloadIndicatorPrefab == null || _reloadIndicatorContainer == null)
+        {
+            Debug.LogWarning("PlayerHud: Reload indicator prefab or container not assigned!");
+            return;
+        }
+
+        // Clear existing indicators
+        foreach (var indicator in _reloadIndicators)
+        {
+            if (indicator != null)
+                Destroy(indicator.gameObject);
+        }
+        _reloadIndicators.Clear();
+
+        // Create indicator for each gun
+        for (int i = 0; i < _guns.Count; i++)
+        {
+            if (_guns[i] == null) continue;
+
+            GameObject indicatorObj = Instantiate(_reloadIndicatorPrefab, _reloadIndicatorContainer);
+
+
+            // Position the indicator
+            RectTransform rect = indicatorObj.GetComponent<RectTransform>();
+            rect.anchoredPosition = new Vector2(i * _indicatorSpacing, 0);
+
+            // Initialize with gun reference
+            ReloadIndicator indicator = indicatorObj.GetComponent<ReloadIndicator>();
+            indicator.Initialize(_guns[i]);
+            indicatorObj.GetComponent<Image>().material = indicator.ReloadCircleMaterial;
+
+            _reloadIndicators.Add(indicator);
+        }
     }
 
     private void UpdateCrosshairs()
     {
-        // Boresight: where the ship is pointing
         if (_boresight != null)
         {
             Vector3 screenPos = _playerCam.WorldToScreenPoint(_cameraController.BoresightPos);
@@ -72,7 +110,6 @@ public class PlayerHud : MonoBehaviour
             _boresight.gameObject.SetActive(screenPos.z > 1f);
         }
 
-        // Mouse position: where the camera is looking (for aiming)
         if (_mousePos != null)
         {
             Vector3 screenPos = _playerCam.WorldToScreenPoint(_cameraController.MouseAimPos);
@@ -80,7 +117,6 @@ public class PlayerHud : MonoBehaviour
             _mousePos.gameObject.SetActive(screenPos.z > 1f);
         }
 
-        // Velocity indicator: where the ship is actually moving
         if (_velocityIndicator != null && _shipMovement != null)
         {
             Vector3 velocityPoint = _shipMovement.transform.position + _shipMovement.Velocity.normalized * 500f;
@@ -105,50 +141,19 @@ public class PlayerHud : MonoBehaviour
         }
     }
 
-    private void UpdateWeaponDisplay()
-    {
-        if (_primaryGuns == null || _primaryGuns.Count == 0)
-            return;
-
-        // Get the first gun's reload status (or you can average all guns)
-        Gun gun = _primaryGuns[0];
-        if (gun == null) return;
-
-        float timeSinceLastShot = Time.time - gun.LastShotTime;
-        float reloadProgress = Mathf.Clamp01(timeSinceLastShot / gun.FireDelay);
-        bool isReady = gun.ReadyToFire;
-
-        // Update slider
-        if (_reloadSlider != null)
-        {
-            _reloadSlider.value = reloadProgress;
-        }
-
-        // Update fill color
-        if (_reloadFill != null)
-        {
-            _reloadFill.color = isReady ? readyColor : reloadingColor;
-        }
-
-        // Update text
-        if (_reloadText != null)
-        {
-            if (isReady)
-            {
-                _reloadText.text = "READY";
-            }
-            else
-            {
-                float remainingTime = gun.FireDelay - timeSinceLastShot;
-                _reloadText.text = $"{remainingTime:F1}s";
-            }
-        }
-    }
-
     public void SetReferenceMouseFlight(PlayerMovementController controller)
     {
         _cameraController = controller;
         if (_cameraController != null)
             _playerCam = _cameraController.GetComponentInChildren<Camera>();
+    }
+
+    /// <summary>
+    /// Call this if guns change at runtime
+    /// </summary>
+    public void RefreshGuns(List<Gun> guns)
+    {
+        _guns = guns;
+        CreateReloadIndicators();
     }
 }
