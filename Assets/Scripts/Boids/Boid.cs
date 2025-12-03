@@ -24,11 +24,32 @@ public class Boid : MonoBehaviour
     private Vector3 _avoidDirection;
     private int _avoidDirectionIndex;
 
+    // Smoothing state
+    [Header("Smoothing")]
+    public float RotationSmoothSpeed = 8f;
+    public float SpeedSmoothSpeed = 8f;
+    public float AccelerationSmoothSpeed = 10f;
+    public float CollisionSmoothSpeed = 5f;
+    private Vector3 _smoothedAvoidDirection;
+    private float _collisionUrgency = 0f;
+    private Vector3 _smoothedFlockHeading;
+    private Vector3 _smoothedFlockCenter;
+    private Vector3 _smoothedFormationTarget;
+    private Vector3 _previousAcceleration;
+    private float _smoothedSpeed;
+
     // Formation state
     [HideInInspector] public bool IsInCombat = false;
     [HideInInspector] public int FormationIndex = 0;
     [HideInInspector] public Boid FormationLeader = null;
     private float _combatTimer = 0f;
+
+    // Smoothing parameters
+    private const float AvoidDirectionSmoothSpeed = 8f;
+    private const float FlockDataSmoothSpeed = 12f;
+    private const float FormationTargetSmoothSpeed = 4f;
+    private const float FormationDeadZone = 1.5f;
+    private const float FormationUrgencyRange = 10f;
 
     public BoidSettings Settings => _settings;
     public Vector3 Velocity => _velocity;
@@ -66,8 +87,17 @@ public class Boid : MonoBehaviour
 
         float startSpeed = (_settings.minSpeed + _settings.maxSpeed) * 0.5f;
         _velocity = _cachedTransform.forward * startSpeed;
+        _smoothedSpeed = startSpeed;
 
         _avoidDirectionIndex = Random.Range(0, BoidDirections.viewDirections.Length);
+
+        // Initialize smoothing state
+        _smoothedAvoidDirection = forward;
+        _smoothedFlockHeading = forward;
+        _smoothedFlockCenter = position;
+        _smoothedFormationTarget = position;
+        _previousAcceleration = Vector3.zero;
+        _collisionUrgency = 0f;
     }
 
     // Called by BoidObstacleSystem
@@ -75,9 +105,14 @@ public class Boid : MonoBehaviour
     {
         _isHeadingForCollision = isColliding;
 
+        // Smooth the collision urgency instead of binary switching
+        float targetUrgency = isColliding ? 1f : 0f;
+        _collisionUrgency = Mathf.Lerp(_collisionUrgency, targetUrgency, Time.deltaTime * CollisionSmoothSpeed);
+
         if (isColliding)
         {
-            _avoidDirection = FindUnobstructedDirectionIncremental();
+            Vector3 newDir = FindUnobstructedDirectionIncremental();
+            _smoothedAvoidDirection = Vector3.Slerp(_smoothedAvoidDirection, newDir, Time.deltaTime * AvoidDirectionSmoothSpeed);
         }
     }
 
@@ -231,6 +266,10 @@ public class Boid : MonoBehaviour
     {
         UpdateCombatState();
 
+        // Smooth the incoming flock data to reduce frame-to-frame jitter
+        _smoothedFlockHeading = Vector3.Lerp(_smoothedFlockHeading, avgFlockHeading, Time.deltaTime * FlockDataSmoothSpeed);
+        _smoothedFlockCenter = Vector3.Lerp(_smoothedFlockCenter, flockmatesCenter, Time.deltaTime * FlockDataSmoothSpeed);
+
         Vector3 acceleration = Vector3.zero;
 
         // Formation behavior when not in combat
@@ -252,7 +291,7 @@ public class Boid : MonoBehaviour
         // Flocking behavior with combat modifiers
         if (numPerceivedFlockmates > 0)
         {
-            Vector3 centerOfMass = flockmatesCenter / numPerceivedFlockmates;
+            Vector3 centerOfMass = _smoothedFlockCenter / numPerceivedFlockmates;
             Vector3 offsetToCenter = centerOfMass - position;
 
             float alignMult = IsInCombat ? _settings.combatAlignmentMultiplier : 1f;
@@ -266,16 +305,20 @@ public class Boid : MonoBehaviour
                 cohesionMult *= 0.1f;
             }
 
-            acceleration += SteerTowards(avgFlockHeading) * _settings.alignWeight * alignMult;
+            acceleration += SteerTowards(_smoothedFlockHeading) * _settings.alignWeight * alignMult;
             acceleration += SteerTowards(offsetToCenter) * _settings.cohesionWeight * cohesionMult;
             acceleration += SteerTowards(avgAvoidanceHeading) * _settings.separateWeight * separateMult;
         }
 
-        // Collision avoidance (always active)
-        if (_isHeadingForCollision)
+        // Collision avoidance with smoothed urgency
+        if (_collisionUrgency > 0.01f)
         {
-            acceleration += SteerTowards(_avoidDirection) * _settings.avoidCollisionWeight;
+            acceleration += SteerTowards(_smoothedAvoidDirection) * _settings.avoidCollisionWeight * _collisionUrgency;
         }
+
+        // Smooth the acceleration to prevent sudden force changes
+        acceleration = Vector3.Lerp(_previousAcceleration, acceleration, Time.deltaTime * AccelerationSmoothSpeed);
+        _previousAcceleration = acceleration;
 
         // Apply velocity
         _velocity += acceleration * Time.deltaTime;
@@ -284,37 +327,49 @@ public class Boid : MonoBehaviour
         if (speed > 0.001f)
         {
             Vector3 dir = _velocity / speed;
-            speed = Mathf.Clamp(speed, _settings.minSpeed, _settings.maxSpeed);
-            _velocity = dir * speed;
+
+            // Smooth speed clamping instead of hard clamp
+            float targetSpeed = Mathf.Clamp(speed, _settings.minSpeed, _settings.maxSpeed);
+            _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, targetSpeed, Time.deltaTime * SpeedSmoothSpeed);
+            _velocity = dir * _smoothedSpeed;
 
             Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
             newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
 
-            _cachedTransform.SetPositionAndRotation(newPos, Quaternion.LookRotation(dir));
+            // Smooth rotation instead of instant snap
+            Quaternion targetRotation = Quaternion.LookRotation(dir);
+            Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
+
+            _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
 
             position = newPos;
-            forward = dir;
+            forward = smoothedRotation * Vector3.forward;
         }
     }
 
     private Vector3 CalculateFormationAcceleration()
     {
-        Vector3 acceleration = Vector3.zero;
+        if (FormationLeader == null) return Vector3.zero;
 
-        if (FormationLeader == null) return acceleration;
+        Vector3 acceleration = Vector3.zero;
 
         // Calculate target formation position in world space
         Vector3 formationOffset = GetFormationOffset();
-        Vector3 formationTarget = FormationLeader.position +
+        Vector3 rawTarget = FormationLeader.position +
             FormationLeader._cachedTransform.TransformDirection(formationOffset);
 
-        Vector3 toFormation = formationTarget - position;
+        // Smooth the target position to prevent jitter from leader movement
+        _smoothedFormationTarget = Vector3.Lerp(_smoothedFormationTarget, rawTarget, Time.deltaTime * FormationTargetSmoothSpeed);
+
+        Vector3 toFormation = _smoothedFormationTarget - position;
         float distanceToFormation = toFormation.magnitude;
 
-        if (distanceToFormation > 0.5f)
+        // Use dead zone to prevent micro-corrections when close to formation position
+        if (distanceToFormation > FormationDeadZone)
         {
-            // Steer towards formation position
-            Vector3 formationForce = SteerTowards(toFormation) * _settings.formationTightness;
+            // Urgency increases with distance from formation
+            float urgency = Mathf.Clamp01((distanceToFormation - FormationDeadZone) / FormationUrgencyRange);
+            Vector3 formationForce = SteerTowards(toFormation) * _settings.formationTightness * urgency;
             acceleration += formationForce;
         }
 
