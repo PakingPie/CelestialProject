@@ -7,7 +7,6 @@ public class MissileLaunch : WeaponBase
     public GameObject missilePrefab;
 
     [Tooltip("Number of updates per second for the gun targeting system.")]
-    public int UpdateRate = 60;
     public Transform MissileSpawnPoint;
     public float LaunchInterval = 3f;
     public float TurretRotateSpeed = 5f;

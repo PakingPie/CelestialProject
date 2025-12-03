@@ -26,7 +26,6 @@ public class PlayerHud : MonoBehaviour
     [SerializeField] private GameObject _reloadIndicatorPrefab;
     [SerializeField] private Transform _reloadIndicatorContainerForMainGuns;
     [SerializeField] private Transform _reloadIndicatorContainerForSecondaryGuns;
-    [SerializeField] private float _indicatorSpacing = 40f;
     
     private List<ReloadIndicator> _reloadIndicators = new List<ReloadIndicator>();
     private Camera _playerCam = null;

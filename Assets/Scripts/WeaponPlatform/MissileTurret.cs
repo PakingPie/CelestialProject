@@ -10,7 +10,6 @@ public class MissileTurret : WeaponBase
     public float FireInterval = 2.0f;
     public bool IsFiring = false;
 
-    private float _fireTimer = 0.0f;
 
     void Start()
     {

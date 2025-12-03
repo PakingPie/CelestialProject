@@ -447,6 +447,7 @@ MonoBehaviour:
   IsFiring: 0
   UseAmmo: 0
   MaxAmmo: 10000
+  IsManualMode: 0
 --- !u!1 &3915756800065681784
 GameObject:
   m_ObjectHideFlags: 0
@@ -573,11 +574,10 @@ MonoBehaviour:
   HealthBarShader: {fileID: -6465566751694194690, guid: 4a53868445a75a246b83a1f930cbdccd, type: 3}
   EnergyShieldShader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
   ShieldEffect: {fileID: 124679239445400308}
-  Turret: {fileID: 0}
-  FireSpawn: {fileID: 0}
   ExplodeEffect: {fileID: 7698972359503818749, guid: dc871d3822e9f3649a40eba6bb930974, type: 3}
   ShieldRegenerationRate: 2
   ShieldRegenerationDelay: 2
+  EnablePrediction: 1
 --- !u!114 &6621555047069784344
 MonoBehaviour:
   m_ObjectHideFlags: 0

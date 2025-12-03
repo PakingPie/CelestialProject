@@ -25,6 +25,8 @@ public class EnemyVehicle : VehicleBase
     private Vector3 _lastPosition;
     private Vector3 _velocity;
     public Vector3 Velocity => _velocity;
+    private EnemyPredictionManager _predictionManager;
+    public bool EnablePrediction = false;
 
     void OnEnable()
     {
@@ -36,8 +38,21 @@ public class EnemyVehicle : VehicleBase
         CombatRegistry.Unregister(this, FactionType);
     }
 
+    void OnDestroy()
+    {
+        if (_predictionManager != null)
+            _predictionManager.UnregisterEnemy(this);
+    }
+
     void Start()
     {
+        _lastPosition = transform.position;
+
+        // Register with manager
+        _predictionManager = FindAnyObjectByType<EnemyPredictionManager>();
+        if (_predictionManager != null && EnablePrediction)
+            _predictionManager.RegisterEnemy(this);
+
         HealthBar.GetComponent<Image>().material = new Material(HealthBarShader);
         HealthBar.GetComponent<Image>().material.SetInt("_MaxHitPoints", MaxHitPoints);
         HealthBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", HitPoints);
@@ -65,19 +80,10 @@ public class EnemyVehicle : VehicleBase
         GetComponent<ShieldHitEffect>().ShieldGO = ShieldEffect;
     }
 
-    public override void Move()
-    {
-        // Implement movement logic for enemy vehicles
-    }
-
-    public override void Attack()
-    {
-        // Implement attack logic for enemy vehicles
-
-    }
-
     void Update()
     {
+        _velocity = (transform.position - _lastPosition) / Time.deltaTime;
+        _lastPosition = transform.position;
         // Handle shield regeneration
         if (ShieldPoints < MaxShieldPoints)
         {

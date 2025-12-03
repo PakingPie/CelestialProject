@@ -62,7 +62,7 @@ public class PlayerShipMovement : MonoBehaviour
     {
         if (cameraController == null)
         {
-            cameraController = FindObjectOfType<PlayerMovementController>();
+            cameraController = FindAnyObjectByType<PlayerMovementController>();
             if (cameraController == null)
                 Debug.LogWarning(name + ": PlayerShipMovement - No PlayerMovementController found. Camera will not follow ship.");
         }

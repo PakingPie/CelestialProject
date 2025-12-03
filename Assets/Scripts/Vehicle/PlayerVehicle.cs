@@ -5,9 +5,6 @@ using static GlobalHelper;
 [ExecuteAlways]
 public class PlayerVehicle : VehicleBase
 {
-    [Header("Faction")]
-    public Faction FactionType = Faction.Player;
-
     [Header("UI")]
     public Image HealthBar;
     public Image ArmorBar;
@@ -15,6 +12,16 @@ public class PlayerVehicle : VehicleBase
     public Shader HealthBarShader;
     public Shader EnergyShieldShader;
     public GameObject ShieldEffect;
+    public Color HealthBarColor1 = Color.green;
+    public Color HealthBarColor2 = Color.yellow;
+    public Color HealthBarColor3 = Color.red;
+    public Color ArmorBarColor1 = Color.yellow;
+    public Color ArmorBarColor2 = Color.yellow;
+    public Color ArmorBarColor3 = Color.yellow;
+
+    public Color ShieldBarColor1 = Color.blue;
+    public Color ShieldBarColor2 = Color.blue;
+    public Color ShieldBarColor3 = Color.blue;
 
     [Header("Shield Regeneration")]
     public int ShieldRegenerationRate = 1;
@@ -51,25 +58,25 @@ public class PlayerVehicle : VehicleBase
         _healthBarMaterial = new Material(HealthBarShader);
         _healthBarMaterial.SetInt("_MaxHitPoints", MaxHitPoints);
         _healthBarMaterial.SetInt("_CurrentHitPoints", HitPoints);
-        _healthBarMaterial.SetVector("_Color1", Color.green);
-        _healthBarMaterial.SetVector("_Color2", Color.yellow);
-        _healthBarMaterial.SetVector("_Color3", Color.red);
+        _healthBarMaterial.SetVector("_Color1", HealthBarColor1);
+        _healthBarMaterial.SetVector("_Color2", HealthBarColor2);
+        _healthBarMaterial.SetVector("_Color3", HealthBarColor3);
         HealthBar.material = _healthBarMaterial;
 
         _armorBarMaterial = new Material(HealthBarShader);
         _armorBarMaterial.SetInt("_MaxHitPoints", MaxArmorPoints);
         _armorBarMaterial.SetInt("_CurrentHitPoints", ArmorPoints);
-        _armorBarMaterial.SetVector("_Color1", Color.yellow);
-        _armorBarMaterial.SetVector("_Color2", Color.yellow);
-        _armorBarMaterial.SetVector("_Color3", new Color(0.6f, 0.3f, 0f)); // brown
+        _armorBarMaterial.SetVector("_Color1", ArmorBarColor1);
+        _armorBarMaterial.SetVector("_Color2", ArmorBarColor2);
+        _armorBarMaterial.SetVector("_Color3", ArmorBarColor3);
         ArmorBar.material = _armorBarMaterial;
 
         _shieldBarMaterial = new Material(HealthBarShader);
         _shieldBarMaterial.SetInt("_MaxHitPoints", MaxShieldPoints);
         _shieldBarMaterial.SetInt("_CurrentHitPoints", ShieldPoints);
-        _shieldBarMaterial.SetVector("_Color1", Color.cyan);
-        _shieldBarMaterial.SetVector("_Color2", Color.cyan);
-        _shieldBarMaterial.SetVector("_Color3", new Color(0f, 0.5f, 0.5f)); // dark cyan
+        _shieldBarMaterial.SetVector("_Color1", ShieldBarColor1);
+        _shieldBarMaterial.SetVector("_Color2", ShieldBarColor2);
+        _shieldBarMaterial.SetVector("_Color3", ShieldBarColor3);
         ShieldBar.material = _shieldBarMaterial;
 
         _shieldEffectMaterial = new Material(EnergyShieldShader);
