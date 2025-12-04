@@ -16,6 +16,10 @@ public class PlayerShipMovement : MonoBehaviour
     [Tooltip("How quickly thrust decays when no input")]
     public float thrustDecay = 20f;
 
+    [Header("Throttle")]
+    [Tooltip("When true, throttle stays at current value. When false, throttle declines automatically.")]
+    public bool MaintainThrottle = true;
+
     [Header("Vertical Movement")]
     [Tooltip("Enable direct vertical thrust (spaceship style)")]
     public bool enableVerticalThrust = true;
@@ -187,10 +191,13 @@ public class PlayerShipMovement : MonoBehaviour
         {
             currentForwardThrust += smoothedThrottleInput * thrustAcceleration * Time.deltaTime;
         }
-        else
+        else if (!MaintainThrottle)
         {
+            // Only decay thrust if MaintainThrottle is false
             currentForwardThrust = Mathf.MoveTowards(currentForwardThrust, 0f, thrustDecay * Time.deltaTime);
         }
+        // When MaintainThrottle is true and no input, thrust stays at current value
+
         currentForwardThrust = Mathf.Clamp(currentForwardThrust, minThrust, maxThrust);
 
         // Vertical thrust with momentum

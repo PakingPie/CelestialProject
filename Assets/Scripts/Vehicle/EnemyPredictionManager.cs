@@ -8,6 +8,8 @@ public class EnemyPredictionManager : MonoBehaviour
     [SerializeField] private Camera _playerCamera;
     [SerializeField] private Transform _player;
     [SerializeField] private Canvas _hudCanvas;
+    [Header("Player Reference")]
+    [SerializeField] private PlayerShipMovement _playerShipMovement;
 
     [Header("Canvas Mode")]
     [SerializeField] private bool _useWorldSpace = true;
@@ -77,6 +79,9 @@ public class EnemyPredictionManager : MonoBehaviour
 
         if (_player == null)
             _player = _playerCamera.transform;
+
+        if (_playerShipMovement == null && _player != null)
+            _playerShipMovement = _player.GetComponentInParent<PlayerShipMovement>();
     }
 
     private void Update()
@@ -183,26 +188,84 @@ public class EnemyPredictionManager : MonoBehaviour
 
     private Vector3 CalculatePredictedPosition(EnemyVehicle enemy, float distance)
     {
+        Vector3 enemyPosition = enemy.transform.position;
         Vector3 enemyVelocity = enemy.Velocity;
+        Vector3 playerPosition = _player.position;
+        Vector3 playerVelocity = _playerShipMovement != null ? _playerShipMovement.Velocity : Vector3.zero;
 
-        float timeToTarget;
-        if (_referenceGun != null && _referenceGun.BulletPrefab != null)
+        float bulletSpeed = _referenceGun != null && _referenceGun.BulletPrefab != null
+            ? _referenceGun.MuzzleVelocity
+            : 200f;
+
+        // Calculate intercept point using relative velocity
+        Vector3 predictedPos = CalculateInterceptPoint(
+            playerPosition,
+            playerVelocity,
+            bulletSpeed,
+            enemyPosition,
+            enemyVelocity
+        );
+
+        // If no valid intercept, fall back to simple linear prediction
+        if (predictedPos == Vector3.zero)
         {
-            float bulletSpeed = _referenceGun.BulletPrefab.Speed;
-            timeToTarget = distance / bulletSpeed;
+            float timeToTarget = Mathf.Min(distance / bulletSpeed, _maxPredictionTime);
+            predictedPos = enemyPosition + enemyVelocity * timeToTarget * _leadDistanceMultiplier;
         }
+
+        return predictedPos;
+    }
+
+    /// <summary>
+    /// Calculates the intercept point for a projectile to hit a moving target.
+    /// Accounts for shooter velocity (bullet inherits shooter momentum).
+    /// </summary>
+    private Vector3 CalculateInterceptPoint(
+        Vector3 shooterPos,
+        Vector3 shooterVelocity,
+        float projectileSpeed,
+        Vector3 targetPos,
+        Vector3 targetVelocity)
+    {
+        // Relative position and velocity
+        Vector3 relativePos = targetPos - shooterPos;
+        Vector3 relativeVel = targetVelocity - shooterVelocity;
+
+        // Quadratic equation coefficients: at² + bt + c = 0
+        // We're solving for time t where the bullet reaches the target
+        float a = Vector3.Dot(relativeVel, relativeVel) - (projectileSpeed * projectileSpeed);
+        float b = 2f * Vector3.Dot(relativePos, relativeVel);
+        float c = Vector3.Dot(relativePos, relativePos);
+
+        float discriminant = b * b - 4f * a * c;
+
+        // No real solution means target is unreachable
+        if (discriminant < 0f)
+            return Vector3.zero;
+
+        float sqrtDiscriminant = Mathf.Sqrt(discriminant);
+        float t1 = (-b + sqrtDiscriminant) / (2f * a);
+        float t2 = (-b - sqrtDiscriminant) / (2f * a);
+
+        // Choose the smallest positive time
+        float t;
+        if (t1 > 0f && t2 > 0f)
+            t = Mathf.Min(t1, t2);
+        else if (t1 > 0f)
+            t = t1;
+        else if (t2 > 0f)
+            t = t2;
         else
-        {
-            timeToTarget = _predictionTime;
-        }
+            return Vector3.zero; // Both times negative, target is behind us
 
         // Cap prediction time
-        timeToTarget = Mathf.Min(timeToTarget, _maxPredictionTime);
+        t = Mathf.Min(t, _maxPredictionTime);
 
-        // Calculate predicted position with multiplier
-        Vector3 leadOffset = enemyVelocity * timeToTarget * _leadDistanceMultiplier;
+        // Apply lead distance multiplier
+        t *= _leadDistanceMultiplier;
 
-        return enemy.transform.position + leadOffset;
+        // Calculate where the target will be at time t
+        return targetPos + targetVelocity * t;
     }
 
     private void UpdateIndicatorWorldPosition(PredictionIndicator indicator, Vector3 worldPosition, float scale, Transform target = null)
@@ -331,7 +394,7 @@ public class EnemyPredictionManager : MonoBehaviour
 
     private void ReturnIndicatorSetToPool(EnemyIndicatorSet set)
     {
-        if(set.EnemyIndicator == null)
+        if (set.EnemyIndicator == null)
             return;
         set.EnemyIndicator.SetActive(false);
         set.LeadIndicator.SetActive(false);

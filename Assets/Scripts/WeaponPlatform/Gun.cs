@@ -114,6 +114,11 @@ public class Gun : WeaponBase
 
     private void Update()
     {
+        // Auto-populate inherited velocity from parent rigidbody or ship movement
+        if (AutoInheritVelocity)
+        {
+            UpdateInheritedVelocity();
+        }
         // Handle manual vs automatic mode
         if (IsManualMode)
         {
@@ -166,17 +171,33 @@ public class Gun : WeaponBase
                 Vector3 aimPosition = Targeted.position;
                 if (GuidanceType == GlobalHelper.GuidanceType.Lead)
                 {
-                    // Calculate where to aim based on target movement
-                    Vector3 targetVelocity = Targeted.position - _targetPosLastFrame;
-                    targetVelocity /= Time.deltaTime;
-                    // Figure out time to impact based on distance.          
-                    float bulletSpeed = BulletPrefab.GetComponent<BulletPhysics>().Speed;
-                    float distanceToTarget = Vector3.Distance(transform.position, Targeted.position);
-                    float timeToImpact = distanceToTarget / bulletSpeed;
-                    Vector3 futureTargetPos = Targeted.position + targetVelocity * timeToImpact;
-                    aimPosition = futureTargetPos;
-
+                    // Calculate target velocity
+                    Vector3 targetVelocity = (Targeted.position - _targetPosLastFrame) / Time.deltaTime;
                     _targetPosLastFrame = Targeted.position;
+
+                    // Get ship velocity for intercept calculation
+                    Vector3 shipVelocity = AutoInheritVelocity ? InheritedVelocity : Vector3.zero;
+
+                    // Calculate intercept point
+                    Vector3 interceptPoint = CalculateInterceptPoint(
+                        transform.position,
+                        shipVelocity,
+                        BulletPrefab.Speed,
+                        Targeted.position,
+                        targetVelocity
+                    );
+
+                    if (interceptPoint != Vector3.zero)
+                    {
+                        aimPosition = interceptPoint;
+                    }
+                    else
+                    {
+                        // Fallback to simple prediction if no intercept possible
+                        float distanceToTarget = Vector3.Distance(transform.position, Targeted.position);
+                        float timeToImpact = distanceToTarget / BulletPrefab.Speed;
+                        aimPosition = Targeted.position + targetVelocity * timeToImpact;
+                    }
                 }
 
                 RotateBaseToFaceTarget(aimPosition);
@@ -320,10 +341,13 @@ public class Gun : WeaponBase
     private void FireBulletFromFirePoint(Transform firePoint, Vector3 velocity)
     {
         var bullet = Instantiate(BulletPrefab, firePoint.transform.position, firePoint.transform.rotation);
-        bullet.GetComponent<BulletPhysics>().FireTarget = FireTarget;
+        var bulletPhysics = bullet.GetComponent<BulletPhysics>();
+        bulletPhysics.FireTarget = FireTarget;
 
-        var bulletRotation = firePoint.transform.rotation;
+        // Start with the fire point's forward direction
+        Vector3 fireDirection = firePoint.forward;
 
+        // Apply gimballing if enabled
         var isGimballingAllowed = UseGimballedAiming;
         if (isGimballingAllowed && GimbalOnlyWhenInRange)
         {
@@ -336,12 +360,40 @@ public class Gun : WeaponBase
 
         if (isGimballingAllowed)
         {
-            bulletRotation = Quaternion.RotateTowards(
-                from: bulletRotation,
-                to: Quaternion.LookRotation(GimbalTarget - firePoint.position, firePoint.up),
+            // Calculate gimballed direction
+            Vector3 toTarget = (GimbalTarget - firePoint.position).normalized;
+            Quaternion gimballed = Quaternion.RotateTowards(
+                from: Quaternion.LookRotation(fireDirection),
+                to: Quaternion.LookRotation(toTarget, firePoint.up),
                 maxDegreesDelta: GimbalRange);
+            fireDirection = gimballed * Vector3.forward;
         }
 
+        // Apply deviation (spread)
+        if (Deviation > 0f)
+        {
+            Vector3 randomSpread = new Vector3(
+                Random.Range(-Deviation, Deviation),
+                Random.Range(-Deviation, Deviation),
+                0f
+            );
+            fireDirection = Quaternion.Euler(randomSpread) * fireDirection;
+        }
+
+        // Override bullet speed with gun's muzzle velocity
+        bulletPhysics.Speed = MuzzleVelocity;
+
+        // Initialize bullet with direction and inherited velocity
+        if (AutoInheritVelocity)
+        {
+            bulletPhysics.Initialize(fireDirection, velocity);
+        }
+        else
+        {
+            bulletPhysics.Initialize(fireDirection, Vector3.zero);
+        }
+
+        // Visual feedback
         if (barrelVisuals.Count > 0)
             barrelVisuals[_firePointIndex % barrelVisuals.Count].FireRecoil();
 
@@ -412,5 +464,77 @@ public class Gun : WeaponBase
         }
 
         return true;
+    }
+
+    private void UpdateInheritedVelocity()
+    {
+
+        PlayerShipMovement shipMovement = GetComponentInParent<PlayerShipMovement>();
+        if (shipMovement != null)
+        {
+            InheritedVelocity = shipMovement.Velocity;
+            return;
+        }
+
+        InheritedVelocity = Vector3.zero;
+    }
+
+    /// <summary>
+    /// Calculates the intercept point for a projectile to hit a moving target.
+    /// Accounts for shooter velocity (bullet inherits shooter momentum).
+    /// </summary>
+    private Vector3 CalculateInterceptPoint(
+        Vector3 shooterPos,
+        Vector3 shooterVelocity,
+        float projectileSpeed,
+        Vector3 targetPos,
+        Vector3 targetVelocity)
+    {
+        // Relative position and velocity
+        Vector3 relativePos = targetPos - shooterPos;
+        Vector3 relativeVel = targetVelocity - shooterVelocity;
+
+        // Quadratic equation coefficients: at² + bt + c = 0
+        float a = Vector3.Dot(relativeVel, relativeVel) - (projectileSpeed * projectileSpeed);
+        float b = 2f * Vector3.Dot(relativePos, relativeVel);
+        float c = Vector3.Dot(relativePos, relativePos);
+
+        // Handle case where a is nearly zero (relative velocity matches projectile speed)
+        if (Mathf.Abs(a) < 0.0001f)
+        {
+            if (Mathf.Abs(b) < 0.0001f)
+                return Vector3.zero;
+
+            float lt = -c / b;
+            if (lt > 0f)
+                return targetPos + targetVelocity * lt;
+            return Vector3.zero;
+        }
+
+        float discriminant = b * b - 4f * a * c;
+
+        // No real solution means target is unreachable
+        if (discriminant < 0f)
+            return Vector3.zero;
+
+        float sqrtDiscriminant = Mathf.Sqrt(discriminant);
+        float t1 = (-b + sqrtDiscriminant) / (2f * a);
+        float t2 = (-b - sqrtDiscriminant) / (2f * a);
+
+        // Choose the smallest positive time
+        float t;
+        if (t1 > 0f && t2 > 0f)
+            t = Mathf.Min(t1, t2);
+        else if (t1 > 0f)
+            t = t1;
+        else if (t2 > 0f)
+            t = t2;
+        else
+            return Vector3.zero;
+
+        // Cap prediction time to reasonable value
+        t = Mathf.Min(t, 5f);
+
+        return targetPos + targetVelocity * t;
     }
 }

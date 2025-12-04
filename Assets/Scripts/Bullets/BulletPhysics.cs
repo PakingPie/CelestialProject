@@ -16,6 +16,17 @@ public class BulletPhysics : MonoBehaviour
     public int FuseDetonationDistance = 1;
     public int ExplosionRadius = 5;
 
+    [Header("Velocity Inheritance")]
+    [Tooltip("How much of the shooter's velocity is inherited (0 = none, 1 = full)")]
+    [Range(0f, 1f)]
+    public float velocityInheritance = 1f;
+
+    [Tooltip("Gradually align bullet direction to velocity over time")]
+    public bool alignToVelocity = false;
+
+    [Tooltip("How quickly bullet aligns to its velocity direction")]
+    public float alignmentSpeed = 5f;
+
     public GlobalHelper.AmmoType DamageType = GlobalHelper.AmmoType.Kinetic;
     public GlobalHelper.Faction FireTarget = GlobalHelper.Faction.Foe;
 
@@ -31,6 +42,11 @@ public class BulletPhysics : MonoBehaviour
     private float _explosionRadiusSqr;
     private RaycastHit _hit;
 
+    // Velocity-based movement
+    private Vector3 _velocity;
+    private Vector3 _inheritedVelocity;
+    private bool _initialized = false;
+
     // Reusable lists - static to share across all bullets
     private static List<VehicleBase> _nearbyEnemies = new List<VehicleBase>(64);
     private static List<VehicleBase> _enemiesToDamage = new List<VehicleBase>(16);
@@ -42,10 +58,52 @@ public class BulletPhysics : MonoBehaviour
         _explosionRadiusSqr = ExplosionRadius * ExplosionRadius;
     }
 
+    /// <summary>
+    /// Initialize bullet with shooter's velocity. Call this after instantiation.
+    /// </summary>
+    /// <param name="shooterVelocity">The velocity of the ship/turret that fired this bullet</param>
+    public void Initialize(Vector3 shooterVelocity)
+    {
+        _inheritedVelocity = shooterVelocity * velocityInheritance;
+        _velocity = _cachedTransform.forward * Speed + _inheritedVelocity;
+        _initialized = true;
+    }
+
+    /// <summary>
+    /// Initialize with explicit direction and shooter velocity
+    /// </summary>
+    /// <param name="direction">Direction the bullet should travel</param>
+    /// <param name="shooterVelocity">The velocity of the ship/turret that fired this bullet</param>
+    public void Initialize(Vector3 direction, Vector3 shooterVelocity)
+    {
+        _cachedTransform.forward = direction.normalized;
+        _inheritedVelocity = shooterVelocity * velocityInheritance;
+        _velocity = direction.normalized * Speed + _inheritedVelocity;
+        _initialized = true;
+    }
+
     void Update()
     {
-        // Move bullet
-        _cachedTransform.Translate(Vector3.forward * Speed * Time.deltaTime);
+        // Fallback if Initialize wasn't called
+        if (!_initialized)
+        {
+            _velocity = _cachedTransform.forward * Speed;
+            _initialized = true;
+        }
+
+        // Move bullet using velocity
+        _cachedTransform.position += _velocity * Time.deltaTime;
+
+        // Optionally align bullet rotation to velocity direction
+        if (alignToVelocity && _velocity.sqrMagnitude > 0.01f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(_velocity.normalized);
+            _cachedTransform.rotation = Quaternion.Slerp(
+                _cachedTransform.rotation,
+                targetRotation,
+                alignmentSpeed * Time.deltaTime
+            );
+        }
 
         // Check lifetime
         _lifeTimer += Time.deltaTime;
@@ -112,8 +170,8 @@ public class BulletPhysics : MonoBehaviour
 
                 // Calculate proper raycast distance based on enemy size
                 float enemyRadius = GetEnemyRadius(enemy);
-                float rayStartOffset = enemyRadius * 2f;  // Start well outside the enemy
-                float rayDistance = enemyRadius * 3f;      // Ray long enough to hit shield
+                float rayStartOffset = enemyRadius * 2f;
+                float rayDistance = enemyRadius * 3f;
 
                 Vector3 rayStart = enemyPos - dir * rayStartOffset;
 
@@ -140,7 +198,6 @@ public class BulletPhysics : MonoBehaviour
 
     private float GetEnemyRadius(VehicleBase enemy)
     {
-        // Option 1: Use cached bounds from Renderers
         Renderer[] renderers = enemy.GetComponentsInChildren<Renderer>();
         if (renderers.Length > 0)
         {
@@ -152,7 +209,6 @@ public class BulletPhysics : MonoBehaviour
             return bounds.extents.magnitude;
         }
 
-        // Option 2: Fallback to scale-based estimate
         return enemy.transform.localScale.magnitude * 5f;
     }
 
@@ -162,11 +218,25 @@ public class BulletPhysics : MonoBehaviour
             Instantiate(_impactFXPrefab, _cachedTransform.position, _cachedTransform.rotation).Play();
 
         CleanUpTrails();
-        // Return to pool instead of destroying
+
+        // Reset state for pooling
+        ResetBullet();
+
         if (BulletPool.Instance != null)
             BulletPool.Instance.Return(gameObject);
         else
             Destroy(gameObject);
+    }
+
+    /// <summary>
+    /// Reset bullet state for object pooling
+    /// </summary>
+    public void ResetBullet()
+    {
+        _lifeTimer = 0f;
+        _velocity = Vector3.zero;
+        _inheritedVelocity = Vector3.zero;
+        _initialized = false;
     }
 
     private void CleanUpTrails()
@@ -181,4 +251,9 @@ public class BulletPhysics : MonoBehaviour
             trail.transform.SetParent(null);
         }
     }
+
+    /// <summary>
+    /// Current bullet velocity (for external systems)
+    /// </summary>
+    public Vector3 Velocity => _velocity;
 }
