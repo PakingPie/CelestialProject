@@ -107,8 +107,17 @@ public class BulletPhysics : MonoBehaviour
             // Shield hit effect
             if (enemy.ShieldPoints > 0)
             {
-                Vector3 dir = (enemy.transform.position - impactPoint).normalized;
-                if (Physics.Raycast(impactPoint - 10f * dir, dir, out _hit))
+                Vector3 enemyPos = enemy.transform.position;
+                Vector3 dir = (enemyPos - impactPoint).normalized;
+
+                // Calculate proper raycast distance based on enemy size
+                float enemyRadius = GetEnemyRadius(enemy);
+                float rayStartOffset = enemyRadius * 2f;  // Start well outside the enemy
+                float rayDistance = enemyRadius * 3f;      // Ray long enough to hit shield
+
+                Vector3 rayStart = enemyPos - dir * rayStartOffset;
+
+                if (Physics.Raycast(rayStart, dir, out _hit, rayDistance))
                 {
                     ShieldHitEffect shieldEffect = _hit.collider.GetComponent<ShieldHitEffect>();
                     if (shieldEffect != null)
@@ -127,6 +136,24 @@ public class BulletPhysics : MonoBehaviour
 
         CleanUpTrails();
         Destroy(gameObject);
+    }
+
+    private float GetEnemyRadius(VehicleBase enemy)
+    {
+        // Option 1: Use cached bounds from Renderers
+        Renderer[] renderers = enemy.GetComponentsInChildren<Renderer>();
+        if (renderers.Length > 0)
+        {
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                bounds.Encapsulate(renderers[i].bounds);
+            }
+            return bounds.extents.magnitude;
+        }
+
+        // Option 2: Fallback to scale-based estimate
+        return enemy.transform.localScale.magnitude * 5f;
     }
 
     private void DestroyBullet()

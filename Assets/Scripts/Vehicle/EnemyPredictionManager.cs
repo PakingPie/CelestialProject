@@ -321,6 +321,7 @@ public class EnemyPredictionManager : MonoBehaviour
         lineRenderer.endColor = _lineColor;
         lineRenderer.useWorldSpace = true;
         lineRenderer.sortingOrder = 100; // Render on top
+        lineRenderer.textureMode = LineTextureMode.Tile;
 
         // Make it render in front
         lineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
