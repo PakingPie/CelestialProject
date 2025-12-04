@@ -16,13 +16,6 @@ public class PredictionIndicator : MonoBehaviour
 
     private void Awake()
     {
-        if (_image == null)
-            _image = GetComponent<Image>();
-        if (_text == null)
-            _text = GetComponentInChildren<TextMeshProUGUI>();
-        if (_rectTransform == null)
-            _rectTransform = GetComponent<RectTransform>();
-
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
             _playerTransform = player.transform;
@@ -56,7 +49,9 @@ public class PredictionIndicator : MonoBehaviour
     {
         transform.position = worldPosition;
         FaceCamera();
-        UpdateDistanceText();
+
+        if(_text != null)
+            UpdateDistanceText();
     }
 
     /// <summary>

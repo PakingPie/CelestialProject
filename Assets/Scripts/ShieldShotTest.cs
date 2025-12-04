@@ -1,7 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 public class GunshotTest : MonoBehaviour
 {
     public float HitImpactDuration = 5.0f;
@@ -45,6 +45,7 @@ public class GunshotTest : MonoBehaviour
     // }
 }
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(GunshotTest))]
 public class GunshotEditor : Editor
 {
@@ -69,3 +70,4 @@ public class GunshotEditor : Editor
         }
     }
 }
+#endif

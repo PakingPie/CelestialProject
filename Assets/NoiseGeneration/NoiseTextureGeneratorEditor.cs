@@ -1,4 +1,5 @@
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
 
 [CustomEditor(typeof(NoiseTextureGenerator))]
@@ -50,3 +51,5 @@ public class NoiseTextureGeneratorEditor : Editor
         }
     }
 }
+
+#endif

@@ -1,6 +1,7 @@
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
-
+#endif
 public class SimpleBlit : MonoBehaviour
 {
     public GameObject GO;
@@ -65,6 +66,7 @@ public class SimpleBlit : MonoBehaviour
     }
 }
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(SimpleBlit))]
 public class SimpleBlitEditor : Editor
 {
@@ -85,3 +87,4 @@ public class SimpleBlitEditor : Editor
         }
     }
 }
+#endif

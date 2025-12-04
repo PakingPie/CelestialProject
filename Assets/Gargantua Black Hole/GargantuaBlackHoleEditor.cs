@@ -1,5 +1,6 @@
-using UnityEditor;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
 
 [CustomEditor(typeof(GargantuaBlackHole))]
 public class GargantuaBlackHoleEditor : Editor
@@ -21,3 +22,4 @@ public class GargantuaBlackHoleEditor : Editor
         blackHole = (GargantuaBlackHole)target;
     }
 }
+#endif

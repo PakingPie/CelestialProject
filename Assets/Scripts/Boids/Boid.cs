@@ -54,6 +54,7 @@ public class Boid : MonoBehaviour
 
     // Add field
     private Collider[] _nearbyEnemies = new Collider[20];
+    private Collider[] _nearbyAllies = new Collider[20];
 
     public BoidSettings Settings => _settings;
     public Vector3 Velocity => _velocity;
@@ -358,6 +359,13 @@ public class Boid : MonoBehaviour
             acceleration += SteerTowards(enemyAvoidance) * _settings.enemyAvoidanceWeight;
         }
 
+        // Ally separation
+        Vector3 allySeparation = CalculateAllySeparation();
+        if (allySeparation.sqrMagnitude > 0.01f)
+        {
+            acceleration += SteerTowards(allySeparation) * _settings.allySeparationWeight;
+        }
+
         // Collision avoidance
         if (_collisionUrgency > 0.01f)
         {
@@ -501,6 +509,39 @@ public class Boid : MonoBehaviour
         }
 
         return avoidance;
+    }
+
+    private Vector3 CalculateAllySeparation()
+    {
+        Vector3 separation = Vector3.zero;
+        int count = 0;
+
+        int found = Physics.OverlapSphereNonAlloc(
+            position,
+            _settings.allySeparationRadius,
+            _nearbyAllies
+        );
+
+        for (int i = 0; i < found; i++)
+        {
+            if (_nearbyAllies[i] == null) continue;
+
+            Boid other = _nearbyAllies[i].GetComponent<Boid>();
+            if (other == null || other == this) continue;
+
+            // Only separate from same flock
+            if (other._targetManager != _targetManager) continue;
+
+            float distance = Vector3.Distance(position, other.position);
+            if (distance > 0.01f)
+            {
+                Vector3 away = position - other.position;
+                separation += away.normalized / distance;
+                count++;
+            }
+        }
+
+        return separation;
     }
 
     void OnDrawGizmos()

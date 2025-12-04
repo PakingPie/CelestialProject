@@ -283,6 +283,7 @@ public class WeaponBase : MonoBehaviour
         return angle;
     }
 
+#if UNITY_EDITOR
     private void OnDrawGizmos()
     {
         if (TurretBase != null && ShowGizmos)
@@ -333,6 +334,7 @@ public class WeaponBase : MonoBehaviour
             }
         }
     }
+#endif
 }
 
 public class GunBarrel

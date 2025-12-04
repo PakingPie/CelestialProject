@@ -389,7 +389,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 20, y: 6000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -1156,7 +1156,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 400}
+  ActiveRange: {x: 10, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -1529,7 +1529,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 20, y: 6000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -1556,6 +1556,39 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!21 &118778378
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Custom/PlanetDayAndNight
+  m_Shader: {fileID: 4800000, guid: 1d62080664285204d89528d70c384805, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 387197330}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats: []
+    m_Colors:
+    - _SunPosition: {r: 18000, g: 0, b: -3000, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &120369477
 GameObject:
   m_ObjectHideFlags: 0
@@ -2203,7 +2236,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 400}
+  ActiveRange: {x: 10, y: 800}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -3397,6 +3430,43 @@ Transform:
   - {fileID: 97537404}
   m_Father: {fileID: 979238113}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!84 &387197330
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 6
+  m_Width: 512
+  m_Height: 512
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 0
+  m_ColorFormat: 52
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 0
+    m_WrapV: 0
+    m_WrapW: 0
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &391594045
 GameObject:
   m_ObjectHideFlags: 0
@@ -3564,7 +3634,7 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  _detectionRadius: 4000
+  _detectionRadius: 10000
   _maxOverlapResults: 50
   _minEngagementDistance: 100
   _preferredEngagementDistance: 300
@@ -3577,7 +3647,7 @@ Transform:
   m_GameObject: {fileID: 413969321}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -500}
+  m_LocalPosition: {x: -1000, y: 0, z: -500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3645,7 +3715,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 20, y: 6000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -4003,7 +4073,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 20, y: 6000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -4370,7 +4440,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
   spawnRadius: 500
-  spawnCount: 100
+  spawnCount: 40
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -500, y: 500}
@@ -4626,7 +4696,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 400}
+  ActiveRange: {x: 10, y: 800}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -4698,7 +4768,7 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  _detectionRadius: 4000
+  _detectionRadius: 10000
   _maxOverlapResults: 50
   _minEngagementDistance: 100
   _preferredEngagementDistance: 300
@@ -4711,7 +4781,7 @@ Transform:
   m_GameObject: {fileID: 539839617}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 2000}
+  m_LocalPosition: {x: -1000, y: 0, z: 4000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4799,7 +4869,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 1105386945}
+  - {fileID: 118778378}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4883,7 +4953,7 @@ MonoBehaviour:
   GO: {fileID: 555973310}
   PlanetNoiseShader: {fileID: 4800000, guid: 6865d292361eae14b93f346ce8905b7b, type: 3}
   PlanetDayNightShader: {fileID: 4800000, guid: 1d62080664285204d89528d70c384805, type: 3}
-  MainRT: {fileID: 1675697074}
+  MainRT: {fileID: 387197330}
   Resolution: 512
   SunPosition: {x: 18000, y: 0, z: -3000}
 --- !u!1 &557443628
@@ -5123,7 +5193,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 400}
+  ActiveRange: {x: 10, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -5429,7 +5499,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 400}
+  ActiveRange: {x: 10, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -5505,7 +5575,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 50, y: 8000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -5783,7 +5853,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 400}
+  ActiveRange: {x: 10, y: 800}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -6254,7 +6324,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 400}
+  ActiveRange: {x: 10, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -9409,7 +9479,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 400}
+  ActiveRange: {x: 10, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -10341,39 +10411,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1104055017}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!21 &1105386945
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Custom/PlanetDayAndNight
-  m_Shader: {fileID: 4800000, guid: 1d62080664285204d89528d70c384805, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 1675697074}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats: []
-    m_Colors:
-    - _SunPosition: {r: 18000, g: 0, b: -3000, a: 0}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &1105983503
 GameObject:
   m_ObjectHideFlags: 0
@@ -10659,7 +10696,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 20, y: 6000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -10900,7 +10937,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 20, y: 6000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -11504,7 +11541,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 3000}
+  ActiveRange: {x: 100, y: 10000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -11813,7 +11850,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 20, y: 6000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -14313,7 +14350,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 20, y: 6000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -14401,7 +14438,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 400}
+  ActiveRange: {x: 10, y: 800}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -16420,7 +16457,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 20, y: 6000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -16631,43 +16668,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 87465773}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!84 &1675697074
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 6
-  m_Width: 512
-  m_Height: 512
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 0
-  m_ColorFormat: 52
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_UseDynamicScaleExplicit: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 0
-    m_WrapV: 0
-    m_WrapW: 0
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1 &1676707501
 GameObject:
   m_ObjectHideFlags: 0
@@ -16729,7 +16729,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 20, y: 6000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -16945,7 +16945,7 @@ GameObject:
   - component: {fileID: 1692829430}
   - component: {fileID: 1692829433}
   - component: {fileID: 1692829432}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Atmosphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -16962,7 +16962,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.05, y: 1.05, z: 1.05}
+  m_LocalScale: {x: 1.1, y: 1.1, z: 1.1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 555973314}
@@ -17084,7 +17084,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 20, y: 6000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -18470,7 +18470,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 400}
+  ActiveRange: {x: 10, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -19567,7 +19567,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 400}
+  ActiveRange: {x: 10, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -19842,7 +19842,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 400}
+  ActiveRange: {x: 10, y: 1000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -20688,7 +20688,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 3000}
+  ActiveRange: {x: 100, y: 10000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -21603,7 +21603,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 3000}
+  ActiveRange: {x: 100, y: 10000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -21820,7 +21820,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 20, y: 6000}
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
@@ -22088,7 +22088,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 500
-  spawnCount: 100
+  spawnCount: 40
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 5000}
@@ -22927,7 +22927,7 @@ Transform:
   m_GameObject: {fileID: 8032491835067597460}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -1000, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -23102,7 +23102,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8502438397938148729}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c4bf767fcaeb3364bb0e5a0a33910a17, type: 3}
   m_Name: 
@@ -23358,7 +23358,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.07, y: 0.07, z: 0.07}
+  m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8258021407340514765}
@@ -23795,15 +23795,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8502438397938148729}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 20, y: 20, z: 20}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1000, y: 0, z: 0}
+  m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1980694548}
   - {fileID: 4585582713564908444}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7109984923231924178
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -23996,10 +23996,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovementController
   ship: {fileID: 7103346325574244501}
-  orbitDistance: 20
-  minOrbitDistance: 10
-  maxOrbitDistance: 100
-  zoomSpeed: 20
+  orbitDistance: 100
+  minOrbitDistance: 50
+  maxOrbitDistance: 500
+  zoomSpeed: 50
   mouseSensitivity: 0.2
   gamepadSensitivity: 100
   invertY: 0
@@ -24008,7 +24008,7 @@ MonoBehaviour:
   followSmoothness: 10
   resetViewKey: 32
   resetSpeed: 5
-  aimDistance: 500
+  aimDistance: 5000
   showDebugInfo: 0
 --- !u!1 &7900498312854243257
 GameObject:

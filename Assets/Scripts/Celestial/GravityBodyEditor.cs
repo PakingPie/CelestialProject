@@ -1,7 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
+﻿using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
 
 [CustomEditor (typeof (GravityObject), true)]
 [CanEditMultipleObjects]
@@ -66,3 +66,4 @@ public class GravityBodyEditor : Editor {
         public string stringVal;
     }
 }
+#endif

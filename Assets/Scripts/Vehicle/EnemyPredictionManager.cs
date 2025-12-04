@@ -330,6 +330,8 @@ public class EnemyPredictionManager : MonoBehaviour
 
     private void ReturnIndicatorSetToPool(EnemyIndicatorSet set)
     {
+        if(set.EnemyIndicator == null)
+            return;
         set.EnemyIndicator.SetActive(false);
         set.LeadIndicator.SetActive(false);
         set.ConnectingLine.enabled = false;
