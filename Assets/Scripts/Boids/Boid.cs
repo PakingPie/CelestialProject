@@ -548,7 +548,7 @@ public class Boid : MonoBehaviour
     {
         if (_target != null)
         {
-            if (_target.tag != gameObject.tag)
+            if (_target.tag == "Ally")
                 Gizmos.color = Color.red;
             else
                 Gizmos.color = Color.green;

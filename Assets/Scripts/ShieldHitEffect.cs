@@ -29,7 +29,6 @@ public class ShieldHitEffect : MonoBehaviour
     public GameObject DebugQuad;
 
     private RenderTexture _cumulativeRT;
-    private RenderTexture _outputRT;
     private RenderTexture _singleEffectRT;
     private RenderTexture _tempRT;
 
@@ -38,10 +37,11 @@ public class ShieldHitEffect : MonoBehaviour
     private Material _hitEffectMat;
     private Material _cumulativeMat;
 
+    private MaterialPropertyBlock _shieldPropBlock;
+    private MeshRenderer _shieldRenderer;
+
     private List<ActiveRipple> _activeRipples = new List<ActiveRipple>();
-
     private bool _isInitialized = false;
-
     private float _forceClearTimer = 0f;
 
     private class ActiveRipple
@@ -62,68 +62,46 @@ public class ShieldHitEffect : MonoBehaviour
 
     private void Init()
     {
-        if (_cumulativeRT == null)
+        if (_isInitialized)
+            return;
+
+        if (_cumulativeRT == null) _cumulativeRT = CreateRT();
+        if (_singleEffectRT == null) _singleEffectRT = CreateRT();
+        if (_tempRT == null) _tempRT = CreateRT();
+        if (_blackTex == null)
         {
-            _cumulativeRT = CreateRT();
-        }
-        if (_outputRT == null)
-        {
-            _outputRT = CreateRT();
-        }
-        if (_singleEffectRT == null)
-        {
-            _singleEffectRT = CreateRT();
-        }
-        if (_tempRT == null)
-        {
-            _tempRT = CreateRT();
+            _blackTex = new Texture2D(2, 2);
+            _blackTex.SetPixels(new Color[] { Color.black, Color.black, Color.black, Color.black });
+            _blackTex.Apply();
         }
 
-        _blackTex = new Texture2D(2, 2);
-        _blackTex.SetPixel(0, 0, Color.black);
-        _blackTex.SetPixel(1, 0, Color.black);
-        _blackTex.SetPixel(0, 1, Color.black);
-        _blackTex.SetPixel(1, 1, Color.black);
-        _blackTex.Apply();
+        if (_cumulativeMat == null) _cumulativeMat = new Material(CumulativeShader);
 
-        if (_cumulativeMat == null)
-        {
-            _cumulativeMat = new Material(CumulativeShader);
-        }
         if (_hitEffectMat == null)
         {
             _hitEffectMat = new Material(HitEffectShader);
+
+            _hitEffectMat.SetFloat("_EdgeMax", 0.05f);
+            _hitEffectMat.SetFloat("_Thickness", 0.01f);
+            _hitEffectMat.DisableKeyword("_CIRCLE_FILL");
+            _hitEffectMat.DisableKeyword("_CIRCLE_FILL_SDF");
+            _hitEffectMat.EnableKeyword("_CIRCLE_STROKE");
+            _hitEffectMat.DisableKeyword("_CIRCLE_STROKE_SDF");
         }
 
-        // if (GetComponent<MeshRenderer>() != null)
-        //     GetComponent<MeshRenderer>().sharedMaterial = _cumulativeMat;
+        if (_shieldPropBlock == null) _shieldPropBlock = new MaterialPropertyBlock();
+        if (ShieldGO != null) _shieldRenderer = ShieldGO.GetComponent<MeshRenderer>();
 
         _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
-        _cumulativeMat.SetTexture("_HitTex", _singleEffectRT);
 
-        // _cumulativeMat.SetFloat("_HitTexScale", 0.5f);
-
-        _hitEffectMat.SetFloat("_EdgeMax", 0.05f);
-        _hitEffectMat.SetFloat("_Thickness", 0.01f);
-
-        _hitEffectMat.DisableKeyword("_CIRCLE_FILL");
-        _hitEffectMat.DisableKeyword("_CIRCLE_FILL_SDF");
-        _hitEffectMat.EnableKeyword("_CIRCLE_STROKE");
-        _hitEffectMat.DisableKeyword("_CIRCLE_STROKE_SDF");
-
-        ShieldGO.GetComponent<MeshRenderer>().sharedMaterial.SetTexture("_HitAreaTex", _cumulativeRT);
         _isInitialized = true;
-
-        if (EnableDebugMode && DebugQuad != null)
-            DebugQuad.GetComponent<MeshRenderer>().sharedMaterial = _hitEffectMat;
     }
 
     public void ClearAll()
     {
-        if (_cumulativeRT != null) _cumulativeRT.Release();
-        if (_outputRT != null) _outputRT.Release();
-        if (_singleEffectRT != null) _singleEffectRT.Release();
-        if (_tempRT != null) _tempRT.Release();
+        ReleaseRT(_cumulativeRT);
+        ReleaseRT(_singleEffectRT);
+        ReleaseRT(_tempRT);
 
         if (_blackTex != null) Destroy(_blackTex);
 
@@ -133,12 +111,21 @@ public class ShieldHitEffect : MonoBehaviour
         _isInitialized = false;
     }
 
+    private void ReleaseRT(RenderTexture rt)
+    {
+        if (rt != null)
+        {
+            if (RenderTexture.active == rt)
+                RenderTexture.active = null;
+            rt.Release();
+            rt = null;
+        }
+    }
+
     public void GetHit(RaycastHit hit)
     {
-        if (!_isInitialized)
-        {
-            Init();
-        }
+        if (!_isInitialized) Init();
+
         _activeRipples.Add(new ActiveRipple
         {
             uv = hit.textureCoord,
@@ -146,7 +133,6 @@ public class ShieldHitEffect : MonoBehaviour
         });
 
         _forceClearTimer = 0f;
-        // StartCoroutine(AnimateSingleHit(hit.textureCoord));
     }
 
 
@@ -160,8 +146,10 @@ public class ShieldHitEffect : MonoBehaviour
             _forceClearTimer += Time.deltaTime;
             if (_forceClearTimer > ForceClearInterval)
             {
-                Graphics.Blit(_blackTex, _cumulativeRT);
-                _forceClearTimer = 0.0f;
+                if (_forceClearTimer < ForceClearInterval + 0.1f)
+                {
+                    Graphics.Blit(_blackTex, _cumulativeRT);
+                }
                 return;
             }
         }
@@ -218,6 +206,13 @@ public class ShieldHitEffect : MonoBehaviour
 
             Graphics.Blit(_cumulativeRT, _tempRT, _cumulativeMat);
             Graphics.Blit(_tempRT, _cumulativeRT);
+        }
+
+        if (_shieldRenderer != null)
+        {
+            _shieldRenderer.GetPropertyBlock(_shieldPropBlock);
+            _shieldPropBlock.SetTexture("_HitAreaTex", _cumulativeRT);
+            _shieldRenderer.SetPropertyBlock(_shieldPropBlock);
         }
     }
 
@@ -303,6 +298,11 @@ public class ShieldHitEffect : MonoBehaviour
     }
 
     void OnDestroy()
+    {
+        ClearAll();
+    }
+
+    void OnDisable()
     {
         ClearAll();
     }

@@ -23,10 +23,16 @@ public class PlayerVehicle : VehicleBase
     public Color ShieldBarColor2 = Color.blue;
     public Color ShieldBarColor3 = Color.blue;
 
-    [Header("Shield Regeneration")]
+    [Header("Regeneration")]
+    public int HitPointsRegenerationRate = 1;
+    public float HitPointsRegenerationDelay = 5f;
+    public int ArmorRegenerationRate = 1;
+    public float ArmorRegenerationDelay = 5f;
     public int ShieldRegenerationRate = 1;
     public float ShieldRegenerationDelay = 5f;
-    
+
+    private float _hitPointsRegenTimer = 0f;
+    private float _armorRegenTimer = 0f;
     private float _shieldRegenTimer = 0f;
     private float _lastDamageTime = 0f;
 
@@ -35,6 +41,9 @@ public class PlayerVehicle : VehicleBase
     private Material _armorBarMaterial;
     private Material _shieldBarMaterial;
     private Material _shieldEffectMaterial;
+
+    public Faction VehicleFaction = Faction.Player;
+    public override Faction FactionType => VehicleFaction;
 
     void OnEnable()
     {
@@ -91,28 +100,44 @@ public class PlayerVehicle : VehicleBase
         if (!Application.isPlaying) return;
 
         // Handle shield regeneration
-        if (ShieldPoints < MaxShieldPoints)
+        if (ShieldPoints < MaxShieldPoints || ArmorPoints < MaxArmorPoints || HitPoints < MaxHitPoints)
         {
             _lastDamageTime += Time.deltaTime;
-            if (_lastDamageTime >= ShieldRegenerationDelay)
+
+            if (_lastDamageTime >= ShieldRegenerationDelay && ShieldPoints < MaxShieldPoints)
             {
                 RestoreShield();
+            }
+            else if (_lastDamageTime >= ArmorRegenerationDelay && ArmorPoints < MaxArmorPoints)
+            {
+                RestoreArmor();
+            }
+            else if (_lastDamageTime >= HitPointsRegenerationDelay && HitPoints < MaxHitPoints)
+            {
+                RestoreHitPoints();
             }
         }
     }
 
-    public override void RestoreShield()
-    {
-        _shieldRegenTimer += Time.deltaTime;
-        if (_shieldRegenTimer >= 0.1f && ShieldPoints < MaxShieldPoints)
-        {
-            ShieldPoints += ShieldRegenerationRate;
-            if (ShieldPoints > MaxShieldPoints)
-                ShieldPoints = MaxShieldPoints;
+    public override void RestoreHitPoints() => RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer, 0.1f, ref _healthBarMaterial, "_CurrentHitPoints");    
+    public override void RestoreArmor() => RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer, 0.1f, ref _armorBarMaterial, "_CurrentHitPoints");
+    public override void RestoreShield() => RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer, 0.1f, ref _shieldBarMaterial, "_CurrentHitPoints", true);
 
-            _shieldBarMaterial.SetInt("_CurrentHitPoints", ShieldPoints);
-            _shieldEffectMaterial.SetFloat("_Strength", ShieldPoints / (float)MaxShieldPoints);
-            _shieldRegenTimer = 0f;
+    private void RegenerateAttributtes(ref int currentAmount, ref int maxAmount, ref int regenerationRate, ref float regenTimer, float delay, ref Material barMat, string matKeyword, bool isShield = false)
+    {
+        regenTimer += Time.deltaTime;
+        if (regenTimer >= delay && currentAmount < maxAmount)
+        {
+            currentAmount += regenerationRate;
+            if (currentAmount > maxAmount)
+                currentAmount = maxAmount;
+
+            barMat.SetInt(matKeyword, currentAmount);
+            if (isShield)
+            {
+                _shieldEffectMaterial.SetFloat("_Strength", currentAmount / (float)maxAmount);
+            }
+            regenTimer = 0f;
         }
     }
 

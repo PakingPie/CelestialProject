@@ -20,7 +20,11 @@ public abstract class VehicleBase : MonoBehaviour
     {
         throw new NotImplementedException();
     }
-    public virtual void Repair(int amount)
+    public virtual void RestoreHitPoints()
+    {
+        throw new NotImplementedException();
+    }
+    public virtual void RestoreArmor()
     {
         throw new NotImplementedException();
     }

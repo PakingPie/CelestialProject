@@ -80,4 +80,11 @@ public class GargantuaBlackHole : MonoBehaviour
 
     }
 
+    void OnDestroy()
+    {
+        if (_gargantuaPrev != null) _gargantuaPrev.Release();
+        if (_gargantuaCurr != null) _gargantuaCurr.Release();
+        if (_garganturaBlurred != null) _garganturaBlurred.Release();
+    }
+
 }

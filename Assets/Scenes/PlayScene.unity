@@ -3605,7 +3605,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &413969322
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4761,8 +4761,8 @@ MonoBehaviour:
   _flockId: Enemy Flock 2
   _team: 2
   _targetTags:
-  - Ally
   - Player
+  - Ally
   _ignoreTags:
   - Foe
   _targetLayers:
@@ -4781,7 +4781,7 @@ Transform:
   m_GameObject: {fileID: 539839617}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1000, y: 0, z: 4000}
+  m_LocalPosition: {x: -1000, y: 0, z: 1000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5714,7 +5714,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &620952101
 Transform:
   m_ObjectHideFlags: 0
@@ -10475,8 +10475,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47d36a1cd72c65847918832e203a5297, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatManager
-  _cellSize: 50
-  _maxTurretUpdatesPerFrame: 100
+  _cellSize: 100
+  _maxTurretUpdatesPerFrame: 200
   _showDebugInfo: 1
 --- !u!4 &1112071339
 Transform:
@@ -11274,7 +11274,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1170274531
 Transform:
   m_ObjectHideFlags: 0
@@ -14116,7 +14116,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1411973161
 Transform:
   m_ObjectHideFlags: 0
@@ -22088,7 +22088,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 500
-  spawnCount: 40
+  spawnCount: 1
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 5000}
@@ -24202,6 +24202,7 @@ MonoBehaviour:
   ShieldBarColor3: {r: 0.1515913, g: 0.51110387, b: 0.5320754, a: 1}
   ShieldRegenerationRate: 10
   ShieldRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!114 &8671210974142505001
 MonoBehaviour:
   m_ObjectHideFlags: 0
