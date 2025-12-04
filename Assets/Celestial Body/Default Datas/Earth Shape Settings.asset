@@ -13,40 +13,40 @@ MonoBehaviour:
   m_Name: Earth Shape Settings
   m_EditorClassIdentifier: Assembly-CSharp::EarthShape
   randomize: 1
-  seed: -3512
+  seed: 1076
   heightMapCompute: {fileID: 7200000, guid: d6df9e6cc324e48a892dd6a9cf741d65, type: 3}
   perturbVertices: 1
   perturbCompute: {fileID: 7200000, guid: c95c667630d66481daf208e2a7a4d95d, type: 3}
   perturbStrength: 1
   oceanDepthMultiplier: 5
-  oceanFloorDepth: 0.1
+  oceanFloorDepth: 1.5
   oceanFloorSmoothing: 0.5
-  mountainBlend: 1.1
+  mountainBlend: 1.16
   continentNoise:
-    numLayers: 5
-    lacunarity: 2
-    persistence: 0.5
-    scale: 2
-    elevation: 1
-    verticalShift: 0
-    offset: {x: 0, y: 0, z: 0}
-  maskNoise:
-    numLayers: 5
-    lacunarity: 2
-    persistence: 0.5
-    scale: 2
-    elevation: 1
-    verticalShift: 0
-    offset: {x: 0, y: 0, z: 0}
-  ridgeNoise:
-    numLayers: 5
+    numLayers: 7
     lacunarity: 2
     persistence: 0.5
     scale: 1
-    power: 1
-    elevation: 0.5
-    gain: 1
-    verticalShift: 0
+    elevation: 0.1
+    verticalShift: 1
+    offset: {x: 0, y: 0, z: 0}
+  maskNoise:
+    numLayers: 5
+    lacunarity: 1.66
+    persistence: 0.55
+    scale: 1.09
+    elevation: 1
+    verticalShift: 0.02
+    offset: {x: 0, y: 0, z: 0}
+  ridgeNoise:
+    numLayers: 5
+    lacunarity: 5
+    persistence: 0.5
+    scale: 1.5
+    power: 2.18
+    elevation: 1.5
+    gain: 0.8
+    verticalShift: 0.09
     peakSmoothing: 0
     offset: {x: 0, y: 0, z: 0}
-  testParams: {x: 0, y: 0, z: 0, w: 0}
+  testParams: {x: 0, y: 0.44, z: 5, w: 4.93}

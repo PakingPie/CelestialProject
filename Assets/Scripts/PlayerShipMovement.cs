@@ -12,9 +12,29 @@ public class PlayerShipMovement : MonoBehaviour
     [Tooltip("Minimum thrust (can be negative for reverse)")]
     public float minThrust = -50f;
     [Tooltip("How quickly thrust changes")]
-    public float thrustAcceleration = 100f;
-    [Tooltip("Current thrust level")]
-    [SerializeField] private float currentThrust = 0f;
+    public float thrustAcceleration = 50f;
+    [Tooltip("How quickly thrust decays when no input")]
+    public float thrustDecay = 20f;
+
+    [Header("Vertical Movement")]
+    [Tooltip("Enable direct vertical thrust (spaceship style)")]
+    public bool enableVerticalThrust = true;
+    [Tooltip("Maximum vertical thrust speed")]
+    public float maxVerticalThrust = 60f;
+    [Tooltip("Vertical thrust acceleration")]
+    public float verticalAcceleration = 80f;
+    [Tooltip("Vertical thrust decay")]
+    public float verticalDecay = 40f;
+
+    [Header("Strafe Movement")]
+    [Tooltip("Enable horizontal strafing")]
+    public bool enableStrafe = true;
+    [Tooltip("Maximum strafe speed")]
+    public float maxStrafeThrust = 40f;
+    [Tooltip("Strafe acceleration")]
+    public float strafeAcceleration = 60f;
+    [Tooltip("Strafe decay")]
+    public float strafeDecay = 30f;
 
     [Header("Rotation Settings")]
     [Tooltip("Pitch speed (up/down tilt)")]
@@ -24,39 +44,50 @@ public class PlayerShipMovement : MonoBehaviour
     [Tooltip("Roll speed (barrel roll)")]
     public float rollSpeed = 60f;
 
+    [Header("Input Smoothing")]
+    [Tooltip("How quickly input ramps up/down")]
+    public float inputSmoothSpeed = 8f;
+
     [Header("Stabilization")]
     [Tooltip("Automatically level roll when no input")]
     public bool autoLevelRoll = true;
     [Tooltip("Speed of auto-leveling")]
-    public float autoLevelSpeed = 2f;
-
-    [Header("Vertical Movement")]
-    [Tooltip("Enable direct vertical thrust (spaceship style)")]
-    public bool enableVerticalThrust = true;
-    [Tooltip("Vertical thrust speed")]
-    public float verticalThrustSpeed = 50f;
-
-    [Header("Strafe Movement")]
-    [Tooltip("Enable horizontal strafing")]
-    public bool enableStrafe = true;
-    [Tooltip("Strafe speed")]
-    public float strafeSpeed = 30f;
+    public float autoLevelSpeed = 1f;
+    [Tooltip("Delay before auto-level kicks in")]
+    public float autoLevelDelay = 0.5f;
 
     [Header("Debug")]
+    [SerializeField] private Vector3 currentVelocity = Vector3.zero;
     [SerializeField] private Vector3 currentInputs = Vector3.zero;
 
-    // Input values
-    private float pitchInput = 0f;
-    private float yawInput = 0f;
-    private float rollInput = 0f;
-    private float verticalInput = 0f;
-    private float strafeInput = 0f;
-    private float throttleInput = 0f;
+    // Current thrust values (momentum-based)
+    private float currentForwardThrust = 0f;
+    private float currentVerticalThrust = 0f;
+    private float currentStrafeThrust = 0f;
+
+    // Smoothed input values
+    private float smoothedPitchInput = 0f;
+    private float smoothedYawInput = 0f;
+    private float smoothedRollInput = 0f;
+    private float smoothedThrottleInput = 0f;
+    private float smoothedVerticalInput = 0f;
+    private float smoothedStrafeInput = 0f;
+
+    // Raw input values
+    private float rawPitchInput = 0f;
+    private float rawYawInput = 0f;
+    private float rawRollInput = 0f;
+    private float rawVerticalInput = 0f;
+    private float rawStrafeInput = 0f;
+    private float rawThrottleInput = 0f;
+
+    // Auto-level timer
+    private float timeSinceRollInput = 0f;
 
     // Properties for external access
-    public float CurrentThrust => currentThrust;
-    public float ThrustPercent => Mathf.InverseLerp(minThrust, maxThrust, currentThrust);
-    public Vector3 Velocity => transform.forward * currentThrust;
+    public float CurrentThrust => currentForwardThrust;
+    public float ThrustPercent => Mathf.InverseLerp(minThrust, maxThrust, currentForwardThrust);
+    public Vector3 Velocity => currentVelocity;
 
     private void Awake()
     {
@@ -64,132 +95,160 @@ public class PlayerShipMovement : MonoBehaviour
         {
             cameraController = FindAnyObjectByType<PlayerMovementController>();
             if (cameraController == null)
-                Debug.LogWarning(name + ": PlayerShipMovement - No PlayerMovementController found. Camera will not follow ship.");
+                Debug.LogWarning(name + ": PlayerShipMovement - No PlayerMovementController found.");
         }
     }
 
     private void Update()
     {
-        ReadInput();
+        ReadRawInput();
+        SmoothInput();
         ApplyThrust();
         ApplyRotation();
         ApplyMovement();
     }
 
-    private void ReadInput()
+    private void ReadRawInput()
     {
         var kb = Keyboard.current;
         var gp = Gamepad.current;
 
-        // Reset inputs
-        pitchInput = 0f;
-        yawInput = 0f;
-        rollInput = 0f;
-        verticalInput = 0f;
-        strafeInput = 0f;
-        throttleInput = 0f;
+        // Reset raw inputs
+        rawPitchInput = 0f;
+        rawYawInput = 0f;
+        rawRollInput = 0f;
+        rawVerticalInput = 0f;
+        rawStrafeInput = 0f;
+        rawThrottleInput = 0f;
 
         if (gp != null)
         {
-            // Gamepad controls
-            // Left stick: Pitch and Yaw
-            pitchInput = -gp.leftStick.y.ReadValue(); // Inverted: push forward to pitch down
-            yawInput = gp.leftStick.x.ReadValue();
+            rawPitchInput = -gp.leftStick.y.ReadValue();
+            rawYawInput = gp.leftStick.x.ReadValue();
+            rawRollInput = (gp.rightShoulder.isPressed ? 1f : 0f) - (gp.leftShoulder.isPressed ? 1f : 0f);
+            rawThrottleInput = gp.rightTrigger.ReadValue() - gp.leftTrigger.ReadValue();
 
-            // Bumpers: Roll
-            rollInput = (gp.rightShoulder.isPressed ? 1f : 0f) - (gp.leftShoulder.isPressed ? 1f : 0f);
-
-            // Triggers: Throttle
-            throttleInput = gp.rightTrigger.ReadValue() - gp.leftTrigger.ReadValue();
-
-            // Right stick: Vertical and Strafe
             if (enableVerticalThrust)
-                verticalInput = gp.rightStick.y.ReadValue();
+                rawVerticalInput = gp.rightStick.y.ReadValue();
             if (enableStrafe)
-                strafeInput = gp.rightStick.x.ReadValue();
+                rawStrafeInput = gp.rightStick.x.ReadValue();
         }
-        
+
         if (kb != null)
         {
-            // Keyboard controls (can combine with gamepad)
-            
             // WASD: Pitch and Yaw
-            if (kb.wKey.isPressed) pitchInput = -1f; // W pitches down (nose down)
-            if (kb.sKey.isPressed) pitchInput = 1f;  // S pitches up (nose up)
-            if (kb.aKey.isPressed) yawInput = -1f;   // A turns left
-            if (kb.dKey.isPressed) yawInput = 1f;    // D turns right
+            if (kb.wKey.isPressed) rawPitchInput = -1f;
+            if (kb.sKey.isPressed) rawPitchInput = 1f;
+            if (kb.aKey.isPressed) rawYawInput = -1f;
+            if (kb.dKey.isPressed) rawYawInput = 1f;
 
             // Q/E: Roll
-            if (kb.qKey.isPressed) rollInput = 1f;   // Q rolls left
-            if (kb.eKey.isPressed) rollInput = -1f;  // E rolls right
+            if (kb.qKey.isPressed) rawRollInput = 1f;
+            if (kb.eKey.isPressed) rawRollInput = -1f;
 
             // Shift/Ctrl: Throttle
-            if (kb.leftShiftKey.isPressed) throttleInput = 1f;
-            if (kb.leftCtrlKey.isPressed) throttleInput = -1f;
+            if (kb.leftShiftKey.isPressed) rawThrottleInput = 1f;
+            if (kb.leftCtrlKey.isPressed) rawThrottleInput = -1f;
 
-            // Space/C: Vertical thrust (spaceship mode)
+            // Space/Alt: Vertical thrust
             if (enableVerticalThrust)
             {
-                if (kb.spaceKey.isPressed) verticalInput = 1f;
-                if (kb.leftAltKey.isPressed) verticalInput = -1f;
+                if (kb.spaceKey.isPressed) rawVerticalInput = 1f;
+                if (kb.leftAltKey.isPressed) rawVerticalInput = -1f;
             }
 
-            // Z/X: Strafe (optional)
+            // Z/X: Strafe
             if (enableStrafe)
             {
-                if (kb.zKey.isPressed) strafeInput = -1f;
-                if (kb.xKey.isPressed) strafeInput = 1f;
+                if (kb.zKey.isPressed) rawStrafeInput = -1f;
+                if (kb.xKey.isPressed) rawStrafeInput = 1f;
             }
         }
 
-        currentInputs = new Vector3(pitchInput, yawInput, rollInput);
+        currentInputs = new Vector3(rawPitchInput, rawYawInput, rawRollInput);
+    }
+
+    private void SmoothInput()
+    {
+        float smoothRate = inputSmoothSpeed * Time.deltaTime;
+
+        smoothedPitchInput = Mathf.MoveTowards(smoothedPitchInput, rawPitchInput, smoothRate);
+        smoothedYawInput = Mathf.MoveTowards(smoothedYawInput, rawYawInput, smoothRate);
+        smoothedRollInput = Mathf.MoveTowards(smoothedRollInput, rawRollInput, smoothRate);
+        smoothedThrottleInput = Mathf.MoveTowards(smoothedThrottleInput, rawThrottleInput, smoothRate);
+        smoothedVerticalInput = Mathf.MoveTowards(smoothedVerticalInput, rawVerticalInput, smoothRate);
+        smoothedStrafeInput = Mathf.MoveTowards(smoothedStrafeInput, rawStrafeInput, smoothRate);
     }
 
     private void ApplyThrust()
     {
-        // Gradually change thrust based on input
-        if (Mathf.Abs(throttleInput) > 0.01f)
+        // Forward thrust with momentum
+        if (Mathf.Abs(smoothedThrottleInput) > 0.01f)
         {
-            currentThrust += throttleInput * thrustAcceleration * Time.deltaTime;
+            currentForwardThrust += smoothedThrottleInput * thrustAcceleration * Time.deltaTime;
         }
         else
         {
-            // Optional: slowly decay thrust when no input (like drag)
-            // currentThrust = Mathf.MoveTowards(currentThrust, 0f, thrustDecay * Time.deltaTime);
+            currentForwardThrust = Mathf.MoveTowards(currentForwardThrust, 0f, thrustDecay * Time.deltaTime);
+        }
+        currentForwardThrust = Mathf.Clamp(currentForwardThrust, minThrust, maxThrust);
+
+        // Vertical thrust with momentum
+        if (enableVerticalThrust)
+        {
+            if (Mathf.Abs(smoothedVerticalInput) > 0.01f)
+            {
+                currentVerticalThrust += smoothedVerticalInput * verticalAcceleration * Time.deltaTime;
+            }
+            else
+            {
+                currentVerticalThrust = Mathf.MoveTowards(currentVerticalThrust, 0f, verticalDecay * Time.deltaTime);
+            }
+            currentVerticalThrust = Mathf.Clamp(currentVerticalThrust, -maxVerticalThrust, maxVerticalThrust);
         }
 
-        // Clamp thrust to limits
-        currentThrust = Mathf.Clamp(currentThrust, minThrust, maxThrust);
+        // Strafe thrust with momentum
+        if (enableStrafe)
+        {
+            if (Mathf.Abs(smoothedStrafeInput) > 0.01f)
+            {
+                currentStrafeThrust += smoothedStrafeInput * strafeAcceleration * Time.deltaTime;
+            }
+            else
+            {
+                currentStrafeThrust = Mathf.MoveTowards(currentStrafeThrust, 0f, strafeDecay * Time.deltaTime);
+            }
+            currentStrafeThrust = Mathf.Clamp(currentStrafeThrust, -maxStrafeThrust, maxStrafeThrust);
+        }
     }
 
     private void ApplyRotation()
     {
-        // Calculate rotation this frame
-        float pitch = pitchInput * pitchSpeed * Time.deltaTime;
-        float yaw = yawInput * yawSpeed * Time.deltaTime;
-        float roll = rollInput * rollSpeed * Time.deltaTime;
+        float pitch = smoothedPitchInput * pitchSpeed * Time.deltaTime;
+        float yaw = smoothedYawInput * yawSpeed * Time.deltaTime;
+        float roll = smoothedRollInput * rollSpeed * Time.deltaTime;
 
-        // Apply rotation
         transform.Rotate(pitch, yaw, roll, Space.Self);
 
-        // Auto-level roll if enabled and no roll input
-        if (autoLevelRoll && Mathf.Abs(rollInput) < 0.01f)
+        // Track time since roll input for delayed auto-level
+        if (Mathf.Abs(rawRollInput) > 0.01f)
         {
-            // Get current roll angle
+            timeSinceRollInput = 0f;
+        }
+        else
+        {
+            timeSinceRollInput += Time.deltaTime;
+        }
+
+        // Auto-level roll with delay
+        if (autoLevelRoll && timeSinceRollInput > autoLevelDelay)
+        {
             Vector3 flatForward = transform.forward;
             flatForward.y = 0f;
-            
+
             if (flatForward.sqrMagnitude > 0.01f)
             {
-                flatForward.Normalize();
-                
-                // Calculate target rotation with zero roll
-                Quaternion targetRotation = Quaternion.LookRotation(transform.forward, Vector3.up);
-                
-                // Only correct roll, preserve pitch and yaw
                 Vector3 currentEuler = transform.eulerAngles;
-                Vector3 targetEuler = targetRotation.eulerAngles;
-                
                 float correctedRoll = Mathf.LerpAngle(currentEuler.z, 0f, autoLevelSpeed * Time.deltaTime);
                 transform.eulerAngles = new Vector3(currentEuler.x, currentEuler.y, correctedRoll);
             }
@@ -200,38 +259,28 @@ public class PlayerShipMovement : MonoBehaviour
     {
         Vector3 movement = Vector3.zero;
 
-        // Forward/backward thrust
-        movement += transform.forward * currentThrust * Time.deltaTime;
+        movement += transform.forward * currentForwardThrust * Time.deltaTime;
+        movement += transform.up * currentVerticalThrust * Time.deltaTime;
+        movement += transform.right * currentStrafeThrust * Time.deltaTime;
 
-        // Vertical thrust
-        if (enableVerticalThrust && Mathf.Abs(verticalInput) > 0.01f)
-        {
-            movement += transform.up * verticalInput * verticalThrustSpeed * Time.deltaTime;
-        }
-
-        // Strafe
-        if (enableStrafe && Mathf.Abs(strafeInput) > 0.01f)
-        {
-            movement += transform.right * strafeInput * strafeSpeed * Time.deltaTime;
-        }
-
-        // Apply movement
         transform.position += movement;
+        currentVelocity = movement / Time.deltaTime;
     }
 
-    // Public methods for external control (AI, cutscenes, etc.)
     public void SetThrust(float thrust)
     {
-        currentThrust = Mathf.Clamp(thrust, minThrust, maxThrust);
+        currentForwardThrust = Mathf.Clamp(thrust, minThrust, maxThrust);
     }
 
     public void AddThrust(float amount)
     {
-        currentThrust = Mathf.Clamp(currentThrust + amount, minThrust, maxThrust);
+        currentForwardThrust = Mathf.Clamp(currentForwardThrust + amount, minThrust, maxThrust);
     }
 
-    public void StopThrust()
+    public void StopAllThrust()
     {
-        currentThrust = 0f;
+        currentForwardThrust = 0f;
+        currentVerticalThrust = 0f;
+        currentStrafeThrust = 0f;
     }
 }

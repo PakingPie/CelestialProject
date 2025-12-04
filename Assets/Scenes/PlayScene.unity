@@ -1556,39 +1556,6 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
---- !u!21 &118778378
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Custom/PlanetDayAndNight
-  m_Shader: {fileID: 4800000, guid: 1d62080664285204d89528d70c384805, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 387197330}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats: []
-    m_Colors:
-    - _SunPosition: {r: 18000, g: 0, b: -3000, a: 0}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &120369477
 GameObject:
   m_ObjectHideFlags: 0
@@ -3464,43 +3431,6 @@ Transform:
   - {fileID: 97537404}
   m_Father: {fileID: 979238113}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!84 &387197330
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 6
-  m_Width: 512
-  m_Height: 512
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 0
-  m_ColorFormat: 52
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_UseDynamicScaleExplicit: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 0
-    m_WrapV: 0
-    m_WrapW: 0
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1 &391594045
 GameObject:
   m_ObjectHideFlags: 0
@@ -4136,6 +4066,43 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!84 &464483588
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 6
+  m_Width: 512
+  m_Height: 512
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 0
+  m_ColorFormat: 52
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 0
+    m_WrapV: 0
+    m_WrapW: 0
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &464575618
 GameObject:
   m_ObjectHideFlags: 0
@@ -4903,7 +4870,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 118778378}
+  - {fileID: 592429477}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4987,7 +4954,7 @@ MonoBehaviour:
   GO: {fileID: 555973310}
   PlanetNoiseShader: {fileID: 4800000, guid: 6865d292361eae14b93f346ce8905b7b, type: 3}
   PlanetDayNightShader: {fileID: 4800000, guid: 1d62080664285204d89528d70c384805, type: 3}
-  MainRT: {fileID: 387197330}
+  MainRT: {fileID: 464483588}
   Resolution: 512
   SunPosition: {x: 18000, y: 0, z: -3000}
 --- !u!1 &557443628
@@ -5241,6 +5208,39 @@ MonoBehaviour:
   IsFiring: 0
   LaserOrigin: {fileID: 597182054}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
+--- !u!21 &592429477
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Custom/PlanetDayAndNight
+  m_Shader: {fileID: 4800000, guid: 1d62080664285204d89528d70c384805, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 464483588}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats: []
+    m_Colors:
+    - _SunPosition: {r: 18000, g: 0, b: -3000, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &595716884
 GameObject:
   m_ObjectHideFlags: 0
@@ -22122,7 +22122,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 500
-  spawnCount: 10
+  spawnCount: 50
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 5000}
@@ -23145,16 +23145,23 @@ MonoBehaviour:
   maxThrust: 100
   minThrust: -50
   thrustAcceleration: 100
-  currentThrust: 0
+  thrustDecay: 20
+  enableVerticalThrust: 1
+  maxVerticalThrust: 60
+  verticalAcceleration: 80
+  verticalDecay: 40
+  enableStrafe: 1
+  maxStrafeThrust: 40
+  strafeAcceleration: 60
+  strafeDecay: 30
   pitchSpeed: 45
   yawSpeed: 30
   rollSpeed: 60
+  inputSmoothSpeed: 8
   autoLevelRoll: 1
   autoLevelSpeed: 2
-  enableVerticalThrust: 1
-  verticalThrustSpeed: 50
-  enableStrafe: 1
-  strafeSpeed: 30
+  autoLevelDelay: 0.5
+  currentVelocity: {x: 0, y: 0, z: 0}
   currentInputs: {x: 0, y: 0, z: 0}
 --- !u!1 &2864326209314421798
 GameObject:
@@ -24030,20 +24037,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovementController
   ship: {fileID: 7103346325574244501}
+  shipMovement: {fileID: 0}
   orbitDistance: 100
   minOrbitDistance: 50
   maxOrbitDistance: 500
   zoomSpeed: 50
+  zoomSmoothness: 8
   mouseSensitivity: 0.2
   gamepadSensitivity: 100
   invertY: 0
   minVerticalAngle: -80
   maxVerticalAngle: 80
-  followSmoothness: 10
+  positionSmoothness: 10
+  rotationSmoothness: 12
+  enableSpeedZoom: 1
+  speedZoomMultiplier: 0.1
+  maxSpeedZoomOffset: 15
+  enableLeadOffset: 1
+  leadOffsetAmount: 5
+  leadOffsetSmoothness: 3
+  enableSpeedShake: 1
+  shakeThreshold: 50
+  shakeIntensity: 0.1
   resetViewKey: 32
   resetSpeed: 5
+  autoResetView: 0
+  autoResetDelay: 3
+  autoResetSpeed: 2
+  enableCameraCollision: 1
+  collisionRadius: 0.5
+  collisionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  collisionSmoothness: 15
   aimDistance: 5000
-  showDebugInfo: 0
+  showDebugInfo: 1
 --- !u!1 &7900498312854243257
 GameObject:
   m_ObjectHideFlags: 0
