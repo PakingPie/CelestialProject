@@ -10,8 +10,13 @@ Shader "Custom/PlanetDayAndNight"
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
 
+
         Pass
         {
+            Cull Back
+            ZWrite On
+            ZTest LEqual
+            Blend Off
             HLSLPROGRAM
 
             #pragma vertex vert
@@ -158,6 +163,89 @@ Shader "Custom/PlanetDayAndNight"
                 
                 return float4(col, 1.0);
             }
+            ENDHLSL
+        }
+
+        Pass 
+        {
+            Name "DepthOnly"
+            Tags { "LightMode" = "DepthOnly" }
+
+            ZWrite On
+            ColorMask 0
+            Cull Off
+
+            HLSLPROGRAM
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #pragma vertex vert
+            #pragma fragment frag
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+            };
+
+            struct Varyings
+            {
+                float4 positionOS : SV_POSITION;
+            };
+
+            Attributes vert(Attributes IN)
+            {
+                return IN;
+            }
+
+            void frag (Varyings i, out float DEPTH: SV_DEPTH)
+            {
+                DEPTH = i.positionOS.z / i.positionOS.w;
+            }
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "DepthNormals"
+            Tags { "LightMode" = "DepthNormals" }
+
+            ZWrite On
+            Cull Off
+
+            HLSLPROGRAM
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #pragma vertex vert
+            #pragma fragment frag
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+            };
+
+            struct Varyings
+            {
+                float4 positionHCS : SV_POSITION;
+                float3 normalWS : TEXCOORD0;
+            };
+
+            Varyings vert(Attributes IN)
+            {
+                Varyings OUT;
+                OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
+                OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS);
+                return OUT;
+            }
+
+            float4 frag (Varyings i) : SV_Target
+            {
+                // float3 normal = normalize(i.normalWS);
+                // normal = normal * 0.5 + 0.5;
+                // return float4(normal, 1.0);
+                return float4(NormalizeNormalPerPixel(i.normalWS), 0.0);
+            }
+
             ENDHLSL
         }
     }
