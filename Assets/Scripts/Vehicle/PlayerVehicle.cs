@@ -108,11 +108,11 @@ public class PlayerVehicle : VehicleBase
             {
                 RestoreShield();
             }
-            else if (_lastDamageTime >= ArmorRegenerationDelay && ArmorPoints < MaxArmorPoints)
+            if (_lastDamageTime >= ArmorRegenerationDelay && ArmorPoints < MaxArmorPoints)
             {
                 RestoreArmor();
             }
-            else if (_lastDamageTime >= HitPointsRegenerationDelay && HitPoints < MaxHitPoints)
+            if (_lastDamageTime >= HitPointsRegenerationDelay && HitPoints < MaxHitPoints)
             {
                 RestoreHitPoints();
             }

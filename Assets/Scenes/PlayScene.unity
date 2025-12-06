@@ -393,9 +393,9 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
-  Deviation: 2
+  Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -1533,9 +1533,9 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
-  Deviation: 2
+  Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -2658,7 +2658,7 @@ Transform:
   m_GameObject: {fileID: 284883240}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1000, y: 0, z: -1000}
+  m_LocalPosition: {x: 500, y: 0, z: -500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3683,9 +3683,9 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
-  Deviation: 2
+  Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -4041,9 +4041,9 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
-  Deviation: 2
+  Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -4740,7 +4740,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &539839618
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10735,9 +10735,9 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
-  Deviation: 2
+  Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -10976,9 +10976,9 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
-  Deviation: 2
+  Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -11309,7 +11309,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1170274531
 Transform:
   m_ObjectHideFlags: 0
@@ -11580,7 +11580,7 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 12
+  FireDelay: 8
   MuzzleVelocity: 500
   Deviation: 1
   AutoInheritVelocity: 1
@@ -11889,9 +11889,9 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
-  Deviation: 2
+  Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -13735,7 +13735,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1371138959
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14463,9 +14463,9 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
-  Deviation: 2
+  Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -14727,6 +14727,117 @@ Material:
     - _HitUV: {r: 0.562, g: 0.8158, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
+--- !u!1 &1473833497
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1473833501}
+  - component: {fileID: 1473833500}
+  - component: {fileID: 1473833499}
+  - component: {fileID: 1473833498}
+  m_Layer: 0
+  m_Name: Sphere (1)
+  m_TagString: Foe
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!135 &1473833498
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1473833497}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &1473833499
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1473833497}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1473833500
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1473833497}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &1473833501
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1473833497}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 100, y: 100, z: 100}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1478542805
 GameObject:
   m_ObjectHideFlags: 0
@@ -15439,9 +15550,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1371138959}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 1280, y: -770}
   m_SizeDelta: {x: 600, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1528211631
@@ -15600,7 +15711,7 @@ Transform:
   m_GameObject: {fileID: 1530042873}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1500}
+  m_LocalPosition: {x: 0, y: 0, z: -5500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -16549,7 +16660,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: f822f1bf9e60af043be0e01148c8022a, type: 3}
   spawnRadius: 500
-  spawnCount: 50
+  spawnCount: 20
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 1
   HeightRange: {x: -1000, y: 5000}
@@ -16708,9 +16819,9 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
-  Deviation: 2
+  Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -16947,9 +17058,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1371138959}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 1280, y: -670}
   m_SizeDelta: {x: 600, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1667275983
@@ -17116,9 +17227,9 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
-  Deviation: 2
+  Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -17471,9 +17582,9 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
-  Deviation: 2
+  Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -21075,7 +21186,7 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 12
+  FireDelay: 8
   MuzzleVelocity: 500
   Deviation: 1
   AutoInheritVelocity: 1
@@ -21990,7 +22101,7 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 12
+  FireDelay: 8
   MuzzleVelocity: 500
   Deviation: 1
   AutoInheritVelocity: 1
@@ -22207,9 +22318,9 @@ MonoBehaviour:
   UpdateRate: 60
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 2
+  FireDelay: 1.5
   MuzzleVelocity: 200
-  Deviation: 2
+  Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -24411,7 +24522,7 @@ MonoBehaviour:
   shakeIntensity: 0.1
   resetViewKey: 32
   resetSpeed: 5
-  autoResetView: 0
+  autoResetView: 1
   autoResetDelay: 3
   autoResetSpeed: 2
   enableCameraCollision: 1
@@ -24632,7 +24743,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
   ShieldGO: {fileID: 1980694547}
-  TextureSize: 128
+  TextureSize: 256
   HitImpactScale: 0.1
   HitImpactDuration: 1
   DecayPerSecond: 0.9
@@ -24759,3 +24870,4 @@ SceneRoots:
   - {fileID: 1483714741}
   - {fileID: 1112071339}
   - {fileID: 1302174827}
+  - {fileID: 1473833501}
