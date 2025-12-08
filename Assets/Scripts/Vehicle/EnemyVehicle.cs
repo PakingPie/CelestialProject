@@ -26,7 +26,7 @@ public class EnemyVehicle : VehicleBase
     private Vector3 _velocity;
     public Vector3 Velocity => _velocity;
     private EnemyPredictionManager _predictionManager;
-    public bool EnablePrediction = false;
+    public bool EnableIndication = false;
 
     void OnEnable()
     {
@@ -59,7 +59,7 @@ public class EnemyVehicle : VehicleBase
 
         // Register with manager
         _predictionManager = FindAnyObjectByType<EnemyPredictionManager>();
-        if (_predictionManager != null && EnablePrediction)
+        if (_predictionManager != null && EnableIndication)
             _predictionManager.RegisterEnemy(this);
 
         if (HealthBar)
