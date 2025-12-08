@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f79a97a8f3d566438e5fbb617fd1c0f, type: 3}
   m_Name: Ally Boid Setting 1
   m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
-  minSpeed: 20
-  maxSpeed: 50
+  minSpeed: 10
+  maxSpeed: 20
   perceptionRadius: 25
   avoidanceRadius: 15
   maxSteerForce: 1
@@ -36,5 +36,7 @@ MonoBehaviour:
   combatSeparationMultiplier: 2
   combatAlignmentMultiplier: 0.5
   returnToFormationDelay: 3
+  allySeparationRadius: 20
+  allySeparationWeight: 3
   enemyAvoidanceRadius: 200
   enemyAvoidanceWeight: 5
