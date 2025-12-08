@@ -39,8 +39,13 @@ public class WeaponBase : MonoBehaviour
     [Tooltip("Number of updates per second for the turret targeting system.")]
     public int UpdateRate = 60;
 
-    [Tooltip("If true, this turret can targeting a missile.")]
-    public bool IsTargetingMissile = false;
+    [Header("Anti-Missile")]
+    [Tooltip("Can this gun target missiles?")]
+    public bool CanTargetMissiles = false;
+    [Tooltip("Prioritize missiles over vehicles")]
+    public bool PrioritizeMissiles = false;
+    [Tooltip("Range to detect missiles")]
+    public float MissileDetectionRange = 200f;
 
     [Tooltip("Debug")]
     public bool ShowGizmos = true;
@@ -79,11 +84,6 @@ public class WeaponBase : MonoBehaviour
         _hasBarrels = Barrels != null;
         CacheRangeValues();
     }
-
-    // protected virtual void Update()
-    // {
-    //     ManagedUpdateTarget();
-    // }
 
     protected virtual void OnEnable()
     {
@@ -285,6 +285,15 @@ public class WeaponBase : MonoBehaviour
         }
 
         return angle;
+    }
+
+    // Get faction from parent vehicle
+    public Faction GetOwnerFaction()
+    {
+        VehicleBase vehicle = GetComponentInParent<VehicleBase>();
+        if (vehicle != null)
+            return vehicle.FactionType;
+        return Faction.Player;
     }
 
 #if UNITY_EDITOR

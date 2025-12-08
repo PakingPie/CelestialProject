@@ -10,6 +10,11 @@ public static class CombatRegistry
     private static List<VehicleBase> _foeVehicles = new List<VehicleBase>(512);
     private static List<VehicleBase> _neutralVehicles = new List<VehicleBase>(64);
 
+    private static List<AAMissile> _allMissiles = new List<AAMissile>(128);
+    private static List<AAMissile> _playerMissiles = new List<AAMissile>(32);
+    private static List<AAMissile> _allyMissiles = new List<AAMissile>(64);
+    private static List<AAMissile> _foeMissiles = new List<AAMissile>(64);
+
     // Spatial partitioning
     private static Dictionary<Vector2Int, List<VehicleBase>> _spatialGrid = new Dictionary<Vector2Int, List<VehicleBase>>(256);
     private static float _cellSize = 50f;
@@ -30,6 +35,11 @@ public static class CombatRegistry
         _foeVehicles.Clear();
         _neutralVehicles.Clear();
         _spatialGrid.Clear();
+
+        _allMissiles.Clear();
+        _playerMissiles.Clear();
+        _allyMissiles.Clear();
+        _foeMissiles.Clear();
     }
 
     #region Registration
@@ -119,11 +129,12 @@ public static class CombatRegistry
 
     #region Queries
 
-    public static void GetNearbyEnemies(Vector3 position, float range, Faction targetFactions, List<VehicleBase> results)
+    public static void GetNearbyEnemies(Vector3 position, float range, Faction targetFactions, List<VehicleBase> results, bool isTargetingMissile = false)
     {
         results.Clear();
 
         float rangeSqr = range * range;
+
 
         // Check each target faction
         if ((targetFactions & Faction.Foe) != 0)
@@ -256,6 +267,137 @@ public static class CombatRegistry
         // if (vehicle is PlayerVehicle player)
         //     return player.FactionType;
         // return Faction.None;
+    }
+    #endregion
+
+    #region Missile Registration
+
+    public static void RegisterMissile(AAMissile missile, Faction sourceFaction)
+    {
+        if (missile == null) return;
+
+        if (!_allMissiles.Contains(missile))
+            _allMissiles.Add(missile);
+
+        List<AAMissile> list = GetMissileListForFaction(sourceFaction);
+        if (list != null && !list.Contains(missile))
+            list.Add(missile);
+    }
+
+    public static void UnregisterMissile(AAMissile missile, Faction sourceFaction)
+    {
+        if (missile == null) return;
+
+        _allMissiles.Remove(missile);
+
+        List<AAMissile> list = GetMissileListForFaction(sourceFaction);
+        list?.Remove(missile);
+    }
+
+    private static List<AAMissile> GetMissileListForFaction(Faction faction)
+    {
+        switch (faction)
+        {
+            case Faction.Player:
+                return _playerMissiles;
+            case Faction.Ally:
+                return _allyMissiles;
+            case Faction.Foe:
+                return _foeMissiles;
+            default:
+                return null;
+        }
+    }
+
+    #endregion
+
+    #region Missile Queries
+
+    /// <summary>
+    /// Find hostile missiles (missiles fired BY enemy factions)
+    /// </summary>
+    public static void GetHostileMissiles(Vector3 position, float range, Faction myFaction, List<AAMissile> results)
+    {
+        results.Clear();
+        float rangeSqr = range * range;
+
+        if (myFaction == Faction.Player || myFaction == Faction.Ally)
+        {
+            AddNearbyMissiles(_foeMissiles, position, rangeSqr, results);
+        }
+        else if (myFaction == Faction.Foe)
+        {
+            AddNearbyMissiles(_playerMissiles, position, rangeSqr, results);
+            AddNearbyMissiles(_allyMissiles, position, rangeSqr, results);
+        }
+    }
+
+    /// <summary>
+    /// Find nearest hostile missile
+    /// </summary>
+    public static AAMissile FindNearestHostileMissile(Vector3 position, float range, Faction myFaction)
+    {
+        float rangeSqr = range * range;
+        float nearestDistSqr = float.MaxValue;
+        AAMissile nearest = null;
+
+        if (myFaction == Faction.Player || myFaction == Faction.Ally)
+        {
+            nearest = FindNearestInMissileList(_foeMissiles, position, rangeSqr, ref nearestDistSqr);
+        }
+        else if (myFaction == Faction.Foe)
+        {
+            nearest = FindNearestInMissileList(_playerMissiles, position, rangeSqr, ref nearestDistSqr);
+            AAMissile allyNearest = FindNearestInMissileList(_allyMissiles, position, rangeSqr, ref nearestDistSqr);
+            if (allyNearest != null) nearest = allyNearest;
+        }
+
+        return nearest;
+    }
+
+    private static AAMissile FindNearestInMissileList(List<AAMissile> missiles, Vector3 position, float rangeSqr, ref float nearestDistSqr)
+    {
+        AAMissile nearest = null;
+
+        for (int i = missiles.Count - 1; i >= 0; i--)
+        {
+            AAMissile missile = missiles[i];
+
+            if (missile == null)
+            {
+                missiles.RemoveAt(i);
+                continue;
+            }
+
+            float distSqr = (missile.transform.position - position).sqrMagnitude;
+            if (distSqr <= rangeSqr && distSqr < nearestDistSqr)
+            {
+                nearestDistSqr = distSqr;
+                nearest = missile;
+            }
+        }
+
+        return nearest;
+    }
+
+    private static void AddNearbyMissiles(List<AAMissile> missiles, Vector3 position, float rangeSqr, List<AAMissile> results)
+    {
+        if (missiles == null) return;
+
+        for (int i = missiles.Count - 1; i >= 0; i--)
+        {
+            AAMissile missile = missiles[i];
+
+            if (missile == null)
+            {
+                missiles.RemoveAt(i);
+                continue;
+            }
+
+            float distSqr = (missile.transform.position - position).sqrMagnitude;
+            if (distSqr <= rangeSqr)
+                results.Add(missile);
+        }
     }
 
     #endregion

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using System.Collections;
 
 public enum GuidanceType
@@ -88,6 +89,9 @@ public class AAMissile : MonoBehaviour
     [Header("Apperance")]
     public Vector3 MissileScale = Vector3.one * 0.5f;
 
+    [Header("Faction")]
+    public GlobalHelper.Faction SourceFaction = GlobalHelper.Faction.Player;
+
     AAMissileEffects missileEffect;
     private Vector3 launchVelocity = Vector3.zero;
 
@@ -150,7 +154,7 @@ public class AAMissile : MonoBehaviour
             MissileGuidance();
 
         // if (movementUpdateCycle == UpdateType.Update)
-            RunMissile();
+        RunMissile();
 
         if (target != null)
         {
@@ -171,23 +175,26 @@ public class AAMissile : MonoBehaviour
         }
         else if (isLaunched && missileActive)
         {
-            // Seek another target if the current one is lost.
-            GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
-            float shortest_distance = Mathf.Infinity;
-            GameObject nearest_enemy = null;
-
-            foreach (GameObject enemy in enemies)
+            // Seek another target if the current one is lost
+            GlobalHelper.Faction targetFactions;
+            if (SourceFaction == GlobalHelper.Faction.Player || SourceFaction == GlobalHelper.Faction.Ally)
             {
-                float distance_to_enemy = Vector3.Distance(transform.position, enemy.transform.position);
-                if (distance_to_enemy < shortest_distance)
-                {
-                    shortest_distance = distance_to_enemy;
-                    nearest_enemy = enemy;
-                }
+                targetFactions = GlobalHelper.Faction.Foe;
             }
-            if (nearest_enemy)
+            else
             {
-                target = nearest_enemy.transform;
+                targetFactions = GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally;
+            }
+
+            VehicleBase nearestEnemy = CombatRegistry.FindNearestEnemy(
+                transform.position,
+                ActiveRange,
+                targetFactions
+            );
+
+            if (nearestEnemy != null)
+            {
+                target = nearestEnemy.transform;
             }
             else
             {
@@ -228,36 +235,37 @@ public class AAMissile : MonoBehaviour
 
     void HitTarget()
     {
-        if (ExplodeRadius > 0)  // Area damage
+        if (ExplodeRadius > 0)
         {
-            // Collider[] colliders = Physics.OverlapSphere(transform.position, ExplodeRadius);
-
-            // foreach (Collider collider in colliders)
-            // {
-            //     if (collider.tag == "Foe")
-            //     {
-            //         // Damage reduce if farther from explosion center
-            //         // float distance = Vector3.Distance(transform.position, collider.transform.position);
-            //         // int damage = Damage * (int)(1 - distance / ExplodeRadius);
-            //         // damage = Mathf.Max(damage, 0);
-            //         collider.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
-            //     }
-            // }
-            GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
-            foreach (GameObject enemy in enemies)
+            // Get hostile factions based on who fired the missile
+            GlobalHelper.Faction targetFactions;
+            if (SourceFaction == GlobalHelper.Faction.Player || SourceFaction == GlobalHelper.Faction.Ally)
             {
-                float distance = Vector3.Distance(transform.position, enemy.transform.position);
-                if (distance <= ExplodeRadius)
-                {
-                    enemy.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
-                }
+                targetFactions = GlobalHelper.Faction.Foe;
+            }
+            else
+            {
+                targetFactions = GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally;
             }
 
+            // Use CombatRegistry instead of FindGameObjectsWithTag
+            List<VehicleBase> nearbyTargets = new List<VehicleBase>(16);
+            CombatRegistry.FindEnemiesInRange(transform.position, ExplodeRadius, targetFactions, nearbyTargets);
+
+            foreach (VehicleBase vehicle in nearbyTargets)
+            {
+                vehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+            }
         }
-        else    // Direct hit
+        else if (target != null)
         {
-            target.GetComponent<EnemyVehicle>().TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+            VehicleBase targetVehicle = target.GetComponent<VehicleBase>();
+            if (targetVehicle != null)
+            {
+                targetVehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+            }
         }
+
         DestroyMissile(true);
     }
 
@@ -300,6 +308,33 @@ public class AAMissile : MonoBehaviour
             else
                 ActivateMissile();
         }
+    }
+
+    // Add these methods
+    private void OnEnable()
+    {
+        CombatRegistry.RegisterMissile(this, SourceFaction);
+    }
+
+    private void OnDisable()
+    {
+        CombatRegistry.UnregisterMissile(this, SourceFaction);
+    }
+
+    /// <summary>
+    /// Launch with faction info
+    /// </summary>
+    public void Launch(Transform newTarget, Vector3 inheritedVelocity, GlobalHelper.Faction faction)
+    {
+        SourceFaction = faction;
+
+        // Re-register with correct faction if it changed
+        CombatRegistry.UnregisterMissile(this, GlobalHelper.Faction.Player);
+        CombatRegistry.UnregisterMissile(this, GlobalHelper.Faction.Ally);
+        CombatRegistry.UnregisterMissile(this, GlobalHelper.Faction.Foe);
+        CombatRegistry.RegisterMissile(this, SourceFaction);
+
+        Launch(newTarget, inheritedVelocity);
     }
 
     private void RunMissile()

@@ -502,8 +502,8 @@ MonoBehaviour:
   TurretBase: {fileID: 4498985572321052543}
   Barrels: {fileID: 5310288994984931266}
   ElevationSpeed: 30
-  MaxElevation: 5
-  MaxDepression: 45
+  MaxElevation: 10
+  MaxDepression: 10
   TraverseSpeed: 60
   HasLimitedTraverse: 1
   LeftLimit: 75
@@ -514,8 +514,11 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 3
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 1500}
+  ActiveRange: {x: 5, y: 4000}
   UpdateRate: 60
+  CanTargetMissiles: 0
+  PrioritizeMissiles: 0
+  MissileDetectionRange: 200
   ShowGizmos: 1
   UseManagedUpdates: 1
   FireInterval: 15
@@ -532,10 +535,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 205798368dc3514418b0a367471c2135, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAPod
-  ownShip: {fileID: 0}
+  ownShip: {fileID: 1510646433887854243}
   missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 0e0611bb610234f4fa6c8c72f38c9e67, type: 3}
   missileCount: 100
-  fireDelay: 6
+  fireDelay: 3
   launchPoints:
   - {fileID: 1621644970716102528}
   mixerGroup: {fileID: 0}
@@ -1493,6 +1496,9 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 5, y: 2500}
   UpdateRate: 60
+  CanTargetMissiles: 0
+  PrioritizeMissiles: 0
+  MissileDetectionRange: 200
   ShowGizmos: 1
   UseManagedUpdates: 1
   FireInterval: 2

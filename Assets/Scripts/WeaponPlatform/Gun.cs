@@ -403,6 +403,29 @@ public class Gun : WeaponBase
 
     public override void ManagedUpdateTarget()
     {
+        if (IsManualMode)
+            return;
+
+        // Check for missiles first if enabled
+        if (CanTargetMissiles)
+        {
+            AAMissile nearestMissile = CombatRegistry.FindNearestHostileMissile(
+                transform.position,
+                MissileDetectionRange,
+                GetOwnerFaction()
+            );
+
+            if (nearestMissile != null)
+            {
+                if (PrioritizeMissiles || Targeted == null)
+                {
+                    Targeted = nearestMissile.transform;
+                    return;
+                }
+            }
+        }
+
+        // Fall back to normal vehicle targeting
         base.ManagedUpdateTarget();
 
         if (Targeted == null)
