@@ -5,7 +5,6 @@ using System.Collections.Generic;
 public class MissileTurret : WeaponBase
 {
     private AALauncher _launcher;
-    private Transform _launchTransform;
 
     public float FireInterval = 2.0f;
     public bool IsFiring = false;
@@ -14,7 +13,6 @@ public class MissileTurret : WeaponBase
     void Start()
     {
         _launcher = GetComponentInChildren<AALauncher>();
-        _launchTransform = _launcher.GetComponent<Transform>();
     }
 
     void Update()

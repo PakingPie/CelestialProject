@@ -1,6 +1,7 @@
 using UnityEngine;
 using static GlobalHelper;
 using System.Collections.Generic;
+using UnityEditor.EditorTools;
 public class WeaponBase : MonoBehaviour
 {
     [Header("Turret")]
@@ -37,6 +38,9 @@ public class WeaponBase : MonoBehaviour
     public Vector2 ActiveRange = new Vector2(5f, 500f);
     [Tooltip("Number of updates per second for the turret targeting system.")]
     public int UpdateRate = 60;
+
+    [Tooltip("If true, this turret can targeting a missile.")]
+    public bool IsTargetingMissile = false;
 
     [Tooltip("Debug")]
     public bool ShowGizmos = true;
