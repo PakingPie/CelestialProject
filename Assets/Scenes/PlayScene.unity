@@ -3603,7 +3603,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &413969322
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11379,7 +11379,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1170274531
 Transform:
   m_ObjectHideFlags: 0
@@ -13023,7 +13023,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 500
-  spawnCount: 20
+  spawnCount: 40
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 1000}
@@ -22788,10 +22788,10 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d603c2ec335e1964387eb3ca57d0e5f3, type: 3}
   spawnRadius: 500
-  spawnCount: 20
+  spawnCount: 5
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
-  HeightRange: {x: -1000, y: 5000}
+  HeightRange: {x: -1000, y: 1000}
   SpawnedObjects: []
 --- !u!1 &2102709341
 GameObject:
@@ -23064,7 +23064,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2117162495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24780,10 +24780,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovementController
   ship: {fileID: 7103346325574244501}
   shipMovement: {fileID: 0}
-  orbitDistance: 100
-  minOrbitDistance: 50
-  maxOrbitDistance: 500
-  zoomSpeed: 50
+  orbitDistance: 50
+  minOrbitDistance: 5
+  maxOrbitDistance: 50
+  zoomSpeed: 150
   zoomSmoothness: 8
   mouseSensitivity: 0.2
   gamepadSensitivity: 100

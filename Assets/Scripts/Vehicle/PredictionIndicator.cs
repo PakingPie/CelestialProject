@@ -19,7 +19,7 @@ public class PredictionIndicator : MonoBehaviour
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
             _playerTransform = player.transform;
-            
+
         _baseScale = transform.localScale;
         _camera = Camera.main;
     }
@@ -50,7 +50,7 @@ public class PredictionIndicator : MonoBehaviour
         transform.position = worldPosition;
         FaceCamera();
 
-        if(_text != null)
+        if (_text != null)
             UpdateDistanceText();
     }
 

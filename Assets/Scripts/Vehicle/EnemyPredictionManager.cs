@@ -51,7 +51,7 @@ public class EnemyPredictionManager : MonoBehaviour
     // Tracked targets
     private Dictionary<Transform, TrackedTarget> _trackedTargets = new Dictionary<Transform, TrackedTarget>();
     private Dictionary<Transform, IndicatorSet> _activeIndicators = new Dictionary<Transform, IndicatorSet>();
-    
+
     // Object pools per type
     private Dictionary<IndicatorType, Queue<IndicatorSet>> _indicatorPools = new Dictionary<IndicatorType, Queue<IndicatorSet>>();
 
@@ -93,7 +93,7 @@ public class EnemyPredictionManager : MonoBehaviour
             return;
 
         _lastUpdateTime = Time.time;
-        
+
         CleanupInvalidTargets();
         UpdateAllIndicators();
     }
@@ -101,7 +101,7 @@ public class EnemyPredictionManager : MonoBehaviour
     private void CleanupInvalidTargets()
     {
         List<Transform> toRemove = new List<Transform>();
-        
+
         foreach (var kvp in _trackedTargets)
         {
             if (!kvp.Value.IsValid)
@@ -121,7 +121,6 @@ public class EnemyPredictionManager : MonoBehaviour
             TrackedTarget target = kvp.Value;
             if (!target.IsValid) continue;
 
-            // Check if this type should be shown
             if (!ShouldShowType(target.Type))
             {
                 HideIndicator(kvp.Key);
@@ -132,10 +131,7 @@ public class EnemyPredictionManager : MonoBehaviour
             float maxRange = GetDisplayRangeForType(target.Type);
             bool inRange = distance <= maxRange && distance >= _minDisplayRange;
 
-            Vector3 viewportPos = _playerCamera.WorldToViewportPoint(target.Position);
-            bool inFrontOfCamera = viewportPos.z > 0;
-
-            if (inRange && inFrontOfCamera)
+            if (inRange)
             {
                 UpdateIndicatorForTarget(kvp.Key, target, distance);
             }
@@ -198,9 +194,13 @@ public class EnemyPredictionManager : MonoBehaviour
         PredictionIndicatorSettings settings = indicatorSet.Settings;
         float scale = CalculateScale(distance, settings);
 
+        // Calculate distance-based colors
+        Color positionColor = GetDistanceBasedColor(distance, settings, true);
+        Color leadColor = GetDistanceBasedColor(distance, settings, false);
+
         Vector3 worldPos = target.Position;
         Vector3 predictedPos = CalculatePredictedPosition(target, distance);
-        
+
         bool showPosition = settings.ShowPositionIndicator;
         bool showLead = settings.ShowLeadIndicator && target.Velocity.magnitude >= _minVelocityToShowLead;
         bool showLine = settings.ShowConnectingLine && showPosition && showLead;
@@ -211,30 +211,31 @@ public class EnemyPredictionManager : MonoBehaviour
             Vector3 offsetPos = GetOffsetPosition(worldPos);
             Vector3 offsetPredicted = GetOffsetPosition(predictedPos);
 
-            // Position indicator
             if (showPosition)
             {
                 UpdateIndicatorWorldPosition(indicatorSet.PositionIndicator, offsetPos, worldScale, target.Transform);
+                indicatorSet.PositionIndicator.SetColor(positionColor);
             }
             else
             {
                 indicatorSet.PositionIndicator.SetActive(false);
             }
 
-            // Lead indicator
             if (showLead)
             {
                 UpdateIndicatorWorldPosition(indicatorSet.LeadIndicator, offsetPredicted, worldScale, target.Transform);
+                indicatorSet.LeadIndicator.SetColor(leadColor);
             }
             else
             {
                 indicatorSet.LeadIndicator.SetActive(false);
             }
 
-            // Connecting line
             if (showLine)
             {
                 UpdateConnectingLine(indicatorSet, offsetPos, offsetPredicted, worldScale, true);
+                indicatorSet.ConnectingLine.startColor = positionColor;
+                indicatorSet.ConnectingLine.endColor = leadColor;
             }
             else
             {
@@ -243,10 +244,11 @@ public class EnemyPredictionManager : MonoBehaviour
         }
         else
         {
-            // Screen space mode
+            // Screen space mode - same pattern
             if (showPosition)
             {
                 UpdateIndicatorScreenPosition(indicatorSet.PositionIndicator, worldPos, scale, target.Transform);
+                indicatorSet.PositionIndicator.SetColor(positionColor);
             }
             else
             {
@@ -256,6 +258,7 @@ public class EnemyPredictionManager : MonoBehaviour
             if (showLead)
             {
                 UpdateIndicatorScreenPosition(indicatorSet.LeadIndicator, predictedPos, scale, target.Transform);
+                indicatorSet.LeadIndicator.SetColor(leadColor);
             }
             else
             {
@@ -267,6 +270,8 @@ public class EnemyPredictionManager : MonoBehaviour
                 Vector3 screenStart = _playerCamera.WorldToScreenPoint(worldPos);
                 Vector3 screenEnd = _playerCamera.WorldToScreenPoint(predictedPos);
                 UpdateConnectingLineScreenSpace(indicatorSet, screenStart, screenEnd, scale, true);
+                indicatorSet.ConnectingLine.startColor = positionColor;
+                indicatorSet.ConnectingLine.endColor = leadColor;
             }
             else
             {
@@ -375,17 +380,54 @@ public class EnemyPredictionManager : MonoBehaviour
     {
         Vector3 screenPos = _playerCamera.WorldToScreenPoint(worldPosition);
 
-        if (screenPos.z > 0)
+        // Check if behind camera
+        if (screenPos.z < 0)
         {
-            indicator.SetActive(true);
-            indicator.SetTarget(target);
-            indicator.SetPosition(screenPos);
-            indicator.SetScale(scale);
+            // Flip the position for behind-camera targets
+            screenPos.x = Screen.width - screenPos.x;
+            screenPos.y = Screen.height - screenPos.y;
+            screenPos.z = -screenPos.z;
         }
-        else
+
+        // Clamp to screen edges with padding
+        float padding = 50f;
+        bool isOffScreen = screenPos.x < padding || screenPos.x > Screen.width - padding ||
+                           screenPos.y < padding || screenPos.y > Screen.height - padding;
+
+        if (isOffScreen)
         {
-            indicator.SetActive(false);
+            // Clamp to screen edges
+            Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+            Vector3 direction = (screenPos - screenCenter).normalized;
+
+            // Find intersection with screen edge
+            float maxX = (Screen.width / 2f) - padding;
+            float maxY = (Screen.height / 2f) - padding;
+
+            float scaleX = Mathf.Abs(direction.x) > 0.001f ? maxX / Mathf.Abs(direction.x) : float.MaxValue;
+            float scaleY = Mathf.Abs(direction.y) > 0.001f ? maxY / Mathf.Abs(direction.y) : float.MaxValue;
+            float edgeScale = Mathf.Min(scaleX, scaleY);
+
+            screenPos = screenCenter + direction * edgeScale;
         }
+
+        indicator.SetActive(true);
+        indicator.SetTarget(target);
+        indicator.SetPosition(screenPos);
+        indicator.SetScale(scale);
+        // indicator.SetOffScreen(isOffScreen); // Optional: change appearance when off-screen
+    }
+
+    private Color GetDistanceBasedColor(float distance, PredictionIndicatorSettings settings, bool isPositionIndicator)
+    {
+        if (!settings.UseDistanceColor)
+            return isPositionIndicator ? settings.PositionColor : settings.LeadColor;
+
+        float maxRange = _displayRange;
+        float t = Mathf.Clamp01(distance / maxRange);
+
+        // Lerp from near (bright) to far (dark)
+        return Color.Lerp(settings.NearColor, settings.FarColor, t);
     }
 
     private void UpdateConnectingLine(IndicatorSet set, Vector3 startPos, Vector3 endPos, float scale, bool visible)
