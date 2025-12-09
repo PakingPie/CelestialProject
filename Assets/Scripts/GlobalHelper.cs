@@ -37,6 +37,14 @@ public static class GlobalHelper
         Lead
     };
 
+    public enum IndicatorType
+    {
+        Enemy,
+        Missile,
+        Ally,
+        Objective
+    }
+
     public static string[] FactionNames = { "Player", "Ally", "Foe", "Neutral" };
 
     // Reusable list to avoid allocations
@@ -55,5 +63,24 @@ public static class GlobalHelper
     {
         [SerializeField] private Team _team = Team.Neutral;
         public Team Team => _team;
+    }
+
+
+    public class TrackedTarget
+    {
+        public Transform Transform { get; private set; }
+        public IndicatorType Type { get; private set; }
+        public System.Func<Vector3> GetVelocity { get; private set; }
+
+        public bool IsValid => Transform != null;
+        public Vector3 Position => Transform != null ? Transform.position : Vector3.zero;
+        public Vector3 Velocity => GetVelocity != null ? GetVelocity() : Vector3.zero;
+
+        public TrackedTarget(Transform transform, IndicatorType type, System.Func<Vector3> velocityGetter)
+        {
+            Transform = transform;
+            Type = type;
+            GetVelocity = velocityGetter;
+        }
     }
 }

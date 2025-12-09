@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Collections;
+using static GlobalHelper;
 
 public enum GuidanceType
 {
@@ -109,6 +109,7 @@ public class AAMissile : MonoBehaviour
 
     // Used to prevent lead markers from getting huge when missiles are very slow.
     private const float MINIMUM_GUIDE_SPEED = 1.0f;
+    private EnemyPredictionManager _predictionManager;
 
     public bool MissileLaunched { get { return isLaunched; } }
     public bool MotorActive { get { return motorActive; } }
@@ -310,15 +311,27 @@ public class AAMissile : MonoBehaviour
         }
     }
 
-    // Add these methods
+
+    // In existing OnEnable or Start
     private void OnEnable()
     {
         CombatRegistry.RegisterMissile(this, SourceFaction);
+
+        // Register hostile missiles with prediction manager for player
+        if (SourceFaction == Faction.Foe)
+        {
+            _predictionManager = FindAnyObjectByType<EnemyPredictionManager>();
+            if (_predictionManager != null)
+                _predictionManager.RegisterMissile(this);
+        }
     }
 
     private void OnDisable()
     {
         CombatRegistry.UnregisterMissile(this, SourceFaction);
+
+        if (_predictionManager != null)
+            _predictionManager.UnregisterMissile(this);
     }
 
     /// <summary>

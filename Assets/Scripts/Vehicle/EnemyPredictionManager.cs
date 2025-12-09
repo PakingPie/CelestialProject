@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using static GlobalHelper;
 
 public class EnemyPredictionManager : MonoBehaviour
 {
@@ -8,68 +9,70 @@ public class EnemyPredictionManager : MonoBehaviour
     [SerializeField] private Camera _playerCamera;
     [SerializeField] private Transform _player;
     [SerializeField] private Canvas _hudCanvas;
-    [Header("Player Reference")]
     [SerializeField] private PlayerShipMovement _playerShipMovement;
+
+    [Header("Indicator Settings")]
+    [SerializeField] private PredictionIndicatorSettings _enemySettings;
+    [SerializeField] private PredictionIndicatorSettings _missileSettings;
+    [SerializeField] private PredictionIndicatorSettings _allySettings;
 
     [Header("Canvas Mode")]
     [SerializeField] private bool _useWorldSpace = true;
-    [Tooltip("Offset towards camera to prevent clipping with geometry")]
     [SerializeField] private float _worldSpaceOffset = 5f;
 
     [Header("Display Settings")]
     [SerializeField] private float _displayRange = 1000f;
     [SerializeField] private float _minDisplayRange = 50f;
+    [SerializeField] private float _missileDisplayRange = 500f;
 
     [Header("Prediction Settings")]
-    [SerializeField] private float _predictionTime = 1f;
-    [Tooltip("If assigned, uses bullet speed to calculate prediction time based on distance")]
+    [SerializeField] private float _maxPredictionTime = 2f;
+    [SerializeField] private float _leadDistanceMultiplier = 1f;
+    [SerializeField] private float _minVelocityToShowLead = 5f;
     [SerializeField] private Gun _referenceGun;
 
-    [Header("Enemy Indicator")]
-    [SerializeField] private GameObject _enemyIndicatorPrefab;
-    [SerializeField] private Color _enemyIndicatorColor = Color.red;
-
-    [Header("Lead Indicator")]
-    [SerializeField] private GameObject _leadIndicatorPrefab;
-    [SerializeField] private Color _leadIndicatorColor = Color.yellow;
-    [Tooltip("Minimum velocity magnitude to show lead indicator")]
-    [SerializeField] private float _minVelocityToShowLead = 5f;
-    [Tooltip("Enable/disable lead indicator entirely")]
-    [SerializeField] private bool _showLeadIndicator = true;
-    [Tooltip("Maximum prediction time (caps how far ahead the lead shows)")]
-    [SerializeField] private float _maxPredictionTime = 2f;
-    [Tooltip("Multiplier to shorten lead distance (0.5 = half distance)")]
-    [SerializeField] private float _leadDistanceMultiplier = 1f;
-
-    [Header("Connecting Line")]
+    [Header("Line Settings")]
     [SerializeField] private Material _lineMaterial;
-    [SerializeField] private Color _lineColor = Color.white;
     [SerializeField] private float _lineWidth = 2f;
-    [Tooltip("Scale line width with distance")]
     [SerializeField] private bool _scaleLineWidth = true;
 
     [Header("Scaling")]
-    [SerializeField] private float _baseScale = 1f;
-    [SerializeField] private float _minScale = 0.3f;
-    [SerializeField] private float _maxScale = 2f;
     [SerializeField] private float _scaleDistanceReference = 500f;
-    [Tooltip("For world space: scale multiplier to maintain visible size")]
     [SerializeField] private float _worldSpaceScaleMultiplier = 0.1f;
 
     [Header("Update Settings")]
     [SerializeField] private float _updateInterval = 0.02f;
 
-    private List<EnemyVehicle> _trackedEnemies = new List<EnemyVehicle>();
-    private Dictionary<EnemyVehicle, EnemyIndicatorSet> _enemyIndicators = new Dictionary<EnemyVehicle, EnemyIndicatorSet>();
-    private Queue<EnemyIndicatorSet> _indicatorPool = new Queue<EnemyIndicatorSet>();
+    [Header("Toggle Controls")]
+    [SerializeField] private bool _showEnemyIndicators = true;
+    [SerializeField] private bool _showMissileIndicators = true;
+    [SerializeField] private bool _showAllyIndicators = false;
+
+    // Tracked targets
+    private Dictionary<Transform, TrackedTarget> _trackedTargets = new Dictionary<Transform, TrackedTarget>();
+    private Dictionary<Transform, IndicatorSet> _activeIndicators = new Dictionary<Transform, IndicatorSet>();
+    
+    // Object pools per type
+    private Dictionary<IndicatorType, Queue<IndicatorSet>> _indicatorPools = new Dictionary<IndicatorType, Queue<IndicatorSet>>();
 
     private float _lastUpdateTime;
 
-    private class EnemyIndicatorSet
+    private class IndicatorSet
     {
-        public PredictionIndicator EnemyIndicator;
+        public PredictionIndicator PositionIndicator;
         public PredictionIndicator LeadIndicator;
         public LineRenderer ConnectingLine;
+        public IndicatorType Type;
+        public PredictionIndicatorSettings Settings;
+    }
+
+    private void Awake()
+    {
+        // Initialize pools
+        foreach (IndicatorType type in System.Enum.GetValues(typeof(IndicatorType)))
+        {
+            _indicatorPools[type] = new Queue<IndicatorSet>();
+        }
     }
 
     private void Start()
@@ -90,88 +93,201 @@ public class EnemyPredictionManager : MonoBehaviour
             return;
 
         _lastUpdateTime = Time.time;
+        
+        CleanupInvalidTargets();
         UpdateAllIndicators();
+    }
+
+    private void CleanupInvalidTargets()
+    {
+        List<Transform> toRemove = new List<Transform>();
+        
+        foreach (var kvp in _trackedTargets)
+        {
+            if (!kvp.Value.IsValid)
+                toRemove.Add(kvp.Key);
+        }
+
+        foreach (var key in toRemove)
+        {
+            UnregisterTarget(key);
+        }
     }
 
     private void UpdateAllIndicators()
     {
-        _trackedEnemies.RemoveAll(e => e == null);
-
-        foreach (var enemy in _trackedEnemies)
+        foreach (var kvp in _trackedTargets)
         {
-            float distance = Vector3.Distance(_player.position, enemy.transform.position);
-            bool inRange = distance <= _displayRange && distance >= _minDisplayRange;
+            TrackedTarget target = kvp.Value;
+            if (!target.IsValid) continue;
 
-            // Check if enemy is in front of camera
-            Vector3 viewportPos = _playerCamera.WorldToViewportPoint(enemy.transform.position);
+            // Check if this type should be shown
+            if (!ShouldShowType(target.Type))
+            {
+                HideIndicator(kvp.Key);
+                continue;
+            }
+
+            float distance = Vector3.Distance(_player.position, target.Position);
+            float maxRange = GetDisplayRangeForType(target.Type);
+            bool inRange = distance <= maxRange && distance >= _minDisplayRange;
+
+            Vector3 viewportPos = _playerCamera.WorldToViewportPoint(target.Position);
             bool inFrontOfCamera = viewportPos.z > 0;
 
             if (inRange && inFrontOfCamera)
             {
-                if (!_enemyIndicators.TryGetValue(enemy, out var indicatorSet))
-                {
-                    indicatorSet = GetIndicatorSetFromPool();
-                    _enemyIndicators[enemy] = indicatorSet;
-                }
-
-                float scale = CalculateScale(distance);
-
-                // Calculate positions
-                Vector3 enemyWorldPos = enemy.transform.position;
-                Vector3 predictedPos = CalculatePredictedPosition(enemy, distance);
-                bool showLead = _showLeadIndicator && enemy.Velocity.magnitude >= _minVelocityToShowLead;
-
-                if (_useWorldSpace)
-                {
-                    Vector3 offsetEnemyPos = GetOffsetPosition(enemyWorldPos);
-                    float worldScale = scale * distance * _worldSpaceScaleMultiplier;
-
-                    // Update enemy indicator - pass enemy.transform
-                    UpdateIndicatorWorldPosition(indicatorSet.EnemyIndicator, offsetEnemyPos, worldScale, enemy.transform);
-
-                    // Update lead indicator - also tracks the same enemy
-                    if (showLead)
-                    {
-                        Vector3 offsetPredictedPos = GetOffsetPosition(predictedPos);
-                        UpdateIndicatorWorldPosition(indicatorSet.LeadIndicator, offsetPredictedPos, worldScale, enemy.transform);
-
-                        UpdateConnectingLine(indicatorSet, offsetEnemyPos, offsetPredictedPos, worldScale, true);
-                    }
-                    else
-                    {
-                        indicatorSet.LeadIndicator.SetActive(false);
-                        indicatorSet.ConnectingLine.enabled = false;
-                    }
-                }
-                else
-                {
-                    // Screen space mode - pass enemy.transform
-                    UpdateIndicatorScreenPosition(indicatorSet.EnemyIndicator, enemyWorldPos, scale, enemy.transform);
-
-                    if (showLead)
-                    {
-                        UpdateIndicatorScreenPosition(indicatorSet.LeadIndicator, predictedPos, scale, enemy.transform);
-
-                        Vector3 screenPosEnemy = _playerCamera.WorldToScreenPoint(enemyWorldPos);
-                        Vector3 screenPosLead = _playerCamera.WorldToScreenPoint(predictedPos);
-                        UpdateConnectingLineScreenSpace(indicatorSet, screenPosEnemy, screenPosLead, scale, true);
-                    }
-                    else
-                    {
-                        indicatorSet.LeadIndicator.SetActive(false);
-                        indicatorSet.ConnectingLine.enabled = false;
-                    }
-                }
+                UpdateIndicatorForTarget(kvp.Key, target, distance);
             }
             else
             {
-                if (_enemyIndicators.TryGetValue(enemy, out var indicatorSet))
-                {
-                    ReturnIndicatorSetToPool(indicatorSet);
-                    _enemyIndicators.Remove(enemy);
-                }
+                HideIndicator(kvp.Key);
             }
         }
+    }
+
+    private bool ShouldShowType(IndicatorType type)
+    {
+        switch (type)
+        {
+            case IndicatorType.Enemy:
+                return _showEnemyIndicators;
+            case IndicatorType.Missile:
+                return _showMissileIndicators;
+            case IndicatorType.Ally:
+                return _showAllyIndicators;
+            default:
+                return true;
+        }
+    }
+
+    private float GetDisplayRangeForType(IndicatorType type)
+    {
+        switch (type)
+        {
+            case IndicatorType.Missile:
+                return _missileDisplayRange;
+            default:
+                return _displayRange;
+        }
+    }
+
+    private PredictionIndicatorSettings GetSettingsForType(IndicatorType type)
+    {
+        switch (type)
+        {
+            case IndicatorType.Enemy:
+                return _enemySettings;
+            case IndicatorType.Missile:
+                return _missileSettings;
+            case IndicatorType.Ally:
+                return _allySettings;
+            default:
+                return _enemySettings;
+        }
+    }
+
+    private void UpdateIndicatorForTarget(Transform key, TrackedTarget target, float distance)
+    {
+        if (!_activeIndicators.TryGetValue(key, out var indicatorSet))
+        {
+            indicatorSet = GetIndicatorFromPool(target.Type);
+            _activeIndicators[key] = indicatorSet;
+        }
+
+        PredictionIndicatorSettings settings = indicatorSet.Settings;
+        float scale = CalculateScale(distance, settings);
+
+        Vector3 worldPos = target.Position;
+        Vector3 predictedPos = CalculatePredictedPosition(target, distance);
+        
+        bool showPosition = settings.ShowPositionIndicator;
+        bool showLead = settings.ShowLeadIndicator && target.Velocity.magnitude >= _minVelocityToShowLead;
+        bool showLine = settings.ShowConnectingLine && showPosition && showLead;
+
+        if (_useWorldSpace)
+        {
+            float worldScale = scale * distance * _worldSpaceScaleMultiplier;
+            Vector3 offsetPos = GetOffsetPosition(worldPos);
+            Vector3 offsetPredicted = GetOffsetPosition(predictedPos);
+
+            // Position indicator
+            if (showPosition)
+            {
+                UpdateIndicatorWorldPosition(indicatorSet.PositionIndicator, offsetPos, worldScale, target.Transform);
+            }
+            else
+            {
+                indicatorSet.PositionIndicator.SetActive(false);
+            }
+
+            // Lead indicator
+            if (showLead)
+            {
+                UpdateIndicatorWorldPosition(indicatorSet.LeadIndicator, offsetPredicted, worldScale, target.Transform);
+            }
+            else
+            {
+                indicatorSet.LeadIndicator.SetActive(false);
+            }
+
+            // Connecting line
+            if (showLine)
+            {
+                UpdateConnectingLine(indicatorSet, offsetPos, offsetPredicted, worldScale, true);
+            }
+            else
+            {
+                indicatorSet.ConnectingLine.enabled = false;
+            }
+        }
+        else
+        {
+            // Screen space mode
+            if (showPosition)
+            {
+                UpdateIndicatorScreenPosition(indicatorSet.PositionIndicator, worldPos, scale, target.Transform);
+            }
+            else
+            {
+                indicatorSet.PositionIndicator.SetActive(false);
+            }
+
+            if (showLead)
+            {
+                UpdateIndicatorScreenPosition(indicatorSet.LeadIndicator, predictedPos, scale, target.Transform);
+            }
+            else
+            {
+                indicatorSet.LeadIndicator.SetActive(false);
+            }
+
+            if (showLine)
+            {
+                Vector3 screenStart = _playerCamera.WorldToScreenPoint(worldPos);
+                Vector3 screenEnd = _playerCamera.WorldToScreenPoint(predictedPos);
+                UpdateConnectingLineScreenSpace(indicatorSet, screenStart, screenEnd, scale, true);
+            }
+            else
+            {
+                indicatorSet.ConnectingLine.enabled = false;
+            }
+        }
+    }
+
+    private void HideIndicator(Transform key)
+    {
+        if (_activeIndicators.TryGetValue(key, out var indicatorSet))
+        {
+            ReturnIndicatorToPool(indicatorSet);
+            _activeIndicators.Remove(key);
+        }
+    }
+
+    private float CalculateScale(float distance, PredictionIndicatorSettings settings)
+    {
+        float scale = settings.BaseScale * (_scaleDistanceReference / distance);
+        return Mathf.Clamp(scale, settings.MinScale, settings.MaxScale);
     }
 
     private Vector3 GetOffsetPosition(Vector3 worldPosition)
@@ -180,16 +296,10 @@ public class EnemyPredictionManager : MonoBehaviour
         return worldPosition + dirToCamera * _worldSpaceOffset;
     }
 
-    private float CalculateScale(float distance)
+    private Vector3 CalculatePredictedPosition(TrackedTarget target, float distance)
     {
-        float scale = _baseScale * (_scaleDistanceReference / distance);
-        return Mathf.Clamp(scale, _minScale, _maxScale);
-    }
-
-    private Vector3 CalculatePredictedPosition(EnemyVehicle enemy, float distance)
-    {
-        Vector3 enemyPosition = enemy.transform.position;
-        Vector3 enemyVelocity = enemy.Velocity;
+        Vector3 targetPosition = target.Position;
+        Vector3 targetVelocity = target.Velocity;
         Vector3 playerPosition = _player.position;
         Vector3 playerVelocity = _playerShipMovement != null ? _playerShipMovement.Velocity : Vector3.zero;
 
@@ -197,29 +307,23 @@ public class EnemyPredictionManager : MonoBehaviour
             ? _referenceGun.MuzzleVelocity
             : 200f;
 
-        // Calculate intercept point using relative velocity
         Vector3 predictedPos = CalculateInterceptPoint(
             playerPosition,
             playerVelocity,
             bulletSpeed,
-            enemyPosition,
-            enemyVelocity
+            targetPosition,
+            targetVelocity
         );
 
-        // If no valid intercept, fall back to simple linear prediction
         if (predictedPos == Vector3.zero)
         {
             float timeToTarget = Mathf.Min(distance / bulletSpeed, _maxPredictionTime);
-            predictedPos = enemyPosition + enemyVelocity * timeToTarget * _leadDistanceMultiplier;
+            predictedPos = targetPosition + targetVelocity * timeToTarget * _leadDistanceMultiplier;
         }
 
         return predictedPos;
     }
 
-    /// <summary>
-    /// Calculates the intercept point for a projectile to hit a moving target.
-    /// Accounts for shooter velocity (bullet inherits shooter momentum).
-    /// </summary>
     private Vector3 CalculateInterceptPoint(
         Vector3 shooterPos,
         Vector3 shooterVelocity,
@@ -227,19 +331,15 @@ public class EnemyPredictionManager : MonoBehaviour
         Vector3 targetPos,
         Vector3 targetVelocity)
     {
-        // Relative position and velocity
         Vector3 relativePos = targetPos - shooterPos;
         Vector3 relativeVel = targetVelocity - shooterVelocity;
 
-        // Quadratic equation coefficients: at² + bt + c = 0
-        // We're solving for time t where the bullet reaches the target
         float a = Vector3.Dot(relativeVel, relativeVel) - (projectileSpeed * projectileSpeed);
         float b = 2f * Vector3.Dot(relativePos, relativeVel);
         float c = Vector3.Dot(relativePos, relativePos);
 
         float discriminant = b * b - 4f * a * c;
 
-        // No real solution means target is unreachable
         if (discriminant < 0f)
             return Vector3.zero;
 
@@ -247,7 +347,6 @@ public class EnemyPredictionManager : MonoBehaviour
         float t1 = (-b + sqrtDiscriminant) / (2f * a);
         float t2 = (-b - sqrtDiscriminant) / (2f * a);
 
-        // Choose the smallest positive time
         float t;
         if (t1 > 0f && t2 > 0f)
             t = Mathf.Min(t1, t2);
@@ -256,36 +355,30 @@ public class EnemyPredictionManager : MonoBehaviour
         else if (t2 > 0f)
             t = t2;
         else
-            return Vector3.zero; // Both times negative, target is behind us
+            return Vector3.zero;
 
-        // Cap prediction time
         t = Mathf.Min(t, _maxPredictionTime);
-
-        // Apply lead distance multiplier
         t *= _leadDistanceMultiplier;
 
-        // Calculate where the target will be at time t
         return targetPos + targetVelocity * t;
     }
 
-    private void UpdateIndicatorWorldPosition(PredictionIndicator indicator, Vector3 worldPosition, float scale, Transform target = null)
+    private void UpdateIndicatorWorldPosition(PredictionIndicator indicator, Vector3 worldPosition, float scale, Transform target)
     {
         indicator.SetActive(true);
-        if (target != null)
-            indicator.SetTarget(target);
+        indicator.SetTarget(target);
         indicator.SetWorldPosition(worldPosition);
         indicator.SetScale(scale);
     }
 
-    private void UpdateIndicatorScreenPosition(PredictionIndicator indicator, Vector3 worldPosition, float scale, Transform target = null)
+    private void UpdateIndicatorScreenPosition(PredictionIndicator indicator, Vector3 worldPosition, float scale, Transform target)
     {
         Vector3 screenPos = _playerCamera.WorldToScreenPoint(worldPosition);
 
         if (screenPos.z > 0)
         {
             indicator.SetActive(true);
-            if (target != null)
-                indicator.SetTarget(target);
+            indicator.SetTarget(target);
             indicator.SetPosition(screenPos);
             indicator.SetScale(scale);
         }
@@ -295,15 +388,12 @@ public class EnemyPredictionManager : MonoBehaviour
         }
     }
 
-    private void UpdateConnectingLine(EnemyIndicatorSet set, Vector3 startPos, Vector3 endPos, float scale, bool visible)
+    private void UpdateConnectingLine(IndicatorSet set, Vector3 startPos, Vector3 endPos, float scale, bool visible)
     {
-        if (set.ConnectingLine == null)
-            return;
+        if (set.ConnectingLine == null) return;
 
         set.ConnectingLine.enabled = visible;
-
-        if (!visible)
-            return;
+        if (!visible) return;
 
         set.ConnectingLine.SetPosition(0, startPos);
         set.ConnectingLine.SetPosition(1, endPos);
@@ -316,17 +406,13 @@ public class EnemyPredictionManager : MonoBehaviour
         }
     }
 
-    private void UpdateConnectingLineScreenSpace(EnemyIndicatorSet set, Vector3 screenStart, Vector3 screenEnd, float scale, bool visible)
+    private void UpdateConnectingLineScreenSpace(IndicatorSet set, Vector3 screenStart, Vector3 screenEnd, float scale, bool visible)
     {
-        if (set.ConnectingLine == null)
-            return;
+        if (set.ConnectingLine == null) return;
 
         set.ConnectingLine.enabled = visible;
+        if (!visible) return;
 
-        if (!visible)
-            return;
-
-        // Convert screen positions to world positions on a plane in front of camera
         float planeDistance = 1f;
         Vector3 worldStart = _playerCamera.ScreenToWorldPoint(new Vector3(screenStart.x, screenStart.y, planeDistance));
         Vector3 worldEnd = _playerCamera.ScreenToWorldPoint(new Vector3(screenEnd.x, screenEnd.y, planeDistance));
@@ -336,87 +422,204 @@ public class EnemyPredictionManager : MonoBehaviour
 
         if (_scaleLineWidth)
         {
-            float scaledWidth = _lineWidth * scale * 0.01f; // Smaller scale for screen space
+            float scaledWidth = _lineWidth * scale * 0.01f;
             set.ConnectingLine.startWidth = scaledWidth;
             set.ConnectingLine.endWidth = scaledWidth;
         }
     }
 
-    private EnemyIndicatorSet GetIndicatorSetFromPool()
+    #region Object Pooling
+
+    private IndicatorSet GetIndicatorFromPool(IndicatorType type)
     {
-        if (_indicatorPool.Count > 0)
+        var pool = _indicatorPools[type];
+        PredictionIndicatorSettings settings = GetSettingsForType(type);
+
+        if (pool.Count > 0)
         {
-            var set = _indicatorPool.Dequeue();
-            set.EnemyIndicator.SetActive(true);
+            var set = pool.Dequeue();
+            set.PositionIndicator.SetActive(true);
             set.LeadIndicator.SetActive(true);
             set.ConnectingLine.enabled = true;
             return set;
         }
 
-        var newSet = new EnemyIndicatorSet();
-
-        // Create enemy indicator
-        GameObject enemyObj = Instantiate(_enemyIndicatorPrefab, _hudCanvas.transform);
-        newSet.EnemyIndicator = enemyObj.GetComponent<PredictionIndicator>();
-        newSet.EnemyIndicator.Initialize(_enemyIndicatorColor, _playerCamera);
-
-        // Create lead indicator
-        GameObject leadObj = Instantiate(_leadIndicatorPrefab, _hudCanvas.transform);
-        newSet.LeadIndicator = leadObj.GetComponent<PredictionIndicator>();
-        newSet.LeadIndicator.Initialize(_leadIndicatorColor, _playerCamera);
-
-        // Create connecting line
-        GameObject lineObj = new GameObject("ConnectingLine");
-        lineObj.transform.SetParent(_hudCanvas.transform);
-        newSet.ConnectingLine = lineObj.AddComponent<LineRenderer>();
-        SetupLineRenderer(newSet.ConnectingLine);
-
-        return newSet;
+        return CreateIndicatorSet(type, settings);
     }
 
-    private void SetupLineRenderer(LineRenderer lineRenderer)
+    private IndicatorSet CreateIndicatorSet(IndicatorType type, PredictionIndicatorSettings settings)
+    {
+        var set = new IndicatorSet
+        {
+            Type = type,
+            Settings = settings
+        };
+
+        // Position indicator
+        if (settings.PositionIndicatorPrefab != null)
+        {
+            GameObject posObj = Instantiate(settings.PositionIndicatorPrefab, _hudCanvas.transform);
+            set.PositionIndicator = posObj.GetComponent<PredictionIndicator>();
+            set.PositionIndicator.Initialize(settings.PositionColor, _playerCamera);
+        }
+
+        // Lead indicator
+        if (settings.LeadIndicatorPrefab != null)
+        {
+            GameObject leadObj = Instantiate(settings.LeadIndicatorPrefab, _hudCanvas.transform);
+            set.LeadIndicator = leadObj.GetComponent<PredictionIndicator>();
+            set.LeadIndicator.Initialize(settings.LeadColor, _playerCamera);
+        }
+
+        // Connecting line
+        GameObject lineObj = new GameObject($"ConnectingLine_{type}");
+        lineObj.transform.SetParent(_hudCanvas.transform);
+        set.ConnectingLine = lineObj.AddComponent<LineRenderer>();
+        SetupLineRenderer(set.ConnectingLine, settings.LineColor);
+
+        return set;
+    }
+
+    private void SetupLineRenderer(LineRenderer lineRenderer, Color color)
     {
         lineRenderer.positionCount = 2;
         lineRenderer.startWidth = _lineWidth;
         lineRenderer.endWidth = _lineWidth;
         lineRenderer.material = _lineMaterial;
-        lineRenderer.startColor = _lineColor;
-        lineRenderer.endColor = _lineColor;
+        lineRenderer.startColor = color;
+        lineRenderer.endColor = color;
         lineRenderer.useWorldSpace = true;
-        lineRenderer.sortingOrder = 100; // Render on top
+        lineRenderer.sortingOrder = 100;
         lineRenderer.textureMode = LineTextureMode.Tile;
-
-        // Make it render in front
         lineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         lineRenderer.receiveShadows = false;
         lineRenderer.allowOcclusionWhenDynamic = false;
     }
 
-    private void ReturnIndicatorSetToPool(EnemyIndicatorSet set)
+    private void ReturnIndicatorToPool(IndicatorSet set)
     {
-        if (set.EnemyIndicator == null)
-            return;
-        set.EnemyIndicator.SetActive(false);
-        set.LeadIndicator.SetActive(false);
-        set.ConnectingLine.enabled = false;
-        _indicatorPool.Enqueue(set);
+        if (set.PositionIndicator != null)
+            set.PositionIndicator.SetActive(false);
+        if (set.LeadIndicator != null)
+            set.LeadIndicator.SetActive(false);
+        if (set.ConnectingLine != null)
+            set.ConnectingLine.enabled = false;
+
+        _indicatorPools[set.Type].Enqueue(set);
     }
+
+    #endregion
+
+    #region Public Registration API
 
     public void RegisterEnemy(EnemyVehicle enemy)
     {
-        if (!_trackedEnemies.Contains(enemy))
-            _trackedEnemies.Add(enemy);
+        if (enemy == null || _trackedTargets.ContainsKey(enemy.transform))
+            return;
+
+        var target = new TrackedTarget(
+            enemy.transform,
+            IndicatorType.Enemy,
+            () => enemy.Velocity
+        );
+
+        _trackedTargets[enemy.transform] = target;
     }
 
     public void UnregisterEnemy(EnemyVehicle enemy)
     {
-        _trackedEnemies.Remove(enemy);
+        if (enemy != null)
+            UnregisterTarget(enemy.transform);
+    }
 
-        if (_enemyIndicators.TryGetValue(enemy, out var indicatorSet))
+    public void RegisterMissile(AAMissile missile)
+    {
+        if (missile == null || _trackedTargets.ContainsKey(missile.transform))
+            return;
+
+        var target = new TrackedTarget(
+            missile.transform,
+            IndicatorType.Missile,
+            () => missile.transform.forward * missile.initialSpeed // Approximate velocity
+        );
+
+        _trackedTargets[missile.transform] = target;
+    }
+
+    public void UnregisterMissile(AAMissile missile)
+    {
+        if (missile != null)
+            UnregisterTarget(missile.transform);
+    }
+
+    public void RegisterAlly(EnemyVehicle ally)
+    {
+        if (ally == null || _trackedTargets.ContainsKey(ally.transform))
+            return;
+
+        var target = new TrackedTarget(
+            ally.transform,
+            IndicatorType.Ally,
+            () => ally.Velocity
+        );
+
+        _trackedTargets[ally.transform] = target;
+    }
+
+    public void UnregisterAlly(EnemyVehicle ally)
+    {
+        if (ally != null)
+            UnregisterTarget(ally.transform);
+    }
+
+    private void UnregisterTarget(Transform key)
+    {
+        if (_activeIndicators.TryGetValue(key, out var set))
         {
-            ReturnIndicatorSetToPool(indicatorSet);
-            _enemyIndicators.Remove(enemy);
+            ReturnIndicatorToPool(set);
+            _activeIndicators.Remove(key);
         }
+        _trackedTargets.Remove(key);
+    }
+
+    #endregion
+
+    #region Public Toggle API
+
+    public void SetEnemyIndicatorsEnabled(bool enabled)
+    {
+        _showEnemyIndicators = enabled;
+    }
+
+    public void SetMissileIndicatorsEnabled(bool enabled)
+    {
+        _showMissileIndicators = enabled;
+    }
+
+    public void SetAllyIndicatorsEnabled(bool enabled)
+    {
+        _showAllyIndicators = enabled;
+    }
+
+    public void SetPositionIndicatorEnabled(IndicatorType type, bool enabled)
+    {
+        var settings = GetSettingsForType(type);
+        if (settings != null)
+            settings.ShowPositionIndicator = enabled;
+    }
+
+    public void SetLeadIndicatorEnabled(IndicatorType type, bool enabled)
+    {
+        var settings = GetSettingsForType(type);
+        if (settings != null)
+            settings.ShowLeadIndicator = enabled;
+    }
+
+    public void SetConnectingLineEnabled(IndicatorType type, bool enabled)
+    {
+        var settings = GetSettingsForType(type);
+        if (settings != null)
+            settings.ShowConnectingLine = enabled;
     }
 
     public void SetDisplayRange(float range)
@@ -424,14 +627,14 @@ public class EnemyPredictionManager : MonoBehaviour
         _displayRange = range;
     }
 
+    public void SetMissileDisplayRange(float range)
+    {
+        _missileDisplayRange = range;
+    }
+
     public void SetReferenceGun(Gun gun)
     {
         _referenceGun = gun;
-    }
-
-    public void SetLeadIndicatorEnabled(bool enabled)
-    {
-        _showLeadIndicator = enabled;
     }
 
     public void SetLeadDistanceMultiplier(float multiplier)
@@ -444,38 +647,61 @@ public class EnemyPredictionManager : MonoBehaviour
         _maxPredictionTime = Mathf.Max(0f, maxTime);
     }
 
+    #endregion
+
+    #region Cleanup
+
     public void ClearAll()
     {
-        foreach (var kvp in _enemyIndicators)
+        foreach (var kvp in _activeIndicators)
         {
-            ReturnIndicatorSetToPool(kvp.Value);
+            ReturnIndicatorToPool(kvp.Value);
         }
-        _enemyIndicators.Clear();
-        _trackedEnemies.Clear();
+        _activeIndicators.Clear();
+        _trackedTargets.Clear();
+    }
+
+    public void ClearType(IndicatorType type)
+    {
+        List<Transform> toRemove = new List<Transform>();
+
+        foreach (var kvp in _trackedTargets)
+        {
+            if (kvp.Value.Type == type)
+                toRemove.Add(kvp.Key);
+        }
+
+        foreach (var key in toRemove)
+        {
+            UnregisterTarget(key);
+        }
     }
 
     private void OnDestroy()
     {
-        // Clean up all indicators
-        foreach (var kvp in _enemyIndicators)
+        foreach (var kvp in _activeIndicators)
         {
-            if (kvp.Value.EnemyIndicator != null)
-                Destroy(kvp.Value.EnemyIndicator.gameObject);
-            if (kvp.Value.LeadIndicator != null)
-                Destroy(kvp.Value.LeadIndicator.gameObject);
-            if (kvp.Value.ConnectingLine != null)
-                Destroy(kvp.Value.ConnectingLine.gameObject);
+            DestroyIndicatorSet(kvp.Value);
         }
 
-        while (_indicatorPool.Count > 0)
+        foreach (var pool in _indicatorPools.Values)
         {
-            var set = _indicatorPool.Dequeue();
-            if (set.EnemyIndicator != null)
-                Destroy(set.EnemyIndicator.gameObject);
-            if (set.LeadIndicator != null)
-                Destroy(set.LeadIndicator.gameObject);
-            if (set.ConnectingLine != null)
-                Destroy(set.ConnectingLine.gameObject);
+            while (pool.Count > 0)
+            {
+                DestroyIndicatorSet(pool.Dequeue());
+            }
         }
     }
+
+    private void DestroyIndicatorSet(IndicatorSet set)
+    {
+        if (set.PositionIndicator != null)
+            Destroy(set.PositionIndicator.gameObject);
+        if (set.LeadIndicator != null)
+            Destroy(set.LeadIndicator.gameObject);
+        if (set.ConnectingLine != null)
+            Destroy(set.ConnectingLine.gameObject);
+    }
+
+    #endregion
 }

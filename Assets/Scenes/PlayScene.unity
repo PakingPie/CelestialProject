@@ -3603,7 +3603,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &413969322
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4108,43 +4108,6 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
---- !u!84 &464483588
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 6
-  m_Width: 512
-  m_Height: 512
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 0
-  m_ColorFormat: 52
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_UseDynamicScaleExplicit: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 0
-    m_WrapV: 0
-    m_WrapW: 0
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1 &464575618
 GameObject:
   m_ObjectHideFlags: 0
@@ -4787,7 +4750,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &539839618
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4917,7 +4880,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 592429477}
+  - {fileID: 1181686846}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5002,7 +4965,7 @@ MonoBehaviour:
   GO: {fileID: 555973310}
   PlanetNoiseShader: {fileID: 4800000, guid: 6865d292361eae14b93f346ce8905b7b, type: 3}
   PlanetDayNightShader: {fileID: 4800000, guid: 1d62080664285204d89528d70c384805, type: 3}
-  MainRT: {fileID: 464483588}
+  MainRT: {fileID: 962064715}
   Resolution: 512
   SunPosition: {x: 18000, y: 0, z: -3000}
 --- !u!1 &557443628
@@ -5259,39 +5222,6 @@ MonoBehaviour:
   IsFiring: 0
   LaserOrigin: {fileID: 597182054}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
---- !u!21 &592429477
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Custom/PlanetDayAndNight
-  m_Shader: {fileID: 4800000, guid: 1d62080664285204d89528d70c384805, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 464483588}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats: []
-    m_Colors:
-    - _SunPosition: {r: 18000, g: 0, b: -3000, a: 0}
-  m_BuildTextureStacks: []
-  m_AllowLocking: 1
 --- !u!1 &595716884
 GameObject:
   m_ObjectHideFlags: 0
@@ -9157,6 +9087,43 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 954502391}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!84 &962064715
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 6
+  m_Width: 512
+  m_Height: 512
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 0
+  m_ColorFormat: 52
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 0
+    m_WrapV: 0
+    m_WrapW: 0
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &965373711
 GameObject:
   m_ObjectHideFlags: 0
@@ -10638,31 +10605,28 @@ MonoBehaviour:
   _playerCamera: {fileID: 5948636715277846842}
   _player: {fileID: 7103346325574244501}
   _hudCanvas: {fileID: 1302174826}
-  _playerShipMovement: {fileID: 0}
+  _playerShipMovement: {fileID: 2840843351104990238}
+  _enemySettings: {fileID: 11400000, guid: 07893473794837843afd95c9783c6bc7, type: 2}
+  _missileSettings: {fileID: 11400000, guid: 6803fcfe1ca323f41b992682b1743115, type: 2}
+  _allySettings: {fileID: 11400000, guid: 80339f2505cef1a4ba1ec6e16d5b2a92, type: 2}
   _useWorldSpace: 1
   _worldSpaceOffset: 5
   _displayRange: 5000
   _minDisplayRange: 50
-  _predictionTime: 1
-  _referenceGun: {fileID: 1181223102}
-  _enemyIndicatorPrefab: {fileID: 479890394486771826, guid: abe23642313bf114e983ea46ea23d347, type: 3}
-  _enemyIndicatorColor: {r: 1, g: 0, b: 0, a: 1}
-  _leadIndicatorPrefab: {fileID: 479890394486771826, guid: 104dfab7162ffdc40a6c9d3409f67d5f, type: 3}
-  _leadIndicatorColor: {r: 1, g: 1, b: 1, a: 0.5019608}
-  _minVelocityToShowLead: 5
-  _showLeadIndicator: 1
+  _missileDisplayRange: 2500
   _maxPredictionTime: 5
   _leadDistanceMultiplier: 0.5
+  _minVelocityToShowLead: 5
+  _referenceGun: {fileID: 1181223102}
   _lineMaterial: {fileID: 2100000, guid: 9b7888b2bd0e7a94ca705c211b746a74, type: 2}
-  _lineColor: {r: 1, g: 1, b: 1, a: 1}
   _lineWidth: 1
   _scaleLineWidth: 0
-  _baseScale: 1
-  _minScale: 0.2
-  _maxScale: 4
   _scaleDistanceReference: 5000
   _worldSpaceScaleMultiplier: 0.1
   _updateInterval: 0.03
+  _showEnemyIndicators: 1
+  _showMissileIndicators: 1
+  _showAllyIndicators: 1
 --- !u!114 &1112071341
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11718,6 +11682,39 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!21 &1181686846
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Custom/PlanetDayAndNight
+  m_Shader: {fileID: 4800000, guid: 1d62080664285204d89528d70c384805, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 962064715}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats: []
+    m_Colors:
+    - _SunPosition: {r: 18000, g: 0, b: -3000, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1184364223
 GameObject:
   m_ObjectHideFlags: 0
@@ -23067,7 +23064,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2117162495
 MonoBehaviour:
   m_ObjectHideFlags: 0
