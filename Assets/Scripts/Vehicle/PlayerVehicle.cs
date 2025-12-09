@@ -92,7 +92,7 @@ public class PlayerVehicle : VehicleBase
         _shieldEffectMaterial.SetFloat("_Strength", 1.0f);
         ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial = _shieldEffectMaterial;
 
-        GetComponent<ShieldHitEffect>().ShieldGO = ShieldEffect;
+        // GetComponent<ShieldHitEffect>().ShieldGO = ShieldEffect;
     }
 
     void Update()

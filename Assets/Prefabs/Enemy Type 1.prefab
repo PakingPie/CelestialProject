@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 3449610485239219872}
   - component: {fileID: 8381651718303398464}
   - component: {fileID: 2368025303835637834}
+  - component: {fileID: 3278756523826577245}
+  - component: {fileID: 2325155534543124959}
   m_Layer: 0
   m_Name: Shield
   m_TagString: Untagged
@@ -28,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1510646433887854243}
@@ -89,6 +91,51 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &3278756523826577245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 124679239445400308}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a413cac27f96b0d4db5adc212e01cf6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
+  ShieldGO: {fileID: 124679239445400308}
+  TextureSize: 16
+  HitImpactScale: 0.1
+  HitImpactDuration: 0.5
+  DecayPerSecond: 0.9
+  MinDecayThreshold: 0.02
+  ForceClearInterval: 3
+  HitEffectShader: {fileID: 4800000, guid: 9d4680f053a4c804784f0d8d0d3302d7, type: 3}
+  CumulativeShader: {fileID: 4800000, guid: a63a745ff69d80e46a11d9e8f34dd690, type: 3}
+  EnableDebugMode: 0
+  DebugQuad: {fileID: 0}
+--- !u!64 &2325155534543124959
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 124679239445400308}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &525621375880019978
 GameObject:
   m_ObjectHideFlags: 0
@@ -153,6 +200,9 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 50, y: 3000}
   UpdateRate: 60
+  CanTargetMissiles: 0
+  PrioritizeMissiles: 0
+  MissileDetectionRange: 200
   ShowGizmos: 0
   UseManagedUpdates: 1
   LaserLineRenderer: {fileID: 5457200971297131156}
@@ -571,7 +621,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 5321280234917079974}
@@ -731,6 +781,9 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 100, y: 4000}
   UpdateRate: 30
+  CanTargetMissiles: 0
+  PrioritizeMissiles: 0
+  MissileDetectionRange: 200
   ShowGizmos: 0
   UseManagedUpdates: 1
   FireDelay: 4
@@ -819,7 +872,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 10, y: 10, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2595131329914410010}
@@ -881,7 +934,7 @@ MonoBehaviour:
   ExplodeEffect: {fileID: 7698972359503818749, guid: dc871d3822e9f3649a40eba6bb930974, type: 3}
   ShieldRegenerationRate: 1
   ShieldRegenerationDelay: 5
-  EnablePrediction: 1
+  EnableIndication: 1
 --- !u!114 &6621555047069784344
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -889,7 +942,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4103674997823826176}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a413cac27f96b0d4db5adc212e01cf6f, type: 3}
   m_Name: 
@@ -922,7 +975,7 @@ MeshCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30

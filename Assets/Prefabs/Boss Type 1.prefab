@@ -186,10 +186,15 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
-  ShowGizmos: 1
+  CanTargetMissiles: 0
+  PrioritizeMissiles: 0
+  MissileDetectionRange: 200
+  ShowGizmos: 0
+  UseManagedUpdates: 1
   LaserLineRenderer: {fileID: 8389571609743953034}
   LaserEffectDuration: 2.5
   MinimumLaserDamageInterval: 0.2
+  FireInterval: 2
   TurretRotateSpeed: 5
   LaserDamageCap: 20
   LaserDPS: 4
@@ -368,7 +373,11 @@ MonoBehaviour:
   GuidanceType: 0
   ActiveRange: {x: 5, y: 800}
   UpdateRate: 30
+  CanTargetMissiles: 0
+  PrioritizeMissiles: 0
+  MissileDetectionRange: 200
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.1
@@ -391,6 +400,7 @@ MonoBehaviour:
   IsFiring: 0
   UseAmmo: 0
   MaxAmmo: 10000
+  IsManualMode: 0
 --- !u!1 &124679239445400308
 GameObject:
   m_ObjectHideFlags: 0
@@ -402,6 +412,8 @@ GameObject:
   - component: {fileID: 3449610485239219872}
   - component: {fileID: 8381651718303398464}
   - component: {fileID: 2368025303835637834}
+  - component: {fileID: 4732779516289163941}
+  - component: {fileID: 1493972133170683944}
   m_Layer: 8
   m_Name: Shield
   m_TagString: Untagged
@@ -419,7 +431,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 10, y: 10, z: 10}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1510646433887854243}
@@ -480,6 +492,51 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4732779516289163941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 124679239445400308}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a413cac27f96b0d4db5adc212e01cf6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
+  ShieldGO: {fileID: 124679239445400308}
+  TextureSize: 64
+  HitImpactScale: 0.2
+  HitImpactDuration: 1
+  DecayPerSecond: 0.9
+  MinDecayThreshold: 0.02
+  ForceClearInterval: 3
+  HitEffectShader: {fileID: 4800000, guid: 9d4680f053a4c804784f0d8d0d3302d7, type: 3}
+  CumulativeShader: {fileID: 4800000, guid: a63a745ff69d80e46a11d9e8f34dd690, type: 3}
+  EnableDebugMode: 0
+  DebugQuad: {fileID: 0}
+--- !u!64 &1493972133170683944
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 124679239445400308}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &415555105603708070
 GameObject:
   m_ObjectHideFlags: 0
@@ -1320,7 +1377,11 @@ MonoBehaviour:
   GuidanceType: 0
   ActiveRange: {x: 5, y: 800}
   UpdateRate: 30
+  CanTargetMissiles: 0
+  PrioritizeMissiles: 0
+  MissileDetectionRange: 200
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.1
@@ -1343,6 +1404,7 @@ MonoBehaviour:
   IsFiring: 0
   UseAmmo: 0
   MaxAmmo: 10000
+  IsManualMode: 0
 --- !u!1 &2566137365180243544
 GameObject:
   m_ObjectHideFlags: 0
@@ -1402,7 +1464,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8993484036630423740}
@@ -1745,7 +1807,11 @@ MonoBehaviour:
   GuidanceType: 0
   ActiveRange: {x: 5, y: 800}
   UpdateRate: 30
+  CanTargetMissiles: 0
+  PrioritizeMissiles: 0
+  MissileDetectionRange: 200
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.1
@@ -1768,6 +1834,7 @@ MonoBehaviour:
   IsFiring: 0
   UseAmmo: 0
   MaxAmmo: 10000
+  IsManualMode: 0
 --- !u!1 &3612908267855686379
 GameObject:
   m_ObjectHideFlags: 0
@@ -1919,7 +1986,11 @@ MonoBehaviour:
   GuidanceType: 0
   ActiveRange: {x: 5, y: 800}
   UpdateRate: 30
+  CanTargetMissiles: 0
+  PrioritizeMissiles: 0
+  MissileDetectionRange: 200
   ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.1
@@ -1942,6 +2013,7 @@ MonoBehaviour:
   IsFiring: 0
   UseAmmo: 0
   MaxAmmo: 10000
+  IsManualMode: 0
 --- !u!1 &3906474580498542663
 GameObject:
   m_ObjectHideFlags: 0
@@ -2020,7 +2092,6 @@ GameObject:
   - component: {fileID: 3109858766895225120}
   - component: {fileID: -2094783752960322070}
   - component: {fileID: 6621555047069784344}
-  - component: {fileID: 506681942887901699}
   - component: {fileID: 1144383995732513593}
   m_Layer: 9
   m_Name: Boss Type 1
@@ -2039,7 +2110,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 10, y: 10, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2595131329914410010}
@@ -2066,6 +2137,9 @@ MonoBehaviour:
   flockmatesCenter: {x: 0, y: 0, z: 0}
   numPerceivedFlockmates: 0
   HeightRange: {x: -1000, y: 1000}
+  IsInCombat: 0
+  FormationIndex: 0
+  FormationLeader: {fileID: 0}
 --- !u!114 &-2094783752960322070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2087,19 +2161,18 @@ MonoBehaviour:
   Speed: 1
   Scale: {x: 1, y: 1, z: 1}
   BoidManager: {fileID: 0}
-  FactionType: 2
-  Type: 0
+  VehicleFaction: 4
+  Type: 3
   HealthBar: {fileID: 4407329836811907037}
   ArmorBar: {fileID: 656281697264504808}
   ShieldBar: {fileID: 5030111709581805343}
   HealthBarShader: {fileID: -6465566751694194690, guid: 4a53868445a75a246b83a1f930cbdccd, type: 3}
   EnergyShieldShader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
   ShieldEffect: {fileID: 124679239445400308}
-  Turret: {fileID: 0}
-  FireSpawn: {fileID: 0}
   ExplodeEffect: {fileID: 7698972359503818749, guid: 8696c1021f07aed4180a586385d9c9cc, type: 3}
   ShieldRegenerationRate: 10
   ShieldRegenerationDelay: 5
+  EnableIndication: 0
 --- !u!114 &6621555047069784344
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2123,28 +2196,6 @@ MonoBehaviour:
   CumulativeShader: {fileID: 4800000, guid: a63a745ff69d80e46a11d9e8f34dd690, type: 3}
   EnableDebugMode: 0
   DebugQuad: {fileID: 0}
---- !u!64 &506681942887901699
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4103674997823826176}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!96 &1144383995732513593
 TrailRenderer:
   serializedVersion: 3
@@ -2495,7 +2546,11 @@ MonoBehaviour:
   GuidanceType: 0
   ActiveRange: {x: 5, y: 1500}
   UpdateRate: 30
-  ShowGizmos: 1
+  CanTargetMissiles: 0
+  PrioritizeMissiles: 0
+  MissileDetectionRange: 200
+  ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 5
   MuzzleVelocity: 200
   Deviation: 0.1
@@ -2518,6 +2573,7 @@ MonoBehaviour:
   IsFiring: 0
   UseAmmo: 0
   MaxAmmo: 10000
+  IsManualMode: 0
 --- !u!1 &4514165425950621109
 GameObject:
   m_ObjectHideFlags: 0
@@ -4014,7 +4070,11 @@ MonoBehaviour:
   GuidanceType: 0
   ActiveRange: {x: 5, y: 1500}
   UpdateRate: 30
-  ShowGizmos: 1
+  CanTargetMissiles: 0
+  PrioritizeMissiles: 0
+  MissileDetectionRange: 200
+  ShowGizmos: 0
+  UseManagedUpdates: 1
   FireDelay: 5
   MuzzleVelocity: 200
   Deviation: 0.1
@@ -4037,6 +4097,7 @@ MonoBehaviour:
   IsFiring: 0
   UseAmmo: 0
   MaxAmmo: 10000
+  IsManualMode: 0
 --- !u!1 &6433939959929118497
 GameObject:
   m_ObjectHideFlags: 0
@@ -4275,9 +4336,9 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6894111711972518283}
-  m_LocalRotation: {x: -0.03971605, y: 0.7393297, z: 0.043777116, w: 0.67074424}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 3110045092184062921}
@@ -4285,7 +4346,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 5}
   m_SizeDelta: {x: 100, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &5795151401370849225
@@ -4790,10 +4851,15 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
-  ShowGizmos: 1
+  CanTargetMissiles: 0
+  PrioritizeMissiles: 0
+  MissileDetectionRange: 200
+  ShowGizmos: 0
+  UseManagedUpdates: 1
   LaserLineRenderer: {fileID: 2365166110383747401}
   LaserEffectDuration: 2.5
   MinimumLaserDamageInterval: 0.2
+  FireInterval: 2
   TurretRotateSpeed: 5
   LaserDamageCap: 20
   LaserDPS: 4

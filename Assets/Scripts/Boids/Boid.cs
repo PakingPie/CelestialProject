@@ -4,7 +4,7 @@ public class Boid : MonoBehaviour
 {
     private BoidSettings _settings;
     private Transform _cachedTransform;
-    private Transform _target;
+    [SerializeField]private Transform _target;
     private Material _material;
     private FlockTargetManager _targetManager;
 

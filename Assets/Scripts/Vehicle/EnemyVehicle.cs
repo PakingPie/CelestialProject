@@ -97,7 +97,7 @@ public class EnemyVehicle : VehicleBase
             ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial = new Material(EnergyShieldShader);
             ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", 1.0f);
 
-            GetComponent<ShieldHitEffect>().ShieldGO = ShieldEffect;
+            // GetComponent<ShieldHitEffect>().ShieldGO = ShieldEffect;
         }
     }
 

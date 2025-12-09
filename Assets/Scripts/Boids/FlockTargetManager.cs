@@ -33,6 +33,8 @@ public class FlockTargetManager : MonoBehaviour
     [SerializeField] private float _minEngagementDistance = 80f;
     [SerializeField] private float _preferredEngagementDistance = 150f;
 
+    public bool _debugMode = false;
+
     public string FlockId => _flockId;
     public GlobalHelper.Team Team => _team;
 
@@ -97,9 +99,15 @@ public class FlockTargetManager : MonoBehaviour
 
     private bool IsIgnored(Transform target)
     {
-        foreach (var ignoreTag in _ignoreTags)
+        // Check target and all parents for ignore tags
+        Transform current = target;
+        while (current != null)
         {
-            if (target.CompareTag(ignoreTag)) return true;
+            foreach (var ignoreTag in _ignoreTags)
+            {
+                if (current.CompareTag(ignoreTag)) return true;
+            }
+            current = current.parent;
         }
         return false;
     }
@@ -228,7 +236,9 @@ public class FlockTargetManager : MonoBehaviour
             var collider = _overlapResults[i];
             if (collider == null) continue;
 
-            Transform target = collider.transform;
+            // Get the root object with VehicleBase, not the collider's transform
+            Transform target = GetVehicleRoot(collider.transform);
+            if (target == null) continue;
 
             // Check if valid target
             if (!IsValidTarget(target)) continue;
@@ -448,6 +458,30 @@ public class FlockTargetManager : MonoBehaviour
         }
 
         return Vector3.zero;
+    }
+
+    private Transform GetVehicleRoot(Transform colliderTransform)
+    {
+        // First try to get VehicleBase on this object or parents
+        VehicleBase vehicle = colliderTransform.GetComponentInParent<VehicleBase>();
+        if (vehicle != null)
+        {
+            return vehicle.transform;
+        }
+
+        // Fallback: walk up hierarchy looking for tagged object
+        Transform current = colliderTransform;
+        while (current != null)
+        {
+            foreach (var tag in _targetTags)
+            {
+                if (current.CompareTag(tag))
+                    return current;
+            }
+            current = current.parent;
+        }
+
+        return null;
     }
 
     void OnDrawGizmosSelected()
