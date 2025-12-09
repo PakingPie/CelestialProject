@@ -7,7 +7,7 @@ public class FlockTargetManager : MonoBehaviour
     [Header("Detection")]
     [SerializeField] private float _detectionRadius = 5000f;
     [SerializeField] private float _detectionInterval = 0.2f;
-    [SerializeField] private LayerMask _targetLayers;
+    // [SerializeField] private LayerMask _targetLayers;
     [SerializeField] private List<string> _targetTags = new List<string>();
     [SerializeField] private List<string> _ignoreTags = new List<string>();
 
@@ -26,8 +26,8 @@ public class FlockTargetManager : MonoBehaviour
     [SerializeField] private string _flockId = "";
     [SerializeField] private GlobalHelper.Team _team = GlobalHelper.Team.Neutral;
 
-    [Header("Detection")]
-    [SerializeField] private int _maxOverlapResults = 256;
+    // [Header("Detection")]
+    // [SerializeField] private int _maxOverlapResults = 256;
 
     [Header("Enemy Avoidance")]
     [SerializeField] private float _minEngagementDistance = 80f;
@@ -46,15 +46,16 @@ public class FlockTargetManager : MonoBehaviour
     private float _lastAssignmentTime;
     private Transform _flockCenter;
 
-    private Collider[] _overlapResults;
+    // private Collider[] _overlapResults;
+    private List<VehicleBase> _nearbyEnemies = new List<VehicleBase>(64);
 
     public IReadOnlyDictionary<Boid, TargetInfo> BoidAssignments => _boidAssignments;
 
-    public void Initialize(string flockId,
+    public void Initialize(
+    string flockId,
     GlobalHelper.Team team,
     float detectionRadius,
-    LayerMask targetLayers,
-    int maxOverlapResults,
+    int maxOverlapResults,  // Can remove this too
     float minEngagementDistance,
     float preferredEngagementDistance,
     List<string> targetTags,
@@ -63,8 +64,6 @@ public class FlockTargetManager : MonoBehaviour
         _flockId = flockId;
         _team = team;
         _detectionRadius = detectionRadius;
-        _targetLayers = targetLayers;
-        _maxOverlapResults = maxOverlapResults;
         _minEngagementDistance = minEngagementDistance;
         _preferredEngagementDistance = preferredEngagementDistance;
         _targetTags = targetTags ?? new List<string>();
@@ -115,7 +114,6 @@ public class FlockTargetManager : MonoBehaviour
     void Awake()
     {
         _flockCenter = transform;
-        _overlapResults = new Collider[_maxOverlapResults];
     }
 
     public void RegisterBoid(Boid boid)
@@ -211,37 +209,27 @@ public class FlockTargetManager : MonoBehaviour
             center = transform.position;
         }
 
-        // if (_debugMode)
-        // {
-        //     Debug.Log($"[{_flockId}] Scanning at center {center}, radius {_detectionRadius}");
-        //     Debug.Log($"[{_flockId}] Target Layers: {_targetLayers.value}");
-        //     Debug.Log($"[{_flockId}] Target Tags: {string.Join(", ", _targetTags)}");
+        // Get enemy factions based on our team
+        GlobalHelper.Faction targetFactions = GetTargetFactions();
 
-        //     // Test without layer mask
-        //     Collider[] testResults = Physics.OverlapSphere(center, _detectionRadius);
-        //     Debug.Log($"[{_flockId}] Without layer filter: {testResults.Length} colliders found");
-        // }
-        // Detect potential targets
-        int hitCount = Physics.OverlapSphereNonAlloc(center, _detectionRadius, _overlapResults, _targetLayers);
-
-        // if (_debugMode)
-        // {
-        //     Debug.Log($"[{_flockId}] With layer filter: {hitCount} colliders found");
-        // }
+        // Query CombatRegistry instead of Physics
+        CombatRegistry.FindEnemiesInRange(center, _detectionRadius, targetFactions, _nearbyEnemies);
 
         HashSet<Transform> currentTargets = new HashSet<Transform>();
 
-        for (int i = 0; i < hitCount; i++)
+        for (int i = 0; i < _nearbyEnemies.Count; i++)
         {
-            var collider = _overlapResults[i];
-            if (collider == null) continue;
+            VehicleBase vehicle = _nearbyEnemies[i];
+            if (vehicle == null) continue;
 
-            // Get the root object with VehicleBase, not the collider's transform
-            Transform target = GetVehicleRoot(collider.transform);
-            if (target == null) continue;
+            Transform target = vehicle.transform;
 
-            // Check if valid target
-            if (!IsValidTarget(target)) continue;
+            // Skip if ignored
+            if (IsIgnored(target)) continue;
+
+            // Skip boids from our own flock
+            Boid boid = target.GetComponent<Boid>();
+            if (boid != null && _managedBoids.Contains(boid)) continue;
 
             currentTargets.Add(target);
 
@@ -482,6 +470,20 @@ public class FlockTargetManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    private GlobalHelper.Faction GetTargetFactions()
+    {
+        switch (_team)
+        {
+            case GlobalHelper.Team.Player:
+            case GlobalHelper.Team.Ally:
+                return GlobalHelper.Faction.Foe;
+            case GlobalHelper.Team.Foe:
+                return GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally;
+            default:
+                return GlobalHelper.Faction.Foe;
+        }
     }
 
     void OnDrawGizmosSelected()

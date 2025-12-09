@@ -43,7 +43,7 @@ public class BoidsManager : MonoBehaviour
             _targetManager = gameObject.AddComponent<FlockTargetManager>();
         }
 
-        _targetManager.Initialize(_flockId, _team, _detectionRadius, _targetLayers, _maxOverlapResults, _minEngagementDistance, _preferredEngagementDistance, _targetTags, _ignoreTags);
+        _targetManager.Initialize(_flockId, _team, _detectionRadius, _targetLayers, _minEngagementDistance, _preferredEngagementDistance, _targetTags, _ignoreTags);
 
         var spawners = GetComponentsInChildren<BoidSpawner>();
         boids = new List<Boid>();
