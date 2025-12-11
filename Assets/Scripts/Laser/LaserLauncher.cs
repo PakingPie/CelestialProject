@@ -123,7 +123,13 @@ public class LaserLauncher : WeaponBase
             // Deal damage
             var enemyVehicle = Targeted.gameObject.GetComponent<VehicleBase>();
             if (enemyVehicle == null)
+            {
+                // if entity is destroyed or missing VehicleBase, stop firing
+                _laserDurationTimer = LaserEffectDuration;
+                _isOnCooldown = true;
+                _fireCooldownTimer = 0f;
                 return;
+            }
 
             if (_laserDurationTimer > 0.2f && _laserDurationTimer < LaserEffectDuration - 0.2f && _laserDamageTimer >= MinimumLaserDamageInterval)
             {

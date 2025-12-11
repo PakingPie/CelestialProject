@@ -328,11 +328,11 @@ public class EnemyVehicle : VehicleBase
     {
         if (VehicleFaction == Faction.Foe)
         {
-            PawnCountManager.EnemyDestroyedCount++;
+            PawnCountManager.UpdateEnemyCountAction?.Invoke();
         }
         else if (VehicleFaction == Faction.Ally)
         {
-            PawnCountManager.AlliesRemainingCount--;
+            PawnCountManager.UpdateAllyCountAction?.Invoke();
         }
 
         var boid = GetComponent<Boid>();
