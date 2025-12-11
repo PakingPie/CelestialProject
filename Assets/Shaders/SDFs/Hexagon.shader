@@ -20,64 +20,51 @@ Shader "SDFs/Hexagon"
             float _HexagonScale;
             
             struct appdata
-{
-    float4 vertex : POSITION;
-    float3 normal : NORMAL;
-    float2 uv : TEXCOORD0;
-};
+            {
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+            };
 
-struct v2f
-{
-    float4 vertex : SV_POSITION;
-    float3 objPos : TEXCOORD0;
-    float3 objNormal : TEXCOORD1;
-};
+            struct v2f
+            {
+                float4 vertex : SV_POSITION;
+                float2 uv : TEXCOORD0;
+            };
 
-v2f vert (appdata v)
-{
-    v2f o;
-    o.vertex = TransformObjectToHClip(v.vertex);
-    o.objPos = v.vertex.xyz;
-    o.objNormal = v.normal;
-    return o;
-}
+            v2f vert (appdata v)
+            {
+                v2f o;
+                o.vertex = TransformObjectToHClip(v.vertex);
+                o.uv = v.uv;
+                return o;
+            }
 
-float HexagonSDF(float2 p, float2 s)
-{
-    float4 hC = floor(float4(p, p - float2(1, 0.5)) / s.xyxy) + 0.5;
-    float4 h = float4(p - hC.xy * s, p - (hC.zw + 0.5) * s);
-    
-    float2 hexUV;
-    if(dot(h.xy, h.xy) < dot(h.zw, h.zw))
-        hexUV = h.xy;
-    else
-        hexUV = h.zw;
-    
-    return max(dot(abs(hexUV), s * 0.5), abs(hexUV.y));
-}
+            // const float2 s = float2(1.7320508, 1.0f);
 
-float4 frag(v2f i) : SV_Target
-{
-    const float2 s = float2(1.732051f, 1.0f);
-    
-    float3 blend = abs(normalize(i.objNormal));
-    blend = pow(blend, 4); // Sharpen the blend
-    blend /= (blend.x + blend.y + blend.z);
-    
-    float3 pos = i.objPos * _HexagonScale;
-    
-    // Sample hexagon from 3 projections
-    float sdfX = HexagonSDF(pos.yz, s);
-    float sdfY = HexagonSDF(pos.xz, s);
-    float sdfZ = HexagonSDF(pos.xy, s);
-    
-    // Blend based on normal direction
-    float sdf = sdfX * blend.x + sdfY * blend.y + sdfZ * blend.z;
-    
-    float hexagon = 1 - smoothstep(0.46, 0.5, sdf);
-    
-    return float4(hexagon, hexagon, hexagon, 1) * _Color;
-}
+            
+
+            float4 frag(v2f i) : SV_Target
+            {
+                const float2 s = float2(1.732051f, 1.0f);
+                float2 p = i.uv * _HexagonScale;
+                float4 hC = floor(float4(p, p - float2(1, 0.5)) / s.xyxy) + 0.5;
+                float4 h = float4(p - hC.xy * s, p - (hC.zw + 0.5) * s);
+                float4 hexagonUV = 0;
+                if(dot(h.xy, h.xy) < dot(h.zw, h.zw))
+                {
+                    hexagonUV = float4(h.xy, hC.xy);
+                }
+                else
+                {
+                    hexagonUV = float4(h.zw, hC.zw + 0.5);
+                }
+
+                float sdf = max(dot(abs(hexagonUV.xy), s * float2(0.5, 0.5)), hexagonUV.g);
+
+                float hexagon = lerp(1, 0, smoothstep(0, 0.03, sdf - 0.5 + 0.04));
+                
+                return float4(hexagon, hexagon, hexagon, 1) * _Color;
+            }   
 
             ENDHLSL
         }
