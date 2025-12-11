@@ -21,8 +21,8 @@ public class PlayerHud : MonoBehaviour
     [SerializeField] private TMPro.TextMeshProUGUI _throttleText = null;
 
     [Header("Weapon Reload Display")]
-    [SerializeField] private List<Gun> _mainGuns = new List<Gun>();
-    [SerializeField] private List<Gun> _secondaryGuns = new List<Gun>();
+    private List<Gun> _mainGuns;
+    private List<Gun> _secondaryGuns;
     [SerializeField] private GameObject _reloadIndicatorPrefab;
     [SerializeField] private Transform _reloadIndicatorContainerForMainGuns;
     [SerializeField] private Transform _reloadIndicatorContainerForSecondaryGuns;
@@ -54,6 +54,8 @@ public class PlayerHud : MonoBehaviour
 
     private void Start()
     {
+        _mainGuns = _gunController.PrimaryGuns;
+        _secondaryGuns = _gunController.SecondaryGuns;
         CreateReloadIndicators();
     }
 

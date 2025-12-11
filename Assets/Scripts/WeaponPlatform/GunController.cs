@@ -43,6 +43,10 @@ public class GunController : MonoBehaviour
     private bool isSecondaryFiring = false;
     private bool isTertiaryFiring = false;
 
+    public List<Gun> PrimaryGuns => primaryGuns;
+    public List<Gun> SecondaryGuns => secondaryGuns;
+    public List<Gun> TertiaryGuns => tertiaryGuns;
+
     private void Awake()
     {
         if (mainCamera == null)
