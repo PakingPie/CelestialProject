@@ -26,6 +26,9 @@ public class BoidsManager : MonoBehaviour
     [SerializeField] private LayerMask _targetLayers;
     [SerializeField] private float _detectionRadius = 5000f;
 
+    private FormationType _lastFormationType;
+    private bool _lastUseFormation;
+
     private List<WeaponBase> _boidWeapons = new List<WeaponBase>();
     private Boid _formationLeader = null;
 
@@ -69,11 +72,18 @@ public class BoidsManager : MonoBehaviour
         }
 
         AssignFormationPositions();
+
+        _lastFormationType = settings.formationType;
+        _lastUseFormation = settings.useFormation;
     }
 
     void AssignFormationPositions()
     {
-        if (boids == null || boids.Count == 0) return;
+        if (boids == null || boids.Count == 0)
+        {
+            _formationLeader = null;
+            return;
+        }
 
         _formationLeader = boids[0];
         _formationLeader.FormationIndex = 0;
@@ -132,6 +142,19 @@ public class BoidsManager : MonoBehaviour
             boids[i].UpdateBoid();
         }
 
+        // Detect formation settings changes from inspector/profile
+        if (settings.formationType != _lastFormationType || settings.useFormation != _lastUseFormation)
+        {
+            _lastFormationType = settings.formationType;
+            _lastUseFormation = settings.useFormation;
+
+            foreach (var boid in boids)
+            {
+                if (boid != null)
+                    boid.OnFormationChanged();
+            }
+        }
+
         UpdateBoidWeapons();
 
         boidBuffer.Release();
@@ -146,7 +169,7 @@ public class BoidsManager : MonoBehaviour
             if (boids[i] == null)
             {
                 if (i == 0) leaderRemoved = true;
-                _targetManager.UnregisterBoid(boids[i]);
+                // Don't call UnregisterBoid with null - it's already gone
                 boids.RemoveAt(i);
             }
         }
@@ -242,14 +265,27 @@ public class BoidsManager : MonoBehaviour
     public void SetFormationType(FormationType type)
     {
         settings.formationType = type;
-    }
 
-    public void ForceCombatMode()
-    {
+        // Notify all boids of formation change
         foreach (var boid in boids)
         {
             if (boid != null)
-                boid.EnterCombat();
+            {
+                boid.OnFormationChanged();
+            }
+        }
+    }
+
+    public void SetUseFormation(bool useFormation)
+    {
+        settings.useFormation = useFormation;
+
+        foreach (var boid in boids)
+        {
+            if (boid != null)
+            {
+                boid.OnFormationChanged();
+            }
         }
     }
 

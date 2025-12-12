@@ -59,6 +59,12 @@ public class Boid : MonoBehaviour
     private Vector3 _combatFacingDirection;
     private const float CombatRotationSpeed = 4f;
 
+    // Wander state
+    private Vector3 _wanderTarget;
+    private float _wanderTimer;
+    private const float WanderRadius = 2500f;
+    private const float WanderInterval = 60f;
+
     public BoidSettings Settings => _settings;
     public Vector3 Velocity => _velocity;
     public Transform CurrentTarget => _target;
@@ -117,6 +123,9 @@ public class Boid : MonoBehaviour
         _previousAcceleration = Vector3.zero;
         _collisionUrgency = 0f;
         _combatFacingDirection = forward;
+        _wanderTarget = position + Random.insideUnitSphere * WanderRadius;
+        _wanderTarget.y = Mathf.Clamp(_wanderTarget.y, HeightRange.x, HeightRange.y);
+        _wanderTimer = Random.Range(0f, WanderInterval); // Stagger initial timers
     }
 
     public void SetTargetManager(BoidFlockTargetManager manager)
@@ -151,7 +160,7 @@ public class Boid : MonoBehaviour
                 // Reset side commitment if target changed
                 if (_target != assignedTarget && AttackBehavior != null)
                 {
-                    _attackBehavior.ResetSideCommitment();
+                    AttackBehavior.ResetSideCommitment();
                 }
                 _target = assignedTarget;
                 return;
@@ -331,23 +340,49 @@ public class Boid : MonoBehaviour
         Vector3 acceleration = Vector3.zero;
 
         // Formation behavior when not in combat
-        if (_settings.useFormation && !IsInCombat && FormationLeader != null && FormationIndex > 0)
+        if (_settings.useFormation && !IsInCombat && FormationIndex == 0)
+        {
+            // Leader: move toward assigned target or wander
+            if (_target != null)
+            {
+                Vector3 targetPos = _target.position;
+                _smoothedTargetPosition = Vector3.Lerp(_smoothedTargetPosition, targetPos, Time.deltaTime * TargetSmoothSpeed);
+                Vector3 offsetToTarget = _smoothedTargetPosition - position;
+
+                if (offsetToTarget.sqrMagnitude > 25f)
+                {
+                    acceleration += SteerTowards(offsetToTarget) * _settings.targetWeight;
+                }
+            }
+            else
+            {
+                // No target - wander randomly
+                acceleration += GetWanderForce() * _settings.targetWeight;
+            }
+        }
+        else if (_settings.useFormation && !IsInCombat && FormationLeader != null && FormationIndex > 0)
         {
             acceleration += CalculateFormationAcceleration();
         }
         else if (IsInCombat && AttackBehavior != null && AttackBehavior.Profile != null && _target != null)
         {
-            // Combat movement using attack behavior
             Vector3 movementDir = AttackBehavior.GetDesiredMovementDirection(_target.position, _target.forward);
             acceleration += SteerTowards(movementDir) * _settings.targetWeight * 1.5f;
         }
         else
         {
-            // Default: move toward target
-            Vector3 targetPos = GetTargetPosition();
-            _smoothedTargetPosition = Vector3.Lerp(_smoothedTargetPosition, targetPos, Time.deltaTime * TargetSmoothSpeed);
-            Vector3 offsetToTarget = _smoothedTargetPosition - position;
-            acceleration += SteerTowards(offsetToTarget) * _settings.targetWeight;
+            // Default: move toward target or wander
+            if (_target != null)
+            {
+                Vector3 targetPos = _target.position;
+                _smoothedTargetPosition = Vector3.Lerp(_smoothedTargetPosition, targetPos, Time.deltaTime * TargetSmoothSpeed);
+                Vector3 offsetToTarget = _smoothedTargetPosition - position;
+                acceleration += SteerTowards(offsetToTarget) * _settings.targetWeight;
+            }
+            else
+            {
+                acceleration += GetWanderForce() * _settings.targetWeight;
+            }
         }
 
         // Flocking behavior
@@ -360,9 +395,17 @@ public class Boid : MonoBehaviour
             float cohesionMult = IsInCombat ? _settings.combatCohesionMultiplier : 1f;
             float separateMult = IsInCombat ? _settings.combatSeparationMultiplier : 1f;
 
+            // Formation mode: drastically reduce flocking
             if (_settings.useFormation && !IsInCombat && FormationLeader != null && FormationIndex > 0)
             {
-                alignMult *= 0.3f;
+                alignMult *= 0.1f;
+                cohesionMult *= 0.05f;
+                separateMult *= 0.3f;  // Keep some separation to avoid collisions
+            }
+
+            // Leader should also reduce cohesion to not get pulled back
+            if (_settings.useFormation && !IsInCombat && FormationIndex == 0)
+            {
                 cohesionMult *= 0.1f;
             }
 
@@ -452,26 +495,45 @@ public class Boid : MonoBehaviour
         Vector3 rawTarget = FormationLeader.position +
             FormationLeader._cachedTransform.TransformDirection(formationOffset);
 
-        _smoothedFormationTarget = Vector3.Lerp(_smoothedFormationTarget, rawTarget, Time.deltaTime * FormationTargetSmoothSpeed);
+        float distanceToRaw = Vector3.Distance(_smoothedFormationTarget, rawTarget);
+        float smoothSpeed = FormationTargetSmoothSpeed;
+
+        // Faster response when formation position changed significantly
+        if (distanceToRaw > _settings.formationSpacing * 0.5f)
+        {
+            smoothSpeed *= 3f;
+        }
+
+        _smoothedFormationTarget = Vector3.Lerp(_smoothedFormationTarget, rawTarget, Time.deltaTime * smoothSpeed);
 
         Vector3 toFormation = _smoothedFormationTarget - position;
         float distanceToFormation = toFormation.magnitude;
 
-        if (distanceToFormation > FormationDeadZone)
-        {
-            float urgency = Mathf.Clamp01((distanceToFormation - FormationDeadZone) / FormationUrgencyRange);
-            Vector3 formationForce = SteerTowards(toFormation) * _settings.formationTightness * urgency;
-            acceleration += formationForce;
-        }
+        float urgency = Mathf.Clamp01(distanceToFormation / FormationUrgencyRange);
+        urgency = Mathf.Max(urgency, 0.1f);
+
+        Vector3 formationForce = SteerTowards(toFormation) * _settings.formationTightness * urgency;
+        acceleration += formationForce;
 
         Vector3 leaderVelocity = FormationLeader.Velocity;
         if (leaderVelocity.sqrMagnitude > 0.01f)
         {
-            Vector3 matchForce = SteerTowards(leaderVelocity - _velocity) * _settings.formationMatchSpeed;
+            Vector3 matchForce = SteerTowards(leaderVelocity) * _settings.formationMatchSpeed;
             acceleration += matchForce;
         }
 
         return acceleration;
+    }
+
+    public void OnFormationChanged()
+    {
+        // Reset smoothed target to force immediate recalculation
+        if (FormationLeader != null)
+        {
+            Vector3 formationOffset = GetFormationOffset();
+            _smoothedFormationTarget = FormationLeader.position +
+                FormationLeader._cachedTransform.TransformDirection(formationOffset);
+        }
     }
 
     private Vector3 FindUnobstructedDirectionIncremental()
@@ -574,7 +636,7 @@ public class Boid : MonoBehaviour
             if (other._targetManager != _targetManager) continue;
 
             float distance = Vector3.Distance(position, other.position);
-            if (distance > 0.01f)
+            if (distance > 0.1f)
             {
                 Vector3 away = position - other.position;
                 separation += away.normalized / distance;
@@ -583,6 +645,25 @@ public class Boid : MonoBehaviour
         }
 
         return separation;
+    }
+
+    private Vector3 GetWanderForce()
+    {
+        _wanderTimer -= Time.deltaTime;
+
+        if (_wanderTimer <= 0f || Vector3.Distance(position, _wanderTarget) < 50f)
+        {
+            // Pick new wander target
+            Vector3 randomDir = Random.insideUnitSphere;
+            randomDir.y *= 0.3f; // Reduce vertical wandering
+
+            _wanderTarget = position + randomDir.normalized * WanderRadius;
+            _wanderTarget.y = Mathf.Clamp(_wanderTarget.y, HeightRange.x, HeightRange.y);
+            _wanderTimer = WanderInterval + Random.Range(-1f, 1f);
+        }
+
+        Vector3 toWander = _wanderTarget - position;
+        return SteerTowards(toWander);
     }
 
     void OnDrawGizmos()

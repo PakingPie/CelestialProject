@@ -171,14 +171,20 @@ public class BoidFlockTargetManager : MonoBehaviour
         {
             if (_managedBoids[i] == null)
             {
-                var boid = _managedBoids[i];
-                if (_boidAssignments.TryGetValue(boid, out var info) && info != null)
-                {
-                    info.AssignedBoidCount--;
-                }
-                _boidAssignments.Remove(boid);
                 _managedBoids.RemoveAt(i);
             }
+        }
+
+        // Clean up assignments separately
+        var keysToRemove = new List<Boid>();
+        foreach (var kvp in _boidAssignments)
+        {
+            if (kvp.Key == null)
+                keysToRemove.Add(kvp.Key);
+        }
+        foreach (var key in keysToRemove)
+        {
+            _boidAssignments.Remove(key);
         }
     }
 
