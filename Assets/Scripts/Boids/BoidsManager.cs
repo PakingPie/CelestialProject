@@ -81,7 +81,6 @@ public class BoidsManager : MonoBehaviour
 
     void AssignFormationPositions()
     {
-        // Clean null entries first
         boids.RemoveAll(b => b == null);
 
         if (boids.Count == 0)
@@ -93,6 +92,7 @@ public class BoidsManager : MonoBehaviour
         _formationLeader = boids[0];
         _formationLeader.FormationIndex = 0;
         _formationLeader.FormationLeader = null;
+        _formationLeader.OnFormationChanged(); // Also reset leader
 
         for (int i = 1; i < boids.Count; i++)
         {
@@ -124,8 +124,8 @@ public class BoidsManager : MonoBehaviour
             }
         }
 
-        // Sync combat state if enabled
-        if (syncCombatState && anyInCombat)
+        // Sync combat state if enabled - only when entering combat, not every frame
+        if (syncCombatState && anyInCombat && !_wasAnyInCombat)
         {
             foreach (var boid in boids)
             {
@@ -339,5 +339,40 @@ public class BoidsManager : MonoBehaviour
         public int numFlockmates;
 
         public static int Size => sizeof(float) * 3 * 5 + sizeof(int);
+    }
+
+    void OnDrawGizmos()
+    {
+        if (boids == null) return;
+
+        // Show flock info
+        if (_formationLeader != null)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(_formationLeader.position, 30f);
+        }
+
+        // Show combat state
+        Gizmos.color = _wasAnyInCombat ? Color.red : Color.green;
+        Gizmos.DrawWireCube(transform.position, Vector3.one * 50f);
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        if (boids == null) return;
+
+        // Draw formation structure
+        for (int i = 0; i < boids.Count; i++)
+        {
+            if (boids[i] == null) continue;
+
+            Gizmos.color = (i == 0) ? Color.yellow : Color.cyan;
+            Gizmos.DrawWireSphere(boids[i].position, 8f);
+
+            // Draw index number position
+#if UNITY_EDITOR
+            UnityEditor.Handles.Label(boids[i].position + Vector3.up * 25f, $"#{i}");
+#endif
+        }
     }
 }

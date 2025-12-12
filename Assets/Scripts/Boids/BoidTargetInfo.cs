@@ -9,6 +9,14 @@ public class BoidTargetInfo
     public float LastSeenTime;
     public Vector3 LastKnownPosition;
     public Vector3 EstimatedVelocity;
-    
-    public bool IsValid => Target != null && Time.time - LastSeenTime < 5f;
+
+    public bool IsValid
+    {
+        get
+        {
+            // Use Unity's implicit bool operator which handles destroyed objects
+            if (!Target) return false;
+            return Time.time - LastSeenTime < 5f;
+        }
+    }
 }

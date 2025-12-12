@@ -142,8 +142,17 @@ public class BoidFlockTargetManager : MonoBehaviour
 
     public BoidTargetInfo GetTargetInfo(Boid boid)
     {
-        _boidAssignments.TryGetValue(boid, out var info);
-        return info;
+        if (_boidAssignments.TryGetValue(boid, out var info))
+        {
+            // Double-check validity before returning
+            if (info != null && info.Target == null)
+            {
+                _boidAssignments[boid] = null;
+                return null;
+            }
+            return info;
+        }
+        return null;
     }
 
     void Update()

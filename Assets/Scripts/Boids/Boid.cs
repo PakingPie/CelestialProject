@@ -69,6 +69,9 @@ public class Boid : MonoBehaviour
     public Vector3 Velocity => _velocity;
     public Transform CurrentTarget => _target;
 
+    private Vector3 _lastCombatHeading;
+    private float _postCombatTimer = 0f;
+    private const float PostCombatSteadyTime = 5f; // Hold heading for 5 seconds after combat
     private BoidAttackBehavior _attackBehavior;
     private BoidAttackBehavior AttackBehavior
     {
@@ -204,6 +207,8 @@ public class Boid : MonoBehaviour
 
     public void EnterCombat()
     {
+        if (IsInCombat) return;  // Already in combat, don't reset timer
+
         IsInCombat = true;
         _combatTimer = 0f;
     }
@@ -212,25 +217,35 @@ public class Boid : MonoBehaviour
     {
         bool wasInCombat = IsInCombat;
 
+        bool hasValidTarget = false;
         if (_targetManager != null)
         {
             BoidTargetInfo info = _targetManager.GetTargetInfo(this);
-            if (info != null && info.IsValid)
-            {
-                IsInCombat = true;
-                _combatTimer = 0f;
-                return;
-            }
+            hasValidTarget = info != null && info.Target && info.IsValid;
+        }
+
+        if (hasValidTarget)
+        {
+            IsInCombat = true;
+            _combatTimer = 0f;
+            _postCombatTimer = 0f;
+            _lastCombatHeading = forward;
+            return;
         }
 
         if (!IsInCombat) return;
 
         _combatTimer += Time.deltaTime;
+
+        // Debug this
+        // Debug.Log($"Combat timer: {_combatTimer} / {_settings.returnToFormationDelay}");
+
         if (_combatTimer >= _settings.returnToFormationDelay)
         {
             IsInCombat = false;
+            _postCombatTimer = 0f;
+            _lastCombatHeading = forward;
 
-            // Reset formation target smoothing for quicker reformation
             if (wasInCombat && FormationLeader != null)
             {
                 OnFormationChanged();
@@ -432,7 +447,7 @@ public class Boid : MonoBehaviour
         // Formation behavior when not in combat
         if (_settings.useFormation && !IsInCombat && FormationIndex == 0)
         {
-            // Leader: move toward assigned target or wander
+            // Leader: move toward assigned target, or hold heading after combat, or wander
             if (_target != null)
             {
                 Vector3 targetPos = _target.position;
@@ -444,9 +459,14 @@ public class Boid : MonoBehaviour
                     acceleration += SteerTowards(offsetToTarget) * _settings.targetWeight;
                 }
             }
+            else if (_postCombatTimer < PostCombatSteadyTime)
+            {
+                // Just exited combat - maintain last heading to let formation reform
+                acceleration += SteerTowards(_lastCombatHeading) * _settings.targetWeight * 0.5f;
+            }
             else
             {
-                // No target - wander randomly
+                // No target and formation has had time to reform - wander randomly
                 acceleration += GetWanderForce() * _settings.targetWeight;
             }
         }
@@ -586,9 +606,15 @@ public class Boid : MonoBehaviour
             FormationLeader._cachedTransform.TransformDirection(formationOffset);
 
         float distanceToRaw = Vector3.Distance(_smoothedFormationTarget, rawTarget);
-        float smoothSpeed = FormationTargetSmoothSpeed;
+        float distanceToFormation = Vector3.Distance(position, rawTarget);
 
-        if (distanceToRaw > _settings.formationSpacing * 0.5f)
+        // Use faster smoothing when far from formation (e.g., after combat)
+        float smoothSpeed = FormationTargetSmoothSpeed;
+        if (distanceToFormation > _settings.formationSpacing * 2f)
+        {
+            smoothSpeed *= 5f; // Much faster catchup
+        }
+        else if (distanceToRaw > _settings.formationSpacing * 0.5f)
         {
             smoothSpeed *= 3f;
         }
@@ -596,13 +622,18 @@ public class Boid : MonoBehaviour
         _smoothedFormationTarget = Vector3.Lerp(_smoothedFormationTarget, rawTarget, Time.deltaTime * smoothSpeed);
 
         Vector3 toFormation = _smoothedFormationTarget - position;
-        float distanceToFormation = toFormation.magnitude;
+        distanceToFormation = toFormation.magnitude;
 
-        // Use settings instead of constants
         if (distanceToFormation > _settings.formationDeadZone)
         {
             float urgency = Mathf.Clamp01((distanceToFormation - _settings.formationDeadZone) / _settings.formationUrgencyRange);
             urgency = Mathf.Max(urgency, 0.1f);
+
+            // Boost urgency when very far from formation
+            if (distanceToFormation > _settings.formationSpacing * 3f)
+            {
+                urgency = 1f;
+            }
 
             Vector3 formationForce = SteerTowards(toFormation) * _settings.formationTightness * urgency;
             acceleration += formationForce;
@@ -761,28 +792,75 @@ public class Boid : MonoBehaviour
 
     void OnDrawGizmos()
     {
+        // Leader indicator - large sphere above
+        if (FormationIndex == 0)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position + Vector3.up * 20f, 15f);
+            Gizmos.DrawLine(transform.position, transform.position + Vector3.up * 20f);
+
+            // Show leader's forward direction
+            Gizmos.color = Color.green;
+            Gizmos.DrawRay(transform.position, forward * 100f);
+
+            // Show post-combat state
+            if (_postCombatTimer < PostCombatSteadyTime && !IsInCombat)
+            {
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireSphere(transform.position + Vector3.up * 30f, 10f);
+                Gizmos.DrawRay(transform.position, _lastCombatHeading * 80f);
+            }
+        }
+
+        // Follower - show line to formation target
+        if (FormationLeader != null && FormationIndex > 0)
+        {
+            // Line to leader
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(transform.position, FormationLeader.position);
+
+            // Line to formation target position
+            Gizmos.color = IsInCombat ? Color.red : Color.green;
+            Gizmos.DrawLine(transform.position, _smoothedFormationTarget);
+            Gizmos.DrawWireSphere(_smoothedFormationTarget, 5f);
+
+            // Show actual target position (not smoothed)
+            Vector3 formationOffset = GetFormationOffset();
+            Vector3 rawTarget = FormationLeader.position +
+                FormationLeader._cachedTransform.TransformDirection(formationOffset);
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireCube(rawTarget, Vector3.one * 8f);
+        }
+
+        // Debug.Log("IsTargetInfo Valid: " + (_targetManager != null && _targetManager.GetTargetInfo(this) != null && _targetManager.GetTargetInfo(this).IsValid));
+
+        // Combat state indicator
+        if (IsInCombat)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, 10f);
+        }
+
+        // Target line
         if (_target != null)
         {
-            if (_target.tag == "Ally")
-                Gizmos.color = Color.red;
-            else
-                Gizmos.color = Color.green;
+            Gizmos.color = _target.CompareTag("Ally") ? Color.red : Color.green;
             Gizmos.DrawLine(transform.position, _target.position);
 
-            // Movement direction from attack behavior
             if (IsInCombat && AttackBehavior != null && AttackBehavior.Profile != null)
             {
                 Vector3 moveDir = AttackBehavior.GetDesiredMovementDirection(_target.position, _target.forward);
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawRay(transform.position, moveDir * 50f);
-
-                // Facing direction
-                Gizmos.color = Color.magenta;
-                Gizmos.DrawRay(transform.position, transform.forward * 30f);
             }
         }
 
-        Gizmos.color = Color.softBlue;
-        Gizmos.DrawRay(transform.position, transform.forward * 50f);
+        // Wander target (for leader without target)
+        if (FormationIndex == 0 && _target == null && _postCombatTimer >= PostCombatSteadyTime)
+        {
+            Gizmos.color = Color.white;
+            Gizmos.DrawLine(transform.position, _wanderTarget);
+            Gizmos.DrawWireSphere(_wanderTarget, 20f);
+        }
     }
 }

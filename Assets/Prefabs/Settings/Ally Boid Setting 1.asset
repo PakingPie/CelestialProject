@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f79a97a8f3d566438e5fbb617fd1c0f, type: 3}
   m_Name: Ally Boid Setting 1
   m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
-  minSpeed: 15
-  maxSpeed: 25
+  minSpeed: 10
+  maxSpeed: 20
   perceptionRadius: 25
   avoidanceRadius: 15
-  maxSteerForce: 3
+  maxSteerForce: 1
   alignWeight: 0.5
   cohesionWeight: 0.3
-  separateWeight: 0.2
+  separateWeight: 0
   targetWeight: 10
   obstacleMask:
     serializedVersion: 2
@@ -28,7 +28,7 @@ MonoBehaviour:
   avoidCollisionWeight: 8
   collisionAvoidDistance: 200
   useFormation: 1
-  formationType: 3
+  formationType: 0
   formationSpacing: 100
   formationTightness: 100
   formationMatchSpeed: 50
