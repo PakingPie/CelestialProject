@@ -26,9 +26,11 @@ public class BoidSettings : ScriptableObject
     [Header("Formation Settings")]
     public bool useFormation = true;
     public FormationType formationType = FormationType.V;
-    public float formationSpacing = 5f;
-    public float formationTightness = 2f;
-    public float formationMatchSpeed = 0.5f;
+    public float formationSpacing = 100f;      // Increase default
+    public float formationTightness = 50f;     // Increase default
+    public float formationMatchSpeed = 20f;    // Increase default
+    public float formationDeadZone = 10f;      // NEW
+    public float formationUrgencyRange = 100f; // NEW
 
     [Header("Combat Behavior")]
     public float combatCohesionMultiplier = 0.2f;

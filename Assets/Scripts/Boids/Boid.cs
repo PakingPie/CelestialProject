@@ -48,8 +48,8 @@ public class Boid : MonoBehaviour
     private const float FlockDataSmoothSpeed = 15f;
     private const float FormationTargetSmoothSpeed = 4f;
     private const float AccelerationSmoothSpeed = 8f;
-    private const float FormationDeadZone = 1.5f;
-    private const float FormationUrgencyRange = 10f;
+    private const float FormationDeadZone = 10f;
+    private const float FormationUrgencyRange = 100f;
     private const float TargetSmoothSpeed = 10f;
 
     // Add field
@@ -498,7 +498,6 @@ public class Boid : MonoBehaviour
         float distanceToRaw = Vector3.Distance(_smoothedFormationTarget, rawTarget);
         float smoothSpeed = FormationTargetSmoothSpeed;
 
-        // Faster response when formation position changed significantly
         if (distanceToRaw > _settings.formationSpacing * 0.5f)
         {
             smoothSpeed *= 3f;
@@ -509,11 +508,15 @@ public class Boid : MonoBehaviour
         Vector3 toFormation = _smoothedFormationTarget - position;
         float distanceToFormation = toFormation.magnitude;
 
-        float urgency = Mathf.Clamp01(distanceToFormation / FormationUrgencyRange);
-        urgency = Mathf.Max(urgency, 0.1f);
+        // Use settings instead of constants
+        if (distanceToFormation > _settings.formationDeadZone)
+        {
+            float urgency = Mathf.Clamp01((distanceToFormation - _settings.formationDeadZone) / _settings.formationUrgencyRange);
+            urgency = Mathf.Max(urgency, 0.1f);
 
-        Vector3 formationForce = SteerTowards(toFormation) * _settings.formationTightness * urgency;
-        acceleration += formationForce;
+            Vector3 formationForce = SteerTowards(toFormation) * _settings.formationTightness * urgency;
+            acceleration += formationForce;
+        }
 
         Vector3 leaderVelocity = FormationLeader.Velocity;
         if (leaderVelocity.sqrMagnitude > 0.01f)
@@ -688,5 +691,8 @@ public class Boid : MonoBehaviour
                 Gizmos.DrawRay(transform.position, transform.forward * 30f);
             }
         }
+
+        Gizmos.color = Color.softBlue;
+        Gizmos.DrawRay(transform.position, transform.forward * 50f);
     }
 }
