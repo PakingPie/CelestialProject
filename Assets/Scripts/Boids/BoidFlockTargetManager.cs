@@ -29,9 +29,9 @@ public class BoidFlockTargetManager : MonoBehaviour
     // [Header("Detection")]
     // [SerializeField] private int _maxOverlapResults = 256;
 
-    [Header("Enemy Avoidance")]
-    [SerializeField] private float _minEngagementDistance = 80f;
-    [SerializeField] private float _preferredEngagementDistance = 150f;
+    // [Header("Enemy Avoidance")]
+    // [SerializeField] private float _minEngagementDistance = 80f;
+    // [SerializeField] private float _preferredEngagementDistance = 150f;
 
     public bool _debugMode = false;
 
@@ -55,17 +55,12 @@ public class BoidFlockTargetManager : MonoBehaviour
     string flockId,
     GlobalHelper.Team team,
     float detectionRadius,
-    int maxOverlapResults,  // Can remove this too
-    float minEngagementDistance,
-    float preferredEngagementDistance,
     List<string> targetTags,
     List<string> ignoreTags)
     {
         _flockId = flockId;
         _team = team;
         _detectionRadius = detectionRadius;
-        _minEngagementDistance = minEngagementDistance;
-        _preferredEngagementDistance = preferredEngagementDistance;
         _targetTags = targetTags ?? new List<string>();
         _ignoreTags = ignoreTags ?? new List<string>();
     }
@@ -433,20 +428,20 @@ public class BoidFlockTargetManager : MonoBehaviour
         return info.LastKnownPosition + info.EstimatedVelocity * timeToTarget;
     }
 
-    public Vector3 GetEngagementOffset(Boid boid, Vector3 targetPosition)
-    {
-        Vector3 toTarget = targetPosition - boid.position;
-        float distance = toTarget.magnitude;
+    // public Vector3 GetEngagementOffset(Boid boid, Vector3 targetPosition)
+    // {
+    //     Vector3 toTarget = targetPosition - boid.position;
+    //     float distance = toTarget.magnitude;
 
-        if (distance < _minEngagementDistance)
-        {
-            // Too close - back off
-            float backoffStrength = 1f - (distance / _minEngagementDistance);
-            return -toTarget.normalized * backoffStrength * _minEngagementDistance;
-        }
+    //     if (distance < _minEngagementDistance)
+    //     {
+    //         // Too close - back off
+    //         float backoffStrength = 1f - (distance / _minEngagementDistance);
+    //         return -toTarget.normalized * backoffStrength * _minEngagementDistance;
+    //     }
 
-        return Vector3.zero;
-    }
+    //     return Vector3.zero;
+    // }
 
     private Transform GetVehicleRoot(Transform colliderTransform)
     {

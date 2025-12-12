@@ -4,7 +4,7 @@ public class Boid : MonoBehaviour
 {
     private BoidSettings _settings;
     private Transform _cachedTransform;
-    [SerializeField]private Transform _target;
+    [SerializeField] private Transform _target;
     private Material _material;
     private BoidFlockTargetManager _targetManager;
 
@@ -56,14 +56,28 @@ public class Boid : MonoBehaviour
     private Collider[] _nearbyEnemies = new Collider[20];
     private Collider[] _nearbyAllies = new Collider[20];
 
+    private Vector3 _combatFacingDirection;
+    private const float CombatRotationSpeed = 4f;
+
     public BoidSettings Settings => _settings;
     public Vector3 Velocity => _velocity;
     public Transform CurrentTarget => _target;
 
+    private BoidAttackBehavior _attackBehavior;
+    private BoidAttackBehavior AttackBehavior
+    {
+        get
+        {
+            if (_attackBehavior == null)
+                _attackBehavior = GetComponent<BoidAttackBehavior>();
+            return _attackBehavior;
+        }
+    }
+
     void Awake()
     {
         _cachedTransform = transform;
-
+        _attackBehavior = GetComponent<BoidAttackBehavior>();
         var meshRenderer = GetComponentInChildren<MeshRenderer>();
         if (meshRenderer != null)
             _material = meshRenderer.material;
@@ -102,6 +116,7 @@ public class Boid : MonoBehaviour
         _smoothedTargetPosition = position + forward * 50f;
         _previousAcceleration = Vector3.zero;
         _collisionUrgency = 0f;
+        _combatFacingDirection = forward;
     }
 
     public void SetTargetManager(BoidFlockTargetManager manager)
@@ -133,6 +148,11 @@ public class Boid : MonoBehaviour
             Transform assignedTarget = _targetManager.GetAssignedTarget(this);
             if (assignedTarget != null)
             {
+                // Reset side commitment if target changed
+                if (_target != assignedTarget && AttackBehavior != null)
+                {
+                    _attackBehavior.ResetSideCommitment();
+                }
                 _target = assignedTarget;
                 return;
             }
@@ -315,20 +335,19 @@ public class Boid : MonoBehaviour
         {
             acceleration += CalculateFormationAcceleration();
         }
+        else if (IsInCombat && AttackBehavior != null && AttackBehavior.Profile != null && _target != null)
+        {
+            // Combat movement using attack behavior
+            Vector3 movementDir = AttackBehavior.GetDesiredMovementDirection(_target.position, _target.forward);
+            acceleration += SteerTowards(movementDir) * _settings.targetWeight * 1.5f;
+        }
         else
         {
+            // Default: move toward target
             Vector3 targetPos = GetTargetPosition();
-
-            // Add engagement distance offset
-            if (_targetManager != null)
-            {
-                targetPos += _targetManager.GetEngagementOffset(this, targetPos);
-            }
-
             _smoothedTargetPosition = Vector3.Lerp(_smoothedTargetPosition, targetPos, Time.deltaTime * TargetSmoothSpeed);
-
             Vector3 offsetToTarget = _smoothedTargetPosition - position;
-            acceleration = SteerTowards(offsetToTarget) * _settings.targetWeight;
+            acceleration += SteerTowards(offsetToTarget) * _settings.targetWeight;
         }
 
         // Flocking behavior
@@ -391,7 +410,29 @@ public class Boid : MonoBehaviour
             Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
             newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
 
-            Quaternion targetRotation = Quaternion.LookRotation(dir);
+            // Rotation: use custom facing for broadside ships
+            Quaternion targetRotation;
+
+            if (IsInCombat && AttackBehavior != null && AttackBehavior.RequiresCustomFacing() && _target != null)
+            {
+                Vector3 desiredFacing = AttackBehavior.GetDesiredFacingDirection(_target.position);
+                _combatFacingDirection = Vector3.Slerp(_combatFacingDirection, desiredFacing, Time.deltaTime * CombatRotationSpeed);
+
+                if (_combatFacingDirection.sqrMagnitude > 0.01f)
+                {
+                    targetRotation = Quaternion.LookRotation(_combatFacingDirection);
+                }
+                else
+                {
+                    targetRotation = Quaternion.LookRotation(dir);
+                }
+            }
+            else
+            {
+                targetRotation = Quaternion.LookRotation(dir);
+                _combatFacingDirection = dir;
+            }
+
             Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
 
             _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
@@ -553,6 +594,18 @@ public class Boid : MonoBehaviour
             else
                 Gizmos.color = Color.green;
             Gizmos.DrawLine(transform.position, _target.position);
+
+            // Movement direction from attack behavior
+            if (IsInCombat && AttackBehavior != null && AttackBehavior.Profile != null)
+            {
+                Vector3 moveDir = AttackBehavior.GetDesiredMovementDirection(_target.position, _target.forward);
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawRay(transform.position, moveDir * 50f);
+
+                // Facing direction
+                Gizmos.color = Color.magenta;
+                Gizmos.DrawRay(transform.position, transform.forward * 30f);
+            }
         }
     }
 }

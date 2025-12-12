@@ -8,15 +8,16 @@ public class BoidSpawner : MonoBehaviour
         Never, SelectedOnly, Always
     }
 
+    [Header("Spawn Settings")]
     public Boid[] prefabs;
     public float spawnRadius = 10.0f;
     public int spawnCount = 10;
     public Color color;
     public GizmoType showSpawnRegion;
-
     public Vector2 HeightRange = new Vector2(-1.0f, 1.0f);
     public List<GameObject> SpawnedObjects;
-
+    [Header("Attack Behavior")]
+    public BoidAttackProfile attackProfile;
     void Awake()
     {
         SpawnedObjects = new List<GameObject>();
@@ -30,6 +31,14 @@ public class BoidSpawner : MonoBehaviour
             randomSphere = Random.insideUnitSphere;
             boid.transform.forward = new Vector3(randomSphere.x, Mathf.Clamp(randomSphere.y, HeightRange.x, HeightRange.y), randomSphere.z); // originly Random.insideUnitSphere
             boid.SetColor(color);
+            
+            if (attackProfile != null)
+            {
+                var attackBehavior = boid.GetComponent<BoidAttackBehavior>();
+                if (attackBehavior == null)
+                    attackBehavior = boid.gameObject.AddComponent<BoidAttackBehavior>();
+                attackBehavior.SetProfile(attackProfile);
+            }
         }
     }
 
@@ -48,7 +57,7 @@ public class BoidSpawner : MonoBehaviour
             DrawGizmos();
         }
     }
-    
+
     void DrawGizmos()
     {
         Gizmos.color = new Color(color.r, color.g, color.b, 0.5f);
