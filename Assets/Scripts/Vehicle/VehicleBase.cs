@@ -61,4 +61,136 @@ public abstract class VehicleBase : MonoBehaviour
             return _cachedTransform;
         }
     }
+
+    #region Damage Handling
+    public int ProcessKineticDamage(int damage)
+    {
+        int armorFloatDamage = 0;
+        if (ArmorPoints > 0)
+        {
+            ArmorPoints -= damage / 2;
+            if (ArmorPoints <= 0)
+            {
+                armorFloatDamage = -ArmorPoints / 2;
+                ArmorPoints = 0;
+            }
+        }
+
+        int shieldFloatDamage = 0;
+        if (ShieldPoints > 0)
+        {
+            ShieldPoints -= damage * 2;
+            if (ShieldPoints <= 0)
+            {
+                shieldFloatDamage = -ShieldPoints / 2;
+                ShieldPoints = 0;
+            }
+        }
+
+        if (ArmorPoints <= 0 && ShieldPoints <= 0)
+            return (int)(damage * 1.5f) + armorFloatDamage + shieldFloatDamage;
+        else if (ArmorPoints > 0 && ShieldPoints <= 0)
+            return (int)(damage * 0.5f) + shieldFloatDamage;
+        else
+            return 0;
+    }
+
+    public int ProcessEnergyDamage(int damage)
+    {
+        int armorFloatDamage = 0;
+        if (ArmorPoints > 0)
+        {
+            ArmorPoints -= damage * 2;
+            if (ArmorPoints <= 0)
+            {
+                armorFloatDamage = -ArmorPoints / 2;
+                ArmorPoints = 0;
+            }
+        }
+
+        int shieldFloatDamage = 0;
+        if (ShieldPoints > 0)
+        {
+            ShieldPoints -= damage / 2;
+            if (ShieldPoints <= 0)
+            {
+                shieldFloatDamage = -ShieldPoints / 2;
+                ShieldPoints = 0;
+            }
+        }
+
+        if (ArmorPoints <= 0 && ShieldPoints <= 0)
+            return (int)(damage * 1.5f) + armorFloatDamage + shieldFloatDamage;
+        else if (ArmorPoints <= 0 && ShieldPoints > 0)
+            return (int)(damage * 0.5f) + armorFloatDamage;
+        else
+            return 0;
+    }
+
+    public int ProcessExplosiveDamage(int damage)
+    {
+        int armorFloatDamage = 0;
+        if (ArmorPoints > 0)
+        {
+            ArmorPoints -= damage;
+            if (ArmorPoints <= 0)
+            {
+                armorFloatDamage = -ArmorPoints / 2;
+                ArmorPoints = 0;
+            }
+        }
+
+        int shieldFloatDamage = 0;
+        if (ShieldPoints > 0)
+        {
+            ShieldPoints -= damage;
+            if (ShieldPoints <= 0)
+            {
+                shieldFloatDamage = -ShieldPoints / 2;
+                ShieldPoints = 0;
+            }
+        }
+
+        if (ArmorPoints <= 0 && ShieldPoints <= 0)
+            return damage * 2;
+        else if (ArmorPoints <= 0 && ShieldPoints > 0)
+            return (int)(damage * 0.5f) + armorFloatDamage;
+        else if (ShieldPoints <= 0 && ArmorPoints > 0)
+            return (int)(damage * 0.75f) + shieldFloatDamage;
+        else
+            return (int)(damage * 0.25f);
+    }
+
+    public int ProcessPlasmaDamage(int damage)
+    {
+        int armorFloatDamage = 0;
+        if (ArmorPoints > 0)
+        {
+            ArmorPoints -= damage / 2;
+            if (ArmorPoints <= 0)
+            {
+                armorFloatDamage = -ArmorPoints / 2;
+                ArmorPoints = 0;
+            }
+        }
+
+        int shieldFloatDamage = 0;
+        if (ShieldPoints > 0)
+        {
+            ShieldPoints -= damage * 3;
+            if (ShieldPoints <= 0)
+            {
+                shieldFloatDamage = -ShieldPoints / 2;
+                ShieldPoints = 0;
+            }
+        }
+
+        if (ArmorPoints <= 0 && ShieldPoints <= 0)
+            return (int)(damage * 1.25f) + armorFloatDamage + shieldFloatDamage;
+        else if (ArmorPoints <= 0 && ShieldPoints > 0)
+            return (int)(damage * 0.5f) + shieldFloatDamage;
+        else
+            return 0;
+    }
+    #endregion
 }
