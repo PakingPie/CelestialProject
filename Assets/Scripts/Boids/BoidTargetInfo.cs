@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class TargetInfo
+public class BoidTargetInfo
 {
     public Transform Target;
     public float ThreatLevel;

@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-public class FlockTargetManager : MonoBehaviour
+public class BoidFlockTargetManager : MonoBehaviour
 {
     [Header("Detection")]
     [SerializeField] private float _detectionRadius = 5000f;
@@ -38,8 +38,8 @@ public class FlockTargetManager : MonoBehaviour
     public string FlockId => _flockId;
     public GlobalHelper.Team Team => _team;
 
-    private Dictionary<Transform, TargetInfo> _knownTargets = new Dictionary<Transform, TargetInfo>();
-    private Dictionary<Boid, TargetInfo> _boidAssignments = new Dictionary<Boid, TargetInfo>();
+    private Dictionary<Transform, BoidTargetInfo> _knownTargets = new Dictionary<Transform, BoidTargetInfo>();
+    private Dictionary<Boid, BoidTargetInfo> _boidAssignments = new Dictionary<Boid, BoidTargetInfo>();
     private List<Boid> _managedBoids = new List<Boid>();
 
     private float _lastDetectionTime;
@@ -49,7 +49,7 @@ public class FlockTargetManager : MonoBehaviour
     // private Collider[] _overlapResults;
     private List<VehicleBase> _nearbyEnemies = new List<VehicleBase>(64);
 
-    public IReadOnlyDictionary<Boid, TargetInfo> BoidAssignments => _boidAssignments;
+    public IReadOnlyDictionary<Boid, BoidTargetInfo> BoidAssignments => _boidAssignments;
 
     public void Initialize(
     string flockId,
@@ -145,7 +145,7 @@ public class FlockTargetManager : MonoBehaviour
         return null;
     }
 
-    public TargetInfo GetTargetInfo(Boid boid)
+    public BoidTargetInfo GetTargetInfo(Boid boid)
     {
         _boidAssignments.TryGetValue(boid, out var info);
         return info;
@@ -235,7 +235,7 @@ public class FlockTargetManager : MonoBehaviour
 
             if (!_knownTargets.ContainsKey(target))
             {
-                _knownTargets[target] = new TargetInfo
+                _knownTargets[target] = new BoidTargetInfo
                 {
                     Target = target,
                     AssignedBoidCount = 0
@@ -267,7 +267,7 @@ public class FlockTargetManager : MonoBehaviour
         }
     }
 
-    private float CalculateThreatLevel(TargetInfo info, Vector3 flockCenter)
+    private float CalculateThreatLevel(BoidTargetInfo info, Vector3 flockCenter)
     {
         float threat = 0f;
 
@@ -356,7 +356,7 @@ public class FlockTargetManager : MonoBehaviour
         foreach (var item in boidsNeedingAssignment)
         {
             Boid boid = item.Boid;
-            TargetInfo bestTarget = null;
+            BoidTargetInfo bestTarget = null;
             float bestScore = float.MinValue;
 
             foreach (var target in sortedTargets)

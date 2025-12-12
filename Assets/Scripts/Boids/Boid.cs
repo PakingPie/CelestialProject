@@ -6,7 +6,7 @@ public class Boid : MonoBehaviour
     private Transform _cachedTransform;
     [SerializeField]private Transform _target;
     private Material _material;
-    private FlockTargetManager _targetManager;
+    private BoidFlockTargetManager _targetManager;
 
     private Vector3 _velocity;
 
@@ -104,7 +104,7 @@ public class Boid : MonoBehaviour
         _collisionUrgency = 0f;
     }
 
-    public void SetTargetManager(FlockTargetManager manager)
+    public void SetTargetManager(BoidFlockTargetManager manager)
     {
         _targetManager = manager;
     }
@@ -143,7 +143,7 @@ public class Boid : MonoBehaviour
     {
         if (_targetManager != null)
         {
-            TargetInfo info = _targetManager.GetTargetInfo(this);
+            BoidTargetInfo info = _targetManager.GetTargetInfo(this);
             if (info != null && info.IsValid)
             {
                 return info.LastKnownPosition;
@@ -183,7 +183,7 @@ public class Boid : MonoBehaviour
     {
         if (_targetManager != null)
         {
-            TargetInfo info = _targetManager.GetTargetInfo(this);
+            BoidTargetInfo info = _targetManager.GetTargetInfo(this);
             if (info != null && info.IsValid)
             {
                 IsInCombat = true;

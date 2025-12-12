@@ -16,7 +16,7 @@ public class BoidsManager : MonoBehaviour
     public bool syncCombatState = true;
 
     [Header("Target Management")]
-    [SerializeField] private FlockTargetManager _targetManager;
+    [SerializeField] private BoidFlockTargetManager _targetManager;
 
     [Header("Flock Identity")]
     [SerializeField] private string _flockId = "Flock_01";
@@ -40,7 +40,7 @@ public class BoidsManager : MonoBehaviour
         // Create target manager if not assigned
         if (_targetManager == null)
         {
-            _targetManager = gameObject.AddComponent<FlockTargetManager>();
+            _targetManager = gameObject.AddComponent<BoidFlockTargetManager>();
         }
 
         _targetManager.Initialize(_flockId, _team, _detectionRadius, _targetLayers, _minEngagementDistance, _preferredEngagementDistance, _targetTags, _ignoreTags);
@@ -268,7 +268,7 @@ public class BoidsManager : MonoBehaviour
         }
     }
 
-    public FlockTargetManager TargetManager => _targetManager;
+    public BoidFlockTargetManager TargetManager => _targetManager;
 
     public struct BoidData
     {
