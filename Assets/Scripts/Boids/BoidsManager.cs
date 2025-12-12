@@ -32,6 +32,8 @@ public class BoidsManager : MonoBehaviour
     private List<WeaponBase> _boidWeapons = new List<WeaponBase>();
     private Boid _formationLeader = null;
 
+    private bool _wasAnyInCombat = false;
+
     void Start()
     {
         // Create target manager if not assigned
@@ -79,7 +81,10 @@ public class BoidsManager : MonoBehaviour
 
     void AssignFormationPositions()
     {
-        if (boids == null || boids.Count == 0)
+        // Clean null entries first
+        boids.RemoveAll(b => b == null);
+
+        if (boids.Count == 0)
         {
             _formationLeader = null;
             return;
@@ -93,6 +98,7 @@ public class BoidsManager : MonoBehaviour
         {
             boids[i].FormationIndex = i;
             boids[i].FormationLeader = _formationLeader;
+            boids[i].OnFormationChanged();
         }
     }
 
@@ -107,10 +113,33 @@ public class BoidsManager : MonoBehaviour
         if (numBoids <= 0)
             return;
 
-        if (syncCombatState)
+        // Check combat state once
+        bool anyInCombat = false;
+        foreach (var boid in boids)
         {
-            SyncCombatState();
+            if (boid != null && boid.IsInCombat)
+            {
+                anyInCombat = true;
+                break;
+            }
         }
+
+        // Sync combat state if enabled
+        if (syncCombatState && anyInCombat)
+        {
+            foreach (var boid in boids)
+            {
+                if (boid != null)
+                    boid.EnterCombat();
+            }
+        }
+
+        // Combat just ended - reassign formation
+        if (_wasAnyInCombat && !anyInCombat)
+        {
+            AssignFormationPositions();
+        }
+        _wasAnyInCombat = anyInCombat;
 
         var boidData = new BoidData[numBoids];
         for (int i = 0; i < numBoids; i++)

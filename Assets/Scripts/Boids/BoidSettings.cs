@@ -54,5 +54,8 @@ public enum FormationType
     Wedge,
     Box,
     Circle,
-    Echelon
+    Echelon,
+    Sphere,
+    Helix,
+    Wall
 }

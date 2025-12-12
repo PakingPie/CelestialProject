@@ -210,6 +210,8 @@ public class Boid : MonoBehaviour
 
     public void UpdateCombatState()
     {
+        bool wasInCombat = IsInCombat;
+
         if (_targetManager != null)
         {
             BoidTargetInfo info = _targetManager.GetTargetInfo(this);
@@ -227,6 +229,12 @@ public class Boid : MonoBehaviour
         if (_combatTimer >= _settings.returnToFormationDelay)
         {
             IsInCombat = false;
+
+            // Reset formation target smoothing for quicker reformation
+            if (wasInCombat && FormationLeader != null)
+            {
+                OnFormationChanged();
+            }
         }
     }
 
@@ -251,6 +259,12 @@ public class Boid : MonoBehaviour
                 return GetCircleFormationOffset(index, spacing);
             case FormationType.Echelon:
                 return GetEchelonFormationOffset(index, spacing);
+            case FormationType.Sphere:
+                return GetSphereFormationOffset(index, spacing);
+            case FormationType.Helix:
+                return GetHelixFormationOffset(index, spacing);
+            case FormationType.Wall:
+                return GetWallFormationOffset(index, spacing);
             default:
                 return Vector3.zero;
         }
@@ -263,7 +277,10 @@ public class Boid : MonoBehaviour
         int side = (index % 2 == 0) ? 1 : -1;
         int row = (index + 1) / 2;
 
-        return new Vector3(side * row * spacing, 0f, -row * spacing);
+        // Add vertical stagger - alternating up/down
+        float yOffset = (row % 2 == 0) ? spacing * 0.3f : -spacing * 0.3f;
+
+        return new Vector3(side * row * spacing, yOffset, -row * spacing);
     }
 
     private Vector3 GetLineFormationOffset(int index, float spacing)
@@ -273,7 +290,10 @@ public class Boid : MonoBehaviour
         int side = (index % 2 == 0) ? 1 : -1;
         int pos = (index + 1) / 2;
 
-        return new Vector3(side * pos * spacing, 0f, 0f);
+        // Stagger vertically
+        float yOffset = (index % 2 == 0) ? spacing * 0.2f : -spacing * 0.2f;
+
+        return new Vector3(side * pos * spacing, yOffset, 0f);
     }
 
     private Vector3 GetWedgeFormationOffset(int index, float spacing)
@@ -283,50 +303,120 @@ public class Boid : MonoBehaviour
         int side = (index % 2 == 0) ? 1 : -1;
         int row = (index + 1) / 2;
 
-        return new Vector3(side * row * spacing * 0.5f, 0f, -row * spacing);
+        float yOffset = (row % 2 == 0) ? spacing * 0.25f : -spacing * 0.25f;
+
+        return new Vector3(side * row * spacing * 0.5f, yOffset, -row * spacing);
     }
 
     private Vector3 GetBoxFormationOffset(int index, float spacing)
     {
         if (index == 0) return Vector3.zero;
 
-        int gridSize = Mathf.CeilToInt(Mathf.Sqrt(index + 1));
-        int x = index % gridSize;
-        int z = index / gridSize;
+        int adjustedIndex = index - 1;
 
-        float offsetX = (x - gridSize / 2f) * spacing;
-        float offsetZ = -z * spacing;
+        // Calculate cube dimensions
+        int totalFollowers = index; // Approximate for sizing
+        int cubeSize = Mathf.Max(2, Mathf.CeilToInt(Mathf.Pow(totalFollowers, 1f / 3f)));
 
-        return new Vector3(offsetX, 0f, offsetZ);
+        int x = adjustedIndex % cubeSize;
+        int y = (adjustedIndex / cubeSize) % cubeSize;
+        int z = adjustedIndex / (cubeSize * cubeSize);
+
+        // Center horizontally and vertically, place behind leader
+        float halfWidth = (cubeSize - 1) / 2f;
+
+        float offsetX = (x - halfWidth) * spacing;
+        float offsetY = (y - halfWidth) * spacing;
+        float offsetZ = -(z + 1) * spacing; // Always behind leader
+
+        return new Vector3(offsetX, offsetY, offsetZ);
     }
 
     private Vector3 GetCircleFormationOffset(int index, float spacing)
     {
         if (index == 0) return Vector3.zero;
 
-        int ring = 1;
-        int ringStart = 1;
-        int boidsPerRing = 6;
+        // Spherical layers
+        int layer = 1;
+        int layerStart = 1;
+        int boidsPerLayer = 8;
 
-        while (index >= ringStart + boidsPerRing * ring)
+        while (index >= layerStart + boidsPerLayer * layer)
         {
-            ringStart += boidsPerRing * ring;
-            ring++;
+            layerStart += boidsPerLayer * layer;
+            layer++;
         }
 
-        int indexInRing = index - ringStart;
-        int totalInRing = boidsPerRing * ring;
-        float angle = (indexInRing / (float)totalInRing) * Mathf.PI * 2f;
-        float radius = spacing * ring;
+        int indexInLayer = index - layerStart;
+        int totalInLayer = boidsPerLayer * layer;
 
-        return new Vector3(Mathf.Sin(angle) * radius, 0f, Mathf.Cos(angle) * radius);
+        float theta = (indexInLayer / (float)totalInLayer) * Mathf.PI * 2f; // Horizontal angle
+        float phi = Mathf.PI * 0.5f + (layer % 2 == 0 ? 0.3f : -0.3f);      // Vertical angle
+        float radius = spacing * layer;
+
+        return new Vector3(
+            Mathf.Sin(theta) * Mathf.Sin(phi) * radius,
+            Mathf.Cos(phi) * radius * 0.5f,
+            Mathf.Cos(theta) * Mathf.Sin(phi) * radius
+        );
     }
 
     private Vector3 GetEchelonFormationOffset(int index, float spacing)
     {
         if (index == 0) return Vector3.zero;
 
-        return new Vector3(index * spacing * 0.7f, 0f, -index * spacing);
+        // Diagonal climb/descent
+        float yOffset = index * spacing * 0.3f;
+
+        return new Vector3(index * spacing * 0.7f, yOffset, -index * spacing);
+    }
+
+    private Vector3 GetSphereFormationOffset(int index, float spacing)
+    {
+        if (index == 0) return Vector3.zero;
+
+        // Fibonacci sphere distribution for even spacing
+        float goldenRatio = (1f + Mathf.Sqrt(5f)) / 2f;
+        float theta = 2f * Mathf.PI * index / goldenRatio;
+        float phi = Mathf.Acos(1f - 2f * (index + 0.5f) / (index + 10));
+
+        float radius = spacing * Mathf.Ceil(index / 8f);
+
+        return new Vector3(
+            Mathf.Cos(theta) * Mathf.Sin(phi) * radius,
+            Mathf.Cos(phi) * radius,
+            Mathf.Sin(theta) * Mathf.Sin(phi) * radius
+        );
+    }
+
+    private Vector3 GetHelixFormationOffset(int index, float spacing)
+    {
+        if (index == 0) return Vector3.zero;
+
+        float angle = index * 0.5f;
+        float radius = spacing;
+        float yOffset = index * spacing * 0.4f;
+
+        return new Vector3(
+            Mathf.Cos(angle) * radius,
+            yOffset,
+            Mathf.Sin(angle) * radius - index * spacing * 0.5f
+        );
+    }
+
+    private Vector3 GetWallFormationOffset(int index, float spacing)
+    {
+        if (index == 0) return Vector3.zero;
+
+        // Vertical grid behind leader
+        int columns = 5;
+        int x = index % columns;
+        int y = index / columns;
+
+        float offsetX = (x - columns / 2f) * spacing;
+        float offsetY = (y - 1) * spacing;
+
+        return new Vector3(offsetX, offsetY, -spacing);
     }
 
     public void UpdateBoid()
