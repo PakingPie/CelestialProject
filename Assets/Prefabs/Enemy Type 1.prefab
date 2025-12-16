@@ -387,10 +387,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gun
   TurretBase: {fileID: 8819007729362621268}
   Barrels: {fileID: 3695512723806254064}
-  ElevationSpeed: 10
+  _elevationSpeed: 30
   MaxElevation: 30
   MaxDepression: 5
-  TraverseSpeed: 30
+  _traverseSpeed: 60
   HasLimitedTraverse: 0
   LeftLimit: 175
   RightLimit: 30
@@ -405,9 +405,11 @@ MonoBehaviour:
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 4
+  _fireDelay: 0.5
   MuzzleVelocity: 200
   Deviation: 0.1
   AutoInheritVelocity: 1
@@ -567,10 +569,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LaserTest
   TurretBase: {fileID: 5479172773879929837}
   Barrels: {fileID: 6967622900144706132}
-  ElevationSpeed: 30
+  _elevationSpeed: 30
   MaxElevation: 75
   MaxDepression: 0
-  TraverseSpeed: 60
+  _traverseSpeed: 60
   HasLimitedTraverse: 0
   LeftLimit: 60
   RightLimit: 60
@@ -585,6 +587,8 @@ MonoBehaviour:
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
   MissileDetectionRange: 500
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
   LaserLineRenderer: {fileID: 5457200971297131156}
@@ -1235,10 +1239,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LaserTest
   TurretBase: {fileID: 5496339467923652013}
   Barrels: {fileID: 2264131766223091853}
-  ElevationSpeed: 30
+  _elevationSpeed: 30
   MaxElevation: 75
   MaxDepression: 0
-  TraverseSpeed: 60
+  _traverseSpeed: 60
   HasLimitedTraverse: 0
   LeftLimit: 60
   RightLimit: 60
@@ -1253,6 +1257,8 @@ MonoBehaviour:
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
   MissileDetectionRange: 500
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
   LaserLineRenderer: {fileID: 98138947337623298}
@@ -1569,10 +1575,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gun
   TurretBase: {fileID: 2208432724579300860}
   Barrels: {fileID: 1312519066579379706}
-  ElevationSpeed: 10
+  _elevationSpeed: 30
   MaxElevation: 30
   MaxDepression: 5
-  TraverseSpeed: 30
+  _traverseSpeed: 60
   HasLimitedTraverse: 0
   LeftLimit: 120
   RightLimit: 30
@@ -1587,9 +1593,11 @@ MonoBehaviour:
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 4
+  _fireDelay: 0.5
   MuzzleVelocity: 200
   Deviation: 0.1
   AutoInheritVelocity: 1
@@ -1726,8 +1734,6 @@ MonoBehaviour:
   MaxArmorPoints: 100
   ShieldPoints: 200
   MaxShieldPoints: 200
-  Speed: 1
-  Scale: {x: 1, y: 1, z: 1}
   BoidManager: {fileID: 0}
   VehicleFaction: 4
   Type: 0

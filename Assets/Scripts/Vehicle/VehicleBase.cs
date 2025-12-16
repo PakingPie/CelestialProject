@@ -43,8 +43,6 @@ public abstract class VehicleBase : MonoBehaviour
     public int MaxArmorPoints = 10;
     public int ShieldPoints = 10;
     public int MaxShieldPoints = 10;
-    public int Speed = 10;
-    public Vector3 Scale = Vector3.one;
     [HideInInspector] public BoidsManager BoidManager;
 
     // Add faction to base class for efficient lookup
@@ -62,7 +60,6 @@ public abstract class VehicleBase : MonoBehaviour
         }
     }
 
-    #region Damage Handling
     #region Damage Handling
 
     /// <summary>
@@ -290,6 +287,5 @@ public abstract class VehicleBase : MonoBehaviour
         return damage;
     }
 
-    #endregion
     #endregion
 }

@@ -5,7 +5,7 @@ public class Gun : WeaponBase
 {
     [Header("Ballistics")]
     [Tooltip("Time (s) between each shot.")]
-    public float FireDelay = .2f;
+    [SerializeField] private float _fireDelay = .2f;
     [Tooltip("Speed (m/s) that the bullet is fired from the barrel.")]
     public float MuzzleVelocity = 200f;
     [Tooltip("Amount of spread the gun has. Higher values result in more spread.")]
@@ -54,18 +54,16 @@ public class Gun : WeaponBase
     [Header("Manual Control")]
     [Tooltip("When true, gun is in manual firing mode controlled by player")]
     public bool IsManualMode = false;
+
+    public float FireDelay { get { return _fireDelay / Mathf.Clamp(Effectiveness, 0.1f, 1f); } set { _fireDelay = value; } }
+    public float LastShotTime => _lastShotTime;
+
     private bool _isManualFiring = false;
     private Vector3 _manualAimPosition = Vector3.zero;
     private bool _isSequentialBurstActive = false;
     private int _sequentialBurstShotsRemaining = 0;
-
-    public float LastShotTime => _lastShotTime;
-
-
-
     private Dictionary<Transform, ParticleSystem> firePointToMuzzleFlash = new Dictionary<Transform, ParticleSystem>();
     private List<GunBarrel> barrelVisuals = new List<GunBarrel>();
-
     private float _lastShotTime = -float.MaxValue;
     private int _firePointIndex = 0;
 
@@ -114,6 +112,8 @@ public class Gun : WeaponBase
 
     private void Update()
     {
+        if(!IsFunctional)
+            return;
         // Auto-populate inherited velocity from parent rigidbody or ship movement
         if (AutoInheritVelocity)
         {

@@ -10,13 +10,13 @@ public class WeaponBase : MonoBehaviour
     [Tooltip("Transform of the turret's elevation rotations. ")]
     public Transform Barrels = null;
     [Tooltip("Speed at which the turret's guns elevate up and down.")]
-    public float ElevationSpeed = 30f;
+    [SerializeField] private float _elevationSpeed = 30f;
     [Tooltip("Highest upwards elevation the turret's barrels can aim.")]
     public float MaxElevation = 60f;
     [Tooltip("Lowest downwards elevation the turret's barrels can aim.")]
     public float MaxDepression = 5f;
     [Tooltip("Speed at which the turret can rotate left/right.")]
-    public float TraverseSpeed = 60f;
+    [SerializeField] private float _traverseSpeed = 60f;
     [Tooltip("When true, the turret can only rotate horizontally with the given limits.")]
     public bool HasLimitedTraverse = false;
     [Range(0, 179)] public float LeftLimit = 120f;
@@ -27,6 +27,9 @@ public class WeaponBase : MonoBehaviour
     public Vector3 AimPosition = Vector3.zero;
     [Tooltip("When the turret is within this many degrees of the target, it is considered aimed.")]
     public float AimedThreshold = 5f;
+
+    public float ElevationSpeed { get { return _elevationSpeed * Effectiveness; } set { _elevationSpeed = value; } }
+    public float TraverseSpeed { get { return _traverseSpeed * Effectiveness; } set { _traverseSpeed = value; } }
 
     [Header("Targeting")]
     public Transform Targeted;
@@ -47,11 +50,13 @@ public class WeaponBase : MonoBehaviour
     [Tooltip("Range to detect missiles")]
     public float MissileDetectionRange = 200f;
 
-    [Range(0f, 1f)]
-    public float Effictiveness = 1f;
+
+    [Header("Status")]
+    public float Effectiveness = 1f;
     public bool IsFunctional = true;
 
-    [Tooltip("Debug")]
+    [Header("Debug")]
+    [Tooltip("Show Gizmos")]
     public bool ShowGizmos = true;
 
     private float _angleToTarget = 0f;

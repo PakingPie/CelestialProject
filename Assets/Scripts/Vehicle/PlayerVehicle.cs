@@ -1,8 +1,11 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using static GlobalHelper;
 
-[ExecuteAlways]
+// This script manages the player's vehicle, including health, armor, shield, and UI updates.
+// It used to single handed the whole ship damage model, now it only manages the player vehicle.
+// [ExecuteAlways]
 public class PlayerVehicle : VehicleBase
 {
     [Header("UI")]
@@ -42,22 +45,22 @@ public class PlayerVehicle : VehicleBase
     private Material _shieldBarMaterial;
     private Material _shieldEffectMaterial;
 
-    public Faction VehicleFaction = Faction.Player;
-    public override Faction FactionType => VehicleFaction;
+    // public Faction VehicleFaction = Faction.Player;
+    // public override Faction FactionType => VehicleFaction;
 
-    void OnEnable()
-    {
-        // Register with CombatRegistry
-        if (Application.isPlaying)
-            CombatRegistry.Register(this, FactionType);
-    }
+    // void OnEnable()
+    // {
+    //     // Register with CombatRegistry
+    //     if (Application.isPlaying)
+    //         CombatRegistry.Register(this, FactionType);
+    // }
 
-    void OnDisable()
-    {
-        // Unregister from CombatRegistry
-        if (Application.isPlaying)
-            CombatRegistry.Unregister(this, FactionType);
-    }
+    // void OnDisable()
+    // {
+    //     // Unregister from CombatRegistry
+    //     if (Application.isPlaying)
+    //         CombatRegistry.Unregister(this, FactionType);
+    // }
 
     void Start()
     {
@@ -173,6 +176,9 @@ public class PlayerVehicle : VehicleBase
         if (HitPoints <= 0)
         {
             // DestroyVehicle();
+            // TODO: Handle player vehicle destruction (game over, respawn, etc.), for now just diable the vehicle
+            HitPoints = 0;
+            return false;
         }
 
         _lastDamageTime = 0f;
