@@ -8,6 +8,8 @@ public class Gun : WeaponBase
     [SerializeField] private float _fireDelay = .2f;
     [Tooltip("Speed (m/s) that the bullet is fired from the barrel.")]
     public float MuzzleVelocity = 200f;
+    [Tooltip("Time (s) after which the bullet will self-destruct.")]
+    public float SelfDestructionTime = 10f;
     [Tooltip("Amount of spread the gun has. Higher values result in more spread.")]
     public float Deviation = .1f;
     [Tooltip("Automatically inherit the velocity of a parent Rigidbody when firing bullets.")]
@@ -57,6 +59,10 @@ public class Gun : WeaponBase
 
     public float FireDelay { get { return _fireDelay / Mathf.Clamp(Effectiveness, 0.1f, 1f); } set { _fireDelay = value; } }
     public float LastShotTime => _lastShotTime;
+    
+    // private Vector3 _smoothedTargetVelocity = Vector3.zero;
+    // private bool _hasLastFramePos = false;
+    // private const float TargetVelocitySmoothSpeed = 8f;
 
     private bool _isManualFiring = false;
     private Vector3 _manualAimPosition = Vector3.zero;
@@ -112,7 +118,7 @@ public class Gun : WeaponBase
 
     private void Update()
     {
-        if(!IsFunctional)
+        if (!IsFunctional)
             return;
         // Auto-populate inherited velocity from parent rigidbody or ship movement
         if (AutoInheritVelocity)
@@ -182,7 +188,7 @@ public class Gun : WeaponBase
                     Vector3 interceptPoint = CalculateInterceptPoint(
                         transform.position,
                         shipVelocity,
-                        BulletPrefab.Speed,
+                        MuzzleVelocity, // used to be BulletPrefab.Speed, commented because it gets overridden per shot
                         Targeted.position,
                         targetVelocity
                     );
@@ -382,6 +388,7 @@ public class Gun : WeaponBase
 
         // Override bullet speed with gun's muzzle velocity
         bulletPhysics.Speed = MuzzleVelocity;
+        bulletPhysics.LifeTime = SelfDestructionTime;
 
         // Initialize bullet with direction and inherited velocity
         if (AutoInheritVelocity)

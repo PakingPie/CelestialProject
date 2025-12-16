@@ -70,7 +70,7 @@ public class GunController : MonoBehaviour
         if (kb != null && kb[toggleModeKey].wasPressedThisFrame)
         {
             firingMode = firingMode == FiringMode.Automatic ? FiringMode.Manual : FiringMode.Automatic;
-            Debug.Log($"Firing Mode: {firingMode}");
+            // Debug.Log($"Firing Mode: {firingMode}");
         }
     }
 

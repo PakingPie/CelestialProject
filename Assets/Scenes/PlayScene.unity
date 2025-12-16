@@ -517,7 +517,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -526,8 +526,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -648,6 +649,7 @@ MonoBehaviour:
   UseManagedUpdates: 1
   _fireDelay: 0.2
   MuzzleVelocity: 200
+  SelfDestructionTime: 10
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -1070,7 +1072,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 100, y: 4000}
+  ActiveRange: {x: 100, y: 10000}
   UpdateRate: 60
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
@@ -1081,6 +1083,7 @@ MonoBehaviour:
   UseManagedUpdates: 1
   _fireDelay: 8
   MuzzleVelocity: 500
+  SelfDestructionTime: 20
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -2439,6 +2442,7 @@ MonoBehaviour:
   UseManagedUpdates: 1
   _fireDelay: 0.2
   MuzzleVelocity: 200
+  SelfDestructionTime: 10
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -2619,7 +2623,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -2628,8 +2632,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -2901,6 +2906,7 @@ MonoBehaviour:
   ShieldPoints: 10
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
+  VehicleFaction: 1
 --- !u!1 &140383121
 GameObject:
   m_ObjectHideFlags: 0
@@ -3499,6 +3505,7 @@ MonoBehaviour:
   UseManagedUpdates: 1
   _fireDelay: 0.2
   MuzzleVelocity: 200
+  SelfDestructionTime: 10
   Deviation: 0.1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -3859,7 +3866,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -3868,8 +3875,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -4141,6 +4149,7 @@ MonoBehaviour:
   ShieldPoints: 10
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
+  VehicleFaction: 1
 --- !u!1 &232662361
 GameObject:
   m_ObjectHideFlags: 0
@@ -4211,8 +4220,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 0.4
   MuzzleVelocity: 200
+  SelfDestructionTime: 5
   Deviation: 0.1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -4956,7 +4966,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -4965,8 +4975,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -5650,8 +5661,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 0.4
   MuzzleVelocity: 200
+  SelfDestructionTime: 5
   Deviation: 0.1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -6134,7 +6146,7 @@ Transform:
   m_GameObject: {fileID: 413969321}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1000, y: 0, z: -4000}
+  m_LocalPosition: {x: 1000, y: 0, z: -2000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -6395,6 +6407,7 @@ MonoBehaviour:
   ShieldPoints: 10
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
+  VehicleFaction: 1
 --- !u!1 &435378608
 GameObject:
   m_ObjectHideFlags: 0
@@ -6609,7 +6622,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -6618,8 +6631,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -7131,8 +7145,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 0.4
   MuzzleVelocity: 200
+  SelfDestructionTime: 5
   Deviation: 0.1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -7704,7 +7719,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
   spawnRadius: 500
-  spawnCount: 10
+  spawnCount: 20
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -500, y: 500}
@@ -8994,8 +9009,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 0.4
   MuzzleVelocity: 200
+  SelfDestructionTime: 5
   Deviation: 0.1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -11795,7 +11811,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -11804,8 +11820,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -11978,7 +11995,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -11987,8 +12004,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -12962,6 +12980,7 @@ MonoBehaviour:
   ShieldPoints: 10
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
+  VehicleFaction: 1
 --- !u!1 &784486518
 GameObject:
   m_ObjectHideFlags: 0
@@ -16684,7 +16703,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -16693,8 +16712,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -18255,8 +18275,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 0.4
   MuzzleVelocity: 200
+  SelfDestructionTime: 5
   Deviation: 0.1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -19026,7 +19047,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 100, y: 4000}
+  ActiveRange: {x: 100, y: 10000}
   UpdateRate: 60
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
@@ -19037,6 +19058,7 @@ MonoBehaviour:
   UseManagedUpdates: 1
   _fireDelay: 8
   MuzzleVelocity: 500
+  SelfDestructionTime: 20
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -19457,7 +19479,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -19466,8 +19488,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -20471,7 +20494,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -20480,8 +20503,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -20828,7 +20852,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 500
-  spawnCount: 40
+  spawnCount: 20
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 1000}
@@ -21233,7 +21257,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -21242,8 +21266,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -22372,8 +22397,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 0.4
   MuzzleVelocity: 200
+  SelfDestructionTime: 5
   Deviation: 0.1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -23191,6 +23217,7 @@ MonoBehaviour:
   ShieldPoints: 10
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
+  VehicleFaction: 1
 --- !u!1 &1399177722
 GameObject:
   m_ObjectHideFlags: 0
@@ -23331,7 +23358,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1411973161
 Transform:
   m_ObjectHideFlags: 0
@@ -23942,8 +23969,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 0.4
   MuzzleVelocity: 200
+  SelfDestructionTime: 5
   Deviation: 0.1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -24599,7 +24627,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 100, y: 4000}
+  ActiveRange: {x: 100, y: 10000}
   UpdateRate: 60
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
@@ -24610,6 +24638,7 @@ MonoBehaviour:
   UseManagedUpdates: 1
   _fireDelay: 8
   MuzzleVelocity: 500
+  SelfDestructionTime: 20
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -24788,7 +24817,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -24797,8 +24826,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -25408,7 +25438,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1530042874
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25424,16 +25454,19 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: 49db7407d5f4dd24fb52d21c3fd0d29d, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 7103346325574244501}
-  HeightRange: {x: -1000, y: 5000}
+  HeightRange: {x: -1000, y: 1000}
   syncCombatState: 1
   _targetManager: {fileID: 0}
-  _flockId: Flock_01
-  _team: 1
-  _targetTags: []
-  _ignoreTags: []
+  _flockId: Enemy Close Comabt Flock
+  _team: 2
+  _targetTags:
+  - Player
+  - Ally
+  _ignoreTags:
+  - Foe
   _targetLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   _detectionRadius: 5000
 --- !u!4 &1530042875
 Transform:
@@ -25444,7 +25477,7 @@ Transform:
   m_GameObject: {fileID: 1530042873}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -5500}
+  m_LocalPosition: {x: 1000, y: 0, z: 1500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -26442,7 +26475,7 @@ MonoBehaviour:
   spawnCount: 20
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 1
-  HeightRange: {x: -1000, y: 5000}
+  HeightRange: {x: -1000, y: 1000}
   SpawnedObjects: []
   attackProfile: {fileID: 0}
 --- !u!1 &1625015524
@@ -26718,7 +26751,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -26727,8 +26760,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -29120,7 +29154,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -29129,8 +29163,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -30566,8 +30601,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 0.4
   MuzzleVelocity: 200
+  SelfDestructionTime: 5
   Deviation: 0.1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -30831,7 +30867,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -30840,8 +30876,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -31922,7 +31959,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -31931,8 +31968,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -32133,7 +32171,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -32142,8 +32180,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -32285,7 +32324,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -32294,8 +32333,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -33132,6 +33172,7 @@ MonoBehaviour:
   ShieldPoints: 10
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
+  VehicleFaction: 1
 --- !u!1 &2005586265
 GameObject:
   m_ObjectHideFlags: 0
@@ -34282,7 +34323,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -34291,8 +34332,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -34403,7 +34445,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 100, y: 4000}
+  ActiveRange: {x: 100, y: 10000}
   UpdateRate: 60
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
@@ -34414,6 +34456,7 @@ MonoBehaviour:
   UseManagedUpdates: 1
   _fireDelay: 8
   MuzzleVelocity: 500
+  SelfDestructionTime: 20
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -35206,7 +35249,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoidsManager
   settings: {fileID: 11400000, guid: 983d9d1f7c702e1488fb76954bf52876, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
-  target: {fileID: 0}
+  target: {fileID: 7103346325574244501}
   HeightRange: {x: -2500, y: 2500}
   syncCombatState: 1
   _targetManager: {fileID: 0}
@@ -35459,7 +35502,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 20, y: 2500}
+  ActiveRange: {x: 20, y: 5000}
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
@@ -35468,8 +35511,9 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
-  MuzzleVelocity: 200
+  _fireDelay: 3
+  MuzzleVelocity: 320
+  SelfDestructionTime: 15
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -36410,9 +36454,9 @@ MonoBehaviour:
   maxStrafeThrust: 40
   strafeAcceleration: 60
   strafeDecay: 30
-  pitchSpeed: 12
-  yawSpeed: 8
-  rollSpeed: 16
+  pitchSpeed: 20
+  yawSpeed: 10
+  rollSpeed: 20
   inputSmoothSpeed: 8
   autoLevelRoll: 0
   autoLevelSpeed: 2
@@ -37485,10 +37529,10 @@ MonoBehaviour:
   OwnerShip: {fileID: 0}
   HitPoints: 10000
   MaxHitPoints: 10000
-  ArmorPoints: 5000
-  MaxArmorPoints: 5000
-  ShieldPoints: 5000
-  MaxShieldPoints: 5000
+  ArmorPoints: 10000
+  MaxArmorPoints: 10000
+  ShieldPoints: 10000
+  MaxShieldPoints: 10000
   BoidManager: {fileID: 0}
   HealthBar: {fileID: 724275193257514137}
   ArmorBar: {fileID: 2821503575755146257}

@@ -3,7 +3,9 @@ using static GlobalHelper;
 
 public class VehicleModule : VehicleBase
 {
-    public override Faction FactionType => OwnerShip.GetComponent<VehicleBase>().FactionType;
+    [Header("Faction")]
+    public Faction VehicleFaction = Faction.Player;
+    public override Faction FactionType => VehicleFaction;
 
     void OnEnable()
     {
