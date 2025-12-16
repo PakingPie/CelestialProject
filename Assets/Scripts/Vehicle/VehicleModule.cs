@@ -3,13 +3,25 @@ using static GlobalHelper;
 
 public class VehicleModule : VehicleBase
 {
-    [Header("Ownership")]
-    public GameObject OwnShip;
-    public override Faction FactionType => OwnShip.GetComponent<VehicleBase>().FactionType;
+    public override Faction FactionType => OwnerShip.GetComponent<VehicleBase>().FactionType;
+
+    void OnEnable()
+    {
+        // Register with CombatRegistry
+        if (Application.isPlaying)
+            CombatRegistry.Register(this, FactionType);
+    }
+
+    void OnDisable()
+    {
+        // Unregister from CombatRegistry
+        if (Application.isPlaying)
+            CombatRegistry.Unregister(this, FactionType);
+    }
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
     {
-        OwnShip.GetComponent<VehicleBase>().TakeDamage(damage, ammoType);
+        OwnerShip.GetComponent<VehicleBase>().TakeDamage(damage, ammoType);
         return true;
     }
 }

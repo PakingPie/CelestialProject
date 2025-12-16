@@ -1384,10 +1384,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gun
   TurretBase: {fileID: 2208432724579300860}
   Barrels: {fileID: 1312519066579379706}
-  ElevationSpeed: 10
+  _elevationSpeed: 30
   MaxElevation: 75
   MaxDepression: 15
-  TraverseSpeed: 30
+  _traverseSpeed: 60
   HasLimitedTraverse: 1
   LeftLimit: 120
   RightLimit: 120
@@ -1402,9 +1402,11 @@ MonoBehaviour:
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
   MissileDetectionRange: 500
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 5
+  _fireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.1
   AutoInheritVelocity: 1
@@ -1536,14 +1538,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5fd111861f695545934d2f021080e53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
+  OwnerShip: {fileID: 4103674997823826176}
   HitPoints: 200
   MaxHitPoints: 200
   ArmorPoints: 150
   MaxArmorPoints: 150
   ShieldPoints: 100
   MaxShieldPoints: 100
-  Speed: 1
-  Scale: {x: 1, y: 1, z: 1}
   BoidManager: {fileID: 0}
   VehicleFaction: 2
   Type: 0
@@ -2145,10 +2146,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gun
   TurretBase: {fileID: 178279903844796813}
   Barrels: {fileID: 4048651898410388250}
-  ElevationSpeed: 10
+  _elevationSpeed: 30
   MaxElevation: 75
   MaxDepression: 15
-  TraverseSpeed: 30
+  _traverseSpeed: 60
   HasLimitedTraverse: 1
   LeftLimit: 120
   RightLimit: 120
@@ -2163,9 +2164,11 @@ MonoBehaviour:
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
   MissileDetectionRange: 500
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 5
+  _fireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.1
   AutoInheritVelocity: 1
@@ -2912,10 +2915,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gun
   TurretBase: {fileID: 7347917145633559352}
   Barrels: {fileID: 8670457128975277747}
-  ElevationSpeed: 10
+  _elevationSpeed: 30
   MaxElevation: 75
   MaxDepression: 15
-  TraverseSpeed: 30
+  _traverseSpeed: 60
   HasLimitedTraverse: 1
   LeftLimit: 120
   RightLimit: 120
@@ -2930,9 +2933,11 @@ MonoBehaviour:
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
   MissileDetectionRange: 500
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 5
+  _fireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.1
   AutoInheritVelocity: 1
@@ -3117,10 +3122,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LaserTest
   TurretBase: {fileID: 807667675599332317}
   Barrels: {fileID: 6584174107223591114}
-  ElevationSpeed: 30
+  _elevationSpeed: 30
   MaxElevation: 5
   MaxDepression: 5
-  TraverseSpeed: 60
+  _traverseSpeed: 60
   HasLimitedTraverse: 1
   LeftLimit: 5
   RightLimit: 5
@@ -3135,6 +3140,8 @@ MonoBehaviour:
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
   LaserLineRenderer: {fileID: 4483844168222004942}
@@ -3336,10 +3343,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gun
   TurretBase: {fileID: 7617494745463580328}
   Barrels: {fileID: 1282102282258194956}
-  ElevationSpeed: 10
+  _elevationSpeed: 30
   MaxElevation: 75
   MaxDepression: 15
-  TraverseSpeed: 30
+  _traverseSpeed: 60
   HasLimitedTraverse: 1
   LeftLimit: 120
   RightLimit: 120
@@ -3354,9 +3361,11 @@ MonoBehaviour:
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
   MissileDetectionRange: 500
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 5
+  _fireDelay: 1
   MuzzleVelocity: 200
   Deviation: 0.1
   AutoInheritVelocity: 1

@@ -160,16 +160,18 @@ public class BulletPhysics : MonoBehaviour
         for (int i = 0; i < enemies.Count; i++)
         {
             VehicleBase enemy = enemies[i];
+            VehicleBase ownerShip = enemy.OwnerShip.GetComponent<VehicleBase>();
+            
             if (enemy == null) continue;
 
             // Shield hit effect
-            if (enemy.ShieldPoints > 0)
+            if (ownerShip.ShieldPoints > 0)
             {
-                Vector3 enemyPos = enemy.transform.position;
+                Vector3 enemyPos = ownerShip.transform.position;
                 Vector3 dir = (enemyPos - impactPoint).normalized;
 
                 // Calculate proper raycast distance based on enemy size
-                float enemyRadius = GetEnemyRadius(enemy);
+                float enemyRadius = GetEnemyRadius(ownerShip);
                 float rayStartOffset = enemyRadius * 2f;
                 float rayDistance = enemyRadius * 3f;
 

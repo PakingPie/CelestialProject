@@ -1,3 +1,4 @@
+using System;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
@@ -169,7 +170,7 @@ public class PlayerVehicle : VehicleBase
                 break;
         }
 
-        HitPoints -= damage;
+        HitPoints = Math.Clamp(HitPoints - damage, 0, MaxHitPoints);
 
         UpdateUI();
 

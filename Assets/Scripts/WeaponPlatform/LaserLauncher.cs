@@ -37,6 +37,9 @@ public class LaserLauncher : WeaponBase
 
     void Update()
     {
+        if(!IsFunctional)
+            return;
+
         // Handle cooldown
         if (_isOnCooldown)
         {
@@ -137,7 +140,8 @@ public class LaserLauncher : WeaponBase
 
                 if (enemyVehicle.ShieldPoints > 0)
                 {
-                    Vector3 dir = (enemyVehicle.transform.position - transform.position).normalized;
+                    var ownerShip = enemyVehicle.OwnerShip.GetComponent<VehicleBase>();
+                    Vector3 dir = (ownerShip.transform.position - transform.position).normalized;
                     Physics.Raycast(transform.position, dir, out _hit);
 
                     if (_hit.collider != null && _hit.collider.GetComponent<ShieldHitEffect>())

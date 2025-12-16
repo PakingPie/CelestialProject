@@ -465,6 +465,7 @@ GameObject:
   m_Component:
   - component: {fileID: 34389199}
   - component: {fileID: 34389200}
+  - component: {fileID: 34389201}
   m_Layer: 0
   m_Name: MidDeckTwinGun 6
   m_TagString: Untagged
@@ -525,7 +526,7 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 2
   MuzzleVelocity: 200
   Deviation: 1
   AutoInheritVelocity: 1
@@ -550,6 +551,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &34389201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 34389198}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &35413005
 GameObject:
   m_ObjectHideFlags: 0
@@ -1092,6 +1118,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
   HitPoints: 1000
   MaxHitPoints: 1000
   ArmorPoints: 1000
@@ -1099,7 +1126,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  OwnShip: {fileID: 8502438397938148729}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -2541,6 +2567,7 @@ GameObject:
   m_Component:
   - component: {fileID: 137231044}
   - component: {fileID: 137231045}
+  - component: {fileID: 137231046}
   m_Layer: 0
   m_Name: MidDeckTwinGun 9
   m_TagString: Untagged
@@ -2601,7 +2628,7 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 2
   MuzzleVelocity: 200
   Deviation: 1
   AutoInheritVelocity: 1
@@ -2626,6 +2653,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &137231046
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 137231043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &137617957
 GameObject:
   m_ObjectHideFlags: 0
@@ -2841,6 +2893,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
   HitPoints: 100
   MaxHitPoints: 100
   ArmorPoints: 10
@@ -2848,7 +2901,6 @@ MonoBehaviour:
   ShieldPoints: 10
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
-  OwnShip: {fileID: 8502438397938148729}
 --- !u!1 &140383121
 GameObject:
   m_ObjectHideFlags: 0
@@ -3755,6 +3807,7 @@ GameObject:
   m_Component:
   - component: {fileID: 228139255}
   - component: {fileID: 228139256}
+  - component: {fileID: 228139257}
   m_Layer: 0
   m_Name: MidDeckTwinGun 6
   m_TagString: Untagged
@@ -3840,6 +3893,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &228139257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 228139254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &228443082
 GameObject:
   m_ObjectHideFlags: 0
@@ -4055,6 +4133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
   HitPoints: 100
   MaxHitPoints: 100
   ArmorPoints: 10
@@ -4062,7 +4141,6 @@ MonoBehaviour:
   ShieldPoints: 10
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
-  OwnShip: {fileID: 8502438397938148729}
 --- !u!1 &232662361
 GameObject:
   m_ObjectHideFlags: 0
@@ -4826,6 +4904,7 @@ GameObject:
   m_Component:
   - component: {fileID: 303995023}
   - component: {fileID: 303995024}
+  - component: {fileID: 303995025}
   m_Layer: 0
   m_Name: MidDeckTwinGun 3
   m_TagString: Untagged
@@ -4886,7 +4965,7 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 2
   MuzzleVelocity: 200
   Deviation: 1
   AutoInheritVelocity: 1
@@ -4911,6 +4990,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &303995025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 303995022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &307665807
 GameObject:
   m_ObjectHideFlags: 0
@@ -5991,7 +6095,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &413969322
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6283,6 +6387,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
   HitPoints: 100
   MaxHitPoints: 100
   ArmorPoints: 10
@@ -6290,7 +6395,6 @@ MonoBehaviour:
   ShieldPoints: 10
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
-  OwnShip: {fileID: 8502438397938148729}
 --- !u!1 &435378608
 GameObject:
   m_ObjectHideFlags: 0
@@ -6453,6 +6557,7 @@ GameObject:
   m_Component:
   - component: {fileID: 446234341}
   - component: {fileID: 446234342}
+  - component: {fileID: 446234343}
   m_Layer: 0
   m_Name: MidDeckTwinGun 4
   m_TagString: Untagged
@@ -6538,6 +6643,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &446234343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 446234340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &447733593
 GameObject:
   m_ObjectHideFlags: 0
@@ -7574,7 +7704,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
   spawnRadius: 500
-  spawnCount: 80
+  spawnCount: 10
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -500, y: 500}
@@ -9806,7 +9936,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &620952101
 Transform:
   m_ObjectHideFlags: 0
@@ -11613,6 +11743,7 @@ GameObject:
   m_Component:
   - component: {fileID: 717312584}
   - component: {fileID: 717312585}
+  - component: {fileID: 717312586}
   m_Layer: 0
   m_Name: MidDeckTwinGun 7
   m_TagString: Untagged
@@ -11673,7 +11804,7 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 2
   MuzzleVelocity: 200
   Deviation: 1
   AutoInheritVelocity: 1
@@ -11698,6 +11829,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &717312586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717312583}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &723090740
 GameObject:
   m_ObjectHideFlags: 0
@@ -11770,6 +11926,7 @@ GameObject:
   m_Component:
   - component: {fileID: 726735044}
   - component: {fileID: 726735045}
+  - component: {fileID: 726735046}
   m_Layer: 0
   m_Name: MidDeckTwinGun 10
   m_TagString: Untagged
@@ -11830,7 +11987,7 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 2
   MuzzleVelocity: 200
   Deviation: 1
   AutoInheritVelocity: 1
@@ -11855,6 +12012,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &726735046
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 726735043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &734151590
 GameObject:
   m_ObjectHideFlags: 0
@@ -12772,6 +12954,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
   HitPoints: 100
   MaxHitPoints: 100
   ArmorPoints: 10
@@ -12779,7 +12962,6 @@ MonoBehaviour:
   ShieldPoints: 10
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
-  OwnShip: {fileID: 8502438397938148729}
 --- !u!1 &784486518
 GameObject:
   m_ObjectHideFlags: 0
@@ -16450,6 +16632,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1019083194}
   - component: {fileID: 1019083195}
+  - component: {fileID: 1019083196}
   m_Layer: 0
   m_Name: MidDeckTwinGun 3
   m_TagString: Untagged
@@ -16535,6 +16718,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &1019083196
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1019083193}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &1028566147
 GameObject:
   m_ObjectHideFlags: 0
@@ -18453,7 +18661,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1170274531
 Transform:
   m_ObjectHideFlags: 0
@@ -18866,6 +19074,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
   HitPoints: 1000
   MaxHitPoints: 1000
   ArmorPoints: 1000
@@ -18873,7 +19082,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  OwnShip: {fileID: 8502438397938148729}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -19197,6 +19405,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1203156692}
   - component: {fileID: 1203156693}
+  - component: {fileID: 1203156694}
   m_Layer: 0
   m_Name: MidDeckTwinGun 2
   m_TagString: Untagged
@@ -19282,6 +19491,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &1203156694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1203156691}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &1218004833
 GameObject:
   m_ObjectHideFlags: 0
@@ -20185,6 +20419,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1297380120}
   - component: {fileID: 1297380121}
+  - component: {fileID: 1297380122}
   m_Layer: 0
   m_Name: MidDeckTwinGun 5
   m_TagString: Untagged
@@ -20270,6 +20505,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &1297380122
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1297380119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &1298172863
 GameObject:
   m_ObjectHideFlags: 0
@@ -20568,7 +20828,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 500
-  spawnCount: 5
+  spawnCount: 40
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 1000}
@@ -20921,6 +21181,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1331264510}
   - component: {fileID: 1331264511}
+  - component: {fileID: 1331264512}
   m_Layer: 0
   m_Name: MidDeckTwinGun 4
   m_TagString: Untagged
@@ -20981,7 +21242,7 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 2
   MuzzleVelocity: 200
   Deviation: 1
   AutoInheritVelocity: 1
@@ -21006,6 +21267,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &1331264512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1331264509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &1333725037
 GameObject:
   m_ObjectHideFlags: 0
@@ -22897,6 +23183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
   HitPoints: 100
   MaxHitPoints: 100
   ArmorPoints: 10
@@ -22904,7 +23191,6 @@ MonoBehaviour:
   ShieldPoints: 10
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
-  OwnShip: {fileID: 8502438397938148729}
 --- !u!1 &1399177722
 GameObject:
   m_ObjectHideFlags: 0
@@ -24361,6 +24647,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
   HitPoints: 1000
   MaxHitPoints: 1000
   ArmorPoints: 1000
@@ -24368,7 +24655,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  OwnShip: {fileID: 8502438397938148729}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -24450,6 +24736,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1496854427}
   - component: {fileID: 1496854428}
+  - component: {fileID: 1496854429}
   m_Layer: 0
   m_Name: MidDeckTwinGun 5
   m_TagString: Untagged
@@ -24510,7 +24797,7 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 2
   MuzzleVelocity: 200
   Deviation: 1
   AutoInheritVelocity: 1
@@ -24535,6 +24822,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &1496854429
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1496854426}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &1505205413
 GameObject:
   m_ObjectHideFlags: 0
@@ -26354,6 +26666,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1630889159}
   - component: {fileID: 1630889160}
+  - component: {fileID: 1630889161}
   m_Layer: 0
   m_Name: MidDeckTwinGun 1
   m_TagString: Untagged
@@ -26439,6 +26752,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &1630889161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1630889158}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &1650505397
 GameObject:
   m_ObjectHideFlags: 0
@@ -28730,6 +29068,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1764949078}
   - component: {fileID: 1764949079}
+  - component: {fileID: 1764949080}
   m_Layer: 0
   m_Name: MidDeckTwinGun 1
   m_TagString: Untagged
@@ -28790,7 +29129,7 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 2
   MuzzleVelocity: 200
   Deviation: 1
   AutoInheritVelocity: 1
@@ -28815,6 +29154,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &1764949080
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1764949077}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &1768210022
 GameObject:
   m_ObjectHideFlags: 0
@@ -30415,6 +30779,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1871295712}
   - component: {fileID: 1871295713}
+  - component: {fileID: 1871295714}
   m_Layer: 0
   m_Name: MidDeckTwinGun 7
   m_TagString: Untagged
@@ -30500,6 +30865,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &1871295714
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1871295711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &1875464828
 GameObject:
   m_ObjectHideFlags: 0
@@ -31480,6 +31870,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1918332611}
   - component: {fileID: 1918332612}
+  - component: {fileID: 1918332613}
   m_Layer: 0
   m_Name: MidDeckTwinGun 8
   m_TagString: Untagged
@@ -31565,6 +31956,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &1918332613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1918332610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &1920650580
 GameObject:
   m_ObjectHideFlags: 0
@@ -31665,6 +32081,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1928097666}
   - component: {fileID: 1928097667}
+  - component: {fileID: 1928097668}
   m_Layer: 0
   m_Name: MidDeckTwinGun 9
   m_TagString: Untagged
@@ -31750,6 +32167,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &1928097668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1928097665}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &1928489185
 GameObject:
   m_ObjectHideFlags: 0
@@ -31791,6 +32233,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1932221307}
   - component: {fileID: 1932221308}
+  - component: {fileID: 1932221309}
   m_Layer: 0
   m_Name: MidDeckTwinGun 8
   m_TagString: Untagged
@@ -31851,7 +32294,7 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 2
   MuzzleVelocity: 200
   Deviation: 1
   AutoInheritVelocity: 1
@@ -31876,6 +32319,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &1932221309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1932221306}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &1935369317
 GameObject:
   m_ObjectHideFlags: 0
@@ -32656,6 +33124,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
   HitPoints: 100
   MaxHitPoints: 100
   ArmorPoints: 10
@@ -32663,7 +33132,6 @@ MonoBehaviour:
   ShieldPoints: 10
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
-  OwnShip: {fileID: 8502438397938148729}
 --- !u!1 &2005586265
 GameObject:
   m_ObjectHideFlags: 0
@@ -33762,6 +34230,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2093221686}
   - component: {fileID: 2093221687}
+  - component: {fileID: 2093221688}
   m_Layer: 0
   m_Name: MidDeckTwinGun 2
   m_TagString: Untagged
@@ -33822,7 +34291,7 @@ MonoBehaviour:
   IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.2
+  _fireDelay: 2
   MuzzleVelocity: 200
   Deviation: 1
   AutoInheritVelocity: 1
@@ -33847,6 +34316,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &2093221688
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2093221685}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &2093368511
 GameObject:
   m_ObjectHideFlags: 0
@@ -33957,6 +34451,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
   HitPoints: 1000
   MaxHitPoints: 1000
   ArmorPoints: 1000
@@ -33964,7 +34459,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  OwnShip: {fileID: 8502438397938148729}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -34736,7 +35230,7 @@ Transform:
   m_GameObject: {fileID: 2117162494}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1000, y: 0, z: 800}
+  m_LocalPosition: {x: 1000, y: 0, z: 3800}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -34913,6 +35407,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2137402560}
   - component: {fileID: 2137402561}
+  - component: {fileID: 2137402562}
   m_Layer: 0
   m_Name: MidDeckTwinGun 10
   m_TagString: Untagged
@@ -34998,6 +35493,31 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
+--- !u!114 &2137402562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2137402559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &2142978072
 GameObject:
   m_ObjectHideFlags: 0
@@ -36962,12 +37482,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29e68f896a6572b44b4b5b543dea9e29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVehicle
-  HitPoints: 2000
-  MaxHitPoints: 2000
-  ArmorPoints: 2000
-  MaxArmorPoints: 2000
-  ShieldPoints: 2000
-  MaxShieldPoints: 2000
+  OwnerShip: {fileID: 0}
+  HitPoints: 10000
+  MaxHitPoints: 10000
+  ArmorPoints: 5000
+  MaxArmorPoints: 5000
+  ShieldPoints: 5000
+  MaxShieldPoints: 5000
   BoidManager: {fileID: 0}
   HealthBar: {fileID: 724275193257514137}
   ArmorBar: {fileID: 2821503575755146257}

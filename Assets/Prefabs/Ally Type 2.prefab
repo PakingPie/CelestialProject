@@ -90,6 +90,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &1977418728939164071
 MonoBehaviour:
@@ -185,10 +186,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MissileTurret
   TurretBase: {fileID: 2431851921328358832}
   Barrels: {fileID: 357512343814433790}
-  ElevationSpeed: 30
+  _elevationSpeed: 30
   MaxElevation: 5
   MaxDepression: 45
-  TraverseSpeed: 60
+  _traverseSpeed: 60
   HasLimitedTraverse: 1
   LeftLimit: 75
   RightLimit: 75
@@ -203,6 +204,8 @@ MonoBehaviour:
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
   FireInterval: 15
@@ -281,10 +284,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gun
   TurretBase: {fileID: 8897350310686921163}
   Barrels: {fileID: 1653758302767261110}
-  ElevationSpeed: 60
+  _elevationSpeed: 30
   MaxElevation: 85
   MaxDepression: 10
-  TraverseSpeed: 90
+  _traverseSpeed: 60
   HasLimitedTraverse: 1
   LeftLimit: 75
   RightLimit: 75
@@ -299,9 +302,11 @@ MonoBehaviour:
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 0.8
+  _fireDelay: 0.2
   MuzzleVelocity: 200
   Deviation: 16
   AutoInheritVelocity: 1
@@ -413,6 +418,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &8081543951971980207
 BoxCollider:
@@ -806,6 +812,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &3854024447721611979
 BoxCollider:
@@ -917,6 +924,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &3570641178175688513
 BoxCollider:
@@ -1027,6 +1035,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &3701130613902569940
 GameObject:
@@ -1108,6 +1117,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 294858150d22ae744b073f85d98bf0aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Boid
+  _target: {fileID: 0}
   position: {x: 0, y: 0, z: 0}
   forward: {x: 0, y: 0, z: 0}
   avgFlockHeading: {x: 0, y: 0, z: 0}
@@ -1130,14 +1140,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5fd111861f695545934d2f021080e53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
+  OwnerShip: {fileID: 4103674997823826176}
   HitPoints: 50
   MaxHitPoints: 50
   ArmorPoints: 50
   MaxArmorPoints: 50
   ShieldPoints: 50
   MaxShieldPoints: 50
-  Speed: 1
-  Scale: {x: 1, y: 1, z: 1}
   BoidManager: {fileID: 0}
   VehicleFaction: 2
   Type: 0
@@ -1153,7 +1162,7 @@ MonoBehaviour:
   EnableIndication: 0
 --- !u!96 &8601252320548999007
 TrailRenderer:
-  serializedVersion: 3
+  serializedVersion: 4
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1199,6 +1208,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_Time: 4
   m_PreviewTimeScale: 1
   m_Parameters:
@@ -1266,7 +1276,6 @@ TrailRenderer:
     shadowBias: 0.5
     generateLightingData: 0
   m_MinVertexDistance: 1
-  m_MaskInteraction: 0
   m_Autodestruct: 0
   m_Emitting: 1
   m_ApplyActiveColorSpace: 1
@@ -1468,6 +1477,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &5120344943405626654
 BoxCollider:
@@ -1609,6 +1619,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &4834090783987108764
 GameObject:
@@ -1730,6 +1741,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &8236636301795177210
 BoxCollider:
@@ -1874,6 +1886,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &6135250932888082593
 BoxCollider:
@@ -1944,10 +1957,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gun
   TurretBase: {fileID: 4460590469780947378}
   Barrels: {fileID: 7243362293594754642}
-  ElevationSpeed: 60
+  _elevationSpeed: 30
   MaxElevation: 85
   MaxDepression: 10
-  TraverseSpeed: 90
+  _traverseSpeed: 60
   HasLimitedTraverse: 1
   LeftLimit: 75
   RightLimit: 75
@@ -1962,9 +1975,11 @@ MonoBehaviour:
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 0.8
+  _fireDelay: 0.2
   MuzzleVelocity: 200
   Deviation: 16
   AutoInheritVelocity: 1
@@ -2143,6 +2158,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &6203095802678969073
 GameObject:
@@ -2232,6 +2248,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &6283378685168453049
 GameObject:
@@ -2512,6 +2529,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &386512697893099591
 BoxCollider:
@@ -2654,6 +2672,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &9103911031838838603
 BoxCollider:

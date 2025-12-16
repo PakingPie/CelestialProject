@@ -36,7 +36,8 @@ public abstract class VehicleBase : MonoBehaviour
     {
         throw new NotImplementedException();
     }
-
+    [Header("Ownership")]
+    public GameObject OwnerShip;
     public int HitPoints = 100;
     public int MaxHitPoints = 100;
     public int ArmorPoints = 10;

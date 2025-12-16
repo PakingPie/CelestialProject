@@ -1,12 +1,10 @@
+using System;
 using UnityEngine;
 using static GlobalHelper;
 
 [RequireComponent(typeof(WeaponBase))]
 public class WeaponPlatform : VehicleBase
 {
-    [Header("Ownership")]
-    public GameObject OwnShip;
-
     [Header("Regeneration")]
     public int HitPointsRegenerationRate = 1;
     public float HitPointsRegenerationDelay = 5f;
@@ -85,7 +83,7 @@ public class WeaponPlatform : VehicleBase
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
     {
-        OwnShip.GetComponent<VehicleBase>().TakeDamage(damage, ammoType);
+        OwnerShip.GetComponent<VehicleBase>().TakeDamage(damage, ammoType);
         // Simple damage calculation; can be expanded based on ammoType and armor/shield
         switch (ammoType)
         {
@@ -110,7 +108,7 @@ public class WeaponPlatform : VehicleBase
                 break;
         }
 
-        HitPoints -= damage;
+        HitPoints = Math.Clamp(HitPoints - damage, 0, MaxHitPoints);
         // Debug.Log($"EnemyVehicle took {damage} damage, remaining HP: {HitPoints}");
 
         if (damage > HitPoints / 2)

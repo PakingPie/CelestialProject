@@ -15,7 +15,8 @@ public class ReloadIndicator : MonoBehaviour
     [SerializeField] private Color _readyColor = Color.green;
     [SerializeField] private Color _readyButNotAimedColor = new Color(0f, 0.5f, 0f, 1f); // Dark green
     [SerializeField] private Color _reloadingColor = Color.yellow;
-    [SerializeField] private Color _outOfTraverseColor = Color.red;
+    [SerializeField] private Color _outOfTraverseColor = Color.gray;
+    [SerializeField] private Color _disabledColor = Color.red;
     
     public void Initialize(Gun gun)
     {
@@ -36,8 +37,11 @@ public class ReloadIndicator : MonoBehaviour
         
         // Determine color
         Color color = _reloadingColor;
-        
-        if (_gun.IsManualMode && _gun.ManualAimPosition != Vector3.zero)
+        if(!_gun.IsFunctional)
+        {
+            color = _disabledColor;
+        }
+        else if (_gun.IsManualMode && _gun.ManualAimPosition != Vector3.zero)
         {
             if (!_gun.IsTargetWithinTraverseLimits(_gun.ManualAimPosition))
             {

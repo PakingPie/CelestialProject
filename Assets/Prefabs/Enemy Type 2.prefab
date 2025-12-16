@@ -457,10 +457,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gun
   TurretBase: {fileID: 2208432724579300860}
   Barrels: {fileID: 1312519066579379706}
-  ElevationSpeed: 10
+  _elevationSpeed: 30
   MaxElevation: 75
   MaxDepression: 15
-  TraverseSpeed: 30
+  _traverseSpeed: 60
   HasLimitedTraverse: 1
   LeftLimit: 80
   RightLimit: 80
@@ -475,9 +475,11 @@ MonoBehaviour:
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
+  Effectiveness: 1
+  IsFunctional: 1
   ShowGizmos: 0
   UseManagedUpdates: 1
-  FireDelay: 1
+  _fireDelay: 0.2
   MuzzleVelocity: 200
   Deviation: 0.1
   AutoInheritVelocity: 1
@@ -609,14 +611,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5fd111861f695545934d2f021080e53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
+  OwnerShip: {fileID: 4103674997823826176}
   HitPoints: 50
   MaxHitPoints: 50
   ArmorPoints: 100
   MaxArmorPoints: 100
   ShieldPoints: 200
   MaxShieldPoints: 200
-  Speed: 1
-  Scale: {x: 1, y: 1, z: 1}
   BoidManager: {fileID: 0}
   VehicleFaction: 4
   Type: 0
