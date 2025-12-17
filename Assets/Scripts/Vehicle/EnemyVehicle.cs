@@ -18,30 +18,33 @@ public class EnemyVehicle : VehicleBase
     public ParticleSystem ExplodeEffect;
     public int ShieldRegenerationRate = 1; // Points per second
     public float ShieldRegenerationDelay = 5f; // Seconds after taking damage before regeneration starts
-    private float _shieldRegenTimer = 0f;
-    private float _lastDamageTime = 0f;
     public override Faction FactionType => VehicleFaction;
 
+    public bool EnableIndication = false;
+    public bool EnableModuleHits = false;
+    public bool IsDying { get; private set; } = false;
+    private float _shieldRegenTimer = 0f;
+    private float _lastDamageTime = 0f;
     private Vector3 _lastPosition;
     private Vector3 _velocity;
     public Vector3 Velocity => _velocity;
     private EnemyPredictionManager _predictionManager;
-    public bool EnableIndication = false;
-    public bool IsDying { get; private set; } = false;
 
     void OnEnable()
     {
-        CombatRegistry.Register(this, FactionType);
+        if (!EnableModuleHits)
+            CombatRegistry.Register(this, FactionType);
     }
 
     void OnDisable()
     {
-        CombatRegistry.Unregister(this, FactionType);
+        if (!EnableModuleHits)
+            CombatRegistry.Unregister(this, FactionType);
     }
 
     void OnDestroy()
     {
-        if (_predictionManager != null)
+        if (_predictionManager != null && EnableIndication)
             _predictionManager.UnregisterEnemy(this);
     }
 

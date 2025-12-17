@@ -231,10 +231,12 @@ public abstract class VehicleBase : MonoBehaviour
     {
         int remainingDamage = damage;
 
-        // First, shields absorb damage (plasma is very strong against shields)
+        // First, shields absorb damage (plasma is very weak against shields)
         if (ShieldPoints > 0)
         {
-            int shieldDamage = damage * 4; // 4x effective against shields
+            int shieldDamage = damage / 4; // 0.25x effective against shields
+            if (shieldDamage <= 0) shieldDamage = 1; // Minimum 1 damage to shields
+
             if (ShieldPoints >= shieldDamage)
             {
                 ShieldPoints -= shieldDamage;
@@ -244,16 +246,14 @@ public abstract class VehicleBase : MonoBehaviour
             {
                 int overflow = shieldDamage - ShieldPoints;
                 ShieldPoints = 0;
-                remainingDamage = overflow / 4;
+                remainingDamage = overflow * 4;
             }
         }
 
-        // Then, armor absorbs remaining (plasma is weak against armor)
+        // Then, armor absorbs remaining (plasma is strong against armour)
         if (ArmorPoints > 0)
         {
-            int armorDamage = remainingDamage / 4; // 0.25x effective against armor
-            if (armorDamage <= 0) armorDamage = 1;
-
+            int armorDamage = remainingDamage * 4; // 4x effective against armor
             if (ArmorPoints >= armorDamage)
             {
                 ArmorPoints -= armorDamage;
@@ -263,7 +263,7 @@ public abstract class VehicleBase : MonoBehaviour
             {
                 int overflow = armorDamage - ArmorPoints;
                 ArmorPoints = 0;
-                remainingDamage = overflow * 4;
+                remainingDamage = overflow / 4;
             }
         }
 
