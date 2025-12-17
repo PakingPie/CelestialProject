@@ -529,7 +529,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -1027,7 +1027,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &74197555
 Transform:
   m_ObjectHideFlags: 0
@@ -2635,7 +2635,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -2907,6 +2907,7 @@ MonoBehaviour:
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
   VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &140383121
 GameObject:
   m_ObjectHideFlags: 0
@@ -3878,7 +3879,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -4150,6 +4151,7 @@ MonoBehaviour:
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
   VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &232662361
 GameObject:
   m_ObjectHideFlags: 0
@@ -4223,7 +4225,7 @@ MonoBehaviour:
   _fireDelay: 0.4
   MuzzleVelocity: 200
   SelfDestructionTime: 5
-  Deviation: 0.1
+  Deviation: 0.2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -4978,7 +4980,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -5664,7 +5666,7 @@ MonoBehaviour:
   _fireDelay: 0.4
   MuzzleVelocity: 200
   SelfDestructionTime: 5
-  Deviation: 0.1
+  Deviation: 0.2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -6408,6 +6410,7 @@ MonoBehaviour:
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
   VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &435378608
 GameObject:
   m_ObjectHideFlags: 0
@@ -6634,7 +6637,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -7148,7 +7151,7 @@ MonoBehaviour:
   _fireDelay: 0.4
   MuzzleVelocity: 200
   SelfDestructionTime: 5
-  Deviation: 0.1
+  Deviation: 0.2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -7719,7 +7722,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
   spawnRadius: 500
-  spawnCount: 20
+  spawnCount: 5
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -500, y: 500}
@@ -9012,7 +9015,7 @@ MonoBehaviour:
   _fireDelay: 0.4
   MuzzleVelocity: 200
   SelfDestructionTime: 5
-  Deviation: 0.1
+  Deviation: 0.2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -9757,6 +9760,7 @@ GameObject:
   m_Component:
   - component: {fileID: 619725933}
   - component: {fileID: 619725934}
+  - component: {fileID: 619725936}
   - component: {fileID: 619725935}
   m_Layer: 9
   m_Name: MainLaserTurret
@@ -9764,7 +9768,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &619725933
 Transform:
   m_ObjectHideFlags: 0
@@ -9937,6 +9941,31 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
+--- !u!114 &619725936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 619725932}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 2000
+  MaxHitPoints: 2000
+  ArmorPoints: 1000
+  MaxArmorPoints: 1000
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &620952100
 GameObject:
   m_ObjectHideFlags: 0
@@ -9952,7 +9981,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &620952101
 Transform:
   m_ObjectHideFlags: 0
@@ -11823,7 +11852,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -12007,7 +12036,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -12981,6 +13010,7 @@ MonoBehaviour:
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
   VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &784486518
 GameObject:
   m_ObjectHideFlags: 0
@@ -14202,7 +14232,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
   spawnRadius: 500
-  spawnCount: 3
+  spawnCount: 1
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 1000}
@@ -16768,7 +16798,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -17828,7 +17858,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CombatManager
   _cellSize: 100
   _maxTurretUpdatesPerFrame: 100
-  _showDebugInfo: 1
+  _showDebugInfo: 0
 --- !u!4 &1112071339
 Transform:
   m_ObjectHideFlags: 0
@@ -18331,7 +18361,7 @@ MonoBehaviour:
   _fireDelay: 0.4
   MuzzleVelocity: 200
   SelfDestructionTime: 5
-  Deviation: 0.1
+  Deviation: 0.2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -18735,7 +18765,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1170274531
 Transform:
   m_ObjectHideFlags: 0
@@ -19055,7 +19085,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1181223101
 Transform:
   m_ObjectHideFlags: 0
@@ -19544,7 +19574,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -20559,7 +20589,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -20874,7 +20904,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1310404615
 Transform:
   m_ObjectHideFlags: 0
@@ -20905,7 +20935,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 500
-  spawnCount: 40
+  spawnCount: 20
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 1000}
@@ -21322,7 +21352,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -22453,7 +22483,7 @@ MonoBehaviour:
   _fireDelay: 0.4
   MuzzleVelocity: 200
   SelfDestructionTime: 5
-  Deviation: 0.1
+  Deviation: 0.2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -23271,6 +23301,7 @@ MonoBehaviour:
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
   VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &1399177722
 GameObject:
   m_ObjectHideFlags: 0
@@ -24025,7 +24056,7 @@ MonoBehaviour:
   _fireDelay: 0.4
   MuzzleVelocity: 200
   SelfDestructionTime: 5
-  Deviation: 0.1
+  Deviation: 0.2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -24635,7 +24666,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1487219606
 Transform:
   m_ObjectHideFlags: 0
@@ -24882,7 +24913,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -26173,6 +26204,7 @@ GameObject:
   - component: {fileID: 1597702327}
   - component: {fileID: 1597702328}
   - component: {fileID: 1597702329}
+  - component: {fileID: 1597702330}
   m_Layer: 0
   m_Name: Missile Platform 2
   m_TagString: Untagged
@@ -26224,7 +26256,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2500}
+  ActiveRange: {x: 5, y: 10000}
   UpdateRate: 60
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
@@ -26261,6 +26293,31 @@ MonoBehaviour:
   dispersionAngle: 0
   magazineCount: 6
   magazineReloadTime: 8
+--- !u!114 &1597702330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1597702326}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 2000
+  MaxHitPoints: 2000
+  ArmorPoints: 1000
+  MaxArmorPoints: 1000
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &1600460812
 GameObject:
   m_ObjectHideFlags: 0
@@ -26816,7 +26873,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -29219,7 +29276,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -30657,7 +30714,7 @@ MonoBehaviour:
   _fireDelay: 0.4
   MuzzleVelocity: 200
   SelfDestructionTime: 5
-  Deviation: 0.1
+  Deviation: 0.2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -30932,7 +30989,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -32024,7 +32081,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -32236,7 +32293,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -32389,7 +32446,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -32925,8 +32982,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
   ShieldGO: {fileID: 1980694547}
-  TextureSize: 256
-  HitImpactScale: 0.2
+  TextureSize: 128
+  HitImpactScale: 0.1
   HitImpactDuration: 3
   DecayPerSecond: 0.9
   MinDecayThreshold: 0.02
@@ -33226,6 +33283,7 @@ MonoBehaviour:
   MaxShieldPoints: 10
   BoidManager: {fileID: 0}
   VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &2005586265
 GameObject:
   m_ObjectHideFlags: 0
@@ -33813,6 +33871,7 @@ GameObject:
   - component: {fileID: 2060028161}
   - component: {fileID: 2060028162}
   - component: {fileID: 2060028163}
+  - component: {fileID: 2060028164}
   m_Layer: 0
   m_Name: Missile Platform 1
   m_TagString: Untagged
@@ -33864,7 +33923,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2500}
+  ActiveRange: {x: 5, y: 10000}
   UpdateRate: 60
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
@@ -33901,6 +33960,31 @@ MonoBehaviour:
   dispersionAngle: 0
   magazineCount: 6
   magazineReloadTime: 12
+--- !u!114 &2060028164
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2060028160}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 8502438397938148729}
+  HitPoints: 2000
+  MaxHitPoints: 2000
+  ArmorPoints: 1000
+  MaxArmorPoints: 1000
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 5
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!1 &2067892006
 GameObject:
   m_ObjectHideFlags: 0
@@ -34388,7 +34472,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -34453,7 +34537,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2093368512
 Transform:
   m_ObjectHideFlags: 0
@@ -35326,7 +35410,7 @@ Transform:
   m_GameObject: {fileID: 2117162494}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1000, y: 0, z: 3800}
+  m_LocalPosition: {x: 1000, y: 0, z: 3000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -35568,7 +35652,7 @@ MonoBehaviour:
   _fireDelay: 3
   MuzzleVelocity: 320
   SelfDestructionTime: 15
-  Deviation: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -36512,7 +36596,7 @@ MonoBehaviour:
   yawSpeed: 10
   rollSpeed: 20
   inputSmoothSpeed: 8
-  autoLevelRoll: 0
+  autoLevelRoll: 1
   autoLevelSpeed: 2
   autoLevelDelay: 0.5
   currentVelocity: {x: 0, y: 0, z: 0}

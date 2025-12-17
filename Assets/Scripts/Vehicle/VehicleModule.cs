@@ -6,6 +6,8 @@ public class VehicleModule : VehicleBase
     [Header("Faction")]
     public Faction VehicleFaction = Faction.Player;
     public override Faction FactionType => VehicleFaction;
+    [Header("Damage Multiplier")]
+    public float DamageMultiplier = 1f;
 
     void OnEnable()
     {
@@ -23,7 +25,7 @@ public class VehicleModule : VehicleBase
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
     {
-        OwnerShip.GetComponent<VehicleBase>().TakeDamage(damage, ammoType);
+        OwnerShip.GetComponent<VehicleBase>().TakeDamage((int)(damage * DamageMultiplier), ammoType);
         return true;
     }
 }

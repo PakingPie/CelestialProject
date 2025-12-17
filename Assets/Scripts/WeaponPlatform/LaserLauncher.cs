@@ -33,12 +33,20 @@ public class LaserLauncher : WeaponBase
     void Start()
     {
         LaserLineRenderer.SetPosition(0, LaserOrigin.position);
+        // Instantiate Laser Launch Effect
+        LaserLaunchEffect = Instantiate(LaserLaunchEffect, LaserOrigin.position, Quaternion.identity, LaserOrigin);
     }
 
     void Update()
     {
-        if(!IsFunctional)
+        if (!IsFunctional)
+        {
+            _laserDurationTimer = LaserEffectDuration;
+            _isOnCooldown = true;
+            _fireCooldownTimer = 0f;
+            LaserLaunchEffect.Stop();
             return;
+        }
 
         // Handle cooldown
         if (_isOnCooldown)

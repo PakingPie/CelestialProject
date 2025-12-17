@@ -151,6 +151,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &3915328104108640378
 BoxCollider:
@@ -262,6 +263,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &5788316759351671129
 BoxCollider:
@@ -373,6 +375,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &1119175943683356092
 BoxCollider:
@@ -506,14 +509,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5fd111861f695545934d2f021080e53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
+  OwnerShip: {fileID: 0}
   HitPoints: 20
   MaxHitPoints: 20
   ArmorPoints: 10
   MaxArmorPoints: 10
   ShieldPoints: 10
   MaxShieldPoints: 0
-  Speed: 0
-  Scale: {x: 1, y: 1, z: 1}
   BoidManager: {fileID: 0}
   VehicleFaction: 4
   Type: 0
@@ -524,9 +526,10 @@ MonoBehaviour:
   EnergyShieldShader: {fileID: 0}
   ShieldEffect: {fileID: 0}
   ExplodeEffect: {fileID: 7698972359503818749, guid: 8696c1021f07aed4180a586385d9c9cc, type: 3}
-  ShieldRegenerationRate: 1
-  ShieldRegenerationDelay: 5
-  EnablePrediction: 0
+  ShieldRegenerationRate: 0
+  ShieldRegenerationDelay: 0
+  EnableIndication: 0
+  EnableModuleHits: 0
 --- !u!1 &6928817742548037658
 GameObject:
   m_ObjectHideFlags: 0
@@ -616,6 +619,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &3124909731885463383
 BoxCollider:
@@ -731,6 +735,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &7290849182835222704
 BoxCollider:
