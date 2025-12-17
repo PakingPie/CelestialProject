@@ -61,6 +61,9 @@ public abstract class VehicleBase : MonoBehaviour
         }
     }
 
+    private int _lastDamageFrame = -1;
+    private HashSet<int> _damageSourcesThisFrame = new HashSet<int>();
+
     #region Damage Handling
 
     /// <summary>
@@ -286,6 +289,25 @@ public abstract class VehicleBase : MonoBehaviour
     public int ProcessPierceDamage(int damage)
     {
         return damage;
+    }
+
+
+
+    public bool TakeDamageFromSource(int damage, AmmoType ammoType, int sourceId)
+    {
+        if (Time.frameCount != _lastDamageFrame)
+        {
+            _lastDamageFrame = Time.frameCount;
+            _damageSourcesThisFrame.Clear();
+        }
+
+        if (_damageSourcesThisFrame.Contains(sourceId))
+        {
+            return HitPoints > 0;
+        }
+
+        _damageSourcesThisFrame.Add(sourceId);
+        return TakeDamage(damage, ammoType);
     }
 
     #endregion

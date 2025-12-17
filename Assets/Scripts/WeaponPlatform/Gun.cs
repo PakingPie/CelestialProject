@@ -59,7 +59,7 @@ public class Gun : WeaponBase
 
     public float FireDelay { get { return _fireDelay / Mathf.Clamp(Effectiveness, 0.1f, 1f); } set { _fireDelay = value; } }
     public float LastShotTime => _lastShotTime;
-    
+
     // private Vector3 _smoothedTargetVelocity = Vector3.zero;
     // private bool _hasLastFramePos = false;
     // private const float TargetVelocitySmoothSpeed = 8f;
@@ -177,20 +177,16 @@ public class Gun : WeaponBase
                 Vector3 aimPosition = Targeted.position;
                 if (GuidanceType == GlobalHelper.GuidanceType.Lead)
                 {
-                    // Calculate target velocity
-                    Vector3 targetVelocity = (Targeted.position - _targetPosLastFrame) / Time.deltaTime;
-                    _targetPosLastFrame = Targeted.position;
-
-                    // Get ship velocity for intercept calculation
+                    Vector3 targetVelocity = LeadCalculator.GetTargetVelocity(Targeted);
                     Vector3 shipVelocity = AutoInheritVelocity ? InheritedVelocity : Vector3.zero;
 
-                    // Calculate intercept point
-                    Vector3 interceptPoint = CalculateInterceptPoint(
+                    Vector3 interceptPoint = LeadCalculator.CalculateInterceptPoint(
                         transform.position,
                         shipVelocity,
-                        MuzzleVelocity, // used to be BulletPrefab.Speed, commented because it gets overridden per shot
+                        MuzzleVelocity,
                         Targeted.position,
-                        targetVelocity
+                        targetVelocity,
+                        5f
                     );
 
                     if (interceptPoint != Vector3.zero)
@@ -199,10 +195,13 @@ public class Gun : WeaponBase
                     }
                     else
                     {
-                        // Fallback to simple prediction if no intercept possible
-                        float distanceToTarget = Vector3.Distance(transform.position, Targeted.position);
-                        float timeToImpact = distanceToTarget / BulletPrefab.Speed;
-                        aimPosition = Targeted.position + targetVelocity * timeToImpact;
+                        aimPosition = LeadCalculator.CalculateSimpleLead(
+                            transform.position,
+                            Targeted.position,
+                            targetVelocity,
+                            MuzzleVelocity,
+                            5f
+                        );
                     }
                 }
 

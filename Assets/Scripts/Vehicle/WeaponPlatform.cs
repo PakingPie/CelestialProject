@@ -55,6 +55,7 @@ public class WeaponPlatform : VehicleBase
             if (_lastDamageTime >= HitPointsRegenerationDelay && HitPoints < MaxHitPoints)
             {
                 RestoreHitPoints();
+                GetComponent<WeaponBase>().Effectiveness = HitPoints / (float)MaxHitPoints;
             }
         }
 
@@ -83,7 +84,18 @@ public class WeaponPlatform : VehicleBase
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
     {
-        OwnerShip.GetComponent<VehicleBase>().TakeDamage(damage, ammoType);
+        if (OwnerShip != null)
+        {
+            var ownerVehicle = OwnerShip.GetComponent<VehicleBase>();
+            if (ownerVehicle is EnemyVehicle enemyVehicle)
+            {
+                enemyVehicle.TakeDamageFromSource(damage, ammoType, GetInstanceID());
+            }
+            else if (ownerVehicle is PlayerVehicle playerVehicle)
+            {
+                playerVehicle.TakeDamageFromSource(damage, ammoType, GetInstanceID());
+            }
+        }
         // Simple damage calculation; can be expanded based on ammoType and armor/shield
         switch (ammoType)
         {

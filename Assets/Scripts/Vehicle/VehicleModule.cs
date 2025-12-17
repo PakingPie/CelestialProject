@@ -25,7 +25,28 @@ public class VehicleModule : VehicleBase
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
     {
-        OwnerShip.GetComponent<VehicleBase>().TakeDamage((int)(damage * DamageMultiplier), ammoType);
+        if (OwnerShip == null) return false;
+
+        var ownerVehicle = OwnerShip.GetComponent<VehicleBase>();
+        if (ownerVehicle == null) return false;
+
+        int finalDamage = (int)(damage * DamageMultiplier);
+
+        // Try to use source-tracked damage to prevent duplicates
+        if (ownerVehicle is EnemyVehicle enemyVehicle)
+        {
+            enemyVehicle.TakeDamageFromSource(finalDamage, ammoType, GetInstanceID());
+        }
+        else if (ownerVehicle is PlayerVehicle playerVehicle)
+        {
+            playerVehicle.TakeDamageFromSource(finalDamage, ammoType, GetInstanceID());
+        }
+        else
+        {
+            // Fallback for other vehicle types
+            ownerVehicle.TakeDamage(finalDamage, ammoType);
+        }
+
         return true;
     }
 }

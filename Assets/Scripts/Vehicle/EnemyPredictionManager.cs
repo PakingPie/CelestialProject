@@ -308,64 +308,31 @@ public class EnemyPredictionManager : MonoBehaviour
         Vector3 playerPosition = _player.position;
         Vector3 playerVelocity = _playerShipMovement != null ? _playerShipMovement.Velocity : Vector3.zero;
 
-        float bulletSpeed = _referenceGun != null && _referenceGun.BulletPrefab != null
+        float bulletSpeed = _referenceGun != null
             ? _referenceGun.MuzzleVelocity
             : 200f;
 
-        Vector3 predictedPos = CalculateInterceptPoint(
+        Vector3 predictedPos = LeadCalculator.CalculateInterceptPoint(
             playerPosition,
             playerVelocity,
             bulletSpeed,
             targetPosition,
-            targetVelocity
+            targetVelocity,
+            _maxPredictionTime
         );
 
         if (predictedPos == Vector3.zero)
         {
-            float timeToTarget = Mathf.Min(distance / bulletSpeed, _maxPredictionTime);
-            predictedPos = targetPosition + targetVelocity * timeToTarget * _leadDistanceMultiplier;
+            predictedPos = LeadCalculator.CalculateSimpleLead(
+                playerPosition,
+                targetPosition,
+                targetVelocity,
+                bulletSpeed,
+                _maxPredictionTime
+            );
         }
 
         return predictedPos;
-    }
-
-    private Vector3 CalculateInterceptPoint(
-        Vector3 shooterPos,
-        Vector3 shooterVelocity,
-        float projectileSpeed,
-        Vector3 targetPos,
-        Vector3 targetVelocity)
-    {
-        Vector3 relativePos = targetPos - shooterPos;
-        Vector3 relativeVel = targetVelocity - shooterVelocity;
-
-        float a = Vector3.Dot(relativeVel, relativeVel) - (projectileSpeed * projectileSpeed);
-        float b = 2f * Vector3.Dot(relativePos, relativeVel);
-        float c = Vector3.Dot(relativePos, relativePos);
-
-        float discriminant = b * b - 4f * a * c;
-
-        if (discriminant < 0f)
-            return Vector3.zero;
-
-        float sqrtDiscriminant = Mathf.Sqrt(discriminant);
-        float t1 = (-b + sqrtDiscriminant) / (2f * a);
-        float t2 = (-b - sqrtDiscriminant) / (2f * a);
-
-        float t;
-        if (t1 > 0f && t2 > 0f)
-            t = Mathf.Min(t1, t2);
-        else if (t1 > 0f)
-            t = t1;
-        else if (t2 > 0f)
-            t = t2;
-        else
-            return Vector3.zero;
-
-        t = Mathf.Min(t, _maxPredictionTime);
-        t *= _leadDistanceMultiplier;
-
-        return targetPos + targetVelocity * t;
     }
 
     private void UpdateIndicatorWorldPosition(PredictionIndicator indicator, Vector3 worldPosition, float scale, Transform target)
