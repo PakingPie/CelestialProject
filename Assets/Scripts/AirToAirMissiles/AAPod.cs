@@ -77,6 +77,8 @@ public class AAPod : AALauncher
             Quaternion randomizedRotation = Quaternion.LookRotation(randomizedForward);
 
             AAMissile missile = CreateMissile(launchPoints[tubeCount], randomizedRotation);
+            missile.GetComponent<VehicleBase>().OwnerShip = ownShip.gameObject;
+            missile.ownShip = ownShip;
             missile.target = target;
             missile.Launch(target, velocity);
             reloadCooldown = fireDelay;

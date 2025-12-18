@@ -790,8 +790,10 @@ public class Boid : MonoBehaviour
         return SteerTowards(toWander);
     }
 
+    [SerializeField] private bool _EnableDebugGizmos = false;
     void OnDrawGizmos()
     {
+        if (!_EnableDebugGizmos) return;
         // Leader indicator - large sphere above
         if (FormationIndex == 0)
         {

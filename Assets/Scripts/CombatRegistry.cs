@@ -138,25 +138,27 @@ public static class CombatRegistry
 
         // Check each target faction
         if ((targetFactions & Faction.Foe) != 0)
-            AddNearbyFromList(_foeVehicles, position, rangeSqr, results);
+            AddNearbyFromList(_foeVehicles, position, rangeSqr, results, isTargetingMissile);
 
         if ((targetFactions & Faction.Player) != 0)
-            AddNearbyFromList(_playerVehicles, position, rangeSqr, results);
+            AddNearbyFromList(_playerVehicles, position, rangeSqr, results, isTargetingMissile);
 
         if ((targetFactions & Faction.Ally) != 0)
-            AddNearbyFromList(_allyVehicles, position, rangeSqr, results);
+            AddNearbyFromList(_allyVehicles, position, rangeSqr, results, isTargetingMissile);
 
         if ((targetFactions & Faction.Neutral) != 0)
-            AddNearbyFromList(_neutralVehicles, position, rangeSqr, results);
+            AddNearbyFromList(_neutralVehicles, position, rangeSqr, results, isTargetingMissile);
     }
 
-    private static void AddNearbyFromList(List<VehicleBase> vehicles, Vector3 position, float rangeSqr, List<VehicleBase> results)
+    private static void AddNearbyFromList(List<VehicleBase> vehicles, Vector3 position, float rangeSqr, List<VehicleBase> results, bool isTargetingMissile = false)
     {
         if (vehicles == null) return;
 
         for (int i = vehicles.Count - 1; i >= 0; i--)
         {
             VehicleBase vehicle = vehicles[i];
+            if(!isTargetingMissile && vehicle.tag == "Missile")
+                continue;
 
             // Remove destroyed vehicles
             if (vehicle == null)

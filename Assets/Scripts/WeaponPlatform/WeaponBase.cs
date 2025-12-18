@@ -56,8 +56,9 @@ public class WeaponBase : MonoBehaviour
     public bool IsFunctional = true;
 
     [Header("Debug")]
-    [Tooltip("Show Gizmos")]
-    public bool ShowGizmos = true;
+    [Tooltip("Enable Debug Gizmos")]
+    public bool EnableDebug = true;
+    public bool ShowGunAngles = false;
 
     private float _angleToTarget = 0f;
     private float _limitedTraverseAngle = 0f;
@@ -119,7 +120,7 @@ public class WeaponBase : MonoBehaviour
         Vector3 myPosition = _cachedTransform.position;
 
         // Use spatial partitioning for efficiency
-        CombatRegistry.GetNearbyEnemies(myPosition, ActiveRange.y, FireTarget, _nearbyEnemies);
+        CombatRegistry.GetNearbyEnemies(myPosition, ActiveRange.y, FireTarget, _nearbyEnemies, CanTargetMissiles);
 
         if (_nearbyEnemies.Count == 0)
         {
@@ -308,7 +309,16 @@ public class WeaponBase : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        if (TurretBase != null && ShowGizmos)
+        if(!EnableDebug) return;
+        // Draw line between turret and aim position
+        if (Targeted != null)
+        {
+            // If Gun's target is Foe, draw in green, else if is Ally or Player, draw in red
+            Gizmos.color = (FireTarget & Faction.Foe) == Faction.Foe ? Color.green : Color.red;
+            Gizmos.DrawLine(transform.position, Targeted.position);
+        }
+
+        if (TurretBase != null && ShowGunAngles)
         {
             const float kArcSize = 10f;
             Color colorTraverse = new Color(1f, .5f, .5f, .1f);

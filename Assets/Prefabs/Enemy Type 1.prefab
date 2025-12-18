@@ -402,14 +402,15 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 100, y: 3000}
   UpdateRate: 30
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 1500
   Effectiveness: 1
   IsFunctional: 1
-  ShowGizmos: 0
+  EnableDebug: 1
+  ShowGunAngles: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
+  _fireDelay: 4
   MuzzleVelocity: 200
   SelfDestructionTime: 15
   Deviation: 1
@@ -587,15 +588,16 @@ MonoBehaviour:
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 500
+  MissileDetectionRange: 1500
   Effectiveness: 1
   IsFunctional: 1
-  ShowGizmos: 0
+  EnableDebug: 1
+  ShowGunAngles: 0
   UseManagedUpdates: 1
   LaserLineRenderer: {fileID: 5457200971297131156}
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.2
-  FireInterval: 10
+  FireInterval: 12
   TurretRotateSpeed: 5
   LaserDamageCap: 20
   LaserDPS: 10
@@ -1257,15 +1259,16 @@ MonoBehaviour:
   UpdateRate: 60
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 500
+  MissileDetectionRange: 1500
   Effectiveness: 1
   IsFunctional: 1
-  ShowGizmos: 0
+  EnableDebug: 1
+  ShowGunAngles: 0
   UseManagedUpdates: 1
   LaserLineRenderer: {fileID: 98138947337623298}
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.2
-  FireInterval: 10
+  FireInterval: 12
   TurretRotateSpeed: 5
   LaserDamageCap: 20
   LaserDPS: 10
@@ -1591,14 +1594,15 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 100, y: 3000}
   UpdateRate: 30
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 1500
   Effectiveness: 1
   IsFunctional: 1
-  ShowGizmos: 0
+  EnableDebug: 1
+  ShowGunAngles: 0
   UseManagedUpdates: 1
-  _fireDelay: 2
+  _fireDelay: 4
   MuzzleVelocity: 200
   SelfDestructionTime: 15
   Deviation: 1
@@ -1718,6 +1722,7 @@ MonoBehaviour:
   IsInCombat: 0
   FormationIndex: 0
   FormationLeader: {fileID: 0}
+  _EnableDebugGizmos: 0
 --- !u!114 &-2094783752960322070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1731,8 +1736,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
   OwnerShip: {fileID: 4103674997823826176}
-  HitPoints: 100
-  MaxHitPoints: 100
+  HitPoints: 250
+  MaxHitPoints: 250
   ArmorPoints: 100
   MaxArmorPoints: 100
   ShieldPoints: 200

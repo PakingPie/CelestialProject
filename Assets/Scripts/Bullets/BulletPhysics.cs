@@ -122,7 +122,7 @@ public class BulletPhysics : MonoBehaviour
         Vector3 myPosition = _cachedTransform.position;
 
         // Use spatial partitioning - only check nearby enemies
-        CombatRegistry.GetNearbyEnemies(myPosition, ExplosionRadius, FireTarget, _nearbyEnemies);
+        CombatRegistry.GetNearbyEnemies(myPosition, ExplosionRadius, FireTarget, _nearbyEnemies, true);
 
         if (_nearbyEnemies.Count == 0)
             return;
