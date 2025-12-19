@@ -822,7 +822,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.4
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 1214506837}
   - {fileID: 1663486676}
@@ -1474,7 +1474,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.4
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 1914992478}
   - {fileID: 1164622070}
@@ -6557,7 +6557,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &413969322
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8392,7 +8392,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
   spawnRadius: 500
-  spawnCount: 5
+  spawnCount: 30
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -500, y: 500}
@@ -8952,6 +8952,59 @@ Transform:
   m_Children: []
   m_Father: {fileID: 920976368}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &525384780
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 525384781}
+  - component: {fileID: 525384782}
+  m_Layer: 0
+  m_Name: Enemy Spawn 1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &525384781
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 525384780}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1277601559}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &525384782
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 525384780}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 300c8a9d9806cce4ea6a210416e51027, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Spawner
+  prefabs:
+  - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
+  spawnRadius: 500
+  spawnCount: 10
+  color: {r: 0, g: 0, b: 0, a: 0}
+  showSpawnRegion: 0
+  HeightRange: {x: -1000, y: 1000}
+  SpawnedObjects: []
+  attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
 --- !u!1 &525820646
 GameObject:
   m_ObjectHideFlags: 0
@@ -9218,7 +9271,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &552646579
 Transform:
   m_ObjectHideFlags: 0
@@ -9255,7 +9308,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!23 &555973312
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10033,7 +10086,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &620952101
 Transform:
   m_ObjectHideFlags: 0
@@ -13574,7 +13627,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!108 &791786983
 Light:
   m_ObjectHideFlags: 0
@@ -14789,7 +14842,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.4
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 1437943663}
   - {fileID: 722512445}
@@ -15011,7 +15064,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &856643380
 Transform:
   m_ObjectHideFlags: 0
@@ -15042,7 +15095,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
   spawnRadius: 500
-  spawnCount: 10
+  spawnCount: 2
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 1000}
@@ -16131,6 +16184,59 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 944283173}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &949437420
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 949437421}
+  - component: {fileID: 949437422}
+  m_Layer: 0
+  m_Name: Enemy Spawn 2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &949437421
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 949437420}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1277601559}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &949437422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 949437420}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 300c8a9d9806cce4ea6a210416e51027, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Spawner
+  prefabs:
+  - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
+  spawnRadius: 500
+  spawnCount: 2
+  color: {r: 0, g: 0, b: 0, a: 0}
+  showSpawnRegion: 0
+  HeightRange: {x: -1000, y: 1000}
+  SpawnedObjects: []
+  attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
 --- !u!1 &954297557
 GameObject:
   m_ObjectHideFlags: 0
@@ -18366,7 +18472,7 @@ Transform:
   m_GameObject: {fileID: 1123542285}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.2, z: 0}
+  m_LocalPosition: {x: 0, y: -0.2, z: 0}
   m_LocalScale: {x: 0.10000001, y: 0.10000001, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -18777,7 +18883,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1170274531
 Transform:
   m_ObjectHideFlags: 0
@@ -19191,7 +19297,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.4
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 1890076276}
   - {fileID: 1815608375}
@@ -19245,7 +19351,8 @@ Material:
   m_Shader: {fileID: 4800000, guid: 1d62080664285204d89528d70c384805, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _SUN_MODE_USE_DIRECTIONAL
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -19262,7 +19369,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
-    m_Floats: []
+    m_Floats:
+    - _SUN_MODE: 1
     m_Colors:
     - _SunPosition: {r: 18000, g: 0, b: -3000, a: 0}
   m_BuildTextureStacks: []
@@ -19843,7 +19951,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.4
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 1869951961}
   - {fileID: 1745445616}
@@ -20689,6 +20797,69 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1273461336}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1277601557
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1277601559}
+  - component: {fileID: 1277601558}
+  m_Layer: 0
+  m_Name: Enemy 1 Spawner (1)
+  m_TagString: Foe
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1277601558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1277601557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b24f5ff082e0e2146aad8028f26336fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoidsManager
+  settings: {fileID: 11400000, guid: 983d9d1f7c702e1488fb76954bf52876, type: 2}
+  computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
+  target: {fileID: 7103346325574244501}
+  HeightRange: {x: -2500, y: 2500}
+  syncCombatState: 1
+  _targetManager: {fileID: 0}
+  _flockId: Enemy Flock 2
+  _team: 2
+  _targetTags:
+  - Player
+  - Ally
+  _ignoreTags:
+  - Foe
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _detectionRadius: 10000
+--- !u!4 &1277601559
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1277601557}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1000, y: 0, z: -8000}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 525384781}
+  - {fileID: 949437421}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1280677264
 GameObject:
   m_ObjectHideFlags: 0
@@ -21512,7 +21683,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   spawnRadius: 500
-  spawnCount: 50
+  spawnCount: 10
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 1000}
@@ -22163,7 +22334,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1348757673
 Transform:
   m_ObjectHideFlags: 0
@@ -22777,7 +22948,7 @@ Transform:
   m_GameObject: {fileID: 1376049573}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.2, z: 0}
+  m_LocalPosition: {x: 0, y: -0.2, z: 0}
   m_LocalScale: {x: 0.10000001, y: 0.10000001, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -23899,7 +24070,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1411973161
 Transform:
   m_ObjectHideFlags: 0
@@ -25251,7 +25422,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.4
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 1133307584}
   - {fileID: 1823831373}
@@ -27017,7 +27188,7 @@ Transform:
   m_GameObject: {fileID: 1597702326}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.92387956, w: 0.38268337}
-  m_LocalPosition: {x: -11.250008, y: 11.250007, z: -25.5}
+  m_LocalPosition: {x: 11.25001, y: -11.25001, z: -25.5}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -27040,7 +27211,7 @@ MonoBehaviour:
   TurretBase: {fileID: 1804097163}
   Barrels: {fileID: 191934236}
   _elevationSpeed: 30
-  MaxElevation: 5
+  MaxElevation: 10
   MaxDepression: 5
   _traverseSpeed: 60
   HasLimitedTraverse: 0
@@ -31403,7 +31574,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.4
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 1148775356}
   - {fileID: 1480700020}
@@ -34772,7 +34943,7 @@ Transform:
   m_GameObject: {fileID: 2060028160}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.38268337, w: 0.92387956}
-  m_LocalPosition: {x: 11.250008, y: -11.250007, z: -25.5}
+  m_LocalPosition: {x: -11.25, y: 11.25, z: -25.5}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -34795,7 +34966,7 @@ MonoBehaviour:
   TurretBase: {fileID: 760329504}
   Barrels: {fileID: 481865053}
   _elevationSpeed: 30
-  MaxElevation: 5
+  MaxElevation: 10
   MaxDepression: 5
   _traverseSpeed: 60
   HasLimitedTraverse: 0
@@ -34815,7 +34986,7 @@ MonoBehaviour:
   Effectiveness: 1
   IsFunctional: 1
   EnableDebug: 1
-  ShowGunAngles: 0
+  ShowGunAngles: 1
   UseManagedUpdates: 1
   FireInterval: 2
   IsFiring: 0
@@ -35578,7 +35749,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.4
+  SequentialFiringInterval: 0.2
   FirePoints:
   - {fileID: 89204477}
   - {fileID: 485112058}
@@ -38514,6 +38685,7 @@ SceneRoots:
   - {fileID: 1830248437}
   - {fileID: 539839619}
   - {fileID: 2117162496}
+  - {fileID: 1277601559}
   - {fileID: 1530042875}
   - {fileID: 555973314}
   - {fileID: 1615824819}

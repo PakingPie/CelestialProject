@@ -3,6 +3,7 @@ Shader "Custom/PlanetDayAndNight"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        [KeywordEnum(USE_SUN_POSITION, USE_DIRECTIONAL)] _SUN_MODE("Sun Mode", Float) = 0
         _SunPosition ("Sun Position", Vector) = (0, 1, 0, 0)
     }
 
@@ -25,6 +26,8 @@ Shader "Custom/PlanetDayAndNight"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Assets/Shaders/Includes/FBM.hlsl"
+
+            #pragma multi_compile _SUN_MODE_USE_SUN_POSITION _SUN_MODE_USE_DIRECTIONAL
 
             sampler2D _MainTex;
             float3 _SunPosition;
@@ -122,9 +125,13 @@ Shader "Custom/PlanetDayAndNight"
             float4 frag (Varyings i) : SV_Target
             {
                 float3 p = normalize(i.positionOS);
-                float3 sunPos = _SunPosition.xyz;
+                #ifdef _SUN_MODE_USE_SUN_POSITION
+                    float3 sunPos = _SunPosition.xyz;
+                    float3 lightDir = normalize(sunPos - i.positionWS);
+                #else // USE_DIRECTIONAL
+                    float3 lightDir = GetMainLight().direction;
+                #endif
                 // Use Unity's main directional light
-                float3 lightDir = normalize(sunPos - i.positionWS);
                 // Transform light direction to local space
                 float3 localLightDir = normalize(mul(unity_WorldToObject, float4(lightDir, 0.0)).xyz);
                 
