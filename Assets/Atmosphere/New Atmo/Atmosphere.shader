@@ -74,6 +74,10 @@ Shader "Custom/Atmosphere"
             #pragma fragment frag
             #pragma target 3.5
 
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _SHADOWS_SOFT
+
             #pragma multi_compile _SUN_MODE_USE_SUN_POSITION _SUN_MODE_USE_DIRECTIONAL
             
             struct Attributes
@@ -271,7 +275,7 @@ Shader "Custom/Atmosphere"
                 float3 scattering = totalRayleigh * betaRayleigh * phaseRayleigh + 
                 totalMie * betaMie * phaseMie;
                 
-                return scattering * _LightIntensity;
+                return scattering;
             }
 
             // ============================================
@@ -325,6 +329,11 @@ Shader "Custom/Atmosphere"
                 
                 // Calculate atmosphere scattering
                 float3 scatter = CalculateScattering(cameraPos, viewDir, tMin, tMax, sunDir, planetCenter);
+                #if defined(_SUN_MODE_USE_SUN_POSITION)
+                    scatter *= _LightIntensity;
+                #else
+                    scatter *= GetMainLight().color.rgb * GetMainLight().shadowAttenuation;
+                #endif
                 
                 scatter *= _Exposure;
                 

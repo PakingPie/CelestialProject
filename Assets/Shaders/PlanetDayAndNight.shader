@@ -9,11 +9,9 @@ Shader "Custom/PlanetDayAndNight"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
-
-
         Pass
         {
+            Tags { "LightMode" = "UniversalForward" }
             Cull Back
             ZWrite On
             ZTest LEqual
@@ -28,6 +26,12 @@ Shader "Custom/PlanetDayAndNight"
             #include "Assets/Shaders/Includes/FBM.hlsl"
 
             #pragma multi_compile _SUN_MODE_USE_SUN_POSITION _SUN_MODE_USE_DIRECTIONAL
+
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             sampler2D _MainTex;
             float3 _SunPosition;
@@ -247,12 +251,84 @@ Shader "Custom/PlanetDayAndNight"
 
             float4 frag (Varyings i) : SV_Target
             {
-                // float3 normal = normalize(i.normalWS);
-                // normal = normal * 0.5 + 0.5;
-                // return float4(normal, 1.0);
                 return float4(NormalizeNormalPerPixel(i.normalWS), 0.0);
             }
 
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags { "LightMode" = "ShadowCaster" }
+
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+            Cull Back
+
+            HLSLPROGRAM
+            
+            #pragma vertex vert
+            #pragma fragment frag
+            
+            #pragma multi_compile _SUN_MODE_USE_SUN_POSITION _SUN_MODE_USE_DIRECTIONAL
+            
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+
+            float3 _SunPosition;
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            float4 GetShadowPositionHClip(Attributes input)
+            {
+                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+
+                #if defined(_SUN_MODE_USE_SUN_POSITION)
+                    float3 lightDirectionWS = normalize(_SunPosition - positionWS);
+                #else
+                    Light mainLight = GetMainLight();
+                    float3 lightDirectionWS = mainLight.direction;
+                #endif
+
+                float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
+                
+                #if UNITY_REVERSED_Z
+                    positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);
+                #else
+                    positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
+                #endif
+                
+                return positionCS;
+            }
+
+            Varyings vert(Attributes input)
+            {
+                Varyings output = (Varyings)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                output.positionCS = GetShadowPositionHClip(input);
+                return output;
+            }
+
+            half4 frag(Varyings input) : SV_TARGET
+            {
+                return 0;
+            }
+            
             ENDHLSL
         }
     }
