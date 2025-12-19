@@ -332,7 +332,7 @@ Shader "Custom/Atmosphere"
                 #if defined(_SUN_MODE_USE_SUN_POSITION)
                     scatter *= _LightIntensity;
                 #else
-                    scatter *= GetMainLight().color.rgb * GetMainLight().shadowAttenuation;
+                    scatter *= GetMainLight().color.rgb * GetMainLight().shadowAttenuation * _LightIntensity;
                 #endif
                 
                 scatter *= _Exposure;

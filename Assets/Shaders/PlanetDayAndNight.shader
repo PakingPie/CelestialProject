@@ -189,6 +189,7 @@ Shader "Custom/PlanetDayAndNight"
             HLSLPROGRAM
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #pragma vertex vert
             #pragma fragment frag
 
