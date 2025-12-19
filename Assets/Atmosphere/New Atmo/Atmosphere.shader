@@ -36,16 +36,18 @@ Shader "Custom/Atmosphere"
         {
             Tags { "RenderPipeline"="UniversalPipeline" 
                 "Queue"="Transparent" 
-            "RenderType"="Transparent"}
-            Cull Front
+                "RenderType"="Transparent"
+            }
+            Cull Off
             ZTest LEqual
             ZWrite Off
-            Blend SrcAlpha OneMinusSrcAlpha
+            Blend SrcAlpha One
 
             HLSLPROGRAM
             
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
             CBUFFER_START(UnityPerMaterial)
                 float _LightIntensity;
@@ -89,6 +91,12 @@ Shader "Custom/Atmosphere"
                 float3 normalWS : TEXCOORD2;
             };
 
+            struct FragmentOutput
+            {
+                float4 color : SV_Target;
+                float depth : SV_Depth;
+            };
+
             Varyings vert(Attributes IN)
             {
                 Varyings OUT;
@@ -99,14 +107,24 @@ Shader "Custom/Atmosphere"
                 return OUT;
             }
 
-            float LocalToDepth(float3 localPos)
+            // ============================================
+            // DEPTH SAMPLING HELPER
+            // ============================================
+            
+            float GetSceneDistance(float2 screenUV, float3 cameraPos, float3 viewDir)
             {
-                float4 clipPos = TransformObjectToHClip(float4(localPos, 1.0));
-                #if defined(SHADER_API_GLCORE) || defined(SHADER_API_OPENGL) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
-                    return (clipPos.z / clipPos.w) * 0.5 + 0.5;
-                #else
-                    return clipPos.z / clipPos.w;
-                #endif
+                // Sample the depth buffer
+                float rawDepth = SampleSceneDepth(screenUV);
+                
+                // Convert to linear eye depth
+                float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
+                
+                // Convert eye depth to world distance along the ray
+                // Eye depth is the Z component in view space, we need distance along ray
+                float3 viewDirVS = TransformWorldToViewDir(viewDir);
+                float rayDistance = linearDepth / -viewDirVS.z;
+                
+                return rayDistance;
             }
 
             // ============================================
@@ -227,7 +245,6 @@ Shader "Custom/Atmosphere"
                     
                     if (lightIntersect.y > 0)
                     {
-                        // Calculate day/night factor for this sample point
                         float3 sampleNormal = normalize(samplePos - planetCenter);
                         float dayFactor = smoothstep(_TerminatorStart, _TerminatorEnd, dot(sampleNormal, lightDir));
                         
@@ -261,7 +278,18 @@ Shader "Custom/Atmosphere"
             // FRAGMENT SHADER
             // ============================================
 
-            float4 frag(Varyings IN) : SV_Target
+            float WorldToDepth(float3 worldPos)
+            {
+                float4 clipPos = TransformWorldToHClip(worldPos);
+                #if UNITY_REVERSED_Z
+                    return clipPos.z / clipPos.w;
+                #else
+                    return (clipPos.z / clipPos.w) * 0.5 + 0.5;
+                #endif
+            }
+
+
+            FragmentOutput frag(Varyings IN)
             {
                 float3 planetCenter = unity_ObjectToWorld._m03_m13_m23;
                 float3 cameraPos = _WorldSpaceCameraPos.xyz;
@@ -272,6 +300,12 @@ Shader "Custom/Atmosphere"
                 #else
                     float3 sunDir = GetMainLight().direction;
                 #endif
+
+                // Get screen UV for depth sampling
+                float2 screenUV = IN.positionHCS.xy / _ScaledScreenParams.xy;
+                
+                // Get distance to scene geometry (ship, etc.)
+                float sceneDistance = GetSceneDistance(screenUV, cameraPos, viewDir);
 
                 float2 atmosphereIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius + _AtmosphereHeight);
                 
@@ -285,10 +319,12 @@ Shader "Custom/Atmosphere"
                 
                 if (tMin >= tMax)
                 discard;
+
+                // Calculate the world position where ray ends
+                float3 endPos = cameraPos + viewDir * tMax;
                 
                 // Calculate atmosphere scattering
                 float3 scatter = CalculateScattering(cameraPos, viewDir, tMin, tMax, sunDir, planetCenter);
-                
                 
                 scatter *= _Exposure;
                 
@@ -300,94 +336,16 @@ Shader "Custom/Atmosphere"
                 
                 float distance = tMax - tMin;
                 float alpha = saturate(1.0 - exp(-distance / (_AtmosphereHeight * 0.3)));
-                // alpha = max(alpha, clouds.a);
+
+                FragmentOutput output = (FragmentOutput)0;
                 
-                return float4(scatter, alpha);
+                output.color = float4(scatter, alpha);
+                output.depth = WorldToDepth(endPos);
+                return output;
             }
             ENDHLSL
         }
 
-        Pass 
-        {
-            Name "DepthOnly"
-            Tags { "LightMode" = "DepthOnly" }
-
-            ZWrite On
-            ColorMask 0
-            Cull Off
-
-            HLSLPROGRAM
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #pragma vertex vert
-            #pragma fragment frag
-
-            struct Attributes
-            {
-                float4 positionOS : POSITION;
-            };
-
-            struct Varyings
-            {
-                float4 positionOS : SV_POSITION;
-            };
-
-            Attributes vert(Attributes IN)
-            {
-                return IN;
-            }
-
-            void frag (Varyings i, out float DEPTH: SV_DEPTH)
-            {
-                DEPTH = i.positionOS.z / i.positionOS.w;
-            }
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "DepthNormals"
-            Tags { "LightMode" = "DepthNormals" }
-
-            ZWrite On
-            Cull Off
-
-            HLSLPROGRAM
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #pragma vertex vert
-            #pragma fragment frag
-
-            struct Attributes
-            {
-                float4 positionOS : POSITION;
-                float3 normalOS : NORMAL;
-            };
-
-            struct Varyings
-            {
-                float4 positionHCS : SV_POSITION;
-                float3 normalWS : TEXCOORD0;
-            };
-
-            Varyings vert(Attributes IN)
-            {
-                Varyings OUT;
-                OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
-                OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS);
-                return OUT;
-            }
-
-            float4 frag (Varyings i) : SV_Target
-            {
-                // float3 normal = normalize(i.normalWS);
-                // normal = normal * 0.5 + 0.5;
-                // return float4(normal, 1.0);
-                return float4(NormalizeNormalPerPixel(i.normalWS), 0.0);
-            }
-
-            ENDHLSL
-        }
+        // ... keep your DepthOnly and DepthNormals passes unchanged
     }
 }
