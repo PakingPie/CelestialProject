@@ -19,6 +19,7 @@ public class EnemyVehicle : VehicleBase
     public int ShieldRegenerationRate = 1; // Points per second
     public float ShieldRegenerationDelay = 5f; // Seconds after taking damage before regeneration starts
     public override Faction FactionType => VehicleFaction;
+    public override VehicleType VehicleType => Type;
 
     public bool EnableIndication = false;
     public bool EnableModuleHits = false;

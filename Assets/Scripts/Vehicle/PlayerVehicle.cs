@@ -9,6 +9,7 @@ using static GlobalHelper;
 // [ExecuteAlways]
 public class PlayerVehicle : VehicleBase
 {
+    public VehicleType Type = VehicleType.Frigate;
     [Header("UI")]
     public Image HealthBar;
     public Image ArmorBar;
@@ -45,6 +46,8 @@ public class PlayerVehicle : VehicleBase
     private Material _armorBarMaterial;
     private Material _shieldBarMaterial;
     private Material _shieldEffectMaterial;
+
+    public override VehicleType VehicleType => Type;
 
     // public Faction VehicleFaction = Faction.Player;
     // public override Faction FactionType => VehicleFaction;

@@ -8,36 +8,10 @@ using Vector3 = UnityEngine.Vector3;
 
 public abstract class VehicleBase : MonoBehaviour
 {
-    public virtual void Move()
-    {
-        throw new NotImplementedException();
-    }
-    public virtual void Attack()
-    {
-        throw new NotImplementedException();
-    }
-    public virtual bool TakeDamage(int damage, AmmoType ammoType)
-    {
-        throw new NotImplementedException();
-    }
-    public virtual void RestoreHitPoints()
-    {
-        throw new NotImplementedException();
-    }
-    public virtual void RestoreArmor()
-    {
-        throw new NotImplementedException();
-    }
-    public virtual void RestoreShield()
-    {
-        throw new NotImplementedException();
-    }
-    public virtual void DestroyVehicle()
-    {
-        throw new NotImplementedException();
-    }
+
     [Header("Ownership")]
     public GameObject OwnerShip;
+    public virtual VehicleType VehicleType => VehicleType.Frigate;
     public int HitPoints = 100;
     public int MaxHitPoints = 100;
     public int ArmorPoints = 10;
@@ -63,6 +37,28 @@ public abstract class VehicleBase : MonoBehaviour
 
     private int _lastDamageFrame = -1;
     private HashSet<int> _damageSourcesThisFrame = new HashSet<int>();
+
+
+    public virtual bool TakeDamage(int damage, AmmoType ammoType)
+    {
+        throw new NotImplementedException();
+    }
+    public virtual void RestoreHitPoints()
+    {
+        throw new NotImplementedException();
+    }
+    public virtual void RestoreArmor()
+    {
+        throw new NotImplementedException();
+    }
+    public virtual void RestoreShield()
+    {
+        throw new NotImplementedException();
+    }
+    public virtual void DestroyVehicle()
+    {
+        throw new NotImplementedException();
+    }
 
     #region Damage Handling
 

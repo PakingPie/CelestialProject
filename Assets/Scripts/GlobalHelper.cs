@@ -5,10 +5,24 @@ public static class GlobalHelper
 {
     public enum VehicleType
     {
-        Frigate,
-        Destroyer,
-        Cruiser,
-        Battleship
+        // Small/Fast targets
+        Missile = 0,
+        Fighter = 1,
+        Bomber = 2,
+        Corvette = 3,
+
+        // Medium targets
+        Frigate = 10,
+        Destroyer = 11,
+
+        // Large targets
+        Cruiser = 20,
+        Battleship = 21,
+        Carrier = 22,
+
+        // Structures
+        Station = 30,
+        Platform = 31
     }
 
     [System.Flags]
