@@ -402,7 +402,8 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 100, y: 3000}
   UpdateRate: 30
-  CanTargetMissiles: 1
+  PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
+  CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 1500
   Effectiveness: 1
@@ -540,7 +541,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5321280234917079974
 Transform:
   m_ObjectHideFlags: 0
@@ -584,11 +585,12 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 3
   GuidanceType: 1
-  ActiveRange: {x: 50, y: 1500}
+  ActiveRange: {x: 50, y: 3000}
   UpdateRate: 60
-  CanTargetMissiles: 0
+  PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 2000
   Effectiveness: 1
   IsFunctional: 1
   EnableDebug: 1
@@ -1211,7 +1213,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5108482102463605863
 Transform:
   m_ObjectHideFlags: 0
@@ -1255,11 +1257,12 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 3
   GuidanceType: 1
-  ActiveRange: {x: 50, y: 1500}
+  ActiveRange: {x: 50, y: 3000}
   UpdateRate: 60
-  CanTargetMissiles: 0
+  PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 2000
   Effectiveness: 1
   IsFunctional: 1
   EnableDebug: 1
@@ -1594,7 +1597,8 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 100, y: 3000}
   UpdateRate: 30
-  CanTargetMissiles: 1
+  PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
+  CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 1500
   Effectiveness: 1
@@ -1671,7 +1675,7 @@ GameObject:
   - component: {fileID: -2094783752960322070}
   - component: {fileID: 8601252320548999007}
   m_Layer: 9
-  m_Name: Enemy Type 1
+  m_Name: Enemy Fighter Type 1
   m_TagString: Foe
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1744,7 +1748,7 @@ MonoBehaviour:
   MaxShieldPoints: 200
   BoidManager: {fileID: 0}
   VehicleFaction: 4
-  Type: 1
+  Type: 0
   HealthBar: {fileID: 4407329836811907037}
   ArmorBar: {fileID: 656281697264504808}
   ShieldBar: {fileID: 5030111709581805343}

@@ -10,34 +10,40 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6f363063ede01af42b3026a29c92b973, type: 3}
-  m_Name: DefenceGunPriorityConfig
+  m_Name: PriorityConfig Large Calibre Weapons
   m_EditorClassIdentifier: Assembly-CSharp::TargetPriorityConfig
   Priorities:
-  - TargetType: 0
-    Priority: 50
+  - TargetType: 11
+    Priority: 40
     MaxEngagementRange: 0
     MinEngagementRange: 0
     Ignore: 0
-  - TargetType: 1
-    Priority: 50
+  - TargetType: 20
+    Priority: 60
     MaxEngagementRange: 0
     MinEngagementRange: 0
     Ignore: 0
-  - TargetType: 2
-    Priority: 50
+  - TargetType: 21
+    Priority: 80
     MaxEngagementRange: 0
     MinEngagementRange: 0
     Ignore: 0
-  - TargetType: 10
-    Priority: 50
+  - TargetType: 22
+    Priority: 80
     MaxEngagementRange: 0
     MinEngagementRange: 0
     Ignore: 0
-  - TargetType: 3
-    Priority: 50
+  - TargetType: 30
+    Priority: 80
     MaxEngagementRange: 0
     MinEngagementRange: 0
     Ignore: 0
-  DistanceWeight: 0.3
+  - TargetType: 31
+    Priority: 80
+    MaxEngagementRange: 0
+    MinEngagementRange: 0
+    Ignore: 0
+  DefaultPriority: 10
+  DistanceWeight: 0.4
   DamageWeight: 0.2
   TargetStickinessBonus: 10

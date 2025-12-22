@@ -24,13 +24,16 @@ public class TargetPriorityConfig : ScriptableObject
     [Tooltip("Higher priority targets are preferred")]
     public List<PriorityEntry> Priorities = new List<PriorityEntry>();
 
+    [Tooltip("Default priority for vehicle types not in the list")]
+    public int DefaultPriority = 10;
+
     [Header("Behavior")]
     [Tooltip("How much distance affects priority (0 = ignore distance, 1 = heavily favor close targets)")]
     [Range(0f, 1f)] public float DistanceWeight = 0.3f;
-    
+
     [Tooltip("How much current target health affects priority (0 = ignore, 1 = heavily favor damaged targets)")]
     [Range(0f, 1f)] public float DamageWeight = 0.2f;
-    
+
     [Tooltip("Stick with current target unless new target priority exceeds by this amount")]
     [Range(0f, 50f)] public float TargetStickinessBonus = 10f;
 
@@ -60,12 +63,13 @@ public class TargetPriorityConfig : ScriptableObject
     public int GetPriority(VehicleType type)
     {
         var entry = GetPriorityEntry(type);
-        return entry?.Priority ?? 0;
+        return entry?.Priority ?? DefaultPriority;
     }
 
     public bool ShouldIgnore(VehicleType type)
     {
         var entry = GetPriorityEntry(type);
+        // Only ignore if explicitly set to ignore
         return entry?.Ignore ?? false;
     }
 }

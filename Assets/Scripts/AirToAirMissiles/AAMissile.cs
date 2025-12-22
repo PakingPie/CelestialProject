@@ -334,6 +334,12 @@ public class AAMissile : MonoBehaviour
             _predictionManager.UnregisterMissile(this);
     }
 
+    private void OnDestroy()
+    {
+        if (_predictionManager != null)
+            _predictionManager.UnregisterMissile(this);
+    }
+
     /// <summary>
     /// Launch with faction info
     /// </summary>

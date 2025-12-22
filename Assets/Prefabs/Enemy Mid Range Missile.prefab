@@ -409,7 +409,8 @@ GameObject:
   - component: {fileID: 8617120702527641383}
   - component: {fileID: 6122844415495389849}
   - component: {fileID: 5355222595161521942}
-  - component: {fileID: -4237994909964565889}
+  - component: {fileID: -6331121211120306609}
+  - component: {fileID: -1105232913993206850}
   m_Layer: 0
   m_Name: Enemy Mid Range Missile
   m_TagString: Missile
@@ -483,21 +484,44 @@ MonoBehaviour:
   seekerCone: 120
   seekerRange: 10000
   overrideInitialSpeed: 0
-  initialSpeed: 100
-  motorLifetime: 5
+  initialSpeed: 200
+  motorLifetime: 10
   acceleration: 10
   turnRate: 20
-  timeToLive: 20
+  timeToLive: 25
   dropDelay: 0
   ejectVelocity: {x: 0, y: -5, z: 0}
   gravity: 0
-  ActiveRange: 5000
+  ActiveRange: 10000
   Damage: 50
   ExplodeRadius: 20
   DetonationRadius: 20
   MissileScale: {x: 0.5, y: 0.5, z: 0.5}
   SourceFaction: 4
---- !u!114 &-4237994909964565889
+--- !u!114 &-6331121211120306609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4762070880209434818}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 054d56f1e1ecffa4fb0d75fe79a915a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MissileVehicle
+  OwnerShip: {fileID: 0}
+  HitPoints: 20
+  MaxHitPoints: 20
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 0
+  MaxShieldPoints: 0
+  BoidManager: {fileID: 0}
+  VehicleFaction: 4
+  _vehicleType: 0
+  EnableIndication: 1
+--- !u!114 &-1105232913993206850
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -525,10 +549,10 @@ MonoBehaviour:
   HealthBarShader: {fileID: 0}
   EnergyShieldShader: {fileID: 0}
   ShieldEffect: {fileID: 0}
-  ExplodeEffect: {fileID: 7698972359503818749, guid: 8696c1021f07aed4180a586385d9c9cc, type: 3}
-  ShieldRegenerationRate: 0
-  ShieldRegenerationDelay: 0
-  EnableIndication: 1
+  ExplodeEffect: {fileID: 0}
+  ShieldRegenerationRate: 1
+  ShieldRegenerationDelay: 5
+  EnableIndication: 0
   EnableModuleHits: 0
 --- !u!1 &6928817742548037658
 GameObject:

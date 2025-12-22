@@ -412,7 +412,7 @@ public class Gun : WeaponBase
         if (IsManualMode)
             return;
 
-        // Check for missiles first if enabled
+        // Check for missiles first if enabled (separate from priority system)
         if (CanTargetMissiles)
         {
             AAMissile nearestMissile = CombatRegistry.FindNearestHostileMissile(
@@ -426,12 +426,17 @@ public class Gun : WeaponBase
                 if (PrioritizeMissiles || Targeted == null)
                 {
                     Targeted = nearestMissile.transform;
+
+                    Boid boid = GetComponentInParent<Boid>();
+                    if (boid != null)
+                        boid.EnterCombat();
+
                     return;
                 }
             }
         }
 
-        // Fall back to normal vehicle targeting
+        // Use base class for vehicle targeting (priority or distance based)
         base.ManagedUpdateTarget();
 
         if (Targeted == null)

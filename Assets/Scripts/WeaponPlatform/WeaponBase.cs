@@ -42,6 +42,13 @@ public class WeaponBase : MonoBehaviour
     [Tooltip("Number of updates per second for the turret targeting system.")]
     public int UpdateRate = 60;
 
+    [Header("Priority Targeting")]
+    [Tooltip("Optional: Configure target priority by vehicle type")]
+    public TargetPriorityConfig PriorityConfig;
+
+    // Add these protected fields near the other cached values:
+    protected float _currentTargetScore = 0f;
+
     [Header("Anti-Missile")]
     [Tooltip("Can this gun target missiles?")]
     public bool CanTargetMissiles = false;
@@ -119,7 +126,7 @@ public class WeaponBase : MonoBehaviour
     {
         Vector3 myPosition = _cachedTransform.position;
 
-        // Use spatial partitioning for efficiency
+        // Populate nearby enemies list
         CombatRegistry.GetNearbyEnemies(myPosition, ActiveRange.y, FireTarget, _nearbyEnemies, CanTargetMissiles);
 
         if (_nearbyEnemies.Count == 0)
@@ -129,6 +136,149 @@ public class WeaponBase : MonoBehaviour
             return;
         }
 
+        // Use priority-based or distance-based selection
+        if (PriorityConfig != null)
+        {
+            SelectTargetByPriority(myPosition);
+        }
+        else
+        {
+            SelectNearestTarget(myPosition);
+        }
+
+        if (Targeted == null)
+        {
+            IsAimed = false;
+        }
+        else
+        {
+            Boid boid = GetComponentInParent<Boid>();
+            if (boid != null)
+            {
+                boid.EnterCombat();
+            }
+        }
+    }
+
+    protected virtual void SelectTargetByPriority(Vector3 myPosition)
+    {
+        if (PriorityConfig == null)
+        {
+            // Fall back to distance-based selection
+            SelectNearestTarget(myPosition);
+            return;
+        }
+
+        float bestScore = float.MinValue;
+        VehicleBase bestTarget = null;
+
+        // Get current target for stickiness bonus
+        VehicleBase currentTargetVehicle = null;
+        if (Targeted != null)
+        {
+            currentTargetVehicle = Targeted.GetComponent<VehicleBase>();
+            if (currentTargetVehicle == null)
+                currentTargetVehicle = Targeted.GetComponentInParent<VehicleBase>();
+        }
+
+        for (int i = 0; i < _nearbyEnemies.Count; i++)
+        {
+            VehicleBase enemy = _nearbyEnemies[i];
+
+            if (enemy == null || enemy == _owner)
+                continue;
+
+            VehicleType enemyType = enemy.VehicleType;
+
+            // Check if this type should be ignored
+            if (PriorityConfig.ShouldIgnore(enemyType))
+                continue;
+
+            Transform enemyTransform = enemy.transform;
+            Vector3 enemyPos = enemyTransform.position;
+            float distanceSqr = (enemyPos - myPosition).sqrMagnitude;
+            float distance = Mathf.Sqrt(distanceSqr);
+
+            // Check min range
+            if (distanceSqr < _minRangeSqr)
+                continue;
+
+            // Check priority config range limits
+            var priorityEntry = PriorityConfig.GetPriorityEntry(enemyType);
+            if (priorityEntry != null)
+            {
+                if (priorityEntry.MaxEngagementRange > 0 && distance > priorityEntry.MaxEngagementRange)
+                    continue;
+                if (distance < priorityEntry.MinEngagementRange)
+                    continue;
+            }
+
+            // Check angle constraints
+            Vector2 angles = CalcuateRelativeAngles(enemyTransform);
+            if (angles.y > MaxElevation || angles.y < -MaxDepression)
+                continue;
+            if (HasLimitedTraverse && (angles.x > RightLimit || angles.x < -LeftLimit))
+                continue;
+
+            // Calculate score
+            float score = CalculateTargetScore(enemy, distance, currentTargetVehicle);
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestTarget = enemy;
+            }
+        }
+
+        if (bestTarget != null)
+        {
+            Targeted = bestTarget.transform;
+            _currentTargetScore = bestScore;
+        }
+        else
+        {
+            Targeted = null;
+            _currentTargetScore = 0f;
+        }
+    }
+
+    protected float CalculateTargetScore(VehicleBase enemy, float distance, VehicleBase currentTarget)
+    {
+        VehicleType enemyType = enemy.VehicleType;
+
+        // Base priority from config
+        float basePriority = PriorityConfig.GetPriority(enemyType);
+
+        // Distance factor (0-100 scale, closer = higher)
+        float maxRange = ActiveRange.y;
+        float distanceFactor = (1f - Mathf.Clamp01(distance / maxRange)) * 100f;
+
+        // Damage factor (favor damaged targets)
+        float damageFactor = 0f;
+        if (enemy.MaxHitPoints > 0)
+        {
+            float healthPercent = (float)enemy.HitPoints / enemy.MaxHitPoints;
+            damageFactor = (1f - healthPercent) * 100f;
+        }
+
+        // Target stickiness (bonus for current target)
+        float stickinessBonus = 0f;
+        if (currentTarget != null && enemy == currentTarget)
+        {
+            stickinessBonus = PriorityConfig.TargetStickinessBonus;
+        }
+
+        // Calculate final score
+        float score = basePriority
+            + (distanceFactor * PriorityConfig.DistanceWeight)
+            + (damageFactor * PriorityConfig.DamageWeight)
+            + stickinessBonus;
+
+        return score;
+    }
+
+    protected void SelectNearestTarget(Vector3 myPosition)
+    {
         float shortestDistanceSqr = Mathf.Infinity;
         Transform nearestEnemy = null;
 
@@ -140,17 +290,14 @@ public class WeaponBase : MonoBehaviour
 
             Transform enemyTransform = enemy.transform;
             Vector3 enemyPos = enemyTransform.position;
-
             float distanceSqr = (enemyPos - myPosition).sqrMagnitude;
 
             if (distanceSqr < _minRangeSqr || distanceSqr >= shortestDistanceSqr)
                 continue;
 
             Vector2 angles = CalcuateRelativeAngles(enemyTransform);
-
             if (angles.y > MaxElevation || angles.y < -MaxDepression)
                 continue;
-
             if (HasLimitedTraverse && (angles.x > RightLimit || angles.x < -LeftLimit))
                 continue;
 
@@ -159,19 +306,7 @@ public class WeaponBase : MonoBehaviour
         }
 
         Targeted = nearestEnemy;
-        if (nearestEnemy == null)
-            IsAimed = false;
-
-        if (Targeted != null)
-        {
-            Boid boid = GetComponentInParent<Boid>();
-            if (boid != null)
-            {
-                boid.EnterCombat();
-            }
-        }
     }
-
     public void RotateBaseToFaceTarget(Vector3 targetPosition)
     {
         Vector3 turretUp = transform.up;
@@ -309,7 +444,7 @@ public class WeaponBase : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        if(!EnableDebug) return;
+        if (!EnableDebug) return;
         // Draw line between turret and aim position
         if (Targeted != null)
         {
