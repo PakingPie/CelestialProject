@@ -131,6 +131,17 @@ public class PlayerMovementController : MonoBehaviour
     {
         if (ship == null) return;
 
+        // Skip updates when game is paused
+        if (Time.timeScale == 0f) return;
+
+        // Reset NaN values if they occur
+        if (float.IsNaN(orbitYaw)) orbitYaw = ship.eulerAngles.y + 180f;
+        if (float.IsNaN(orbitPitch)) orbitPitch = 20f;
+        if (float.IsNaN(currentOrbitDistance)) currentOrbitDistance = orbitDistance;
+        if (float.IsNaN(collisionAdjustedDistance)) collisionAdjustedDistance = orbitDistance;
+        if (float.IsNaN(smoothFollowPosition.x)) smoothFollowPosition = ship.position;
+        if (float.IsNaN(currentLeadOffset.x)) currentLeadOffset = Vector3.zero;
+
         HandleInput();
         HandleZoom();
         HandleResetView();
@@ -275,9 +286,22 @@ public class PlayerMovementController : MonoBehaviour
             return;
         }
 
+        // Validate currentOrbitDistance first
+        if (float.IsNaN(currentOrbitDistance) || float.IsInfinity(currentOrbitDistance))
+        {
+            currentOrbitDistance = orbitDistance;
+        }
+
         Vector3 targetPosition = smoothFollowPosition + currentLeadOffset;
         Vector3 directionFromTarget = CalculateOrbitDirection();
-        
+
+        // Validate direction
+        if (directionFromTarget.sqrMagnitude < 0.0001f)
+        {
+            collisionAdjustedDistance = currentOrbitDistance;
+            return;
+        }
+
         float desiredDistance = currentOrbitDistance;
         float adjustedDistance = desiredDistance;
 
@@ -291,16 +315,33 @@ public class PlayerMovementController : MonoBehaviour
             collisionLayers,
             QueryTriggerInteraction.Ignore))
         {
-            adjustedDistance = hit.distance - collisionRadius * 0.5f;
-            adjustedDistance = Mathf.Max(adjustedDistance, minOrbitDistance * 0.5f);
+            // Validate hit distance
+            if (!float.IsNaN(hit.distance) && !float.IsInfinity(hit.distance))
+            {
+                adjustedDistance = hit.distance - collisionRadius * 0.5f;
+                adjustedDistance = Mathf.Max(adjustedDistance, minOrbitDistance * 0.5f);
+            }
         }
 
-        // Smooth collision adjustment
-        collisionAdjustedDistance = Mathf.Lerp(
-            collisionAdjustedDistance,
-            adjustedDistance,
-            collisionSmoothness * Time.deltaTime
-        );
+        // Validate before Lerp
+        if (float.IsNaN(collisionAdjustedDistance) || float.IsInfinity(collisionAdjustedDistance))
+        {
+            collisionAdjustedDistance = adjustedDistance;
+        }
+        else
+        {
+            collisionAdjustedDistance = Mathf.Lerp(
+                collisionAdjustedDistance,
+                adjustedDistance,
+                collisionSmoothness * Time.deltaTime
+            );
+        }
+
+        // Final validation
+        if (float.IsNaN(collisionAdjustedDistance))
+        {
+            collisionAdjustedDistance = orbitDistance;
+        }
     }
 
     private Vector3 CalculateOrbitDirection()
@@ -348,12 +389,43 @@ public class PlayerMovementController : MonoBehaviour
             }
         }
 
-        // Position camera
+        // Calculate target camera position
         Vector3 targetCameraPosition = lookTarget + orbitOffset + shakeOffset;
+
+        // // Debug: Find the source of NaN
+        // if (float.IsNaN(targetCameraPosition.x) || float.IsNaN(targetCameraPosition.y) || float.IsNaN(targetCameraPosition.z))
+        // {
+        //     Debug.LogWarning($"NaN detected!" +
+        //         $"\n  smoothFollowPosition: {smoothFollowPosition}" +
+        //         $"\n  currentLeadOffset: {currentLeadOffset}" +
+        //         $"\n  lookTarget: {lookTarget}" +
+        //         $"\n  orbitDirection: {orbitDirection}" +
+        //         $"\n  finalDistance: {finalDistance}" +
+        //         $"\n  orbitOffset: {orbitOffset}" +
+        //         $"\n  shakeOffset: {shakeOffset}" +
+        //         $"\n  orbitYaw: {orbitYaw}" +
+        //         $"\n  orbitPitch: {orbitPitch}" +
+        //         $"\n  currentOrbitDistance: {currentOrbitDistance}" +
+        //         $"\n  collisionAdjustedDistance: {collisionAdjustedDistance}");
+        //     return;
+        // }
+
         transform.position = targetCameraPosition;
 
-        // Smooth rotation to look at target
-        Quaternion targetRotation = Quaternion.LookRotation(lookTarget - transform.position);
+        Vector3 lookDirection = lookTarget - transform.position;
+        if (lookDirection.sqrMagnitude < 0.0001f)
+        {
+            lookDirection = -ship.forward;
+        }
+
+        Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+
+        // if (float.IsNaN(targetRotation.x) || float.IsNaN(targetRotation.y) || float.IsNaN(targetRotation.z) || float.IsNaN(targetRotation.w))
+        // {
+        //     Debug.LogWarning("Invalid rotation detected, skipping rotation update");
+        //     return;
+        // }
+
         smoothRotation = Quaternion.Slerp(smoothRotation, targetRotation, rotationSmoothness * Time.deltaTime);
         transform.rotation = smoothRotation;
     }

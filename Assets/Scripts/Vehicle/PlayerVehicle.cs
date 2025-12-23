@@ -49,6 +49,8 @@ public class PlayerVehicle : VehicleBase
 
     public override VehicleType VehicleType => Type;
 
+    public static bool IsPlayerAlive = true;
+
     // public Faction VehicleFaction = Faction.Player;
     // public override Faction FactionType => VehicleFaction;
 
@@ -180,8 +182,9 @@ public class PlayerVehicle : VehicleBase
         if (HitPoints <= 0)
         {
             // DestroyVehicle();
-            // TODO: Handle player vehicle destruction (game over, respawn, etc.), for now just diable the vehicle
             HitPoints = 0;
+            IsPlayerAlive = false;
+            GameManager.Instance.GameOver();
             return false;
         }
 
