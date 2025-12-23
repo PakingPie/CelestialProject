@@ -1,7 +1,9 @@
 using UnityEngine;
 using static GlobalHelper;
 using System.Collections.Generic;
+#if UNITY_EDITOR
 using UnityEditor.EditorTools;
+#endif
 public class WeaponBase : MonoBehaviour
 {
     [Header("Turret")]
