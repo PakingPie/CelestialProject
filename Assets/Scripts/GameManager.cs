@@ -13,7 +13,6 @@ public class GameManager : MonoBehaviour
     {
         if (Instance == null)
         {
-            Instance = new GameManager();
             Instance = this;
             DontDestroyOnLoad(gameObject);
             Time.timeScale = 0f; // Pause immediately when singleton is created

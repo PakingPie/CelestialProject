@@ -16,16 +16,24 @@ public class EnemyVehicle : VehicleBase
     public Shader EnergyShieldShader;
     public GameObject ShieldEffect;
     public ParticleSystem ExplodeEffect;
-    public int ShieldRegenerationRate = 1; // Points per second
-    public float ShieldRegenerationDelay = 5f; // Seconds after taking damage before regeneration starts
+    [Header("Regeneration")]
+    public int HitPointsRegenerationRate = 1;
+    public float HitPointsRegenerationDelay = 40f;
+    public int ArmorRegenerationRate = 1;
+    public float ArmorRegenerationDelay = 40f;
+    public int ShieldRegenerationRate = 1;
+    public float ShieldRegenerationDelay = 20f;
+
+    private float _hitPointsRegenTimer = 0f;
+    private float _armorRegenTimer = 0f;
+    private float _shieldRegenTimer = 0f;
+    private float _lastDamageTime = 0f;
     public override Faction FactionType => VehicleFaction;
     public override VehicleType VehicleType => Type;
 
     public bool EnableIndication = false;
     public bool EnableModuleHits = false;
     public bool IsDying { get; private set; } = false;
-    private float _shieldRegenTimer = 0f;
-    private float _lastDamageTime = 0f;
     private Vector3 _lastPosition;
     private Vector3 _velocity;
     public Vector3 Velocity => _velocity;
@@ -92,39 +100,54 @@ public class EnemyVehicle : VehicleBase
         {
             ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial = new Material(EnergyShieldShader);
             ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", 1.0f);
-
-            // GetComponent<ShieldHitEffect>().ShieldGO = ShieldEffect;
         }
     }
 
     void Update()
     {
         _velocity = (transform.position - _lastPosition) / Time.deltaTime;
+
         _lastPosition = transform.position;
+
         // Handle shield regeneration
-        if (ShieldEffect && ShieldPoints < MaxShieldPoints)
+        if (ShieldPoints < MaxShieldPoints || ArmorPoints < MaxArmorPoints || HitPoints < MaxHitPoints)
         {
             _lastDamageTime += Time.deltaTime;
-            if (_lastDamageTime >= ShieldRegenerationDelay)
+
+            if (_lastDamageTime >= ShieldRegenerationDelay && ShieldPoints < MaxShieldPoints)
             {
                 RestoreShield();
+            }
+            if (_lastDamageTime >= ArmorRegenerationDelay && ArmorPoints < MaxArmorPoints)
+            {
+                RestoreArmor();
+            }
+            if (_lastDamageTime >= HitPointsRegenerationDelay && HitPoints < MaxHitPoints)
+            {
+                RestoreHitPoints();
             }
         }
     }
 
-    public override void RestoreShield()
+    public override void RestoreHitPoints() => RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer, 0.1f, HealthBar.GetComponent<Image>().material, "_CurrentHitPoints");
+    public override void RestoreArmor() => RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer, 0.1f, ArmorBar.GetComponent<Image>().material, "_CurrentHitPoints");
+    public override void RestoreShield() => RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer, 0.1f, ShieldBar.GetComponent<Image>().material, "_CurrentHitPoints", true);
+
+    private void RegenerateAttributtes(ref int currentAmount, ref int maxAmount, ref int regenerationRate, ref float regenTimer, float delay, Material barMat, string matKeyword, bool isShield = false)
     {
-        _shieldRegenTimer += Time.deltaTime;
-        if (_shieldRegenTimer >= 0.1f && ShieldPoints < MaxShieldPoints) // Regenerate shield every 0.1 second
+        regenTimer += Time.deltaTime;
+        if (regenTimer >= delay && currentAmount < maxAmount)
         {
-            ShieldPoints += ShieldRegenerationRate;
-            if (ShieldPoints > MaxShieldPoints)
+            currentAmount += regenerationRate;
+            if (currentAmount > maxAmount)
+                currentAmount = maxAmount;
+
+            barMat.SetInt(matKeyword, currentAmount);
+            if (isShield)
             {
-                ShieldPoints = MaxShieldPoints;
+                ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", currentAmount / (float)maxAmount);
             }
-            ShieldBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ShieldPoints);
-            ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", ShieldPoints / (float)MaxShieldPoints);
-            _shieldRegenTimer = 0f;
+            regenTimer = 0f;
         }
     }
 

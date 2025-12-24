@@ -6,10 +6,10 @@ public class Gun : WeaponBase
     [Header("Ballistics")]
     [Tooltip("Time (s) between each shot.")]
     [SerializeField] private float _fireDelay = .2f;
-    [Tooltip("Speed (m/s) that the bullet is fired from the barrel.")]
-    public float MuzzleVelocity = 200f;
-    [Tooltip("Time (s) after which the bullet will self-destruct.")]
-    public float SelfDestructionTime = 10f;
+    // [Tooltip("Speed (m/s) that the bullet is fired from the barrel.")]
+    // public float MuzzleVelocity = 200f;
+    // [Tooltip("Time (s) after which the bullet will self-destruct.")]
+    // public float SelfDestructionTime = 10f;
     [Tooltip("Amount of spread the gun has. Higher values result in more spread.")]
     public float Deviation = .1f;
     [Tooltip("Automatically inherit the velocity of a parent Rigidbody when firing bullets.")]
@@ -114,6 +114,8 @@ public class Gun : WeaponBase
             foreach (var barrel in RecoilingBarrels)
                 RegisterRecoilingBarrel(barrel);
         }
+
+        ActiveRange.y = BulletPrefab.Speed * BulletPrefab.LifeTime * 0.8f;
     }
 
     private void Update()
@@ -183,7 +185,7 @@ public class Gun : WeaponBase
                     Vector3 interceptPoint = LeadCalculator.CalculateInterceptPoint(
                         transform.position,
                         shipVelocity,
-                        MuzzleVelocity,
+                        BulletPrefab.Speed,
                         Targeted.position,
                         targetVelocity,
                         5f
@@ -199,7 +201,7 @@ public class Gun : WeaponBase
                             transform.position,
                             Targeted.position,
                             targetVelocity,
-                            MuzzleVelocity,
+                            BulletPrefab.Speed,
                             5f
                         );
                     }
@@ -385,9 +387,9 @@ public class Gun : WeaponBase
             fireDirection = Quaternion.Euler(randomSpread) * fireDirection;
         }
 
-        // Override bullet speed with gun's muzzle velocity
-        bulletPhysics.Speed = MuzzleVelocity;
-        bulletPhysics.LifeTime = SelfDestructionTime;
+        // // Override bullet speed with gun's muzzle velocity
+        // bulletPhysics.Speed = MuzzleVelocity;
+        // bulletPhysics.LifeTime = SelfDestructionTime;
 
         // Initialize bullet with direction and inherited velocity
         if (AutoInheritVelocity)

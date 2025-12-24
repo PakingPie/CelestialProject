@@ -60,218 +60,184 @@ public abstract class VehicleBase : MonoBehaviour
         throw new NotImplementedException();
     }
 
-    #region Damage Handling
+    #region Improved Damage Handling
 
     /// <summary>
-    /// Kinetic: Strong against shields (2x), weak against armor (0.5x)
+    /// Core damage processing - damage flows through all layers
+    /// </summary>
+    /// <param name="damage">Base damage amount</param>
+    /// <param name="shieldEffectiveness">Multiplier for shield damage (>1 = strong vs shield, <1 = weak)</param>
+    /// <param name="armorEffectiveness">Multiplier for armor damage (>1 = strong vs armor, <1 = weak)</param>
+    /// <param name="shieldAbsorption">How much of the damage shields try to absorb (0-1)</param>
+    /// <returns>Final HP damage</returns>
+    private int ProcessDamageFlow(int damage, float shieldEffectiveness, float armorEffectiveness, float shieldAbsorption = 0.6f)
+    {
+        if (damage <= 0) return 0;
+
+        float remainingDamage = damage;
+
+        // === SHIELD PHASE ===
+        // Shield tries to absorb a portion of damage
+        if (ShieldPoints > 0)
+        {
+            // How much damage the shield attempts to block
+            float damageToShield = damage * shieldAbsorption;
+
+            // Apply effectiveness (high effectiveness = shield takes more damage to block same amount)
+            float shieldDamage = damageToShield * shieldEffectiveness;
+
+            if (ShieldPoints >= shieldDamage)
+            {
+                // Shield absorbs its portion
+                ShieldPoints -= Mathf.RoundToInt(shieldDamage);
+                remainingDamage = damage * (1f - shieldAbsorption);
+            }
+            else
+            {
+                // Shield breaks - calculate how much it actually blocked
+                float actualBlocked = ShieldPoints / shieldEffectiveness;
+                float blockRatio = actualBlocked / damageToShield;
+                ShieldPoints = 0;
+
+                // Remaining damage = unblocked portion + what shield couldn't block
+                remainingDamage = damage * (1f - shieldAbsorption * blockRatio);
+            }
+        }
+
+        if (remainingDamage <= 0) return 0;
+
+        // === ARMOR PHASE ===
+        // Armor tries to absorb remaining damage
+        if (ArmorPoints > 0)
+        {
+            float armorDamage = remainingDamage * armorEffectiveness;
+
+            if (ArmorPoints >= armorDamage)
+            {
+                // Armor fully absorbs remaining damage
+                ArmorPoints -= Mathf.RoundToInt(armorDamage);
+                return 0;
+            }
+            else
+            {
+                // Armor breaks
+                float actualAbsorbed = ArmorPoints / armorEffectiveness;
+                ArmorPoints = 0;
+                remainingDamage -= actualAbsorbed;
+            }
+        }
+
+        // === HP PHASE ===
+        // Apply vulnerability bonus when protections are down
+        float hpMultiplier = 1f;
+        if (ShieldPoints <= 0 && ArmorPoints <= 0)
+        {
+            hpMultiplier = 1.5f; // Vulnerable when both are down
+        }
+
+        return Mathf.RoundToInt(remainingDamage * hpMultiplier);
+    }
+
+    /// <summary>
+    /// Kinetic: Strong vs shields (1.5x), weak vs armor (0.5x)
+    /// High velocity rounds punch through energy barriers but deflect off plating
     /// </summary>
     public int ProcessKineticDamage(int damage)
     {
-        int remainingDamage = damage;
-
-        // First, shields absorb damage (kinetic is strong against shields)
-        if (ShieldPoints > 0)
-        {
-            int shieldDamage = damage * 2; // 2x effective against shields
-            if (ShieldPoints >= shieldDamage)
-            {
-                ShieldPoints -= shieldDamage;
-                return 0; // Shield fully absorbed
-            }
-            else
-            {
-                // Shield broke, calculate overflow
-                int overflow = shieldDamage - ShieldPoints;
-                ShieldPoints = 0;
-                remainingDamage = overflow / 2; // Convert back from 2x multiplier
-            }
-        }
-
-        // Then, armor absorbs remaining damage (kinetic is weak against armor)
-        if (ArmorPoints > 0)
-        {
-            int armorDamage = remainingDamage / 2; // 0.5x effective against armor
-            if (armorDamage <= 0) armorDamage = 1; // Minimum 1 damage to armor
-
-            if (ArmorPoints >= armorDamage)
-            {
-                ArmorPoints -= armorDamage;
-                return 0; // Armor fully absorbed
-            }
-            else
-            {
-                // Armor broke, calculate overflow
-                int overflow = armorDamage - ArmorPoints;
-                ArmorPoints = 0;
-                remainingDamage = overflow * 2; // Convert back from 0.5x multiplier
-            }
-        }
-
-        // Both down: bonus damage to HP
-        return (int)(remainingDamage * 1.5f);
+        return ProcessDamageFlow(
+            damage,
+            shieldEffectiveness: 1.5f,   // Shields take 1.5x damage to block kinetic
+            armorEffectiveness: 0.5f,    // Armor only takes 0.5x damage to block kinetic
+            shieldAbsorption: 0.5f       // Shields try to block 50% of kinetic
+        );
     }
 
     /// <summary>
-    /// Energy: Strong against armor (2x), weak against shields (0.5x)
+    /// Energy: Strong vs armor (1.5x), weak vs shields (0.5x)
+    /// Concentrated energy melts plating but disperses against shields
     /// </summary>
     public int ProcessEnergyDamage(int damage)
     {
-        int remainingDamage = damage;
-
-        // First, armor absorbs damage (energy is strong against armor)
-        if (ArmorPoints > 0)
-        {
-            int armorDamage = damage * 2; // 2x effective against armor
-            if (ArmorPoints >= armorDamage)
-            {
-                ArmorPoints -= armorDamage;
-                return 0; // Armor fully absorbed
-            }
-            else
-            {
-                int overflow = armorDamage - ArmorPoints;
-                ArmorPoints = 0;
-                remainingDamage = overflow / 2;
-            }
-        }
-
-        // Then, shields absorb remaining (energy is weak against shields)
-        if (ShieldPoints > 0)
-        {
-            int shieldDamage = remainingDamage / 2; // 0.5x effective against shields
-            if (shieldDamage <= 0) shieldDamage = 1;
-
-            if (ShieldPoints >= shieldDamage)
-            {
-                ShieldPoints -= shieldDamage;
-                return 0; // Shield fully absorbed
-            }
-            else
-            {
-                int overflow = shieldDamage - ShieldPoints;
-                ShieldPoints = 0;
-                remainingDamage = overflow * 2;
-            }
-        }
-
-        // Both down: bonus damage to HP
-        return (int)(remainingDamage * 1.5f);
+        return ProcessDamageFlow(
+            damage,
+            shieldEffectiveness: 0.5f,   // Shields easily block energy
+            armorEffectiveness: 1.5f,    // Armor struggles against energy
+            shieldAbsorption: 0.7f       // Shields try to block 70% of energy
+        );
     }
 
     /// <summary>
-    /// Explosive: Balanced damage to both (1x each), damages both simultaneously
+    /// Explosive: Balanced damage, hits everything
+    /// Shockwave affects all layers simultaneously
     /// </summary>
     public int ProcessExplosiveDamage(int damage)
     {
         int hpDamage = 0;
+        float remainingDamage = damage;
 
-        // Explosive damages both armor and shield simultaneously
-        int armorOverflow = 0;
-        if (ArmorPoints > 0)
-        {
-            if (ArmorPoints >= damage)
-            {
-                ArmorPoints -= damage;
-            }
-            else
-            {
-                armorOverflow = damage - ArmorPoints;
-                ArmorPoints = 0;
-            }
-        }
-        else
-        {
-            armorOverflow = damage;
-        }
+        // Explosive damages shield and armor simultaneously (split damage)
+        float shieldPortion = 0.5f;
+        float armorPortion = 0.5f;
 
-        int shieldOverflow = 0;
+        // Shield takes its portion
         if (ShieldPoints > 0)
         {
-            if (ShieldPoints >= damage)
+            int shieldDamage = Mathf.RoundToInt(damage * shieldPortion);
+            if (ShieldPoints >= shieldDamage)
             {
-                ShieldPoints -= damage;
+                ShieldPoints -= shieldDamage;
+                remainingDamage -= damage * shieldPortion;
             }
             else
             {
-                shieldOverflow = damage - ShieldPoints;
+                remainingDamage -= ShieldPoints;
                 ShieldPoints = 0;
             }
         }
-        else
+
+        // Armor takes its portion
+        if (ArmorPoints > 0)
         {
-            shieldOverflow = damage;
+            int armorDamage = Mathf.RoundToInt(damage * armorPortion);
+            if (ArmorPoints >= armorDamage)
+            {
+                ArmorPoints -= armorDamage;
+                remainingDamage -= damage * armorPortion;
+            }
+            else
+            {
+                remainingDamage -= ArmorPoints;
+                ArmorPoints = 0;
+            }
         }
 
-        // HP damage based on protection status
-        if (ArmorPoints <= 0 && ShieldPoints <= 0)
+        // HP damage from overflow
+        if (remainingDamage > 0)
         {
-            // Both down: full overflow damage with bonus
-            hpDamage = (int)((armorOverflow + shieldOverflow) * 0.5f * 1.5f);
+            float multiplier = (ShieldPoints <= 0 && ArmorPoints <= 0) ? 1.25f : 1f;
+            hpDamage = Mathf.RoundToInt(remainingDamage * multiplier);
         }
-        else if (ArmorPoints <= 0 && ShieldPoints > 0)
-        {
-            // Only armor down
-            hpDamage = (int)(armorOverflow * 0.5f);
-        }
-        else if (ArmorPoints > 0 && ShieldPoints <= 0)
-        {
-            // Only shield down
-            hpDamage = (int)(shieldOverflow * 0.5f);
-        }
-        // else: both still up, no HP damage
 
         return hpDamage;
     }
 
     /// <summary>
-    /// Plasma: Very strong against shields (4x), weak against armor (0.25x)
+    /// Plasma: Very strong vs armor (2.5x), very weak vs shields (0.25x)
+    /// Superheated matter vaporizes hull but shields diffuse it
     /// </summary>
     public int ProcessPlasmaDamage(int damage)
     {
-        int remainingDamage = damage;
-
-        // First, shields absorb damage (plasma is very weak against shields)
-        if (ShieldPoints > 0)
-        {
-            int shieldDamage = damage / 4; // 0.25x effective against shields
-            if (shieldDamage <= 0) shieldDamage = 1; // Minimum 1 damage to shields
-
-            if (ShieldPoints >= shieldDamage)
-            {
-                ShieldPoints -= shieldDamage;
-                return 0;
-            }
-            else
-            {
-                int overflow = shieldDamage - ShieldPoints;
-                ShieldPoints = 0;
-                remainingDamage = overflow * 4;
-            }
-        }
-
-        // Then, armor absorbs remaining (plasma is strong against armour)
-        if (ArmorPoints > 0)
-        {
-            int armorDamage = remainingDamage * 4; // 4x effective against armor
-            if (ArmorPoints >= armorDamage)
-            {
-                ArmorPoints -= armorDamage;
-                return 0;
-            }
-            else
-            {
-                int overflow = armorDamage - ArmorPoints;
-                ArmorPoints = 0;
-                remainingDamage = overflow / 4;
-            }
-        }
-
-        // Both down: bonus damage
-        return (int)(remainingDamage);
+        return ProcessDamageFlow(
+            damage,
+            shieldEffectiveness: 0.25f,  // Shields easily absorb plasma
+            armorEffectiveness: 2.5f,    // Plasma melts through armor
+            shieldAbsorption: 0.8f       // Shields try to block 80% of plasma
+        );
     }
 
     /// <summary>
-    /// EMP: Destroys shields completely, no HP damage
+    /// EMP: Destroys shields, no direct damage
+    /// Electromagnetic pulse overloads energy systems
     /// </summary>
     public int ProcessEMPDamage(int damage)
     {
@@ -280,12 +246,21 @@ public abstract class VehicleBase : MonoBehaviour
     }
 
     /// <summary>
-    /// Pierce: Ignores armor and shields, direct HP damage
+    /// Pierce: Bypasses all defenses, direct HP damage
+    /// Specialized rounds designed to penetrate
     /// </summary>
     public int ProcessPierceDamage(int damage)
     {
+        // Small bleed-through to armor (represents the round passing through)
+        if (ArmorPoints > 0)
+        {
+            int armorBleed = Mathf.RoundToInt(damage * 0.1f);
+            ArmorPoints = Mathf.Max(0, ArmorPoints - armorBleed);
+        }
         return damage;
     }
+
+    #endregion
 
 
 
@@ -305,6 +280,4 @@ public abstract class VehicleBase : MonoBehaviour
         _damageSourcesThisFrame.Add(sourceId);
         return TakeDamage(damage, ammoType);
     }
-
-    #endregion
 }

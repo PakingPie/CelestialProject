@@ -3,10 +3,11 @@ Shader "UI/Custom/RectangleBox"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        [HDR]_BaseColor ("Tint", Color) = (1,1,1,1)
+        _StrokeColor ("Tint", Color) = (1,1,1,1)
+        _ContentColor ("Content Color", Color) = (1,1,1,1)
         _StrokeThickness ("Stroke Thickness", float) = 0.2
         _StrokeAlpha ("Stroke Alpha", Range(0, 1)) = 0.9
-        _ContenteAlpha ("Content Alpha", Range(0, 0.5)) = 0.5
+        _ContentAlpha ("Content Alpha", Range(0, 1)) = 0.5
         _CanvasSize ("Canvas Size", Vector) = (1, 1, 0, 0)
         _CornerRadius ("Corner Radius", Vector) = (0, 0, 0, 0)
         _EdgeMinMax ("Edge Min Max", Vector) = (0, 4, 0, 0)
@@ -74,10 +75,11 @@ Shader "UI/Custom/RectangleBox"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
-            float4 _BaseColor;
+            float4 _StrokeColor;
+            float4 _ContentColor;
             float _StrokeThickness;
             float _StrokeAlpha;
-            float _ContenteAlpha;
+            float _ContentAlpha;
             float2 _CanvasSize;
             float4 _CornerRadius;
             float2 _EdgeMinMax;
@@ -121,15 +123,21 @@ Shader "UI/Custom/RectangleBox"
                 // Calculate Alpha for the main shape
                 float fillSDF = abs(dist) - _StrokeThickness * 0.5;
 
-                float strokeSDF = step(0.8, 1 - inverseLerp(_EdgeMinMax.x, _EdgeMinMax.y, abs(fillSDF)));
+                float strokeSDF = abs(fillSDF);
+                float stroke = step(0.8, 1 - inverseLerp(_EdgeMinMax.x, _EdgeMinMax.y, abs(fillSDF)));
 
-                float alpha = smoothstep(-delta, delta, fillSDF) * _ContenteAlpha + strokeSDF * _StrokeAlpha;
+                // float fill = saturate(smoothstep(-delta, delta, fillSDF));
+                // float fill = saturate(1 - stroke);
+                float fill = saturate(smoothstep(-delta, delta, fillSDF));
+                stroke = 1 - fill;
+                // return 1 - saturate(smoothstep(-delta, delta, fillSDF));
 
-                float3 color = tex2D(_MainTex, IN.uv) * strokeSDF + strokeSDF * _BaseColor;
+                float alpha = fill * _ContentAlpha + stroke * _StrokeAlpha;
+
+                float3 color = tex2D(_MainTex, IN.uv).rgb * stroke + stroke * _StrokeColor + fill * _ContentColor.rgb;
 
                 return float4(color, alpha) * IN.color;
             }
-
 
             ENDHLSL
         }
