@@ -571,4 +571,9 @@ public class Gun : WeaponBase
 
         return targetPos + targetVelocity * t;
     }
+
+    public void SetAmmoType(GameObject ammoPrefab)
+    {
+        BulletPrefab = ammoPrefab.GetComponent<BulletPhysics>();
+    }
 }

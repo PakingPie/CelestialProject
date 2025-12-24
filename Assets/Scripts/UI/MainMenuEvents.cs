@@ -61,10 +61,12 @@ public class MainMenuEvents : MonoBehaviour
     public void ShowMainMenu()
     {
         uIDocument.rootVisualElement.style.display = DisplayStyle.Flex;
+        uIDocument.sortingOrder = 100;
     }
 
     public void HideMainMenu()
     {
         uIDocument.rootVisualElement.style.display = DisplayStyle.None;
+        uIDocument.sortingOrder = -100;
     }
 }
