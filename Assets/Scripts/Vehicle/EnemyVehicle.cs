@@ -9,6 +9,7 @@ public class EnemyVehicle : VehicleBase
 {
     public Faction VehicleFaction = Faction.Foe;
     public VehicleType Type = VehicleType.Frigate;
+    public GameObject HitpointBarCanvas;
     public Image HealthBar;
     public Image ArmorBar;
     public Image ShieldBar;
@@ -126,6 +127,11 @@ public class EnemyVehicle : VehicleBase
             {
                 RestoreHitPoints();
             }
+            EnableHitpointBar(true);
+        }
+        else
+        {
+            EnableHitpointBar(false);
         }
     }
 
@@ -221,5 +227,10 @@ public class EnemyVehicle : VehicleBase
             Instantiate(ExplodeEffect, transform.position, transform.rotation);
         }
         Destroy(gameObject, 0.1f);
+    }
+
+    public void EnableHitpointBar(bool enable)
+    {
+        HitpointBarCanvas.SetActive(enable);
     }
 }

@@ -11,6 +11,7 @@ public abstract class VehicleBase : MonoBehaviour
 
     [Header("Ownership")]
     public GameObject OwnerShip;
+    public bool IsShowHitpointBar = false;
     public virtual VehicleType VehicleType => VehicleType.Frigate;
     public int HitPoints = 100;
     public int MaxHitPoints = 100;

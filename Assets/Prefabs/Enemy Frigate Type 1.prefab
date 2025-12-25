@@ -199,6 +199,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 200
   MaxHitPoints: 200
   ArmorPoints: 100
@@ -452,6 +453,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 100
   MaxHitPoints: 100
   ArmorPoints: 10
@@ -677,6 +679,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 100
   MaxHitPoints: 100
   ArmorPoints: 10
@@ -995,10 +998,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3110045092184062921}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 8}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 50, y: -22}
+  m_SizeDelta: {x: 100, y: 8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3134253914197984826
 CanvasRenderer:
@@ -1245,6 +1248,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 100
   MaxHitPoints: 100
   ArmorPoints: 10
@@ -1719,10 +1723,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3110045092184062921}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 3}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 50, y: -30.5}
+  m_SizeDelta: {x: 100, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2312192323488569684
 CanvasRenderer:
@@ -2284,6 +2288,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 500
   MaxHitPoints: 500
   ArmorPoints: 500
@@ -2433,6 +2438,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 100
   MaxHitPoints: 100
   ArmorPoints: 10
@@ -2577,6 +2583,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 100
   MaxHitPoints: 100
   ArmorPoints: 10
@@ -2894,6 +2901,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 1000
   MaxHitPoints: 1000
   ArmorPoints: 500
@@ -2903,6 +2911,7 @@ MonoBehaviour:
   BoidManager: {fileID: 0}
   VehicleFaction: 4
   Type: 10
+  HitpointBarCanvas: {fileID: 6894111711972518283}
   HealthBar: {fileID: 4407329836811907037}
   ArmorBar: {fileID: 656281697264504808}
   ShieldBar: {fileID: 5030111709581805343}
@@ -3480,6 +3489,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 100
   MaxHitPoints: 100
   ArmorPoints: 10
@@ -4600,10 +4610,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3110045092184062921}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 3}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 50, y: -27.5}
+  m_SizeDelta: {x: 100, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3180118109876081506
 CanvasRenderer:
@@ -4843,6 +4853,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 500
   MaxHitPoints: 500
   ArmorPoints: 500
@@ -5399,7 +5410,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2595131329914410010
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6033,6 +6044,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 500
   MaxHitPoints: 500
   ArmorPoints: 500
@@ -6280,6 +6292,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 500
   MaxHitPoints: 500
   ArmorPoints: 500
@@ -6424,6 +6437,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 1000
   MaxHitPoints: 1000
   ArmorPoints: 500
@@ -6936,6 +6950,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 200
   MaxHitPoints: 200
   ArmorPoints: 100

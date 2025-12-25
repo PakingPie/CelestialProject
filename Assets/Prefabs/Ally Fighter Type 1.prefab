@@ -1282,6 +1282,8 @@ MonoBehaviour:
   MissileDetectionRange: 3000
   Effectiveness: 1
   IsFunctional: 1
+  IsManualTargeting: 0
+  ManualTargetDuration: 0
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
@@ -1418,6 +1420,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 500
   MaxHitPoints: 500
   ArmorPoints: 150
@@ -1427,6 +1430,7 @@ MonoBehaviour:
   BoidManager: {fileID: 0}
   VehicleFaction: 2
   Type: 1
+  HitpointBarCanvas: {fileID: 6894111711972518283}
   HealthBar: {fileID: 4407329836811907037}
   ArmorBar: {fileID: 656281697264504808}
   ShieldBar: {fileID: 5030111709581805343}
@@ -1434,6 +1438,10 @@ MonoBehaviour:
   EnergyShieldShader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
   ShieldEffect: {fileID: 124679239445400308}
   ExplodeEffect: {fileID: 7698972359503818749, guid: dc871d3822e9f3649a40eba6bb930974, type: 3}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 40
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 40
   ShieldRegenerationRate: 1
   ShieldRegenerationDelay: 20
   EnableIndication: 0
@@ -1790,6 +1798,8 @@ MonoBehaviour:
   MissileDetectionRange: 1000
   Effectiveness: 1
   IsFunctional: 1
+  IsManualTargeting: 0
+  ManualTargetDuration: 0
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
@@ -2231,6 +2241,8 @@ MonoBehaviour:
   MissileDetectionRange: 3000
   Effectiveness: 1
   IsFunctional: 1
+  IsManualTargeting: 0
+  ManualTargetDuration: 0
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
@@ -2447,6 +2459,8 @@ MonoBehaviour:
   MissileDetectionRange: 1000
   Effectiveness: 1
   IsFunctional: 1
+  IsManualTargeting: 0
+  ManualTargetDuration: 0
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
@@ -3177,6 +3191,8 @@ MonoBehaviour:
   MissileDetectionRange: 200
   Effectiveness: 1
   IsFunctional: 1
+  IsManualTargeting: 0
+  ManualTargetDuration: 0
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1

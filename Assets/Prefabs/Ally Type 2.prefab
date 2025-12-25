@@ -201,12 +201,16 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 5, y: 1500}
   UpdateRate: 60
+  PriorityConfig: {fileID: 0}
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
   Effectiveness: 1
   IsFunctional: 1
-  ShowGizmos: 0
+  IsManualTargeting: 0
+  ManualTargetDuration: 0
+  EnableDebug: 1
+  ShowGunAngles: 0
   UseManagedUpdates: 1
   FireInterval: 15
   IsFiring: 0
@@ -299,16 +303,18 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
+  PriorityConfig: {fileID: 0}
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
   Effectiveness: 1
   IsFunctional: 1
-  ShowGizmos: 0
+  IsManualTargeting: 0
+  ManualTargetDuration: 0
+  EnableDebug: 1
+  ShowGunAngles: 0
   UseManagedUpdates: 1
   _fireDelay: 0.2
-  MuzzleVelocity: 200
-  SelfDestructionTime: 5
   Deviation: 2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -1129,6 +1135,7 @@ MonoBehaviour:
   IsInCombat: 0
   FormationIndex: 0
   FormationLeader: {fileID: 0}
+  _EnableDebugGizmos: 0
 --- !u!114 &-2094783752960322070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1142,6 +1149,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 50
   MaxHitPoints: 50
   ArmorPoints: 50
@@ -1150,7 +1158,8 @@ MonoBehaviour:
   MaxShieldPoints: 50
   BoidManager: {fileID: 0}
   VehicleFaction: 2
-  Type: 0
+  Type: 2
+  HitpointBarCanvas: {fileID: 4103674997823826176}
   HealthBar: {fileID: 4407329836811907037}
   ArmorBar: {fileID: 656281697264504808}
   ShieldBar: {fileID: 5030111709581805343}
@@ -1158,6 +1167,10 @@ MonoBehaviour:
   EnergyShieldShader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
   ShieldEffect: {fileID: 124679239445400308}
   ExplodeEffect: {fileID: 7698972359503818749, guid: dc871d3822e9f3649a40eba6bb930974, type: 3}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 40
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 40
   ShieldRegenerationRate: 1
   ShieldRegenerationDelay: 5
   EnableIndication: 0
@@ -1974,16 +1987,18 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 5, y: 1000}
   UpdateRate: 60
+  PriorityConfig: {fileID: 0}
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
   Effectiveness: 1
   IsFunctional: 1
-  ShowGizmos: 0
+  IsManualTargeting: 0
+  ManualTargetDuration: 0
+  EnableDebug: 1
+  ShowGunAngles: 0
   UseManagedUpdates: 1
   _fireDelay: 0.2
-  MuzzleVelocity: 200
-  SelfDestructionTime: 5
   Deviation: 2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
