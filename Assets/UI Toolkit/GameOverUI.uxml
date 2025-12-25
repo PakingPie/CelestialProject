@@ -1,8 +1,11 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/UI%20Toolkit/AmmunitionSelection.uss?fileID=7433441132597879392&amp;guid=c97a853014370ea44ad8e4a52fda5f66&amp;type=3#AmmunitionSelection"/>
+    <Style src="project://database/Assets/UI%20Toolkit/GameOverUIStyle.uss?fileID=7433441132597879392&amp;guid=c97a853014370ea44ad8e4a52fda5f66&amp;type=3#GameOverUIStyle"/>
     <ui:VisualElement name="Container" style="padding-top: 20px; padding-right: 20px; padding-bottom: 20px; padding-left: 20px;">
-        <ui:Label text="Game End" class="Header"/>
+        <ui:Label text="Game End" name="Header" class="Header"/>
         <ui:Button text="Restart Game" name="RestartGameButton" class="Button"/>
         <ui:Button text="Quit Game" name="QuitGameButton" class="Button"/>
+        <ui:Label text="Game Summary: 
+Enemy Destroyed: 0 
+Ally Losses: 0" name="Summary" class="Summary"/>
     </ui:VisualElement>
 </ui:UXML>

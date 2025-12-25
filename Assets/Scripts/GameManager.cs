@@ -72,4 +72,16 @@ public class GameManager : MonoBehaviour
         Application.Quit();
 #endif
     }
+
+    public string GetGameoverSummary()
+    {
+        // Return a summary of the game over state
+        // Get how many enemies were destroyed, allies remaining
+
+        int enemiesDestroyed = FindAnyObjectByType<PawnCountManager>().InitEnemyCount - FindAnyObjectByType<PawnCountManager>().EnemiesRemainingCount; // Placeholder, replace with actual logic
+        int alliesRemaining = FindAnyObjectByType<PawnCountManager>().AlliesRemainingCount;  // Placeholder, replace with actual logic
+
+        
+        return $"Game Over! You destroyed {enemiesDestroyed} enemies and have {alliesRemaining} allies remaining.";
+    }
 }

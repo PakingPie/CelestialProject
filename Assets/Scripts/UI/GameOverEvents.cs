@@ -7,6 +7,7 @@ public class GameOverEvents : MonoBehaviour
     private UIDocument _uIDocument;
     private Button _restartGameButton;
     private Button _quitGameButton;
+    private Label _summaryLabel;
 
     private GameManager _gameManager;
 
@@ -20,6 +21,8 @@ public class GameOverEvents : MonoBehaviour
 
         _quitGameButton = root.Q<Button>("QuitGameButton");
         _quitGameButton.RegisterCallback<ClickEvent>(OnQuitGameButtonClicked);
+
+        _summaryLabel = root.Q<Label>("GameoverSummaryLabel");
     }
 
     private void Start()
@@ -53,7 +56,9 @@ public class GameOverEvents : MonoBehaviour
     public void ShowGameoverMenu()
     {
         _uIDocument.rootVisualElement.style.display = DisplayStyle.Flex;
-        // Optionally, pause the game
+
+        _summaryLabel.text = _gameManager != null ? _gameManager.GetGameoverSummary() : "Game Over";
+
         _gameManager?.PauseGame();
     }
 

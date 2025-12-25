@@ -14,6 +14,8 @@ public class PawnCountManager : MonoBehaviour
     public static Action UpdateEnemyCountAction;
     public static Action UpdateAllyCountAction;
 
+    public int InitEnemyCount = 0;
+
     void Start()
     {
         // Reset counts at start of scene
@@ -25,6 +27,12 @@ public class PawnCountManager : MonoBehaviour
         UpdateAllyCount();
         UpdateEnemyCountAction += UpdateEnemyCount; // can use =, but += is safer in case of multiple subscribers
         UpdateAllyCountAction += UpdateAllyCount;
+
+        var BoidSpawners = FindObjectsByType<BoidSpawner>(FindObjectsSortMode.None);
+        foreach (var spawner in BoidSpawners)
+        {
+            InitEnemyCount += spawner.spawnCount;
+        }
     }
 
     private void UpdateEnemyCount()
