@@ -577,5 +577,6 @@ public class Gun : WeaponBase
     public void SetAmmoType(GameObject ammoPrefab)
     {
         BulletPrefab = ammoPrefab.GetComponent<BulletPhysics>();
+        ActiveRange.y = BulletPrefab.Speed * BulletPrefab.LifeTime * 0.8f;
     }
 }

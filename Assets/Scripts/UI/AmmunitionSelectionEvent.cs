@@ -2,63 +2,139 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using TMPro;
+using UnityEditor.EditorTools;
 
 public class AmmunitionSelectionEvent : MonoBehaviour
 {
+    [Header("Main Weapon Ammo")]
     public GameObject PlayerMainWeapons;
-    public BulletPhysics HEAmmoPrefab;
-    public BulletPhysics APAmmoPrefab;
-    public Button HEAmmoButton;
-    public Button APAmmoButton;
+    public BulletPhysics MainGunHEAmmoPrefab;
+    public BulletPhysics MainGunAPAmmoPrefab;
+    public Button MainGunHEAmmoButton;
+    public Button MainGunAPAmmoButton;
+
+    [Header("Secondary Weapon Ammo")]
+    public GameObject PlayerSecondaryWeapons;
+    public BulletPhysics SecondaryGunHEAmmoPrefab;
+    public BulletPhysics SecondaryGunAPAmmoPrefab;
+    public BulletPhysics SecondaryGunPlasmaAmmoPrefab;
+    public Button SecondaryGunHEAmmoButton;
+    public Button SecondaryGunAPAmmoButton;
+    public Button SecondaryGunPlasmaAmmoButton;
+
+    [Header("Button Image Shader")]
+    [Tooltip("Shader used for the button images to allow for dynamic styling.")]
     public Shader ButtonImageShader;
+
+    private Color _mainGunAPColor = new Color(0.1f, 0.95f, 0.15f);
+    private Color _mainGunHEColor = new Color(0.75f, 0.3f, 0.15f);
+    private Color _secondaryGunAPColor = new Color(0.1f, 0.45f, 0.85f);
+    private Color _secondaryGunHEColor = new Color(0.75f, 0.45f, 0.2f);
+    private Color _secondaryGunPlasmaColor = new Color(0.85f, 0.1f, 0.9f);
 
     private void Awake()
     {
-        HEAmmoButton.onClick.AddListener(OnHEAmmoButtonClicked);
-        APAmmoButton.onClick.AddListener(OnAPAmmoButtonClicked);
-        APAmmoButton.GetComponent<Image>().material = new Material(ButtonImageShader);
-        
-        APAmmoButton.GetComponent<Image>().material.SetFloat("_StrokeThickness", 0.4f);
-        APAmmoButton.GetComponent<Image>().material.SetFloat("_StrokeAlpha", 1.0f);
-        APAmmoButton.GetComponent<Image>().material.SetVector("_EdgeMinMax", new Vector4(0.0f, 0.6f, 0.0f, 0.0f));
-        APAmmoButton.GetComponent<Image>().material.SetFloat("_ContentAlpha", 0.2f);
+        // Main Gun Ammo Button Listeners
+        MainGunHEAmmoButton.onClick.AddListener(OnMainGunHEAmmoButtonClicked);
+        MainGunAPAmmoButton.onClick.AddListener(OnMainGunAPAmmoButtonClicked);
 
-        APAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.green;
+        MainGunAPAmmoButton.GetComponent<Image>().material = new Material(ButtonImageShader);
+        SetButtonAttributes(MainGunAPAmmoButton, _mainGunAPColor, _mainGunAPColor, 0.4f, 0.2f, 1.0f, 0.15f);    // Use green color for main gun AP ammo
+        MainGunAPAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.green;
 
-        HEAmmoButton.GetComponent<Image>().material = new Material(ButtonImageShader);
-        HEAmmoButton.GetComponent<Image>().material.SetFloat("_StrokeThickness", 0.4f);
-        HEAmmoButton.GetComponent<Image>().material.SetFloat("_StrokeAlpha", 1.0f);
-        HEAmmoButton.GetComponent<Image>().material.SetVector("_EdgeMinMax", new Vector4(0.0f, 0.6f, 0.0f, 0.0f));
-        HEAmmoButton.GetComponent<Image>().material.SetFloat("_ContentAlpha", 0.0f);
-        
+        MainGunHEAmmoButton.GetComponent<Image>().material = new Material(ButtonImageShader);
+        SetButtonAttributes(MainGunHEAmmoButton, _mainGunHEColor, _mainGunHEColor, 0.2f, 0.2f, 1.0f, 0f);   // Use orange color for main gunHE ammo
+        MainGunHEAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.orange;
+
+        // Secondary Gun Ammo Button Listeners
+        SecondaryGunHEAmmoButton.onClick.AddListener(OnSecondaryGunHEAmmoButtonClicked);
+        SecondaryGunAPAmmoButton.onClick.AddListener(OnSecondaryGunAPAmmoButtonClicked);
+        SecondaryGunPlasmaAmmoButton.onClick.AddListener(OnSecondaryGunPlasmaAmmoButtonClicked);
+
+        SecondaryGunAPAmmoButton.GetComponent<Image>().material = new Material(ButtonImageShader);
+        SetButtonAttributes(SecondaryGunAPAmmoButton, _secondaryGunAPColor, _secondaryGunAPColor, 0.2f, 0.2f, 1.0f, 0f); // Use blue color for secondary gun AP ammo
+        SecondaryGunAPAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.cyan;
+        SecondaryGunHEAmmoButton.GetComponent<Image>().material = new Material(ButtonImageShader);
+        SetButtonAttributes(SecondaryGunHEAmmoButton, _secondaryGunHEColor, _secondaryGunHEColor, 0.2f, 0.2f, 1.0f, 0f); // Use light orange color for secondary gun HE ammo
+        SecondaryGunHEAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.softYellow;
+        SecondaryGunPlasmaAmmoButton.GetComponent<Image>().material = new Material(ButtonImageShader);
+        SetButtonAttributes(SecondaryGunPlasmaAmmoButton, _secondaryGunPlasmaColor, _secondaryGunPlasmaColor, 0.2f, 0.2f, 1.0f, 0f); // Use purple color for secondary gun Plasma ammo
+        SecondaryGunPlasmaAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.magenta;
     }
 
-    private void OnAPAmmoButtonClicked()
+    public void SetButtonAttributes(Button button, Color strokeColor, Color contentColor, float strokeThickness, float fullScale, float strokeAlpha, float contentAlpha)
     {
-        SetAmmoToPlayerMainWeapons(APAmmoPrefab.gameObject);
-        APAmmoButton.GetComponent<Image>().material.SetFloat("_ContentAlpha", 0.2f);
-        APAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.green;
-        APAmmoButton.transform.localScale = Vector3.one * 1.1f;
-        HEAmmoButton.GetComponent<Image>().material.SetFloat("_ContentAlpha", 0f);
-        HEAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
-        HEAmmoButton.transform.localScale = Vector3.one;
+        button.GetComponent<Image>().material.SetColor("_StrokeColor", strokeColor);
+        button.GetComponent<Image>().material.SetColor("_ContentColor", contentColor);
+        button.GetComponent<Image>().material.SetFloat("_StrokeThickness", strokeThickness);
+        button.GetComponent<Image>().material.SetFloat("_FullSizeScale", fullScale);
+        button.GetComponent<Image>().material.SetFloat("_StrokeAlpha", strokeAlpha);
+        button.GetComponent<Image>().material.SetFloat("_ContentAlpha", contentAlpha);
     }
 
-    private void OnHEAmmoButtonClicked()
+    private void OnMainGunAPAmmoButtonClicked()
     {
-        SetAmmoToPlayerMainWeapons(HEAmmoPrefab.gameObject);
-        HEAmmoButton.GetComponent<Image>().material.SetFloat("_ContentAlpha", 0.2f);
-        HEAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.red;
-        HEAmmoButton.transform.localScale = Vector3.one * 1.1f;
-        APAmmoButton.GetComponent<Image>().material.SetFloat("_ContentAlpha", 0f);
-        APAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
-        APAmmoButton.transform.localScale = Vector3.one;
+        SetAmmoToPlayerWeapons(MainGunAPAmmoPrefab.gameObject, PlayerMainWeapons);
+        SetButtonAttributes(MainGunAPAmmoButton, _mainGunAPColor, _mainGunAPColor, 0.4f, 0.2f, 1.0f, 0.1f);
+        MainGunAPAmmoButton.transform.localScale = Vector3.one * 1.1f;
+
+        SetButtonAttributes(MainGunHEAmmoButton, _mainGunHEColor, _mainGunHEColor, 0.2f, 0.2f, 1.0f, 0f);
+        MainGunHEAmmoButton.transform.localScale = Vector3.one;
     }
 
-    public void SetAmmoToPlayerMainWeapons(GameObject ammoPrefab)
+    private void OnMainGunHEAmmoButtonClicked()
     {
-        var mainGuns = PlayerMainWeapons.GetComponentsInChildren<Gun>();
-        foreach (var gun in mainGuns)
+        SetAmmoToPlayerWeapons(MainGunHEAmmoPrefab.gameObject, PlayerMainWeapons);
+        SetButtonAttributes(MainGunHEAmmoButton, _mainGunHEColor, _mainGunHEColor, 0.4f, 0.2f, 1.0f, 0.1f);
+        MainGunHEAmmoButton.transform.localScale = Vector3.one * 1.1f;
+
+        SetButtonAttributes(MainGunAPAmmoButton, _mainGunAPColor, _mainGunAPColor, 0.2f, 0.2f, 1.0f, 0f);
+        MainGunAPAmmoButton.transform.localScale = Vector3.one;
+    }
+
+    private void OnSecondaryGunHEAmmoButtonClicked()
+    {
+        SetAmmoToPlayerWeapons(SecondaryGunHEAmmoPrefab.gameObject, PlayerSecondaryWeapons);
+        SetButtonAttributes(SecondaryGunHEAmmoButton, _secondaryGunHEColor, _secondaryGunHEColor, 0.4f, 0.2f, 1.0f, 0.1f);
+        SecondaryGunHEAmmoButton.transform.localScale = Vector3.one * 1.1f;
+
+        SetButtonAttributes(SecondaryGunAPAmmoButton, _secondaryGunAPColor, _secondaryGunAPColor, 0.2f, 0.2f, 1.0f, 0f);
+        SecondaryGunAPAmmoButton.transform.localScale = Vector3.one;
+
+        SetButtonAttributes(SecondaryGunPlasmaAmmoButton, _secondaryGunPlasmaColor, _secondaryGunPlasmaColor, 0.2f, 0.2f, 1.0f, 0f);
+        SecondaryGunPlasmaAmmoButton.transform.localScale = Vector3.one;
+    }
+
+    private void OnSecondaryGunAPAmmoButtonClicked()
+    {
+        SetAmmoToPlayerWeapons(SecondaryGunAPAmmoPrefab.gameObject, PlayerSecondaryWeapons);
+        SetButtonAttributes(SecondaryGunAPAmmoButton, _secondaryGunAPColor, _secondaryGunAPColor, 0.4f, 0.2f, 1.0f, 0.1f);
+        SecondaryGunAPAmmoButton.transform.localScale = Vector3.one * 1.1f;
+
+        SetButtonAttributes(SecondaryGunHEAmmoButton, _secondaryGunHEColor, _secondaryGunHEColor, 0.2f, 0.2f, 1.0f, 0f);
+        SecondaryGunHEAmmoButton.transform.localScale = Vector3.one;
+
+        SetButtonAttributes(SecondaryGunPlasmaAmmoButton, _secondaryGunPlasmaColor, _secondaryGunPlasmaColor, 0.2f, 0.2f, 1.0f, 0f);
+        SecondaryGunPlasmaAmmoButton.transform.localScale = Vector3.one;
+    }
+
+    private void OnSecondaryGunPlasmaAmmoButtonClicked()
+    {
+        SetAmmoToPlayerWeapons(SecondaryGunPlasmaAmmoPrefab.gameObject, PlayerSecondaryWeapons);
+        SetButtonAttributes(SecondaryGunPlasmaAmmoButton, _secondaryGunPlasmaColor, _secondaryGunPlasmaColor, 0.4f, 0.2f, 1.0f, 0.1f);
+        SecondaryGunPlasmaAmmoButton.transform.localScale = Vector3.one * 1.1f;
+
+        SetButtonAttributes(SecondaryGunHEAmmoButton, _secondaryGunHEColor, _secondaryGunHEColor, 0.2f, 0.2f, 1.0f, 0f);
+        SecondaryGunHEAmmoButton.transform.localScale = Vector3.one;
+
+        SetButtonAttributes(SecondaryGunAPAmmoButton, _secondaryGunAPColor, _secondaryGunAPColor, 0.2f, 0.2f, 1.0f, 0f);
+        SecondaryGunAPAmmoButton.transform.localScale = Vector3.one;
+    }
+
+    public void SetAmmoToPlayerWeapons(GameObject ammoPrefab, GameObject weaponParent)
+    {
+        var guns = weaponParent.GetComponentsInChildren<Gun>();
+        foreach (var gun in guns)
         {
             gun.SetAmmoType(ammoPrefab);
         }

@@ -64,6 +64,13 @@ public class WeaponBase : MonoBehaviour
     public float Effectiveness = 1f;
     public bool IsFunctional = true;
 
+    [Header("Manual Targeting")]
+    [Tooltip("When true, automatic targeting is disabled and only manual targets are used")]
+    public bool IsManualTargeting = false;
+    [Tooltip("How long to keep manual target before reverting to auto (0 = forever)")]
+    public float ManualTargetDuration = 0f;
+
+
     [Header("Debug")]
     [Tooltip("Enable Debug Gizmos")]
     public bool EnableDebug = true;
@@ -76,6 +83,8 @@ public class WeaponBase : MonoBehaviour
     private bool _isAimed = false;
     private bool _isBaseAtRest = false;
     private bool _isBarrelAtRest = false;
+    private float _manualTargetTime = 0f;
+
 
     public float AngleToTarget { get { return IsIdle ? 999f : _angleToTarget; } set { _angleToTarget = value; } }
     public float LimitedTraverseAngle { get { return _limitedTraverseAngle; } set { _limitedTraverseAngle = value; } }
@@ -126,6 +135,27 @@ public class WeaponBase : MonoBehaviour
     /// </summary>
     public virtual void ManagedUpdateTarget()
     {
+        // Handle manual targeting mode
+        if (IsManualTargeting)
+        {
+            // Check if manual target is still valid
+            if (Targeted == null)
+            {
+                // Target was destroyed, revert to auto
+                ClearManualTarget();
+            }
+            else if (ManualTargetDuration > 0f && Time.time - _manualTargetTime > ManualTargetDuration)
+            {
+                // Manual target duration expired
+                ClearManualTarget();
+            }
+            else
+            {
+                // Keep manual target, skip automatic selection
+                return;
+            }
+        }
+
         Vector3 myPosition = _cachedTransform.position;
 
         // Populate nearby enemies list
@@ -441,6 +471,60 @@ public class WeaponBase : MonoBehaviour
         if (vehicle != null)
             return vehicle.FactionType;
         return Faction.Player;
+    }
+
+    /// <summary>
+    /// Manually set a target. Optionally locks targeting to this target.
+    /// </summary>
+    /// <param name="newTarget">The target transform</param>
+    /// <param name="lockTarget">If true, disables automatic targeting until ClearManualTarget is called</param>
+    public bool SetTarget(Transform newTarget, bool lockTarget = false)
+    {
+        if (newTarget == null)
+        {
+            ClearManualTarget();
+            return false;
+        }
+
+        // Optional: Validate target
+        VehicleBase targetVehicle = newTarget.GetComponent<VehicleBase>()
+                                    ?? newTarget.GetComponentInParent<VehicleBase>();
+
+        if (targetVehicle != null)
+        {
+            // Check faction
+            if ((targetVehicle.FactionType & FireTarget) == 0)
+            {
+                return false;
+            }
+
+            // Check range
+            float distance = Vector3.Distance(_cachedTransform.position, newTarget.position);
+            if (distance > ActiveRange.y || distance < ActiveRange.x)
+            {
+                return false;
+            }
+        }
+
+        Targeted = newTarget;
+
+        if (lockTarget)
+        {
+            IsManualTargeting = true;
+            _manualTargetTime = Time.time;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Clear manual target and return to automatic targeting
+    /// </summary>
+    public void ClearManualTarget()
+    {
+        IsManualTargeting = false;
+        _manualTargetTime = 0f;
+        // Targeted will be updated on next ManagedUpdateTarget call
     }
 
 #if UNITY_EDITOR
