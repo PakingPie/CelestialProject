@@ -10422,6 +10422,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   MaxTargetingRange: 10000
+  screenTargetingRadius: 50
+  preferClosestToCenter: 1
   CurrentTarget: {fileID: 0}
 --- !u!1 &552646578
 GameObject:
@@ -16385,7 +16387,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
   spawnRadius: 500
-  spawnCount: 1
+  spawnCount: 4
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 1000}
@@ -17558,7 +17560,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
   spawnRadius: 500
-  spawnCount: 10
+  spawnCount: 4
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 1000}
@@ -28355,7 +28357,7 @@ Transform:
   m_GameObject: {fileID: 1530042873}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1000, y: 0, z: 4500}
+  m_LocalPosition: {x: 1000, y: 0, z: -6000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -39147,7 +39149,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2117162495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -39186,7 +39188,7 @@ Transform:
   m_GameObject: {fileID: 2117162494}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1000, y: 0, z: 8000}
+  m_LocalPosition: {x: 1000, y: 0, z: -6000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -40357,9 +40359,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShipMovement
   cameraController: {fileID: 7868929882183927213}
-  maxThrust: 40
-  minThrust: -40
-  thrustAcceleration: 10
+  maxThrust: 100
+  minThrust: -50
+  thrustAcceleration: 50
   thrustDecay: 1
   MaintainThrottle: 1
   enableVerticalThrust: 1

@@ -574,6 +574,7 @@ public class Gun : WeaponBase
         return targetPos + targetVelocity * t;
     }
 
+    // TODO: Need to check change ammo while firing
     public void SetAmmoType(GameObject ammoPrefab)
     {
         BulletPrefab = ammoPrefab.GetComponent<BulletPhysics>();
