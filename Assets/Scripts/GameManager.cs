@@ -7,14 +7,11 @@ public class GameManager : MonoBehaviour
     public GameObject PlayerHud;
     public GameObject PlayerShip;
 
-    public GameObject GameOverScreen;
-
     void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
             Time.timeScale = 0f; // Pause immediately when singleton is created
         }
         else
@@ -45,8 +42,25 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
+    public void ResumeGame()
+    {
+        Time.timeScale = 1f;
+    }
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1f;
+        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
+
     public void GameOver()
     {
+        // Show Game Over UI
+        var gameoverEvents = FindAnyObjectByType<GameOverEvents>();
+        if (gameoverEvents != null)
+        {
+            gameoverEvents.ShowGameoverMenu();
+        }
         Time.timeScale = 0f;
         PlayerShip.SetActive(false);
     }

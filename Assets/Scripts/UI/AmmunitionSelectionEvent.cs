@@ -1,8 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 using TMPro;
-using UnityEditor.EditorTools;
 
 public class AmmunitionSelectionEvent : MonoBehaviour
 {

@@ -127,6 +127,7 @@ public class EnemyPredictionManager : MonoBehaviour
                 continue;
             }
 
+            if(_player == null || target == null) continue;
             float distance = Vector3.Distance(_player.position, target.Position);
             float maxRange = GetDisplayRangeForType(target.Type);
             bool inRange = distance <= maxRange && distance >= _minDisplayRange;
