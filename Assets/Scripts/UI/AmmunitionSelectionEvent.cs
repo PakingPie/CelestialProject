@@ -41,6 +41,7 @@ public class AmmunitionSelectionEvent : MonoBehaviour
         MainGunAPAmmoButton.GetComponent<Image>().material = new Material(ButtonImageShader);
         SetButtonAttributes(MainGunAPAmmoButton, _mainGunAPColor, _mainGunAPColor, 0.4f, 0.2f, 1.0f, 0.15f);    // Use green color for main gun AP ammo
         MainGunAPAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.green;
+        MainGunAPAmmoButton.transform.localScale = Vector3.one * 1.1f;
 
         MainGunHEAmmoButton.GetComponent<Image>().material = new Material(ButtonImageShader);
         SetButtonAttributes(MainGunHEAmmoButton, _mainGunHEColor, _mainGunHEColor, 0.2f, 0.2f, 1.0f, 0f);   // Use orange color for main gunHE ammo
@@ -52,8 +53,10 @@ public class AmmunitionSelectionEvent : MonoBehaviour
         SecondaryGunPlasmaAmmoButton.onClick.AddListener(OnSecondaryGunPlasmaAmmoButtonClicked);
 
         SecondaryGunAPAmmoButton.GetComponent<Image>().material = new Material(ButtonImageShader);
-        SetButtonAttributes(SecondaryGunAPAmmoButton, _secondaryGunAPColor, _secondaryGunAPColor, 0.2f, 0.2f, 1.0f, 0f); // Use blue color for secondary gun AP ammo
+        SetButtonAttributes(SecondaryGunAPAmmoButton, _secondaryGunAPColor, _secondaryGunAPColor, 0.4f, 0.2f, 1.0f, 0.15f); // Use blue color for secondary gun AP ammo
         SecondaryGunAPAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.cyan;
+        SecondaryGunAPAmmoButton.transform.localScale = Vector3.one * 1.1f;
+        
         SecondaryGunHEAmmoButton.GetComponent<Image>().material = new Material(ButtonImageShader);
         SetButtonAttributes(SecondaryGunHEAmmoButton, _secondaryGunHEColor, _secondaryGunHEColor, 0.2f, 0.2f, 1.0f, 0f); // Use light orange color for secondary gun HE ammo
         SecondaryGunHEAmmoButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.softYellow;

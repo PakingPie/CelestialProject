@@ -96,7 +96,6 @@ public class WeaponBase : MonoBehaviour
     public bool IsTurretAtRest { get { return _isBarrelAtRest && _isBaseAtRest; } }
 
     // Cached values
-    protected Transform _cachedTransform;
     protected VehicleBase _owner;
     protected float _maxRangeSqr;
     protected float _minRangeSqr;
@@ -105,9 +104,21 @@ public class WeaponBase : MonoBehaviour
     protected List<VehicleBase> _nearbyEnemies = new List<VehicleBase>(64);
     [HideInInspector] public bool UseManagedUpdates = true;
 
+    // Replace the field and Awake initialization with this:
+    private Transform _cachedTransform;
+    protected Transform CachedTransform
+    {
+        get
+        {
+            if (_cachedTransform == null)
+                _cachedTransform = transform;
+            return _cachedTransform;
+        }
+    }
+
     protected virtual void Awake()
     {
-        _cachedTransform = transform;
+        _cachedTransform = transform; // Still cache in Awake for performance
         _owner = GetComponentInParent<VehicleBase>();
         _hasBarrels = Barrels != null;
         CacheRangeValues();
@@ -498,7 +509,12 @@ public class WeaponBase : MonoBehaviour
                 return false;
             }
 
-            // Check range
+            // Ensure cached transform is valid
+            if (_cachedTransform == null)
+            {
+                _cachedTransform = transform;
+            }
+
             float distance = Vector3.Distance(_cachedTransform.position, newTarget.position);
             if (distance > ActiveRange.y || distance < ActiveRange.x)
             {

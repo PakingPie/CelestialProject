@@ -20,8 +20,8 @@ public class PlayerMovementController : MonoBehaviour
     [SerializeField] private float orbitDistance = 30f;
     [SerializeField] private float minOrbitDistance = 10f;
     [SerializeField] private float maxOrbitDistance = 100f;
-    [SerializeField] private float zoomSpeed = 20f;
-    [SerializeField] private float zoomSmoothness = 8f;
+    [SerializeField] private float zoomSpeed = 10f;
+    [SerializeField] private float zoomSmoothness = 12f;
     private float targetOrbitDistance;
 
     [Header("Look Settings")]
@@ -38,12 +38,13 @@ public class PlayerMovementController : MonoBehaviour
     [Header("Velocity-Based Effects")]
     [Tooltip("Camera pulls back when moving fast")]
     [SerializeField] private bool enableSpeedZoom = true;
-    [SerializeField] private float speedZoomMultiplier = 0.1f;
-    [SerializeField] private float maxSpeedZoomOffset = 15f;
+    [SerializeField] private float speedZoomMultiplier = 0.05f;
+    [SerializeField] private float maxSpeedZoomOffset = 10f;
+    [SerializeField] private float speedZoomSmoothness = 3f;
 
     [Tooltip("Camera leads slightly in movement direction")]
     [SerializeField] private bool enableLeadOffset = true;
-    [SerializeField] private float leadOffsetAmount = 5f;
+    [SerializeField] private float leadOffsetAmount = 3f;
     [SerializeField] private float leadOffsetSmoothness = 3f;
 
     [Tooltip("Subtle camera shake at high speed")]
@@ -61,9 +62,12 @@ public class PlayerMovementController : MonoBehaviour
 
     [Header("Collision")]
     [SerializeField] private bool enableCameraCollision = true;
-    [SerializeField] private float collisionRadius = 0.5f;
+    [SerializeField] private float collisionRadius = 0.3f;
     [SerializeField] private LayerMask collisionLayers = ~0;
-    [SerializeField] private float collisionSmoothness = 15f;
+    [SerializeField] private float collisionSmoothness = 20f;
+    [SerializeField] private float collisionPadding = 1f;
+    [Tooltip("Layers to ignore for collision (set your Player layer here)")]
+    [SerializeField] private LayerMask ignoreCollisionLayers;
 
     [Header("Aiming")]
     [SerializeField] private float aimDistance = 500f;
@@ -89,6 +93,9 @@ public class PlayerMovementController : MonoBehaviour
     // Collision state
     private float collisionAdjustedDistance;
 
+    // Speed zoom state (separate from manual zoom)
+    private float currentSpeedZoomOffset = 0f;
+
     public Vector3 MouseAimPos => transform.position + transform.forward * aimDistance;
     public Vector3 BoresightPos => ship != null ? ship.position + ship.forward * aimDistance : MouseAimPos;
 
@@ -111,6 +118,9 @@ public class PlayerMovementController : MonoBehaviour
             shipMovement = ship.GetComponent<PlayerShipMovement>();
         }
 
+        // Auto-setup ignore layers to include player
+        SetupCollisionLayers();
+
         // Initialize state
         smoothFollowPosition = ship.position;
         currentLeadOffset = Vector3.zero;
@@ -127,6 +137,19 @@ public class PlayerMovementController : MonoBehaviour
         UpdateCameraTransform();
     }
 
+    private void SetupCollisionLayers()
+    {
+        // Automatically exclude the player's layer from collision checks
+        if (ship != null)
+        {
+            int playerLayer = ship.gameObject.layer;
+            ignoreCollisionLayers |= (1 << playerLayer);
+        }
+
+        // Remove ignored layers from collision layers
+        collisionLayers &= ~ignoreCollisionLayers;
+    }
+
     private void LateUpdate()
     {
         if (ship == null) return;
@@ -135,12 +158,7 @@ public class PlayerMovementController : MonoBehaviour
         if (Time.timeScale == 0f) return;
 
         // Reset NaN values if they occur
-        if (float.IsNaN(orbitYaw)) orbitYaw = ship.eulerAngles.y + 180f;
-        if (float.IsNaN(orbitPitch)) orbitPitch = 20f;
-        if (float.IsNaN(currentOrbitDistance)) currentOrbitDistance = orbitDistance;
-        if (float.IsNaN(collisionAdjustedDistance)) collisionAdjustedDistance = orbitDistance;
-        if (float.IsNaN(smoothFollowPosition.x)) smoothFollowPosition = ship.position;
-        if (float.IsNaN(currentLeadOffset.x)) currentLeadOffset = Vector3.zero;
+        ValidateAndResetNaN();
 
         HandleInput();
         HandleZoom();
@@ -149,6 +167,17 @@ public class PlayerMovementController : MonoBehaviour
         UpdateVelocityEffects();
         HandleCollision();
         UpdateCameraTransform();
+    }
+
+    private void ValidateAndResetNaN()
+    {
+        if (float.IsNaN(orbitYaw)) orbitYaw = ship.eulerAngles.y + 180f;
+        if (float.IsNaN(orbitPitch)) orbitPitch = 20f;
+        if (float.IsNaN(currentOrbitDistance)) currentOrbitDistance = orbitDistance;
+        if (float.IsNaN(collisionAdjustedDistance)) collisionAdjustedDistance = orbitDistance;
+        if (float.IsNaN(smoothFollowPosition.x)) smoothFollowPosition = ship.position;
+        if (float.IsNaN(currentLeadOffset.x)) currentLeadOffset = Vector3.zero;
+        if (float.IsNaN(currentSpeedZoomOffset)) currentSpeedZoomOffset = 0f;
     }
 
     private void HandleInput()
@@ -203,11 +232,14 @@ public class PlayerMovementController : MonoBehaviour
         float scroll = mouse.scroll.y.ReadValue();
         if (Mathf.Abs(scroll) > 0.01f)
         {
-            targetOrbitDistance -= scroll * zoomSpeed * Time.deltaTime;
+            // Scroll is already a delta, don't multiply by Time.deltaTime
+            // Normalize scroll value (it can be large like 120)
+            float normalizedScroll = Mathf.Clamp(scroll / 120f, -1f, 1f);
+            targetOrbitDistance -= normalizedScroll * zoomSpeed;
             targetOrbitDistance = Mathf.Clamp(targetOrbitDistance, minOrbitDistance, maxOrbitDistance);
         }
 
-        // Smooth zoom
+        // Smooth zoom (base distance without speed effects)
         currentOrbitDistance = Mathf.Lerp(currentOrbitDistance, targetOrbitDistance, zoomSmoothness * Time.deltaTime);
     }
 
@@ -253,15 +285,15 @@ public class PlayerMovementController : MonoBehaviour
         Vector3 velocity = shipMovement.Velocity;
         float speed = velocity.magnitude;
 
-        // Speed-based zoom out
+        // Speed-based zoom offset (separate from base distance)
         if (enableSpeedZoom)
         {
-            float speedZoomOffset = Mathf.Clamp(speed * speedZoomMultiplier, 0f, maxSpeedZoomOffset);
-            currentOrbitDistance = Mathf.Lerp(
-                currentOrbitDistance,
-                targetOrbitDistance + speedZoomOffset,
-                zoomSmoothness * Time.deltaTime
-            );
+            float targetSpeedZoom = Mathf.Clamp(speed * speedZoomMultiplier, 0f, maxSpeedZoomOffset);
+            currentSpeedZoomOffset = Mathf.Lerp(currentSpeedZoomOffset, targetSpeedZoom, speedZoomSmoothness * Time.deltaTime);
+        }
+        else
+        {
+            currentSpeedZoomOffset = 0f;
         }
 
         // Lead offset in velocity direction
@@ -270,7 +302,6 @@ public class PlayerMovementController : MonoBehaviour
             Vector3 targetLead = Vector3.zero;
             if (speed > 1f)
             {
-                // Lead in the direction of movement, but in camera-relative space
                 Vector3 velocityDir = velocity.normalized;
                 targetLead = velocityDir * leadOffsetAmount * Mathf.Clamp01(speed / 50f);
             }
@@ -280,68 +311,61 @@ public class PlayerMovementController : MonoBehaviour
 
     private void HandleCollision()
     {
+        float desiredDistance = currentOrbitDistance + currentSpeedZoomOffset;
+
         if (!enableCameraCollision)
         {
-            collisionAdjustedDistance = currentOrbitDistance;
+            collisionAdjustedDistance = desiredDistance;
             return;
-        }
-
-        // Validate currentOrbitDistance first
-        if (float.IsNaN(currentOrbitDistance) || float.IsInfinity(currentOrbitDistance))
-        {
-            currentOrbitDistance = orbitDistance;
         }
 
         Vector3 targetPosition = smoothFollowPosition + currentLeadOffset;
         Vector3 directionFromTarget = CalculateOrbitDirection();
 
-        // Validate direction
         if (directionFromTarget.sqrMagnitude < 0.0001f)
         {
-            collisionAdjustedDistance = currentOrbitDistance;
+            collisionAdjustedDistance = desiredDistance;
             return;
         }
 
-        float desiredDistance = currentOrbitDistance;
         float adjustedDistance = desiredDistance;
 
-        // Raycast from ship to camera position
-        if (Physics.SphereCast(
+        RaycastHit[] hits = Physics.SphereCastAll(
             targetPosition,
             collisionRadius,
             directionFromTarget,
-            out RaycastHit hit,
-            desiredDistance,
+            desiredDistance + collisionPadding,
             collisionLayers,
-            QueryTriggerInteraction.Ignore))
+            QueryTriggerInteraction.Ignore);
+
+        float closestValidHit = desiredDistance;
+
+        foreach (var hit in hits)
         {
-            // Validate hit distance
-            if (!float.IsNaN(hit.distance) && !float.IsInfinity(hit.distance))
-            {
-                adjustedDistance = hit.distance - collisionRadius * 0.5f;
-                adjustedDistance = Mathf.Max(adjustedDistance, minOrbitDistance * 0.5f);
-            }
+            // Skip anything that's part of the player ship
+            if (hit.transform == ship || hit.transform.IsChildOf(ship))
+                continue;
+
+            if (hit.distance < closestValidHit)
+                closestValidHit = hit.distance;
         }
 
-        // Validate before Lerp
-        if (float.IsNaN(collisionAdjustedDistance) || float.IsInfinity(collisionAdjustedDistance))
+        if (closestValidHit < desiredDistance)
         {
-            collisionAdjustedDistance = adjustedDistance;
-        }
-        else
-        {
-            collisionAdjustedDistance = Mathf.Lerp(
-                collisionAdjustedDistance,
-                adjustedDistance,
-                collisionSmoothness * Time.deltaTime
-            );
+            adjustedDistance = closestValidHit - collisionPadding;
+            adjustedDistance = Mathf.Max(adjustedDistance, minOrbitDistance * 0.5f);
         }
 
-        // Final validation
-        if (float.IsNaN(collisionAdjustedDistance))
-        {
-            collisionAdjustedDistance = orbitDistance;
-        }
+        // Asymmetric smoothing
+        float smoothSpeed = adjustedDistance < collisionAdjustedDistance
+            ? collisionSmoothness * 2f
+            : collisionSmoothness * 0.5f;
+
+        collisionAdjustedDistance = Mathf.Lerp(
+            collisionAdjustedDistance,
+            adjustedDistance,
+            smoothSpeed * Time.deltaTime
+        );
     }
 
     private Vector3 CalculateOrbitDirection()
@@ -370,7 +394,7 @@ public class PlayerMovementController : MonoBehaviour
 
         // Calculate camera position on orbit sphere
         Vector3 orbitDirection = CalculateOrbitDirection();
-        float finalDistance = enableCameraCollision ? collisionAdjustedDistance : currentOrbitDistance;
+        float finalDistance = collisionAdjustedDistance;
         Vector3 orbitOffset = orbitDirection * finalDistance;
 
         // Apply speed shake
@@ -392,24 +416,6 @@ public class PlayerMovementController : MonoBehaviour
         // Calculate target camera position
         Vector3 targetCameraPosition = lookTarget + orbitOffset + shakeOffset;
 
-        // // Debug: Find the source of NaN
-        // if (float.IsNaN(targetCameraPosition.x) || float.IsNaN(targetCameraPosition.y) || float.IsNaN(targetCameraPosition.z))
-        // {
-        //     Debug.LogWarning($"NaN detected!" +
-        //         $"\n  smoothFollowPosition: {smoothFollowPosition}" +
-        //         $"\n  currentLeadOffset: {currentLeadOffset}" +
-        //         $"\n  lookTarget: {lookTarget}" +
-        //         $"\n  orbitDirection: {orbitDirection}" +
-        //         $"\n  finalDistance: {finalDistance}" +
-        //         $"\n  orbitOffset: {orbitOffset}" +
-        //         $"\n  shakeOffset: {shakeOffset}" +
-        //         $"\n  orbitYaw: {orbitYaw}" +
-        //         $"\n  orbitPitch: {orbitPitch}" +
-        //         $"\n  currentOrbitDistance: {currentOrbitDistance}" +
-        //         $"\n  collisionAdjustedDistance: {collisionAdjustedDistance}");
-        //     return;
-        // }
-
         transform.position = targetCameraPosition;
 
         Vector3 lookDirection = lookTarget - transform.position;
@@ -419,12 +425,6 @@ public class PlayerMovementController : MonoBehaviour
         }
 
         Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
-
-        // if (float.IsNaN(targetRotation.x) || float.IsNaN(targetRotation.y) || float.IsNaN(targetRotation.z) || float.IsNaN(targetRotation.w))
-        // {
-        //     Debug.LogWarning("Invalid rotation detected, skipping rotation update");
-        //     return;
-        // }
 
         smoothRotation = Quaternion.Slerp(smoothRotation, targetRotation, rotationSmoothness * Time.deltaTime);
         transform.rotation = smoothRotation;
@@ -439,6 +439,7 @@ public class PlayerMovementController : MonoBehaviour
         orbitPitch = 20f;
         smoothFollowPosition = ship.position;
         currentLeadOffset = Vector3.zero;
+        currentSpeedZoomOffset = 0f;
         UpdateCameraTransform();
     }
 
@@ -454,9 +455,13 @@ public class PlayerMovementController : MonoBehaviour
     {
         if (!showDebugInfo || ship == null) return;
 
-        // Draw orbit sphere
+        // Draw base orbit sphere
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(ship.position, currentOrbitDistance);
+
+        // Draw orbit with speed zoom
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireSphere(ship.position, currentOrbitDistance + currentSpeedZoomOffset);
 
         // Draw collision-adjusted sphere
         if (enableCameraCollision)
@@ -472,15 +477,5 @@ public class PlayerMovementController : MonoBehaviour
             Gizmos.DrawLine(ship.position, ship.position + currentLeadOffset);
             Gizmos.DrawWireSphere(ship.position + currentLeadOffset, 1f);
         }
-
-        // Draw boresight
-        Gizmos.color = Color.white;
-        Gizmos.DrawLine(ship.position, BoresightPos);
-        Gizmos.DrawWireSphere(BoresightPos, 5f);
-
-        // Draw aim point
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, MouseAimPos);
-        Gizmos.DrawWireSphere(MouseAimPos, 5f);
     }
 }

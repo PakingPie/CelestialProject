@@ -132,4 +132,9 @@ public class PredictionIndicator : MonoBehaviour
     {
         return _targetTransform;
     }
+
+    public void SetHighlightedTarget(VehicleBase target)
+    {
+        // Change indicator color or scale for the selected target
+    }
 }
