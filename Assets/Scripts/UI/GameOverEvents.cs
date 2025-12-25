@@ -22,7 +22,7 @@ public class GameOverEvents : MonoBehaviour
         _quitGameButton = root.Q<Button>("QuitGameButton");
         _quitGameButton.RegisterCallback<ClickEvent>(OnQuitGameButtonClicked);
 
-        _summaryLabel = root.Q<Label>("GameoverSummaryLabel");
+        _summaryLabel = root.Q<Label>("GameOverSummaryLabel");
     }
 
     private void Start()

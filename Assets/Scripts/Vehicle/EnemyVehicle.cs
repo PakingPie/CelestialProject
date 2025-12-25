@@ -55,7 +55,10 @@ public class EnemyVehicle : VehicleBase
     void OnDestroy()
     {
         if (_predictionManager != null && EnableIndication)
-            _predictionManager.UnregisterEnemy(this);
+        {
+            if (FactionType == Faction.Foe) _predictionManager.UnregisterEnemy(this);
+            else if (FactionType == Faction.Ally) _predictionManager.UnregisterAlly(this);
+        }
     }
 
     void Start()
@@ -65,7 +68,10 @@ public class EnemyVehicle : VehicleBase
         // Register with manager
         _predictionManager = FindAnyObjectByType<EnemyPredictionManager>();
         if (_predictionManager != null && EnableIndication)
-            _predictionManager.RegisterEnemy(this);
+        {
+            if (FactionType == Faction.Foe) _predictionManager.RegisterEnemy(this);
+            else if (FactionType == Faction.Ally) _predictionManager.RegisterAlly(this);
+        }
 
         if (HealthBar)
         {

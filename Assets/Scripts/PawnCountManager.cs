@@ -33,12 +33,23 @@ public class PawnCountManager : MonoBehaviour
         {
             InitEnemyCount += spawner.spawnCount;
         }
+        EnemiesRemainingCount = InitEnemyCount;
     }
 
     private void UpdateEnemyCount()
     {
         EnemyRemainingCount = FindObjectsByType<EnemyVehicle>(FindObjectsSortMode.None).Count(ev => ev.VehicleFaction == GlobalHelper.Faction.Foe && !ev.IsDying);
         EnemyDestroyedText.text = EnemyRemainingCount.ToString();
+
+        if(EnemiesRemainingCount <= 0)
+        {
+            // All enemies destroyed, trigger game over win condition
+            var gameManager = FindAnyObjectByType<GameManager>();
+            if (gameManager != null)
+            {
+                gameManager.GameOver();
+            }
+        }
     }
 
     private void UpdateAllyCount()

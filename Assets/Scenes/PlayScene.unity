@@ -7463,7 +7463,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoidsManager
   settings: {fileID: 11400000, guid: 97a514ce400477348ac008ee9f0adfae, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
-  target: {fileID: 0}
+  target: {fileID: 7103346325574244501}
   HeightRange: {x: -2500, y: 2500}
   syncCombatState: 1
   _targetManager: {fileID: 0}
@@ -10487,7 +10487,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &555973312
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10495,7 +10495,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 555973310}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -22763,7 +22763,7 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  _detectionRadius: 10000
+  _detectionRadius: 8000
 --- !u!4 &1277601559
 Transform:
   m_ObjectHideFlags: 0
@@ -22773,7 +22773,7 @@ Transform:
   m_GameObject: {fileID: 1277601557}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1000, y: 0, z: -16000}
+  m_LocalPosition: {x: -1000, y: 0, z: -12000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -39283,7 +39283,7 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  _detectionRadius: 10000
+  _detectionRadius: 8000
 --- !u!4 &2117162496
 Transform:
   m_ObjectHideFlags: 0
@@ -39293,7 +39293,7 @@ Transform:
   m_GameObject: {fileID: 2117162494}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1000, y: 0, z: -9000}
+  m_LocalPosition: {x: 1000, y: 0, z: -8000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -41558,12 +41558,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVehicle
   OwnerShip: {fileID: 8502438397938148729}
   IsShowHitpointBar: 0
-  HitPoints: 1
-  MaxHitPoints: 1
-  ArmorPoints: 0
-  MaxArmorPoints: 0
-  ShieldPoints: 0
-  MaxShieldPoints: 0
+  HitPoints: 20000
+  MaxHitPoints: 20000
+  ArmorPoints: 10000
+  MaxArmorPoints: 10000
+  ShieldPoints: 10000
+  MaxShieldPoints: 10000
   BoidManager: {fileID: 0}
   Type: 21
   HealthBar: {fileID: 724275193257514137}
@@ -41586,7 +41586,7 @@ MonoBehaviour:
   ArmorRegenerationRate: 2
   ArmorRegenerationDelay: 5
   ShieldRegenerationRate: 5
-  ShieldRegenerationDelay: 5
+  ShieldRegenerationDelay: 10
 --- !u!114 &8671210974142505000
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -4,34 +4,46 @@ using UnityEngine.InputSystem;
 
 public class MainMenuEvents : MonoBehaviour
 {
-    private UIDocument uIDocument;
-    private Button startGameButton;
-    private Button quitGameButton;
-    private Button settingsButton;
-
-    private GameManager gameManager;
+    private UIDocument _uIDocument;
+    private Button _startGameButton;
+    private Button _quitGameButton;
+    private Button _settingsButton;
+    private Label _instructionLabel;
+    private GameManager _gameManager;
 
     private void Awake()
     {
-        uIDocument = GetComponent<UIDocument>();
-        var root = uIDocument.rootVisualElement;
-        startGameButton = root.Q<Button>("StartGameButton");
-        startGameButton.RegisterCallback<ClickEvent>(OnStartGameButtonClicked);
+        _uIDocument = GetComponent<UIDocument>();
+        var root = _uIDocument.rootVisualElement;
+        _startGameButton = root.Q<Button>("StartGameButton");
+        _startGameButton.RegisterCallback<ClickEvent>(OnStartGameButtonClicked);
 
-        quitGameButton = root.Q<Button>("QuitGameButton");
-        quitGameButton.RegisterCallback<ClickEvent>(OnQuitGameButtonClicked);
+        _quitGameButton = root.Q<Button>("QuitGameButton");
+        _quitGameButton.RegisterCallback<ClickEvent>(OnQuitGameButtonClicked);
 
-        settingsButton = root.Q<Button>("SettingsButton");
+        _settingsButton = root.Q<Button>("SettingsButton");
+
+        _instructionLabel = root.Q<Label>("InstructionsLabel");
+        _instructionLabel.text = "Instructions:  \n" + 
+                "W/S: Pitch \n" + 
+                "A/D: Roll \n" + 
+                "Q/E: Yaw \n" + 
+                "Shift: Accelerates  \n" + 
+                "Left Ctil: Deccerlates   \n" + 
+                "T: Maunal Control Main Gun \n" + 
+                "Switch Ammunition: Click the 'AP'/'HE' Button \n"+
+                "Lock Target: Click an enemy on the screen \n" + 
+                "Esc: Main Menu";
     }
 
     private void Start()
     {
         // Get the instance in Start() to ensure GameManager.Awake() has run
-        gameManager = GameManager.Instance;
+        _gameManager = GameManager.Instance;
 
-        if (gameManager == null)
+        if (_gameManager == null)
         {
-            gameManager = FindFirstObjectByType<GameManager>();
+            _gameManager = FindFirstObjectByType<GameManager>();
             Debug.LogWarning("GameManager.Instance was null, found via FindFirstObjectByType");
         }
     }
@@ -39,14 +51,14 @@ public class MainMenuEvents : MonoBehaviour
     private void OnStartGameButtonClicked(ClickEvent evt)
     {
         Debug.Log("Start Game button clicked!");
-        gameManager?.StartGame();
+        _gameManager?.StartGame();
         HideMainMenu();
     }
 
     private void OnQuitGameButtonClicked(ClickEvent evt)
     {
         Debug.Log("Quit Game button clicked!");
-        gameManager?.QuitGame();
+        _gameManager?.QuitGame();
     }
 
     void Update()
@@ -54,17 +66,17 @@ public class MainMenuEvents : MonoBehaviour
         if (Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             ShowMainMenu();
-            gameManager?.PauseGame();
+            _gameManager?.PauseGame();
         }
     }
 
     public void ShowMainMenu()
     {
-        uIDocument.rootVisualElement.style.display = DisplayStyle.Flex;
+        _uIDocument.rootVisualElement.style.display = DisplayStyle.Flex;
     }
 
     public void HideMainMenu()
     {
-        uIDocument.rootVisualElement.style.display = DisplayStyle.None;
+        _uIDocument.rootVisualElement.style.display = DisplayStyle.None;
     }
 }
