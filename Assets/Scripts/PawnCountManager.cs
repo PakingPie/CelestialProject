@@ -10,7 +10,6 @@ public class PawnCountManager : MonoBehaviour
     public TextMeshProUGUI AllyRemainsText;
     public int EnemyRemainingCount = 0;
     public int AlliesRemainingCount = 0;
-    public int EnemiesRemainingCount = 0;
 
     public static Action UpdateEnemyCountAction;
     public static Action UpdateAllyCountAction;
@@ -24,7 +23,6 @@ public class PawnCountManager : MonoBehaviour
         // Reset counts at start of scene
         EnemyRemainingCount = 0;
         AlliesRemainingCount = 0;
-        EnemiesRemainingCount = 0;
 
         // Calculate initial enemy count FIRST
         var BoidSpawners = FindObjectsByType<BoidSpawner>(FindObjectsSortMode.None);
@@ -32,7 +30,6 @@ public class PawnCountManager : MonoBehaviour
         {
             InitEnemyCount += spawner.spawnCount;
         }
-        EnemiesRemainingCount = InitEnemyCount;
 
         // Subscribe to actions
         UpdateEnemyCountAction += UpdateEnemyCount;
