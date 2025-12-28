@@ -24,7 +24,7 @@ RenderSettings:
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 3
+  m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 2100000, guid: f642c3c6310b27245ba8f325c6e02f8d, type: 2}
   m_HaloStrength: 0.5
@@ -7452,7 +7452,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &413969322
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9407,7 +9407,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
   spawnRadius: 500
-  spawnCount: 20
+  spawnCount: 50
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -500, y: 500}
@@ -16813,7 +16813,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
   spawnRadius: 500
-  spawnCount: 10
+  spawnCount: 5
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 1000}
@@ -21575,7 +21575,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 700, y: 300}
+  m_SizeDelta: {x: 700, y: 500}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1184364225
 MonoBehaviour:
@@ -23420,7 +23420,7 @@ Transform:
   m_GameObject: {fileID: 1280677264}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 18000, y: 0, z: -3000}
+  m_LocalPosition: {x: 15000, y: 0, z: -10000}
   m_LocalScale: {x: 200, y: 200, z: 200}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -24926,13 +24926,14 @@ GameObject:
   - component: {fileID: 1348757673}
   - component: {fileID: 1348757675}
   - component: {fileID: 1348757674}
+  - component: {fileID: 1348757676}
   m_Layer: 0
   m_Name: Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1348757673
 Transform:
   m_ObjectHideFlags: 0
@@ -24961,7 +24962,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
   m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
+  m_AdditionalLightsShadowResolutionTier: 0
   m_CustomShadowLayers: 0
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
@@ -24987,15 +24988,15 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 100000000
-  m_Range: 30000
+  m_Color: {r: 1, g: 0.98197484, b: 0.6778976, a: 1}
+  m_Intensity: 10000000
+  m_Range: 80000
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 2
-    m_Resolution: -1
+    m_Resolution: 128
     m_CustomResolution: -1
     m_Strength: 1
     m_Bias: 0.05
@@ -25042,6 +25043,21 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!114 &1348757676
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1348757672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abdffa93574ddc14fb31c0b74b72cfa3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VolumetricLightingAdditionalLightAttributes
+  anisotropy: 0
+  scattering: 2
+  radius: 1
 --- !u!1 &1350344418
 GameObject:
   m_ObjectHideFlags: 0
@@ -28944,7 +28960,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1530042874
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30223,7 +30239,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d603c2ec335e1964387eb3ca57d0e5f3, type: 3}
   spawnRadius: 500
-  spawnCount: 20
+  spawnCount: 10
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 1
   HeightRange: {x: -1000, y: 1000}
@@ -38675,7 +38691,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2060028161
 Transform:
   m_ObjectHideFlags: 0
@@ -41341,8 +41357,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShipMovement
   cameraController: {fileID: 7868929882183927213}
-  maxThrust: 100
-  minThrust: -50
+  maxThrust: 1000
+  minThrust: -500
   thrustAcceleration: 50
   thrustDecay: 1
   MaintainThrottle: 1
@@ -42486,7 +42502,27 @@ MonoBehaviour:
   - {fileID: 845098131}
   - {fileID: 2093368513}
   - {fileID: 1219769934}
-  secondaryGuns: []
+  secondaryGuns:
+  - {fileID: 1630889160}
+  - {fileID: 1203156693}
+  - {fileID: 1019083195}
+  - {fileID: 446234342}
+  - {fileID: 1297380121}
+  - {fileID: 228139256}
+  - {fileID: 1871295713}
+  - {fileID: 1918332612}
+  - {fileID: 1928097667}
+  - {fileID: 2137402561}
+  - {fileID: 1764949079}
+  - {fileID: 2093221687}
+  - {fileID: 303995024}
+  - {fileID: 1331264511}
+  - {fileID: 1496854428}
+  - {fileID: 34389200}
+  - {fileID: 717312585}
+  - {fileID: 1932221308}
+  - {fileID: 137231045}
+  - {fileID: 726735045}
   tertiaryGuns: []
   firingMode: 0
   aimDistance: 5000
