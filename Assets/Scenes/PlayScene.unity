@@ -5586,7 +5586,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &284883241
 Transform:
   m_ObjectHideFlags: 0
@@ -7414,7 +7414,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &413969322
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8314,7 +8314,6 @@ GameObject:
   - component: {fileID: 456003827}
   - component: {fileID: 456003830}
   - component: {fileID: 456003829}
-  - component: {fileID: 456003828}
   m_Layer: 0
   m_Name: Atmosphere
   m_TagString: Untagged
@@ -8337,27 +8336,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1615824819}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &456003828
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 456003826}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &456003829
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10484,15 +10462,15 @@ GameObject:
   - component: {fileID: 555973314}
   - component: {fileID: 555973313}
   - component: {fileID: 555973312}
-  - component: {fileID: 555973315}
   - component: {fileID: 555973316}
+  - component: {fileID: 555973317}
   m_Layer: 7
   m_Name: BluePlanet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!23 &555973312
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10566,28 +10544,6 @@ Transform:
   - {fileID: 1692829430}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -125.07, z: 0}
---- !u!64 &555973315
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 555973310}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -2432090755550338912, guid: fef1d3afdd6ddca45a898e94c849dc01, type: 3}
 --- !u!114 &555973316
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10606,6 +10562,27 @@ MonoBehaviour:
   MainRT: {fileID: 268222084}
   Resolution: 512
   SunPosition: {x: 18000, y: 0, z: -3000}
+--- !u!135 &555973317
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 555973310}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &557443628
 GameObject:
   m_ObjectHideFlags: 0
@@ -19726,6 +19703,7 @@ GameObject:
   - component: {fileID: 1112071340}
   - component: {fileID: 1112071341}
   - component: {fileID: 1112071342}
+  - component: {fileID: 1112071343}
   m_Layer: 0
   m_Name: GlobalHelper
   m_TagString: Untagged
@@ -19832,6 +19810,21 @@ MonoBehaviour:
   GameHud: {fileID: 1302174825}
   PlayerHud: {fileID: 1380902649744543872}
   PlayerShip: {fileID: 8502438397938148729}
+  FreezeGameOnStart: 1
+--- !u!114 &1112071343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1112071337}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98aedf5871f3f3f4bbb4cc9989318089, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoidObstacleSystem
+  _maxBoids: 512
+  _batchCount: 4
 --- !u!1 &1112174697
 GameObject:
   m_ObjectHideFlags: 0
@@ -29650,8 +29643,8 @@ Transform:
   - {fileID: 456003827}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!64 &1615824820
-MeshCollider:
+--- !u!135 &1615824820
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -29668,10 +29661,9 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -2432090755550338912, guid: fef1d3afdd6ddca45a898e94c849dc01, type: 3}
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1617768481
 GameObject:
   m_ObjectHideFlags: 0
@@ -36711,7 +36703,7 @@ GameObject:
   - component: {fileID: 1980694550}
   - component: {fileID: 1980694552}
   - component: {fileID: 1980694553}
-  m_Layer: 9
+  m_Layer: 12
   m_Name: Shield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -39415,7 +39407,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2117162495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -41551,6 +41543,7 @@ GameObject:
   - component: {fileID: 2840843351104990238}
   - component: {fileID: 8671210974142504999}
   - component: {fileID: 8671210974142505000}
+  - component: {fileID: 8671210974142505001}
   m_Layer: 9
   m_Name: PlayerShip
   m_TagString: Player
@@ -41695,6 +41688,27 @@ MonoBehaviour:
   secondaryFireKey: 0
   tertiaryFireKey: 0
   toggleModeKey: 34
+--- !u!135 &8671210974142505001
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8502438397938148729}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 120
+  m_Center: {x: 0, y: 0, z: -10}
 --- !u!1 &8725837447588398855
 GameObject:
   m_ObjectHideFlags: 0

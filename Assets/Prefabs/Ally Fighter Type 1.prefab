@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2368025303835637834}
   - component: {fileID: 2622775813167702746}
   - component: {fileID: 7178932244775340459}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Shield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1696,6 +1696,7 @@ GameObject:
   - component: {fileID: 3109858766895225120}
   - component: {fileID: -2094783752960322070}
   - component: {fileID: 8601252320548999007}
+  - component: {fileID: 8537164698320733798}
   m_Layer: 9
   m_Name: Ally Fighter Type 1
   m_TagString: Ally
@@ -1746,10 +1747,11 @@ MonoBehaviour:
   flockmatesCenter: {x: 0, y: 0, z: 0}
   numPerceivedFlockmates: 0
   HeightRange: {x: -2500, y: 2500}
+  _EnableDebugLogs: 1
+  _EnableDebugGizmos: 0
   IsInCombat: 0
   FormationIndex: 0
   FormationLeader: {fileID: 0}
-  _EnableDebugGizmos: 0
 --- !u!114 &-2094783752960322070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1908,6 +1910,27 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 1
   m_ApplyActiveColorSpace: 1
+--- !u!135 &8537164698320733798
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4103674997823826176}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 7
+  m_Center: {x: 0, y: 0, z: 2}
 --- !u!1 &4262406418400434559
 GameObject:
   m_ObjectHideFlags: 0

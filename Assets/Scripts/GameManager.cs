@@ -3,16 +3,20 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+
     public GameObject GameHud;
     public GameObject PlayerHud;
     public GameObject PlayerShip;
 
+    [Header("Debug")]
+    public bool FreezeGameOnStart = true;
     void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            Time.timeScale = 0f; // Pause immediately when singleton is created
+            if (FreezeGameOnStart)
+                Time.timeScale = 0f; // Pause immediately when singleton is created
         }
         else
         {

@@ -177,7 +177,7 @@ public class BulletPhysics : MonoBehaviour
 
                 Vector3 rayStart = enemyPos - dir * rayStartOffset;
 
-                if (Physics.Raycast(rayStart, dir, out _hit, rayDistance))
+                if (Physics.Raycast(rayStart, dir, out _hit, rayDistance, LayerMask.GetMask("Shield")))
                 {
                     ShieldHitEffect shieldEffect = _hit.collider.GetComponent<ShieldHitEffect>();
                     if (shieldEffect != null)
