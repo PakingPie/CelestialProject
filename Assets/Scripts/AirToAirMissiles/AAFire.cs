@@ -133,8 +133,6 @@ public class AAFire : MonoBehaviour
             }
         }
 
-
-
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Foe");
         float shortest_distance = Mathf.Infinity;
         GameObject nearest_enemy = null;
