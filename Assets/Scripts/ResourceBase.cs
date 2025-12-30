@@ -6,4 +6,8 @@ public class ResourceBase
         Fuel,
         Experience
     }
+
+    public int MineralAmount;
+    public int FuelAmount;
+    public int ExperienceAmount;
 }

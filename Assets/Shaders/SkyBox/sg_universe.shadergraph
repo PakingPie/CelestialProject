@@ -2,7 +2,11 @@
     "m_SGVersion": 3,
     "m_Type": "UnityEditor.ShaderGraph.GraphData",
     "m_ObjectId": "d0a378dbe71a44858603bca100930e89",
-    "m_Properties": [],
+    "m_Properties": [
+        {
+            "m_Id": "e3bd935d0a924d288024c51afcce7e57"
+        }
+    ],
     "m_Keywords": [],
     "m_Dropdowns": [],
     "m_CategoryData": [
@@ -239,6 +243,7 @@
     "m_CastShadows": false,
     "m_ReceiveShadows": true,
     "m_DisableTint": false,
+    "m_Sort3DAs2DCompatible": false,
     "m_AdditionalMotionVectorMode": 0,
     "m_AlembicMotionVectors": false,
     "m_SupportsLODCrossFade": false,
@@ -253,7 +258,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "StarField",
+    "m_Name": "Star Field",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -318,7 +323,10 @@
 {
     "m_SGVersion": 2,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalUnlitSubTarget",
-    "m_ObjectId": "ce0304788ff6413ca3f8289071b980a1"
+    "m_ObjectId": "ce0304788ff6413ca3f8289071b980a1",
+    "m_KeepLightingVariants": false,
+    "m_DefaultDecalBlending": true,
+    "m_DefaultSSAO": true
 }
 
 {
@@ -347,11 +355,50 @@
 }
 
 {
+    "m_SGVersion": 3,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.ColorShaderProperty",
+    "m_ObjectId": "e3bd935d0a924d288024c51afcce7e57",
+    "m_Guid": {
+        "m_GuidSerialized": "ef321e4a-ecf2-4fea-b378-0a33c7d1e87b"
+    },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
+    "m_Name": "Color",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "Color",
+    "m_DefaultReferenceName": "_Color",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
+    "m_Value": {
+        "r": 3.9969072341918947,
+        "g": 4.0,
+        "b": 0.0,
+        "a": 1.0
+    },
+    "isMainColor": false,
+    "m_ColorMode": 1
+}
+
+{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.CategoryData",
     "m_ObjectId": "e6f87f35190345fdab7c62ea990d6866",
     "m_Name": "",
-    "m_ChildObjectList": []
+    "m_ChildObjectList": [
+        {
+            "m_Id": "e3bd935d0a924d288024c51afcce7e57"
+        }
+    ]
 }
 
 {
@@ -395,7 +442,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "StarFieldUV",
+    "m_Name": "Star Field UV",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -445,7 +492,8 @@
     "m_StageCapability": 3,
     "m_Value": 10.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
 {
