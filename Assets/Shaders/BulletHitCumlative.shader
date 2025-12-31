@@ -1,14 +1,11 @@
-Shader "Custom/ShieldHitCumulative"
+Shader "Custom/BulletHitCumlative"
 {
     Properties
     {
         _MainTex ("Cumulative Texture", 2D) = "black" {}
         _HitTex ("Hit Effect Texture", 2D) = "black" {}
-        _Decay ("Decay Factor", Range(0, 1)) = 0.9
-        _DecaySpeed ("Decay Speed", Range(0, 10)) = 2.0
-        _MinThreshold ("Min Threshold", Range(0, 0.1)) = 0.01
     }
-    
+
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
@@ -36,9 +33,6 @@ Shader "Custom/ShieldHitCumulative"
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainTex_ST;
                 float4 _HitTex_ST;
-                float _Decay;
-                float _DecaySpeed;
-                float _MinThreshold;
             CBUFFER_END
 
             struct Attributes
@@ -66,18 +60,14 @@ Shader "Custom/ShieldHitCumulative"
                 float4 oldCumulative = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
                 
                 float brightness = max(max(oldCumulative.r, oldCumulative.g), oldCumulative.b);
-                float dynamicDecay = lerp(0.5, _Decay, brightness);
                 
-                float4 decayed = oldCumulative * dynamicDecay;
                 float4 newHit = SAMPLE_TEXTURE2D(_HitTex, sampler_HitTex, input.uv);
                 
-                float4 result = max(decayed, newHit);
-                
-                if (result.r < 0.01 && result.g < 0.01 && result.b < 0.01)
-                result = float4(0, 0, 0, 0);
+                float4 result = max(oldCumulative, newHit);
                 
                 return result;
             }
+
             ENDHLSL
         }
     }
