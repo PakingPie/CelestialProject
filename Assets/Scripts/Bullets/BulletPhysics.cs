@@ -10,6 +10,8 @@ public class BulletPhysics : MonoBehaviour
 
     public int Damage = 2;
 
+    public bool CanDamagePlanet = false;
+
     [Header("Motion")]
     public float Speed = 50f;
     public float LifeTime = 5f;

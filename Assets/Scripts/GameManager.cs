@@ -66,7 +66,8 @@ public class GameManager : MonoBehaviour
             gameoverEvents.ShowGameoverMenu();
         }
         Time.timeScale = 0f;
-        PlayerShip.SetActive(false);
+        if(PlayerShip.GetComponent<VehicleBase>().HitPoints <= 0)
+            PlayerShip.SetActive(false);
     }
 
     public void QuitGame()

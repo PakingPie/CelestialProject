@@ -1122,9 +1122,9 @@ MonoBehaviour:
   ActiveRange: {x: 10, y: 2000}
   UpdateRate: 60
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 2000
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -4825,9 +4825,9 @@ MonoBehaviour:
   ActiveRange: {x: 10, y: 2000}
   UpdateRate: 60
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 2000
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -5571,6 +5571,62 @@ RenderTexture:
   m_Dimension: 2
   m_VolumeDepth: 1
   m_ShadowSamplingMode: 2
+--- !u!1 &280364638
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 280364640}
+  - component: {fileID: 280364639}
+  m_Layer: 0
+  m_Name: Asteroids
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &280364639
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 280364638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5d1c8d1e085ae74788c0b37f7fe2bb9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AsteroidSpawner
+  asteroidCount: 100
+  spawnAreaSize: {x: 10000, y: 5000, z: 10000}
+  minDistanceBetweenAsteroids: 10
+  resolution: 16
+  radiusRange: {x: 10, y: 100}
+  asteroidMaterial: {fileID: 0}
+  layersRange: {x: 4, y: 5}
+  baseRoughnessRange: {x: 0.5, y: 1}
+  roughnessRange: {x: 1.5, y: 2}
+  strength: 0.5
+  persistence: 0.5
+  spawnedAsteroids: []
+--- !u!4 &280364640
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 280364638}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -5000}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &284883240
 GameObject:
   m_ObjectHideFlags: 0
@@ -6936,9 +6992,9 @@ MonoBehaviour:
   ActiveRange: {x: 10, y: 1500}
   UpdateRate: 60
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 1500
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -6949,10 +7005,8 @@ MonoBehaviour:
   LaserLineRenderer: {fileID: 376653060}
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.5
-  FireInterval: 5
-  TurretRotateSpeed: 5
-  LaserDamageCap: 500
-  LaserDPS: 5
+  FireInterval: 2
+  LaserDPS: 10
   IsFiring: 0
   LaserOrigin: {fileID: 2032648705}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
@@ -7414,7 +7468,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &413969322
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7443,7 +7497,7 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  _detectionRadius: 10000
+  _detectionRadius: 8000
 --- !u!4 &413969323
 Transform:
   m_ObjectHideFlags: 0
@@ -8488,9 +8542,9 @@ MonoBehaviour:
   ActiveRange: {x: 10, y: 2000}
   UpdateRate: 60
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 2000
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -8695,9 +8749,9 @@ MonoBehaviour:
   ActiveRange: {x: 10, y: 1500}
   UpdateRate: 60
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 1500
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -8708,10 +8762,8 @@ MonoBehaviour:
   LaserLineRenderer: {fileID: 459518797}
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.5
-  FireInterval: 5
-  TurretRotateSpeed: 5
-  LaserDamageCap: 500
-  LaserDPS: 5
+  FireInterval: 2
+  LaserDPS: 10
   IsFiring: 0
   LaserOrigin: {fileID: 1811997416}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
@@ -9310,7 +9362,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
   spawnRadius: 500
-  spawnCount: 50
+  spawnCount: 12
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -500, y: 500}
@@ -11190,7 +11242,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 50, y: 8000}
+  ActiveRange: {x: 50, y: 4000}
   UpdateRate: 60
   PriorityConfig: {fileID: 11400000, guid: 1af727335389b4d4fa581e766857809d, type: 2}
   CanTargetMissiles: 0
@@ -11207,8 +11259,6 @@ MonoBehaviour:
   LaserEffectDuration: 10
   MinimumLaserDamageInterval: 0.5
   FireInterval: 20
-  TurretRotateSpeed: 5
-  LaserDamageCap: 10000
   LaserDPS: 100
   IsFiring: 0
   LaserOrigin: {fileID: 725396406}
@@ -13705,9 +13755,9 @@ MonoBehaviour:
   ActiveRange: {x: 10, y: 2000}
   UpdateRate: 60
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 2000
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -15062,7 +15112,7 @@ Light:
   serializedVersion: 12
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 2
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -15105,8 +15155,8 @@ Light:
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
+  m_ColorTemperature: 5500
+  m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
@@ -15562,9 +15612,9 @@ MonoBehaviour:
   ActiveRange: {x: 10, y: 1500}
   UpdateRate: 60
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 1500
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -15575,10 +15625,8 @@ MonoBehaviour:
   LaserLineRenderer: {fileID: 799639675}
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.5
-  FireInterval: 5
-  TurretRotateSpeed: 5
-  LaserDamageCap: 500
-  LaserDPS: 5
+  FireInterval: 2
+  LaserDPS: 10
   IsFiring: 0
   LaserOrigin: {fileID: 1698786451}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
@@ -16410,7 +16458,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
   spawnRadius: 500
-  spawnCount: 2
+  spawnCount: 4
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -1000, y: 1000}
@@ -23377,9 +23425,9 @@ MonoBehaviour:
   ActiveRange: {x: 10, y: 1500}
   UpdateRate: 60
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 1500
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -23390,10 +23438,8 @@ MonoBehaviour:
   LaserLineRenderer: {fileID: 1293264626}
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.5
-  FireInterval: 5
-  TurretRotateSpeed: 5
-  LaserDamageCap: 500
-  LaserDPS: 5
+  FireInterval: 2
+  LaserDPS: 10
   IsFiring: 0
   LaserOrigin: {fileID: 1382204968}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
@@ -23787,7 +23833,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1310404615
 Transform:
   m_ObjectHideFlags: 0
@@ -26917,9 +26963,9 @@ MonoBehaviour:
   ActiveRange: {x: 10, y: 2000}
   UpdateRate: 60
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 2000
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -29636,7 +29682,7 @@ Transform:
   m_GameObject: {fileID: 1615824815}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2000, y: 0, z: -5500}
+  m_LocalPosition: {x: -2000, y: 0, z: -12000}
   m_LocalScale: {x: 2000, y: 2000, z: 2000}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -34476,9 +34522,9 @@ MonoBehaviour:
   ActiveRange: {x: 10, y: 1500}
   UpdateRate: 60
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 1500
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -34489,10 +34535,8 @@ MonoBehaviour:
   LaserLineRenderer: {fileID: 1865913665}
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.5
-  FireInterval: 5
-  TurretRotateSpeed: 5
-  LaserDamageCap: 500
-  LaserDPS: 5
+  FireInterval: 2
+  LaserDPS: 10
   IsFiring: 0
   LaserOrigin: {fileID: 763551644}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
@@ -34560,9 +34604,9 @@ MonoBehaviour:
   ActiveRange: {x: 10, y: 2000}
   UpdateRate: 60
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 2000
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -37951,9 +37995,9 @@ MonoBehaviour:
   ActiveRange: {x: 10, y: 1500}
   UpdateRate: 60
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 0
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 1500
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -37964,10 +38008,8 @@ MonoBehaviour:
   LaserLineRenderer: {fileID: 2055999436}
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.5
-  FireInterval: 5
-  TurretRotateSpeed: 5
-  LaserDamageCap: 500
-  LaserDPS: 5
+  FireInterval: 2
+  LaserDPS: 10
   IsFiring: 0
   LaserOrigin: {fileID: 156881670}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
@@ -39407,7 +39449,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2117162495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -39446,7 +39488,7 @@ Transform:
   m_GameObject: {fileID: 2117162494}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1000, y: 0, z: -8000}
+  m_LocalPosition: {x: 1000, y: 0, z: -6000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -41762,3 +41804,4 @@ SceneRoots:
   - {fileID: 1112071339}
   - {fileID: 860697140}
   - {fileID: 1258348308}
+  - {fileID: 280364640}

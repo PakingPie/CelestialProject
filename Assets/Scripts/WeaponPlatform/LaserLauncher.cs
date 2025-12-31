@@ -14,8 +14,6 @@ public class LaserLauncher : WeaponBase
     public float LaserEffectDuration = 2.5f;
     public float MinimumLaserDamageInterval = 0.1f;
     public float FireInterval = 2.0f;
-    public float TurretRotateSpeed = 5f;
-    public int LaserDamageCap = 10;
     public int LaserDPS = 1;
     public bool IsFiring = false;
     public Transform LaserOrigin;
