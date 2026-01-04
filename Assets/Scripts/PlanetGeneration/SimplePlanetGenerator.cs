@@ -45,7 +45,7 @@ public class SimplePlanetGenerator : MonoBehaviour
     [Header("Craters")]
     public bool hasCraters = true;
     public int craterCount = 20;
-    [Range(0.05f, 0.5f)]
+    [Range(0.01f, 0.5f)]
     public float craterMinSize = 0.08f;
     [Range(0.1f, 1f)]
     public float craterMaxSize = 0.3f;
@@ -150,7 +150,7 @@ public class SimplePlanetGenerator : MonoBehaviour
 
         Mesh mesh = CreateSphereMeshWithTerrain();
         mesh.RecalculateBounds();
-        meshFilter.mesh = mesh;
+        gameObject.GetComponent<MeshFilter>().mesh = mesh;
 
         Debug.Log($"Planet generated with {mesh.vertexCount} vertices");
     }
@@ -906,7 +906,7 @@ public class SimplePlanetGenerator : MonoBehaviour
     }
 
     #endregion
-    
+
 
     void CalculateSmoothNormals(Mesh mesh)
     {
