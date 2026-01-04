@@ -1,0 +1,280 @@
+#pragma kernel HydraulicErosion
+#pragma kernel ThermalErosion
+#pragma kernel ApplyErosionChanges
+#pragma kernel ClearChangeBuffer
+
+// Buffers
+RWStructuredBuffer<float> heightMap;
+RWStructuredBuffer<float> heightChanges;  // Accumulated changes (double buffered)
+StructuredBuffer<float3> spherePoints;
+StructuredBuffer<int> neighborOffsets;
+StructuredBuffer<int> neighborCounts;
+StructuredBuffer<int> neighborStarts;
+RWStructuredBuffer<uint> randomStates;
+
+// Parameters
+int vertexCount;
+int dropletsPerDispatch;
+float erosionStrength;
+float depositionRate;
+float evaporationRate;
+float sedimentCapacity;
+float minSedimentCapacity;
+float inertia;
+float gravity;
+int maxLifetime;
+float talusAngle;
+float thermalRate;
+
+// Atomic float add using InterlockedCompareExchange
+void AtomicAddFloat(uint index, float value)
+{
+    uint newValue, prevValue;
+    
+    [allow_uav_condition]
+    do
+    {
+        prevValue = asuint(heightChanges[index]);
+        newValue = asuint(asfloat(prevValue) + value);
+    }
+    while (prevValue != newValue);  // Simplified - see full implementation below
+}
+
+// Better atomic add implementation
+void InterlockedAddFloat(RWStructuredBuffer<float> buffer, uint index, float value)
+{
+    uint comp, original;
+    
+    [allow_uav_condition]
+    for (int i = 0; i < 128; i++)  // Max iterations to prevent infinite loop
+    {
+        original = asuint(buffer[index]);
+        comp = original;
+        uint newVal = asuint(asfloat(original) + value);
+        
+        InterlockedCompareExchange(asuint(buffer[index]), comp, newVal, original);
+        
+        if (original == comp)
+            break;
+    }
+}
+
+uint PCGHash(uint input)
+{
+    uint state = input * 747796405u + 2891336453u;
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return (word >> 22u) ^ word;
+}
+
+float RandomFloat(inout uint state)
+{
+    state = PCGHash(state);
+    return float(state) / 4294967295.0;
+}
+
+int RandomInt(inout uint state, int maxVal)
+{
+    return int(RandomFloat(state) * float(maxVal)) % maxVal;
+}
+
+struct DropletState
+{
+    int currentIndex;
+    float3 dir;
+    float speed;
+    float water;
+    float sediment;
+};
+
+int FindLowestNeighbor(int vertexIndex, out float heightDiff, out float3 gradient)
+{
+    float currentHeight = heightMap[vertexIndex];
+    float3 currentPos = spherePoints[vertexIndex];
+    
+    int start = neighborStarts[vertexIndex];
+    int count = neighborCounts[vertexIndex];
+    
+    int lowestNeighbor = -1;
+    float lowestHeight = currentHeight;
+    gradient = float3(0, 0, 0);
+    
+    [loop]
+    for (int i = 0; i < count && i < 12; i++)  // Max 12 neighbors typical for sphere mesh
+    {
+        int neighborIdx = neighborOffsets[start + i];
+        if (neighborIdx < 0 || neighborIdx >= vertexCount) continue;
+        
+        float neighborHeight = heightMap[neighborIdx];
+        float3 neighborPos = spherePoints[neighborIdx];
+        
+        float3 toNeighbor = neighborPos - currentPos;
+        float dist = length(toNeighbor);
+        if (dist > 0.0001)
+        {
+            toNeighbor /= dist;
+            gradient += toNeighbor * (currentHeight - neighborHeight);
+        }
+        
+        if (neighborHeight < lowestHeight)
+        {
+            lowestHeight = neighborHeight;
+            lowestNeighbor = neighborIdx;
+        }
+    }
+    
+    heightDiff = currentHeight - lowestHeight;
+    
+    float gradLen = length(gradient);
+    if (gradLen > 0.0001)
+        gradient /= gradLen;
+    else
+        gradient = float3(0, 0, 0);
+    
+    return lowestNeighbor;
+}
+
+[numthreads(256, 1, 1)]
+void HydraulicErosion(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)dropletsPerDispatch) return;
+    
+    // Initialize random state
+    uint randState = randomStates[id.x];
+    
+    // Random starting position
+    int currentIndex = RandomInt(randState, vertexCount);
+    
+    float3 dir = float3(0, 0, 0);
+    float speed = 1.0;
+    float water = 1.0;
+    float sediment = 0.0;
+    
+    [loop]
+    for (int lifetime = 0; lifetime < maxLifetime; lifetime++)
+    {
+        if (currentIndex < 0 || currentIndex >= vertexCount)
+            break;
+            
+        float currentHeight = heightMap[currentIndex] + heightChanges[currentIndex];
+        
+        // Find gradient and lowest neighbor
+        float heightDiff;
+        float3 gradient;
+        int nextIndex = FindLowestNeighbor(currentIndex, heightDiff, gradient);
+        
+        if (nextIndex < 0) break;
+        
+        // Update direction with inertia
+        dir = lerp(gradient, dir, inertia);
+        float dirLen = length(dir);
+        if (dirLen > 0.0001)
+            dir /= dirLen;
+        
+        // Calculate sediment capacity
+        float capacity = max(heightDiff * speed * water * sedimentCapacity, minSedimentCapacity);
+        
+        if (sediment > capacity || heightDiff < 0)
+        {
+            // Deposit sediment
+            float depositAmount;
+            if (heightDiff < 0)
+                depositAmount = min(sediment, -heightDiff);
+            else
+                depositAmount = (sediment - capacity) * depositionRate;
+            
+            sediment -= depositAmount;
+            heightChanges[currentIndex] += depositAmount;
+        }
+        else
+        {
+            // Erode terrain
+            float erodeAmount = min((capacity - sediment) * erosionStrength, heightDiff + 0.001);
+            
+            // Distribute erosion to current and neighbors
+            int start = neighborStarts[currentIndex];
+            int count = neighborCounts[currentIndex];
+            count = min(count, 12);
+            
+            float erodeCenter = erodeAmount * 0.5;
+            float erodeNeighbor = erodeAmount * 0.5 / max(1.0, float(count));
+            
+            heightChanges[currentIndex] -= erodeCenter;
+            
+            [loop]
+            for (int i = 0; i < count; i++)
+            {
+                int neighborIdx = neighborOffsets[start + i];
+                if (neighborIdx >= 0 && neighborIdx < vertexCount)
+                {
+                    heightChanges[neighborIdx] -= erodeNeighbor;
+                }
+            }
+            
+            sediment += erodeAmount;
+        }
+        
+        // Update droplet physics
+        speed = sqrt(max(0.01, speed * speed + heightDiff * gravity));
+        water *= (1.0 - evaporationRate);
+        
+        if (water < 0.01) break;
+        
+        currentIndex = nextIndex;
+    }
+    
+    // Save random state
+    randomStates[id.x] = randState;
+}
+
+[numthreads(256, 1, 1)]
+void ThermalErosion(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)vertexCount) return;
+    
+    int vertexIdx = id.x;
+    float currentHeight = heightMap[vertexIdx];
+    
+    int start = neighborStarts[vertexIdx];
+    int count = neighborCounts[vertexIdx];
+    count = min(count, 12);
+    
+    float totalTransfer = 0;
+    
+    [loop]
+    for (int i = 0; i < count; i++)
+    {
+        int neighborIdx = neighborOffsets[start + i];
+        if (neighborIdx < 0 || neighborIdx >= vertexCount) continue;
+        
+        float neighborHeight = heightMap[neighborIdx];
+        float diff = currentHeight - neighborHeight;
+        
+        if (diff > talusAngle)
+        {
+            float transfer = (diff - talusAngle) * thermalRate / float(count);
+            totalTransfer += transfer;
+            heightChanges[neighborIdx] += transfer;
+        }
+    }
+    
+    if (totalTransfer > 0)
+    {
+        heightChanges[vertexIdx] -= totalTransfer;
+    }
+}
+
+[numthreads(256, 1, 1)]
+void ApplyErosionChanges(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)vertexCount) return;
+    
+    heightMap[id.x] += heightChanges[id.x];
+    heightChanges[id.x] = 0;
+}
+
+[numthreads(256, 1, 1)]
+void ClearChangeBuffer(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= (uint)vertexCount) return;
+    heightChanges[id.x] = 0;
+}
