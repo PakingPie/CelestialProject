@@ -65,7 +65,7 @@ public class GameManager : MonoBehaviour
         {
             gameoverEvents.ShowGameoverMenu();
         }
-        Time.timeScale = 0f;
+        // Time.timeScale = 0f; // Optionally pause the game on game over
         if(PlayerShip.GetComponent<VehicleBase>().HitPoints <= 0)
             PlayerShip.SetActive(false);
     }

@@ -109,6 +109,7 @@ MonoBehaviour:
   _childTrails: []
   Damage: 200
   CanDamagePlanet: 0
+  CanDamageAsteroids: 1
   Speed: 600
   LifeTime: 10
   FuseDetonationDistance: 30
@@ -119,6 +120,10 @@ MonoBehaviour:
   DamageType: 0
   FireTarget: 12
   ExplodeOnImpact: 1
+  _useRaycastCollision: 1
+  _collisionLayers:
+    serializedVersion: 2
+    m_Bits: 8192
   TargetObject: {fileID: 0}
 --- !u!96 &2255675834001492738
 TrailRenderer:
