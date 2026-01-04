@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using UnityEngine;
 public class GameManager : MonoBehaviour
 {
@@ -31,6 +32,7 @@ public class GameManager : MonoBehaviour
     }
     public void StartGame()
     {
+        UnityEngine.Debug.Log("Game Started");
         Time.timeScale = 1f;
         GameHud.SetActive(true);
         PlayerHud.SetActive(true);
