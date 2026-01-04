@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using static GlobalHelper;
 
 public class Gun : WeaponBase
 {
@@ -414,7 +415,7 @@ public class Gun : WeaponBase
         if (IsManualMode)
             return;
 
-        // Check for missiles first if enabled (separate from priority system)
+        // Check for missiles first if enabled
         if (CanTargetMissiles)
         {
             AAMissile nearestMissile = CombatRegistry.FindNearestHostileMissile(
@@ -428,17 +429,23 @@ public class Gun : WeaponBase
                 if (PrioritizeMissiles || Targeted == null)
                 {
                     Targeted = nearestMissile.transform;
-
                     Boid boid = GetComponentInParent<Boid>();
                     if (boid != null)
                         boid.EnterCombat();
-
                     return;
                 }
             }
         }
 
-        // Use base class for vehicle targeting (priority or distance based)
+        // If bullet can damage asteroids, also consider neutral targets
+        if (BulletPrefab != null && BulletPrefab.CanDamageAsteroids)
+        {
+            Vector3 myPosition = CachedTransform.position;
+            List<VehicleBase> nearbyNeutrals = new List<VehicleBase>(32);
+            CombatRegistry.GetNearbyEnemies(myPosition, ActiveRange.y, Faction.Neutral, nearbyNeutrals, false);
+            _nearbyEnemies.AddRange(nearbyNeutrals);
+        }
+
         base.ManagedUpdateTarget();
 
         if (Targeted == null)

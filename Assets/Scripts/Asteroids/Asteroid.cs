@@ -124,7 +124,7 @@ public class Asteroid : VehicleBase
         
         HitPoints -= finalDamage;
         
-        Debug.Log($"Asteroid took {finalDamage} {ammoType} damage! Health: {HitPoints}/{MaxHitPoints}");
+        // Debug.Log($"Asteroid took {finalDamage} {ammoType} damage! Health: {HitPoints}/{MaxHitPoints}");
         
         FlashHit();
         
@@ -169,7 +169,7 @@ public class Asteroid : VehicleBase
     
     public override void DestroyVehicle()
     {
-        Debug.Log($"Asteroid {_asteroidIndex} destroyed!");
+        // Debug.Log($"Asteroid {_asteroidIndex} destroyed!");
         
         // Notify spawner
         if (_spawner != null)

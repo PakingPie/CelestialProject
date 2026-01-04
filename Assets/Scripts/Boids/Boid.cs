@@ -99,9 +99,9 @@ public class Boid : MonoBehaviour
 
     void Start()
     {
-        Debug.Log($"Boid '{name}')");
-        Debug.Log($"ObstacleMask: {GetObstacleMask().value:X}");
-        Debug.Log($"CollisionDistance: {GetCollisionDistance()}");
+        // Debug.Log($"Boid '{name}')");
+        // Debug.Log($"ObstacleMask: {_settings.obstacleMask}");
+        // Debug.Log($"CollisionDistance: {GetCollisionDistance()}");
     }
 
     void OnEnable()

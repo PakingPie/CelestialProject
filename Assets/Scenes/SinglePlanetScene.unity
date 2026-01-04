@@ -833,7 +833,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &914120769
 Transform:
   m_ObjectHideFlags: 0
@@ -1181,6 +1181,11 @@ MonoBehaviour:
   scaleRange: {x: 0.5, y: 3}
   asteroidMaterial: {fileID: 1370552705}
   asteroidColor: {r: 0.5, g: 0.45, b: 0.4, a: 1}
+  healthRange: {x: 5, y: 20}
+  interactiveDistance: 150
+  asteroidDestructionFX: {fileID: 0}
+  debrisPrefabs: []
+  dropPrefabs: []
   lodDistance1: 100
   lodDistance2: 300
   cullDistance: 500
@@ -1683,7 +1688,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1763561580
 Transform:
   m_ObjectHideFlags: 0

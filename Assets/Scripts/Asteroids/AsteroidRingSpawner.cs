@@ -27,7 +27,9 @@ public class AsteroidRingSpawner : MonoBehaviour
     [SerializeField] private Vector2Int healthRange = new Vector2Int(5, 20);
     
     [Header("Interactive Asteroids")]
-    [Tooltip("Distance from camera at which asteroids become interactive GameObjects")]
+    [Tooltip("Reference to the player transform. If null, will try to find by tag.")]
+    [SerializeField] private Transform playerTransform;
+    [Tooltip("Distance from player at which asteroids become interactive GameObjects")]
     [SerializeField] private float interactiveDistance = 150f;
     [SerializeField] private ParticleSystem asteroidDestructionFX;
     [SerializeField] private GameObject[] debrisPrefabs;
@@ -142,6 +144,37 @@ public class AsteroidRingSpawner : MonoBehaviour
             }
         }
         _interactiveAsteroids.Clear();
+    }
+
+    /// <summary>
+    /// Set the player transform at runtime
+    /// </summary>
+    public void SetPlayerTransform(Transform player)
+    {
+        playerTransform = player;
+    }
+
+    /// <summary>
+    /// Try to find the player if not assigned
+    /// </summary>
+    private Transform GetPlayerTransform()
+    {
+        if (playerTransform != null)
+            return playerTransform;
+        
+        // Try to find player by tag
+        GameObject playerGO = GameObject.FindGameObjectWithTag("Player");
+        if (playerGO != null)
+        {
+            playerTransform = playerGO.transform;
+            return playerTransform;
+        }
+        
+        // Fallback to camera if no player found
+        if (Camera.main != null)
+            return Camera.main.transform;
+        
+        return null;
     }
 
     public void GenerateRing()
@@ -381,14 +414,14 @@ public class AsteroidRingSpawner : MonoBehaviour
     }
 
     /// <summary>
-    /// Manage interactive asteroids - spawn GameObjects for nearby asteroids
+    /// Manage interactive asteroids - spawn GameObjects for asteroids near the player
     /// </summary>
     private void UpdateInteractiveAsteroids()
     {
-        Camera cam = Camera.main;
-        if (cam == null) return;
+        Transform player = GetPlayerTransform();
+        if (player == null) return;
         
-        Vector3 cameraPos = cam.transform.position;
+        Vector3 playerPos = player.position;
         
         // Track which interactive asteroids should exist
         HashSet<int> shouldBeInteractive = new HashSet<int>();
@@ -401,7 +434,7 @@ public class AsteroidRingSpawner : MonoBehaviour
             Matrix4x4 matrix = _matrices[i];
             Vector3 asteroidPos = new Vector3(matrix.m03, matrix.m13, matrix.m23);
             
-            float distSqr = (asteroidPos - cameraPos).sqrMagnitude;
+            float distSqr = (asteroidPos - playerPos).sqrMagnitude;
             
             if (distSqr < _interactiveDistSqr)
             {
@@ -427,7 +460,7 @@ public class AsteroidRingSpawner : MonoBehaviour
             }
         }
         
-        // Remove interactive asteroids that are too far
+        // Remove interactive asteroids that are too far from player
         List<int> toRemove = new List<int>();
         foreach (var kvp in _interactiveAsteroids)
         {
@@ -469,17 +502,9 @@ public class AsteroidRingSpawner : MonoBehaviour
         MeshRenderer meshRenderer = asteroidGO.AddComponent<MeshRenderer>();
         meshRenderer.sharedMaterial = asteroidMaterial;
         
-        // // Add collider
-        // MeshCollider collider = asteroidGO.AddComponent<MeshCollider>();
-        // collider.sharedMesh = _lowLodMeshes[data.MeshIndex]; // Use low LOD for collision
-        // collider.convex = true;
-        
         // Add Asteroid component
         Asteroid asteroid = asteroidGO.AddComponent<Asteroid>();
         asteroid.Initialize(this, index, data.Health);
-        
-        // Set up destruction effects (if you have them assigned)
-        // You'd need to use reflection or make these public/serialized
         
         _interactiveAsteroids[index] = asteroidGO;
     }
@@ -638,17 +663,18 @@ public class AsteroidRingSpawner : MonoBehaviour
     {
         if (!showDebugInfo || !_isInitialized || !Application.isPlaying) return;
         
-        GUILayout.BeginArea(new Rect(10, 10, 300, 180));
+        GUILayout.BeginArea(new Rect(10, 10, 300, 200));
         GUILayout.BeginVertical("box");
         
         GUILayout.Label($"Asteroid Ring Debug Info");
         GUILayout.Label($"Total Asteroids: {asteroidCount}");
         GUILayout.Label($"Destroyed: {_destroyedIndices.Count}");
-        GUILayout.Label($"Interactive: {_interactiveCount}");
+        GUILayout.Label($"Interactive (near player): {_interactiveCount}");
         GUILayout.Label($"GPU Instanced: {_visibleCount}");
         GUILayout.Label($"  High LOD: {_highLodCount}");
         GUILayout.Label($"  Medium LOD: {_mediumLodCount}");
         GUILayout.Label($"  Low LOD: {_lowLodCount}");
+        GUILayout.Label($"Player: {(playerTransform != null ? playerTransform.name : "Not Found")}");
         
         GUILayout.EndVertical();
         GUILayout.EndArea();
@@ -664,11 +690,12 @@ public class AsteroidRingSpawner : MonoBehaviour
         Gizmos.color = new Color(1f, 0.3f, 0f, 0.8f);
         DrawWireDisc(center, transform.up, outerRadius, 64);
         
-        // Draw interactive distance
-        Gizmos.color = new Color(0f, 1f, 0f, 0.3f);
-        if (Camera.main != null)
+        // Draw interactive distance around player (not camera)
+        Transform player = GetPlayerTransform();
+        if (player != null)
         {
-            Gizmos.DrawWireSphere(Camera.main.transform.position, interactiveDistance);
+            Gizmos.color = new Color(0f, 1f, 0f, 0.3f);
+            Gizmos.DrawWireSphere(player.position, interactiveDistance);
         }
     }
 
@@ -715,10 +742,10 @@ public class AsteroidRingSpawnerEditor : Editor
         
         EditorGUILayout.HelpBox(
             "Setup:\n" +
-            "1. Create an 'Asteroid' layer in Project Settings\n" +
-            "2. Set bullet's Collision Layers to include 'Asteroid'\n" +
+            "1. Assign Player Transform (or tag your player as 'Player')\n" +
+            "2. Create an 'Asteroid' layer in Project Settings\n" +
             "3. Click Generate Ring\n" +
-            "4. Asteroids within Interactive Distance become destructible",
+            "4. Asteroids within Interactive Distance of the player become destructible",
             MessageType.Info);
         
         EditorGUILayout.Space(5);
