@@ -217,6 +217,7 @@ public class SimplePlanetGenerator : MonoBehaviour
         Dictionary<Vector3, int> vertexMap = new Dictionary<Vector3, int>();
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
+        List<Vector2> uvs = new List<Vector2>();
 
         Vector3[] directions = {
             Vector3.up, Vector3.down, Vector3.left,
@@ -247,6 +248,7 @@ public class SimplePlanetGenerator : MonoBehaviour
                         existingIndex = vertices.Count;
                         vertexMap[roundedPoint] = existingIndex;
                         vertices.Add(pointOnSphere);
+                        uvs.Add(CalculateCubeUV(pointOnSphere, localUp, axisA, axisB));
                     }
 
                     faceIndices[x, y] = existingIndex;
@@ -315,6 +317,7 @@ public class SimplePlanetGenerator : MonoBehaviour
 
         mesh.vertices = finalVertices;
         mesh.triangles = triangleData;
+        mesh.uv = uvs.ToArray();
         CalculateSmoothNormals(mesh);
 
         return mesh;
@@ -788,6 +791,22 @@ public class SimplePlanetGenerator : MonoBehaviour
         }
 
         return totalEffect;
+    }
+
+    Vector2 CalculateCubeUV(Vector3 pointOnSphere, Vector3 localUp, Vector3 axisA, Vector3 axisB)
+    {
+        // Project back to cube face
+        float scale = 1f / Mathf.Max(
+            Mathf.Abs(pointOnSphere.x),
+            Mathf.Max(Mathf.Abs(pointOnSphere.y), Mathf.Abs(pointOnSphere.z))
+        );
+        Vector3 pointOnCube = pointOnSphere * scale;
+
+        // Get UV from the face axes
+        float u = Vector3.Dot(pointOnCube, axisA) * 0.5f + 0.5f;
+        float v = Vector3.Dot(pointOnCube, axisB) * 0.5f + 0.5f;
+
+        return new Vector2(u, v);
     }
 
     #endregion
