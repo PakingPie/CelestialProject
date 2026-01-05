@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+// Current Bugs:
+// While moving, if holding 'W' key, ship will go to constantly roll, suspect Universal joint deadlock.
+
 public class PlayerShipMovement : MonoBehaviour
 {
     [Header("Components")]

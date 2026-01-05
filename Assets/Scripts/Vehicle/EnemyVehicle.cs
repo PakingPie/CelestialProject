@@ -237,6 +237,7 @@ public class EnemyVehicle : VehicleBase
 
     public void EnableHitpointBar(bool enable)
     {
-        HitpointBarCanvas.SetActive(enable);
+        if(HitpointBarCanvas)
+            HitpointBarCanvas.SetActive(enable);
     }
 }

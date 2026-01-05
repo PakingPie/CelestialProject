@@ -3,16 +3,20 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+
     public GameObject GameHud;
     public GameObject PlayerHud;
     public GameObject PlayerShip;
 
+    [Header("Debug")]
+    public bool FreezeGameOnStart = true;
     void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            Time.timeScale = 0f; // Pause immediately when singleton is created
+            if (FreezeGameOnStart)
+                Time.timeScale = 0f; // Pause immediately when singleton is created
         }
         else
         {
@@ -61,8 +65,9 @@ public class GameManager : MonoBehaviour
         {
             gameoverEvents.ShowGameoverMenu();
         }
-        Time.timeScale = 0f;
-        PlayerShip.SetActive(false);
+        // Time.timeScale = 0f; // Optionally pause the game on game over
+        if(PlayerShip.GetComponent<VehicleBase>().HitPoints <= 0)
+            PlayerShip.SetActive(false);
     }
 
     public void QuitGame()

@@ -237,7 +237,12 @@ Shader "Custom/Atmosphere"
                 
                 for (uint i = 0; i < _PrimarySteps; i++)
                 {
+                    // Height is measured from the BASE planet radius, not effective radius
                     float height = length(samplePos - planetCenter) - _PlanetRadius;
+                    
+                    // Clamp height to be non-negative (we're in atmosphere, not underground)
+                    height = max(0.0, height);
+                    
                     
                     float densityRayleigh = DensityAtHeight(height, _RayleighScaleHeight);
                     float densityMie = DensityAtHeight(height, _MieScaleHeight);
@@ -308,18 +313,29 @@ Shader "Custom/Atmosphere"
                 // Get screen UV for depth sampling
                 float2 screenUV = IN.positionHCS.xy / _ScaledScreenParams.xy;
                 
-                // Get distance to scene geometry (ship, etc.)
+                // Get distance to scene geometry (the actual terrain surface!)
                 float sceneDistance = GetSceneDistance(screenUV, cameraPos, viewDir);
 
-                float2 atmosphereIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius + _AtmosphereHeight);
+                // Atmosphere outer boundary (includes max terrain height for safety)
+                float atmosphereOuterRadius = _PlanetRadius + _AtmosphereHeight;
+                float2 atmosphereIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, atmosphereOuterRadius);
                 
                 if (atmosphereIntersect.x > atmosphereIntersect.y)
                 discard;
                 
-                float2 planetIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius);
+                // Start of atmosphere ray
+                float tMin = max(0.0, atmosphereIntersect.x);
                 
-                float tMin = max(0, atmosphereIntersect.x);
-                float tMax = planetIntersect.x > 0 ? min(atmosphereIntersect.y, planetIntersect.x) : atmosphereIntersect.y;
+                // End of atmosphere ray - use the CLOSER of:
+                // 1. The atmosphere outer boundary (when looking at sky)
+                // 2. The actual terrain surface (from depth buffer)
+                float tMax = atmosphereIntersect.y;
+                
+                // Check if we hit actual geometry (terrain)
+                if (sceneDistance > 0 && sceneDistance < tMax)
+                {
+                    tMax = sceneDistance;
+                }
                 
                 if (tMin >= tMax)
                 discard;
@@ -328,7 +344,9 @@ Shader "Custom/Atmosphere"
                 float3 endPos = cameraPos + viewDir * tMax;
                 
                 // Calculate atmosphere scattering
+                // IMPORTANT: Use base _PlanetRadius for height calculations, not effective radius
                 float3 scatter = CalculateScattering(cameraPos, viewDir, tMin, tMax, sunDir, planetCenter);
+                
                 #if defined(_SUN_MODE_USE_SUN_POSITION)
                     scatter *= _LightIntensity;
                 #else
@@ -347,7 +365,6 @@ Shader "Custom/Atmosphere"
                 float alpha = saturate(1.0 - exp(-distance / (_AtmosphereHeight * 0.3)));
 
                 FragmentOutput output = (FragmentOutput)0;
-                
                 output.color = float4(scatter, alpha);
                 output.depth = WorldToDepth(endPos);
                 return output;

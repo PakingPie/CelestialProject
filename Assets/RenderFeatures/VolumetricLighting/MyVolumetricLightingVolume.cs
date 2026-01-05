@@ -23,7 +23,7 @@ public class MyVolumetricLightingVolume : VolumeComponent, IPostProcessComponent
 
     [Header("Distances")]
     [Tooltip("The maximum distance from the camera that the fog will be rendered up to.")]
-	public ClampedFloatParameter distance = new ClampedFloatParameter(64.0f, 0.0f, 512.0f);
+	public ClampedFloatParameter distance = new ClampedFloatParameter(64.0f, 0.0f, 1024.0f);
 	[Tooltip("The world height at which the fog will have the density specified in the volume.")]
 	public FloatParameter baseHeight = new FloatParameter(0.0f, true);
 	[Tooltip("The world height at which the fog will have no density at all.")]

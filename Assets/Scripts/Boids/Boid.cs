@@ -34,6 +34,11 @@ public class Boid : MonoBehaviour
     private float _smoothedSpeed;
     private Vector3 _smoothedTargetPosition;
 
+
+    [Header("Debug")]
+    [SerializeField] private bool _EnableDebugLogs = false;
+    [SerializeField] private bool _EnableDebugGizmos = false;
+
     // Formation state
     [HideInInspector] public bool IsInCombat = false;
     [HideInInspector] public int FormationIndex = 0;
@@ -90,6 +95,13 @@ public class Boid : MonoBehaviour
         var meshRenderer = GetComponentInChildren<MeshRenderer>();
         if (meshRenderer != null)
             _material = meshRenderer.material;
+    }
+
+    void Start()
+    {
+        // Debug.Log($"Boid '{name}')");
+        // Debug.Log($"ObstacleMask: {_settings.obstacleMask}");
+        // Debug.Log($"CollisionDistance: {GetCollisionDistance()}");
     }
 
     void OnEnable()
@@ -790,7 +802,6 @@ public class Boid : MonoBehaviour
         return SteerTowards(toWander);
     }
 
-    [SerializeField] private bool _EnableDebugGizmos = false;
     void OnDrawGizmos()
     {
         if (!_EnableDebugGizmos) return;

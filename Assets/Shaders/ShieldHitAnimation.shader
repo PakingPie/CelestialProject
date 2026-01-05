@@ -5,8 +5,8 @@ Shader "Custom/ShieldHitCumulative"
         _MainTex ("Cumulative Texture", 2D) = "black" {}
         _HitTex ("Hit Effect Texture", 2D) = "black" {}
         _Decay ("Decay Factor", Range(0, 1)) = 0.9
-        _DecaySpeed ("Decay Speed", Range(0, 10)) = 2.0  // 新增
-        _MinThreshold ("Min Threshold", Range(0, 0.1)) = 0.01  // 新增
+        _DecaySpeed ("Decay Speed", Range(0, 10)) = 2.0
+        _MinThreshold ("Min Threshold", Range(0, 0.1)) = 0.01
     }
     
     SubShader

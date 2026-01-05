@@ -107,7 +107,9 @@ MonoBehaviour:
   _impactFXPrefab: {fileID: 4353961468635224783, guid: 816964e01681d0d4c8627ea16975cef0, type: 3}
   _explodeFXPrefab: {fileID: 7698972359503818749, guid: d67c9c65a76f85145839c11422690ac6, type: 3}
   _childTrails: []
-  Damage: 50
+  Damage: 30
+  CanDamagePlanet: 0
+  CanDamageAsteroids: 1
   Speed: 1000
   LifeTime: 8
   FuseDetonationDistance: 20
@@ -118,6 +120,10 @@ MonoBehaviour:
   DamageType: 4
   FireTarget: 12
   ExplodeOnImpact: 1
+  _useRaycastCollision: 1
+  _collisionLayers:
+    serializedVersion: 2
+    m_Bits: 8192
   TargetObject: {fileID: 0}
 --- !u!96 &2221421065089510423
 TrailRenderer:

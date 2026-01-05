@@ -225,7 +225,7 @@ GameObject:
   - component: {fileID: 2368025303835637834}
   - component: {fileID: 4732779516289163941}
   - component: {fileID: 1493972133170683944}
-  m_Layer: 8
+  m_Layer: 12
   m_Name: Shield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1171,7 +1171,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &8631901439280479558
 Transform:
   m_ObjectHideFlags: 0
@@ -1216,7 +1216,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 3
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 10000}
+  ActiveRange: {x: 5, y: 6000}
   UpdateRate: 60
   PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
   CanTargetMissiles: 0
@@ -3113,10 +3113,11 @@ MonoBehaviour:
   flockmatesCenter: {x: 0, y: 0, z: 0}
   numPerceivedFlockmates: 0
   HeightRange: {x: -1000, y: 1000}
+  _EnableDebugLogs: 0
+  _EnableDebugGizmos: 0
   IsInCombat: 0
   FormationIndex: 0
   FormationLeader: {fileID: 0}
-  _EnableDebugGizmos: 0
 --- !u!114 &-2094783752960322070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6077,7 +6078,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &3689337292800666854
 Transform:
   m_ObjectHideFlags: 0
@@ -6122,7 +6123,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 3
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 10000}
+  ActiveRange: {x: 5, y: 6000}
   UpdateRate: 60
   PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
   CanTargetMissiles: 0
@@ -6743,7 +6744,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 3
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 5000}
+  ActiveRange: {x: 5, y: 3000}
   UpdateRate: 60
   PriorityConfig: {fileID: 11400000, guid: 1af727335389b4d4fa581e766857809d, type: 2}
   CanTargetMissiles: 0
