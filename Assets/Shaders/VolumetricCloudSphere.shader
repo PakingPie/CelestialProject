@@ -1,48 +1,61 @@
+// © Haochen Zhang, 2025. All rights reserved. No part of this VolumetricCloudSphere.shader may be reproduced, distributed, displayed, sold, or used in any commercial or non-commercial project without prior written permission. This Work may not be used to train AI or machine learning models, nor minted as an NFT.
+
 Shader "Custom/VolumetricCloudSphere"
 {
     Properties
     {
         [Header(Cloud Shape)]
-        _CloudDensity ("Cloud Density", Range(0, 20)) = 1.5
-        _CloudCoverage ("Cloud Coverage", Range(0, 1)) = 0.35
-        _CloudScale ("Cloud Scale", Range(0.1, 20)) = 2.0
-        _DetailScale ("Detail Scale", Range(1, 10)) = 4.0
-        _DetailStrength ("Detail Strength", Range(0, 1)) = 0.35
-        _ErosionStrength ("Erosion Strength", Range(0, 1)) = 0.3
-        _Patchiness ("Patchiness", Range(0, 1)) = 0.6
-        _PatchScale ("Patch Scale", Range(0.1, 5)) = 0.8
+        _CloudDensity ("Cloud Density", Range(0, 50)) = 8.0
+        _CloudCoverage ("Cloud Coverage", Range(0, 1)) = 0.45
+        _CloudScale ("Cloud Scale", Range(0.1, 50)) = 8.0
+        _DetailScale ("Detail Scale", Range(1, 20)) = 6.0
+        _DetailStrength ("Detail Strength", Range(0, 1)) = 0.4
+        _ErosionStrength ("Erosion Strength", Range(0, 1)) = 0.25
+        _Patchiness ("Patchiness", Range(0, 1)) = 0.7
+        _PatchScale ("Patch Scale", Range(0.1, 10)) = 2.0
+        _Billowness ("Billowness", Range(0, 1)) = 0.5
         
         [Header(Sphere Settings)]
-        _InnerRadius ("Inner Radius", Range(0, 1)) = 0.48
-        _OuterRadius ("Outer Radius", Range(0, 1)) = 0.52
+        _InnerRadius ("Inner Radius", Range(0, 1)) = 0.50
+        _OuterRadius ("Outer Radius", Range(0, 1)) = 0.54
+        _CloudLayerDensity ("Layer Density Falloff", Range(0.1, 5)) = 1.5
         
         [Header(Raymarching)]
-        _MaxSteps ("Max Steps", Range(8, 256)) = 128
-        _StepSize ("Step Size", Range(0.001, 0.05)) = 0.005
+        _MaxSteps ("Max Steps", Range(8, 256)) = 96
+        _StepSize ("Step Size", Range(0.0001, 0.02)) = 0.002
+        _LightSteps ("Light March Steps", Range(3, 12)) = 6
         
         [Header(Lighting)]
-        _LightAbsorption ("Light Absorption", Range(0, 5)) = 1.2
-        _AmbientLight ("Ambient Light", Range(0, 1)) = 0.4
-        _ScatteringForward ("Forward Scattering", Range(0, 0.95)) = 0.8
-        _ScatteringBack ("Back Scattering", Range(0, 0.95)) = 0.3
-        _ScatteringBlend ("Scattering Blend", Range(0, 1)) = 0.6
-        _SilverLiningIntensity ("Silver Lining", Range(0, 2)) = 0.5
-        _SilverLiningSpread ("Silver Lining Spread", Range(1, 10)) = 4.0
-        _PowderStrength ("Powder Effect", Range(0, 1)) = 0.3
+        _LightAbsorption ("Light Absorption", Range(0, 10)) = 1.8
+        _CloudAbsorption ("Cloud Self Shadow", Range(0, 5)) = 2.5
+        _AmbientLight ("Ambient Light", Range(0, 2)) = 0.35
+        _ScatteringForward ("Forward Scattering", Range(0, 0.99)) = 0.85
+        _ScatteringBack ("Back Scattering", Range(0, 0.99)) = 0.25
+        _ScatteringBlend ("Scattering Blend", Range(0, 1)) = 0.7
+        _SilverLiningIntensity ("Silver Lining", Range(0, 3)) = 1.2
+        _SilverLiningSpread ("Silver Lining Spread", Range(1, 20)) = 6.0
+        _PowderStrength ("Powder Effect", Range(0, 1)) = 0.4
+        _MultiScatter ("Multi-Scattering", Range(0, 1)) = 0.5
         
         [Header(Color)]
-        _CloudColorBright ("Cloud Color Bright", Color) = (1, 1, 1, 1)
-        _CloudColorDark ("Cloud Color Dark", Color) = (0.6, 0.65, 0.7, 1)
-        _AmbientColorTop ("Ambient Color Top", Color) = (0.7, 0.8, 1.0, 1)
-        _AmbientColorBottom ("Ambient Color Bottom", Color) = (0.5, 0.5, 0.55, 1)
+        _CloudColorBright ("Cloud Color Bright", Color) = (1, 0.98, 0.95, 1)
+        _CloudColorDark ("Cloud Color Dark", Color) = (0.55, 0.58, 0.65, 1)
+        _AmbientColorTop ("Ambient Color Top", Color) = (0.6, 0.75, 1.0, 1)
+        _AmbientColorBottom ("Ambient Color Bottom", Color) = (0.4, 0.42, 0.5, 1)
+        _SunColor ("Sun Tint", Color) = (1.0, 0.95, 0.85, 1)
         
         [Header(Animation)]
-        _WindSpeed ("Wind Speed", Range(0, 0.2)) = 0.02
-        _WindDirection ("Wind Direction", Vector) = (1, 0, 0.3, 0)
+        _WindSpeed ("Wind Speed", Range(0, 0.5)) = 0.03
+        _WindDirection ("Wind Direction", Vector) = (1, 0, 0.2, 0)
+        _DetailWindMultiplier ("Detail Wind Speed", Range(0.5, 3)) = 1.5
         
         [Header(Textures)]
         _NoiseTexture ("3D Noise Texture", 3D) = "white" {}
+        _NoiseTiling ("Noise Tiling", Vector) = (1, 1, 1, 0)
+        _NoiseOffset ("Noise Offset", Vector) = (0, 0, 0, 0)
         _BlueNoise ("Blue Noise", 2D) = "gray" {}
+        _BlueNoiseTiling ("Blue Noise Tiling", Vector) = (1, 1, 0, 0)
+        _BlueNoiseOffset ("Blue Noise Offset", Vector) = (0, 0, 0, 0)
     }
     
     SubShader
@@ -50,7 +63,7 @@ Shader "Custom/VolumetricCloudSphere"
         Tags 
         { 
             "RenderType" = "Transparent" 
-            "Queue" = "Transparent+1"
+            "Queue" = "Transparent"
             "RenderPipeline" = "UniversalPipeline"
         }
         
@@ -58,18 +71,21 @@ Shader "Custom/VolumetricCloudSphere"
         {
             Name "VolumetricCloudPass"
             
-            Blend SrcAlpha One
-            ZWrite Off
             Cull Off
+            ZWrite Off
+            Blend One OneMinusSrcAlpha
             
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma target 3.5
+            #pragma target 4.5
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             
+            // Properties
             float _CloudDensity;
             float _CloudCoverage;
             float _CloudScale;
@@ -78,11 +94,15 @@ Shader "Custom/VolumetricCloudSphere"
             float _ErosionStrength;
             float _Patchiness;
             float _PatchScale;
+            float _Billowness;
             float _InnerRadius;
             float _OuterRadius;
+            float _CloudLayerDensity;
             int _MaxSteps;
             float _StepSize;
+            int _LightSteps;
             float _LightAbsorption;
+            float _CloudAbsorption;
             float _AmbientLight;
             float _ScatteringForward;
             float _ScatteringBack;
@@ -90,12 +110,19 @@ Shader "Custom/VolumetricCloudSphere"
             float _SilverLiningIntensity;
             float _SilverLiningSpread;
             float _PowderStrength;
+            float _MultiScatter;
             float4 _CloudColorBright;
             float4 _CloudColorDark;
             float4 _AmbientColorTop;
             float4 _AmbientColorBottom;
+            float4 _SunColor;
             float _WindSpeed;
             float4 _WindDirection;
+            float _DetailWindMultiplier;
+            float4 _NoiseTiling;
+            float4 _NoiseOffset;
+            float4 _BlueNoiseTiling;
+            float4 _BlueNoiseOffset;
             
             TEXTURE3D(_NoiseTexture);
             SAMPLER(sampler_NoiseTexture);
@@ -116,28 +143,34 @@ Shader "Custom/VolumetricCloudSphere"
                 float4 screenPos : TEXCOORD2;
                 float3 positionOS : TEXCOORD3;
                 float3 normalWS : TEXCOORD4;
+                float3 objectCenter : TEXCOORD5;
             };
 
             struct FragmentOutput
             {
                 float4 color : SV_Target;
-                float depth : SV_Depth;
             };
             
+            // Improved Henyey-Greenstein with better normalization
             float HenyeyGreenstein(float cosTheta, float g)
             {
                 float g2 = g * g;
                 float denom = 1.0 + g2 - 2.0 * g * cosTheta;
-                denom = max(denom, 0.0001);
-                return (1.0 - g2) / (4.0 * PI * pow(denom, 1.5));
+                return (1.0 - g2) / (4.0 * PI * pow(max(denom, 0.0001), 1.5));
             }
             
+            // Dual-lobe phase function with Schlick approximation for speed
             float DualLobePhase(float cosTheta)
             {
                 float forward = HenyeyGreenstein(cosTheta, _ScatteringForward);
                 float back = HenyeyGreenstein(cosTheta, -_ScatteringBack);
                 float phase = lerp(back, forward, _ScatteringBlend);
-                return max(phase, 0.05); // Ensure minimum visibility
+                
+                // Add a constant term for multi-scattering approximation
+                float multiScatter = 0.25 / PI;
+                phase = lerp(phase, multiScatter, _MultiScatter * 0.5);
+                
+                return max(phase, 0.03);
             }
             
             float2 RaySphereIntersect(float3 rayOrigin, float3 rayDir, float3 sphereCenter, float sphereRadius)
@@ -148,146 +181,180 @@ Shader "Custom/VolumetricCloudSphere"
                 float discriminant = b * b - c;
                 
                 if (discriminant < 0.0)
-                return float2(-1.0, -1.0);
+                    return float2(-1.0, -1.0);
                 
                 float sqrtDisc = sqrt(discriminant);
                 return float2(-b - sqrtDisc, -b + sqrtDisc);
             }
-            
-            // Improved height gradient - more realistic cumulus shape
-            float GetHeightGradient(float heightFraction)
+
+            // Height-based density gradient for realistic cumulus clouds
+            float GetHeightGradient(float heightFraction, float cloudType)
             {
-                // Smooth bottom, bulging middle, wispy top
-                float bottom = smoothstep(0.0, 0.2, heightFraction);
-                float top = 1.0 - smoothstep(0.6, 1.0, heightFraction);
+                // Cumulus-like: dense at bottom, fluffy top
+                float cumulus = saturate(Remap(heightFraction, 0.0, 0.1, 0.0, 1.0)) 
+                              * saturate(Remap(heightFraction, 0.2, 0.5, 1.0, 0.9))
+                              * saturate(Remap(heightFraction, 0.5, 1.0, 0.9, 0.0));
                 
-                // Add some extra density in the lower-middle region
-                float bulge = 1.0 - abs(heightFraction - 0.35) * 1.5;
-                bulge = saturate(bulge);
+                // Stratus-like: flatter distribution
+                float stratus = saturate(Remap(heightFraction, 0.0, 0.1, 0.0, 1.0))
+                              * saturate(Remap(heightFraction, 0.3, 0.95, 1.0, 0.0));
                 
-                return bottom * top * (0.7 + 0.3 * bulge);
+                return lerp(stratus, cumulus, cloudType);
             }
             
-            // Convert position to spherical UV for more uniform sampling
-            float3 GetSphericalUV(float3 pos)
+            // Improved 3D UV sampling to reduce polar stretching
+            float3 GetCloudUV(float3 posOS, float scale)
             {
-                float r = length(pos);
-                float3 normalized = pos / max(r, 0.0001);
+                // Triplanar-ish approach with spherical blend
+                float3 normalizedPos = normalize(posOS);
+                float radius = length(posOS);
                 
-                // Spherical coordinates
-                float theta = atan2(normalized.z, normalized.x); // -PI to PI
-                float phi = acos(clamp(normalized.y, -1.0, 1.0)); // 0 to PI
+                // Use position directly but with spherical height encoding
+                float3 uvw = posOS * scale;
                 
-                // Normalize to 0-1 range and tile
-                float u = (theta + PI) / (2.0 * PI);
-                float v = phi / PI;
+                // Add subtle spherical distortion to break up patterns
+                uvw += normalizedPos * sin(radius * 20.0) * 0.02;
                 
-                return float3(u, v, r);
+                return uvw * _NoiseTiling.xyz + _NoiseOffset.xyz;
             }
             
-            float SampleCloudDensity(float3 positionOS, bool cheap)
+            float SampleCloudDensity(float3 positionOS, bool cheap, float blueNoise)
             {
                 float radius = length(positionOS);
                 
+                // Early out for outside cloud layer
                 if (radius < _InnerRadius || radius > _OuterRadius)
-                return 0.0;
+                    return 0.0;
                 
-                float heightFraction = saturate((radius - _InnerRadius) / max(_OuterRadius - _InnerRadius, 0.0001));
-                float heightGradient = GetHeightGradient(heightFraction);
+                float shellThickness = _OuterRadius - _InnerRadius;
+                float heightFraction = saturate((radius - _InnerRadius) / max(shellThickness, 0.0001));
                 
                 // Wind animation
-                float3 windDir = normalize(_WindDirection.xyz + float3(0.001, 0, 0));
-                float3 windOffset = windDir * _Time.y * _WindSpeed;
+                float3 windDir = normalize(_WindDirection.xyz + float3(0.0001, 0, 0));
+                float time = _Time.y * _WindSpeed;
+                float3 windOffset = windDir * time;
                 
-                // Use a hybrid UV approach to reduce polar artifacts
-                float3 sphericalUV = GetSphericalUV(positionOS);
+                // Large-scale weather/coverage map
+                float3 weatherUV = positionOS * _PatchScale * 0.5 + windOffset * 0.2;
+                float4 weatherNoise = SAMPLE_TEXTURE3D_LOD(_NoiseTexture, sampler_NoiseTexture, weatherUV, 3);
+                float weatherValue = weatherNoise.r * 0.6 + weatherNoise.g * 0.25 + weatherNoise.a * 0.15;
                 
-                // Large-scale patch/weather map to create cloud-free areas
-                float3 patchUV = positionOS * _PatchScale + windOffset * 0.3;
-                float4 patchNoise = SAMPLE_TEXTURE3D_LOD(_NoiseTexture, sampler_NoiseTexture, patchUV, 2); // Sample at lower mip for smoothness
-                float patchValue = patchNoise.r * 0.6 + patchNoise.g * 0.3 + patchNoise.b * 0.1;
-                
-                // Create distinct cloudy vs clear regions
-                float weatherMask = smoothstep(0.3, 0.7, patchValue);
+                // Create distinct cloud patches
+                float weatherMask = smoothstep(0.35, 0.65, weatherValue);
                 weatherMask = lerp(1.0, weatherMask, _Patchiness);
                 
-                // Early out if in a clear region
-                if (weatherMask < 0.1)
-                return 0.0;
+                // Very early out for clear regions
+                if (weatherMask < 0.05)
+                    return 0.0;
                 
-                // Base shape noise - use world position for consistent look
-                float3 baseUVW = positionOS * _CloudScale + windOffset;
-                float4 baseNoise = SAMPLE_TEXTURE3D_LOD(_NoiseTexture, sampler_NoiseTexture, baseUVW, 0);
+                // Cloud type variation (affects height gradient)
+                float cloudType = saturate(weatherNoise.b * 0.7 + 0.3);
+                float heightGradient = GetHeightGradient(heightFraction, lerp(0.3, 0.8, cloudType));
                 
-                // FBM from noise channels
-                float baseShape = baseNoise.r * 0.5 + baseNoise.g * 0.3 + baseNoise.b * 0.15 + baseNoise.a * 0.05;
+                // Base shape noise
+                float3 baseUV = GetCloudUV(positionOS, _CloudScale) + windOffset;
+                float4 baseNoise = SAMPLE_TEXTURE3D_LOD(_NoiseTexture, sampler_NoiseTexture, baseUV, 0);
                 
-                // Combine with height gradient and weather
-                float shapedNoise = baseShape * heightGradient * weatherMask;
+                // Perlin-Worley blend (R channel is already Perlin-Worley in your compute shader)
+                float baseShape = baseNoise.r;
                 
-                // Apply coverage threshold with soft edge
-                float coverageThreshold = 1.0 - _CloudCoverage;
-                float baseDensity = smoothstep(coverageThreshold - 0.1, coverageThreshold + 0.2, shapedNoise);
+                // Add lower frequency variations
+                float3 lowFreqUV = positionOS * _CloudScale * 0.4 + windOffset * 0.5;
+                float4 lowFreqNoise = SAMPLE_TEXTURE3D_LOD(_NoiseTexture, sampler_NoiseTexture, lowFreqUV, 1);
+                float lowFreq = lowFreqNoise.r * 0.5 + lowFreqNoise.g * 0.3 + lowFreqNoise.b * 0.2;
                 
-                if (cheap || baseDensity <= 0.01)
-                return baseDensity * _CloudDensity;
+                // Combine base shapes with billowing effect
+                baseShape = lerp(baseShape, baseShape * lowFreq * 2.0, _Billowness * 0.5);
+                baseShape = saturate(baseShape);
                 
-                // Detail noise for erosion at edges
-                float3 detailUVW = positionOS * _CloudScale * _DetailScale + windOffset * 1.2;
-                float4 detailNoise = SAMPLE_TEXTURE3D_LOD(_NoiseTexture, sampler_NoiseTexture, detailUVW, 0);
-                float detailFBM = detailNoise.r * 0.5 + detailNoise.g * 0.3 + detailNoise.b * 0.2;
+                // Apply height and weather
+                float shapedDensity = baseShape * heightGradient * weatherMask;
                 
-                // Edge erosion - more at cloud edges, less at core
-                float edgeFactor = 1.0 - baseDensity; // More erosion at edges
-                float erosion = _ErosionStrength * detailFBM * (0.5 + 0.5 * edgeFactor);
+                // Coverage threshold with soft edges
+                float coverageMin = 1.0 - _CloudCoverage;
+                float coverageMax = coverageMin + 0.2;
+                float baseDensity = smoothstep(coverageMin, coverageMax, shapedDensity);
                 
-                float finalDensity = saturate(baseDensity - erosion);
+                // Early out for cheap samples (light marching)
+                if (cheap)
+                    return baseDensity * _CloudDensity * _CloudLayerDensity;
                 
-                // Detail modulation
-                float detailMod = lerp(1.0, 0.7 + 0.6 * detailFBM, _DetailStrength * (1.0 - heightFraction * 0.5));
-                finalDensity *= detailMod;
-                
-                return finalDensity * _CloudDensity;
-            }
-            
-            float BeerPowder(float density, float heightFraction)
-            {
-                float beer = exp(-density * _LightAbsorption);
-                // Powder effect stronger in lower parts of cloud
-                float powder = 1.0 - exp(-density * _LightAbsorption * 2.0);
-                powder = lerp(powder, 1.0, heightFraction * 0.5);
-                return beer * lerp(1.0, powder, _PowderStrength);
-            }
-            
-            float SampleLightEnergy(float3 positionOS, float3 lightDirOS, float heightFraction)
-            {
-                const int LIGHT_STEPS = 5;
-                float totalDensity = 0.0;
-                
-                // Adaptive step size based on shell thickness
-                float shellThickness = _OuterRadius - _InnerRadius;
-                float stepSize = shellThickness * 0.4 / float(LIGHT_STEPS);
-                
-                for (int i = 0; i < LIGHT_STEPS; i++)
+                // Detail erosion for fluffy edges
+                if (baseDensity > 0.01)
                 {
-                    float t = (float(i) + 0.5) * stepSize;
-                    float3 samplePos = positionOS + lightDirOS * t;
+                    float3 detailUV = GetCloudUV(positionOS, _CloudScale * _DetailScale) + windOffset * _DetailWindMultiplier;
+                    float4 detailNoise = SAMPLE_TEXTURE3D_LOD(_NoiseTexture, sampler_NoiseTexture, detailUV, 0);
                     
-                    float density = SampleCloudDensity(samplePos, true);
-                    totalDensity += density * stepSize;
+                    // Use G and B channels for detail (different Worley frequencies)
+                    float detailFBM = detailNoise.g * 0.5 + detailNoise.b * 0.35 + detailNoise.a * 0.15;
+                    
+                    // More erosion at cloud edges, height-dependent
+                    float edgeFactor = 1.0 - pow(baseDensity, 0.5);
+                    float heightErosion = lerp(0.3, 1.0, heightFraction); // More erosion at top
+                    float erosion = _ErosionStrength * detailFBM * edgeFactor * heightErosion;
+                    
+                    baseDensity = saturate(baseDensity - erosion);
+                    
+                    // Detail modulation for interior texture
+                    float detailMod = lerp(1.0, 0.75 + 0.5 * detailFBM, _DetailStrength);
+                    baseDensity *= detailMod;
                 }
                 
-                return BeerPowder(totalDensity, heightFraction);
+                // Height-based density falloff
+                float densityFalloff = lerp(1.0, 0.3, pow(heightFraction, 1.5));
+                
+                return baseDensity * _CloudDensity * densityFalloff;
             }
-
-            float WorldToDepth(float3 worldPos)
+            
+            // Beer-Lambert with powder effect for realistic cloud lighting
+            float BeerPowder(float density, float cosTheta, float heightFraction)
             {
-                float4 clipPos = TransformWorldToHClip(worldPos);
-                #if UNITY_REVERSED_Z
-                    return clipPos.z / clipPos.w;
-                #else
-                    return (clipPos.z / clipPos.w) * 0.5 + 0.5;
-                #endif
+                float beer = exp(-density * _CloudAbsorption);
+                
+                // Powder effect - darkening when looking away from light through thin clouds
+                float powder = 1.0 - exp(-density * _CloudAbsorption * 2.0);
+                powder = lerp(powder, 1.0, saturate(heightFraction * 0.8));
+                
+                // Apply powder effect more when looking away from light
+                float powderBlend = _PowderStrength * saturate(-cosTheta * 0.5 + 0.5);
+                
+                return beer * lerp(1.0, powder, powderBlend);
+            }
+            
+            float3 SampleLightEnergy(float3 positionOS, float3 lightDirOS, float heightFraction, float cosTheta)
+            {
+                float totalDensity = 0.0;
+                float shellThickness = _OuterRadius - _InnerRadius;
+                
+                // Cone sampling - slight offset to simulate light scatter
+                float3 perpDir = normalize(cross(lightDirOS, float3(0, 1, 0.001)));
+                
+                // Adaptive step size
+                float stepSize = shellThickness * 0.5 / float(_LightSteps);
+                
+                for (int i = 0; i < _LightSteps; i++)
+                {
+                    float t = (float(i) + 0.5) * stepSize;
+                    
+                    // Slight cone spread for softer shadows
+                    float coneRadius = t * 0.05 * (1.0 + float(i) * 0.1);
+                    float3 coneOffset = perpDir * coneRadius * sin(float(i) * 2.39996);
+                    
+                    float3 samplePos = positionOS + lightDirOS * t + coneOffset;
+                    float density = SampleCloudDensity(samplePos, true, 0.5);
+                    
+                    // Exponential weighting - closer samples matter more
+                    float weight = exp(-float(i) * 0.15);
+                    totalDensity += density * stepSize * weight;
+                }
+                
+                float lightEnergy = BeerPowder(totalDensity, cosTheta, heightFraction);
+                
+                // Multi-scattering approximation - light bounces inside cloud
+                float multiScatterEnergy = exp(-totalDensity * _CloudAbsorption * 0.25);
+                float3 multiScatter = lerp(float3(0.5, 0.6, 0.7), float3(1, 1, 1), multiScatterEnergy) * _MultiScatter;
+                
+                return lightEnergy + multiScatter * 0.15;
             }
             
             Varyings vert(Attributes input)
@@ -301,21 +368,28 @@ Shader "Custom/VolumetricCloudSphere"
                 output.viewDirWS = GetWorldSpaceViewDir(posInputs.positionWS);
                 output.normalWS = TransformObjectToWorldNormal(input.normalOS);
                 output.screenPos = ComputeScreenPos(output.positionHCS);
+                output.objectCenter = TransformObjectToWorld(float3(0, 0, 0));
                 
                 return output;
             }
             
             FragmentOutput frag(Varyings input)
             {
+                FragmentOutput output;
+                
                 float3 cameraPositionOS = TransformWorldToObject(_WorldSpaceCameraPos);
                 float3 rayDirWS = normalize(-input.viewDirWS);
                 float3 rayDirOS = normalize(TransformWorldToObjectDir(rayDirWS));
                 
+                // Ray-sphere intersection
                 float2 outerHit = RaySphereIntersect(cameraPositionOS, rayDirOS, float3(0, 0, 0), _OuterRadius);
                 float2 innerHit = RaySphereIntersect(cameraPositionOS, rayDirOS, float3(0, 0, 0), _InnerRadius);
                 
                 if (outerHit.x < 0.0 && outerHit.y < 0.0)
-                discard;
+                {
+                    output.color = float4(0, 0, 0, 0);
+                    return output;
+                }
                 
                 float rayStart, rayEnd;
                 float cameraRadius = length(cameraPositionOS);
@@ -337,90 +411,124 @@ Shader "Custom/VolumetricCloudSphere"
                 }
                 
                 if (rayStart >= rayEnd)
-                discard;
+                {
+                    output.color = float4(0, 0, 0, 0);
+                    return output;
+                }
                 
-                // Blue noise dithering
+                // Blue noise dithering for temporal stability
                 float2 screenUV = input.screenPos.xy / input.screenPos.w;
-                float blueNoise = SAMPLE_TEXTURE2D(_BlueNoise, sampler_BlueNoise, screenUV * _ScreenParams.xy / 128.0).r;
-                rayStart += (blueNoise - 0.5) * _StepSize * 2.0;
+                float2 blueNoiseUV = screenUV * _ScreenParams.xy / 256.0;
+                blueNoiseUV = blueNoiseUV * _BlueNoiseTiling.xy + _BlueNoiseOffset.xy;
+                float blueNoise = SAMPLE_TEXTURE2D(_BlueNoise, sampler_BlueNoise, blueNoiseUV).r;
                 
-                // Light setup
+                // Jitter ray start
+                rayStart += blueNoise * _StepSize;
+                
+                // Lighting setup
                 Light mainLight = GetMainLight();
                 float3 lightDirOS = normalize(TransformWorldToObjectDir(mainLight.direction));
+                float3 lightColor = mainLight.color.rgb * _SunColor.rgb;
+                
                 float cosTheta = dot(rayDirOS, lightDirOS);
                 float phase = DualLobePhase(cosTheta);
                 
-                // Silver lining
+                // Silver lining (bright edge when looking toward sun)
                 float silverLining = pow(saturate(cosTheta * 0.5 + 0.5), _SilverLiningSpread) * _SilverLiningIntensity;
                 
                 // Raymarching
                 float transmittance = 1.0;
                 float3 luminance = float3(0, 0, 0);
+                float depthAccum = 0.0;
+                float hitDepth = 0.0;
+                bool firstHit = true;
                 
                 float rayLength = rayEnd - rayStart;
                 float dynamicStepSize = max(_StepSize, rayLength / float(_MaxSteps));
-                int steps = int(min(float(_MaxSteps), rayLength / dynamicStepSize));
+                int actualSteps = min(_MaxSteps, int(rayLength / dynamicStepSize));
                 
-                for (int i = 0; i < steps; i++)
+                // Accumulated density for depth estimation
+                float totalDensity = 0.0;
+                
+                for (int i = 0; i < actualSteps; i++)
                 {
                     if (transmittance < 0.01)
-                    break;
+                        break;
                     
                     float t = rayStart + (float(i) + blueNoise) * dynamicStepSize;
                     if (t > rayEnd)
-                    break;
+                        break;
                     
                     float3 samplePos = cameraPositionOS + rayDirOS * t;
-                    float density = SampleCloudDensity(samplePos, false);
+                    float density = SampleCloudDensity(samplePos, false, blueNoise);
                     
                     if (density > 0.001)
                     {
+                        // Track first hit for depth
+                        if (firstHit)
+                        {
+                            hitDepth = t;
+                            firstHit = false;
+                        }
+                        
                         float radius = length(samplePos);
                         float heightFraction = saturate((radius - _InnerRadius) / max(_OuterRadius - _InnerRadius, 0.0001));
                         
-                        // Lighting
-                        float lightEnergy = SampleLightEnergy(samplePos, lightDirOS, heightFraction);
+                        // Sample lighting toward sun
+                        float3 lightEnergy = SampleLightEnergy(samplePos, lightDirOS, heightFraction, cosTheta);
                         
-                        // Ambient with height gradient
+                        // Height-based ambient color
                         float3 ambientColor = lerp(_AmbientColorBottom.rgb, _AmbientColorTop.rgb, heightFraction);
-                        float3 ambient = ambientColor * _AmbientLight;
                         
-                        // Direct lighting
-                        float3 directLight = mainLight.color.rgb * lightEnergy * phase;
-                        directLight += mainLight.color.rgb * lightEnergy * silverLining * (1.0 - heightFraction);
+                        // Ground bounce approximation
+                        float3 groundBounce = _AmbientColorBottom.rgb * 0.2 * (1.0 - heightFraction);
                         
-                        // Cloud color
-                        float3 cloudColor = lerp(_CloudColorDark.rgb, _CloudColorBright.rgb, pow(lightEnergy, 0.7));
+                        float3 ambient = (ambientColor + groundBounce) * _AmbientLight;
                         
-                        // Integrate
-                        float sampleDensity = density * dynamicStepSize;
-                        float sampleTransmittance = exp(-sampleDensity * _LightAbsorption);
+                        // Direct lighting with phase function
+                        float3 directLight = lightColor * lightEnergy * phase;
                         
-                        float3 sampleLighting = (directLight + ambient) * cloudColor;
-                        float3 integScatter = sampleLighting * (1.0 - sampleTransmittance);
+                        // Add silver lining more at cloud edges
+                        float edgeFactor = 1.0 - pow(saturate(density * 2.0), 0.5);
+                        directLight += lightColor * lightEnergy.x * silverLining * edgeFactor * (0.5 + 0.5 * heightFraction);
                         
-                        luminance += integScatter * transmittance;
-                        transmittance *= sampleTransmittance;
+                        // Cloud albedo based on lighting
+                        float lightIntensity = dot(lightEnergy, float3(0.33, 0.33, 0.33));
+                        float3 cloudAlbedo = lerp(_CloudColorDark.rgb, _CloudColorBright.rgb, pow(saturate(lightIntensity), 0.6));
+                        
+                        // Integrate scattering
+                        float stepDensity = density * dynamicStepSize;
+                        float stepTransmittance = exp(-stepDensity * _LightAbsorption);
+                        
+                        // Energy-conserving scattering integration
+                        float3 scatteringIntegral = (directLight + ambient) * cloudAlbedo;
+                        float3 inScattering = scatteringIntegral * (1.0 - stepTransmittance);
+                        
+                        luminance += inScattering * transmittance;
+                        transmittance *= stepTransmittance;
+                        
+                        totalDensity += stepDensity;
                     }
                 }
                 
                 float alpha = 1.0 - transmittance;
                 
-                if (alpha < 0.005)
-                discard;
+                if (alpha < 0.003)
+                {
+                    output.color = float4(0, 0, 0, 0);
+                    return output;
+                }
                 
-                // Slight tone mapping to prevent blowout
-                luminance = luminance / (luminance + 0.5);
+                // Tone mapping to prevent overexposure
+                luminance = 1.0 - exp(-luminance * 1.2);
+                
+                // Premultiplied alpha output
+                output.color = float4(luminance * alpha, alpha);
 
-                // Apply Normal dot Light for subtle shading
-                float NdotL = saturate(dot(input.normalWS, GetMainLight().direction));
-                luminance *= NdotL;
-
-                luminance = pow(luminance, 1.0 / 2.2); // Gamma correction
-
-                FragmentOutput output = (FragmentOutput)0;
-                output.color = float4(luminance, alpha);
-                output.depth = WorldToDepth(input.positionWS);
+                // NoL
+                float NoL = saturate(dot(input.normalWS, GetMainLight().direction));
+                // NoL = clamp(NoL, 0.01, 1.0);
+                output.color.rgb *= NoL;
                 
                 return output;
             }
@@ -429,5 +537,5 @@ Shader "Custom/VolumetricCloudSphere"
         }
     }
     
-    FallBack "Hidden/Universal Render Pipeline/FallbackError"
+    FallBack Off
 }
