@@ -71,9 +71,13 @@ Shader "Custom/VolumetricCloudSphere"
         {
             Name "VolumetricCloudPass"
             
+            // Cull Off
+            // ZWrite Off
+            // Blend One OneMinusSrcAlpha
             Cull Off
+            ZTest LEqual
             ZWrite Off
-            Blend One OneMinusSrcAlpha
+            Blend SrcAlpha One
             
             HLSLPROGRAM
             #pragma vertex vert
@@ -149,6 +153,7 @@ Shader "Custom/VolumetricCloudSphere"
             struct FragmentOutput
             {
                 float4 color : SV_Target;
+                float depth : SV_Depth;
             };
             
             // Improved Henyey-Greenstein with better normalization
@@ -356,6 +361,16 @@ Shader "Custom/VolumetricCloudSphere"
                 
                 return lightEnergy + multiScatter * 0.15;
             }
+
+            float WorldToDepth(float3 worldPos)
+            {
+                float4 clipPos = TransformWorldToHClip(worldPos);
+                #if UNITY_REVERSED_Z
+                    return clipPos.z / clipPos.w;
+                #else
+                    return (clipPos.z / clipPos.w) * 0.5 + 0.5;
+                #endif
+            }
             
             Varyings vert(Attributes input)
             {
@@ -525,10 +540,12 @@ Shader "Custom/VolumetricCloudSphere"
                 // Premultiplied alpha output
                 output.color = float4(luminance * alpha, alpha);
 
-                // NoL
-                float NoL = saturate(dot(input.normalWS, GetMainLight().direction));
-                // NoL = clamp(NoL, 0.01, 1.0);
-                output.color.rgb *= NoL;
+                // Gamma correction
+                output.color.rgb = pow(output.color.rgb, 1.0 / 2.2);
+                output.depth = WorldToDepth(input.positionWS + rayDirWS * hitDepth);
+                // Light attenuation based on normal for soft appearance
+                float NoL = saturate(dot(input.normalWS, mainLight.direction));
+                output.color.rgb *= clamp(NoL, 0.01, 1.0);
                 
                 return output;
             }
