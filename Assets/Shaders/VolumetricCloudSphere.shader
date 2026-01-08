@@ -531,6 +531,7 @@ Shader "Custom/VolumetricCloudSphere"
                 if (alpha < 0.003)
                 {
                     output.color = float4(0, 0, 0, 0);
+                    output.depth = WorldToDepth(_WorldSpaceCameraPos.xyz + rayDirWS * hitDepth);
                     return output;
                 }
                 
@@ -542,11 +543,13 @@ Shader "Custom/VolumetricCloudSphere"
 
                 // Gamma correction
                 output.color.rgb = pow(output.color.rgb, 1.0 / 2.2);
-                output.depth = WorldToDepth(input.positionWS + rayDirWS * hitDepth);
                 // Light attenuation based on normal for soft appearance
                 float NoL = saturate(dot(input.normalWS, mainLight.direction));
-                output.color.rgb *= clamp(NoL, 0.01, 1.0);
+                output.color.rgb *= clamp(NoL, 0.0, 1.0);
+
+                float3 endPos = _WorldSpaceCameraPos.xyz + rayDirWS * hitDepth;
                 
+                output.depth = WorldToDepth(endPos);
                 return output;
             }
             
