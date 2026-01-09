@@ -18,7 +18,7 @@ public class SimplePlanetGenerator : MonoBehaviour
     public float oceanFloorDepth = 0.15f;
 
     [Header("Continents")]
-    [Range(1, 8)]
+    [Range(1, 15)]
     public int continentCount = 5;
     public float continentScale = 0.8f;
     public float continentShelfNoise = 0.3f;
