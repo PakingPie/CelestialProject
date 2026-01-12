@@ -355,7 +355,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4483020520290620383
 Transform:
   m_ObjectHideFlags: 0
@@ -1213,7 +1213,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5108482102463605863
 Transform:
   m_ObjectHideFlags: 0
@@ -1665,7 +1665,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2516039646406173720
 Transform:
   m_ObjectHideFlags: 0
@@ -1789,6 +1789,7 @@ GameObject:
   - component: {fileID: 3109858766895225120}
   - component: {fileID: -2094783752960322070}
   - component: {fileID: 8601252320548999007}
+  - component: {fileID: 3004329683072466219}
   m_Layer: 9
   m_Name: Enemy Fighter Type 1
   m_TagString: Foe
@@ -1839,7 +1840,7 @@ MonoBehaviour:
   numPerceivedFlockmates: 0
   HeightRange: {x: -2500, y: 2500}
   _EnableDebugLogs: 0
-  _EnableDebugGizmos: 0
+  _EnableDebugGizmos: 1
   IsInCombat: 0
   FormationIndex: 0
   FormationLeader: {fileID: 0}
@@ -2001,6 +2002,22 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 1
   m_ApplyActiveColorSpace: 1
+--- !u!114 &3004329683072466219
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4103674997823826176}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c5a73e8aa92edc40a67d4b6c64bd994, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObstacleEntity
+  _isStatic: 0
+  _radiusMultiplier: 1
+  _radiusOverride: -1
+  _updateInterval: 0.1
 --- !u!1 &4262406418400434559
 GameObject:
   m_ObjectHideFlags: 0

@@ -17,25 +17,24 @@ int numBoids;
 float viewRadius;
 float avoidRadius;
 
+// BoidCompute.compute - SIMPLIFIED
 [numthreads(threadGroupSize, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    for(uint indexB = 0; indexB < (uint)numBoids; indexB ++)
+    for(uint indexB = 0; indexB < (uint)numBoids; indexB++)
     {
         if(id.x != indexB)
         {
             Boid boidB = boids[indexB];
             float3 offset = boidB.position - boids[id.x].position;
-            float sqrDist = offset.x * offset.x + offset.y * offset.y + offset.z * offset.z;
+            float sqrDist = dot(offset, offset);
+            
             if(sqrDist < viewRadius * viewRadius)
             {
                 boids[id.x].numFlockmates++;
                 boids[id.x].flockHeading += boidB.direction;
                 boids[id.x].flockCenter += boidB.position;
-                if(sqrDist < avoidRadius * avoidRadius)
-                {
-                    boids[id.x].seperationHeading -= offset/sqrDist;
-                }
+                // REMOVED: separation calculation - now handled by BoidRegistry
             }
         }
     }

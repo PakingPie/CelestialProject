@@ -154,7 +154,6 @@ public class BoidsManager : MonoBehaviour
         computeShader.SetBuffer(0, "boids", boidBuffer);
         computeShader.SetInt("numBoids", numBoids);
         computeShader.SetFloat("viewRadius", settings.perceptionRadius);
-        computeShader.SetFloat("avoidRadius", settings.avoidanceRadius);
         computeShader.SetVector("heightRange", HeightRange);
         int threadGroups = Mathf.CeilToInt(numBoids / (float)threadGroupSize);
         computeShader.Dispatch(0, threadGroups, 1, 1);

@@ -1,5 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
-
+using static GlobalHelper;
 public class Boid : MonoBehaviour
 {
     private BoidSettings _settings;
@@ -7,9 +8,7 @@ public class Boid : MonoBehaviour
     [SerializeField] private Transform _target;
     private Material _material;
     private BoidFlockTargetManager _targetManager;
-
     private Vector3 _velocity;
-
     [HideInInspector] public Vector3 position;
     [HideInInspector] public Vector3 forward;
     [HideInInspector] public Vector3 avgFlockHeading;
@@ -19,14 +18,9 @@ public class Boid : MonoBehaviour
 
     public Vector2 HeightRange = new Vector2(-100.0f, 100.0f);
 
-    // Collision state
-    private bool _isHeadingForCollision;
-    private Vector3 _avoidDirection;
-    private int _avoidDirectionIndex;
 
+    private Transform _fallbackTarget;
     // Smoothing state
-    private Vector3 _smoothedAvoidDirection;
-    private float _collisionUrgency = 0f;
     private Vector3 _smoothedFlockHeading;
     private Vector3 _smoothedFlockCenter;
     private Vector3 _smoothedFormationTarget;
@@ -56,10 +50,6 @@ public class Boid : MonoBehaviour
     private const float FormationDeadZone = 10f;
     private const float FormationUrgencyRange = 100f;
     private const float TargetSmoothSpeed = 10f;
-
-    // Add field
-    private Collider[] _nearbyEnemies = new Collider[20];
-    private Collider[] _nearbyAllies = new Collider[20];
 
     private Vector3 _combatFacingDirection;
     private const float CombatRotationSpeed = 4f;
@@ -101,24 +91,26 @@ public class Boid : MonoBehaviour
     {
         // Debug.Log($"Boid '{name}')");
         // Debug.Log($"ObstacleMask: {_settings.obstacleMask}");
-        // Debug.Log($"CollisionDistance: {GetCollisionDistance()}");
     }
 
     void OnEnable()
     {
-        if (BoidObstacleSystem.Instance != null)
-            BoidObstacleSystem.Instance.RegisterBoid(this);
+        if (BoidRegistry.Instance != null)
+            BoidRegistry.Instance.RegisterBoid(this);
     }
 
     void OnDisable()
     {
-        if (BoidObstacleSystem.Instance != null)
-            BoidObstacleSystem.Instance.UnregisterBoid(this);
+        if (BoidRegistry.Instance != null)
+            BoidRegistry.Instance.UnregisterBoid(this);
     }
 
     public void Initialize(BoidSettings settings, Transform fallbackTarget)
     {
+        if (fallbackTarget == null)
+            Debug.LogWarning($"Boid '{name}': fallbackTarget is null!");
         _settings = settings;
+        _fallbackTarget = fallbackTarget;  // Store the fallback separately
         _target = fallbackTarget;
 
         position = _cachedTransform.position;
@@ -128,42 +120,27 @@ public class Boid : MonoBehaviour
         _velocity = _cachedTransform.forward * startSpeed;
         _smoothedSpeed = startSpeed;
 
-        _avoidDirectionIndex = Random.Range(0, BoidDirections.viewDirections.Length);
-
-        _smoothedAvoidDirection = forward;
         _smoothedFlockHeading = forward;
         _smoothedFlockCenter = position;
         _smoothedFormationTarget = position;
         _smoothedTargetPosition = position + forward * 50f;
         _previousAcceleration = Vector3.zero;
-        _collisionUrgency = 0f;
         _combatFacingDirection = forward;
         _wanderTarget = position + Random.insideUnitSphere * WanderRadius;
         _wanderTarget.y = Mathf.Clamp(_wanderTarget.y, HeightRange.x, HeightRange.y);
-        _wanderTimer = Random.Range(0f, WanderInterval); // Stagger initial timers
+        _wanderTimer = Random.Range(0f, WanderInterval);
+    }
+
+    private void UpdateRegistryPosition()
+    {
+        if (BoidRegistry.Instance != null)
+            BoidRegistry.Instance.UpdateBoidPosition(this);
     }
 
     public void SetTargetManager(BoidFlockTargetManager manager)
     {
         _targetManager = manager;
     }
-
-    public void SetCollisionState(bool isColliding)
-    {
-        _isHeadingForCollision = isColliding;
-
-        float targetUrgency = isColliding ? 1f : 0f;
-        _collisionUrgency = Mathf.Lerp(_collisionUrgency, targetUrgency, Time.deltaTime * CollisionSmoothSpeed);
-
-        if (isColliding)
-        {
-            Vector3 newDir = FindUnobstructedDirectionIncremental();
-            _smoothedAvoidDirection = Vector3.Slerp(_smoothedAvoidDirection, newDir, Time.deltaTime * AvoidDirectionSmoothSpeed);
-        }
-    }
-
-    public float GetCollisionDistance() => _settings.collisionAvoidDistance;
-    public LayerMask GetObstacleMask() => _settings.obstacleMask;
 
     public void UpdateTarget()
     {
@@ -172,7 +149,6 @@ public class Boid : MonoBehaviour
             Transform assignedTarget = _targetManager.GetAssignedTarget(this);
             if (assignedTarget != null)
             {
-                // Reset side commitment if target changed
                 if (_target != assignedTarget && AttackBehavior != null)
                 {
                     AttackBehavior.ResetSideCommitment();
@@ -181,6 +157,9 @@ public class Boid : MonoBehaviour
                 return;
             }
         }
+
+        // No combat target assigned - restore fallback target
+        _target = _fallbackTarget;
     }
 
     public Vector3 GetTargetPosition()
@@ -451,6 +430,11 @@ public class Boid : MonoBehaviour
         UpdateTarget();
         UpdateCombatState();
 
+        if (!IsInCombat && _postCombatTimer < PostCombatSteadyTime)
+        {
+            _postCombatTimer += Time.deltaTime;
+        }
+
         _smoothedFlockHeading = Vector3.Lerp(_smoothedFlockHeading, avgFlockHeading, Time.deltaTime * FlockDataSmoothSpeed);
         _smoothedFlockCenter = Vector3.Lerp(_smoothedFlockCenter, flockmatesCenter, Time.deltaTime * FlockDataSmoothSpeed);
 
@@ -490,6 +474,10 @@ public class Boid : MonoBehaviour
         {
             Vector3 movementDir = AttackBehavior.GetDesiredMovementDirection(_target.position, _target.forward);
             acceleration += SteerTowards(movementDir) * _settings.targetWeight * 1.5f;
+
+            // Apply speed multiplier from attack behavior
+            float speedMult = AttackBehavior.SpeedMultiplier;
+            _velocity *= Mathf.Lerp(1f, speedMult, Time.deltaTime * 3f);
         }
         else
         {
@@ -533,27 +521,19 @@ public class Boid : MonoBehaviour
 
             acceleration += SteerTowards(_smoothedFlockHeading) * _settings.alignWeight * alignMult;
             acceleration += SteerTowards(offsetToCenter) * _settings.cohesionWeight * cohesionMult;
-            acceleration += SteerTowards(avgAvoidanceHeading) * _settings.separateWeight * separateMult;
         }
 
-        // Enemy avoidance
-        Vector3 enemyAvoidance = CalculateEnemyAvoidance();
-        if (enemyAvoidance.sqrMagnitude > 0.01f)
+        Vector3 boidSeparation = CalculateBoidSeparation();
+        if (boidSeparation.sqrMagnitude > 0.01f)
         {
-            acceleration += SteerTowards(enemyAvoidance) * _settings.enemyAvoidanceWeight;
-        }
-
-        // Ally separation
-        Vector3 allySeparation = CalculateAllySeparation();
-        if (allySeparation.sqrMagnitude > 0.01f)
-        {
-            acceleration += SteerTowards(allySeparation) * _settings.allySeparationWeight;
+            acceleration += SteerTowards(boidSeparation) * _settings.separateWeight;
         }
 
         // Collision avoidance
-        if (_collisionUrgency > 0.01f)
+        Vector3 obstacleAvoidance = CalculateObstacleAvoidance();
+        if (obstacleAvoidance.sqrMagnitude > 0.01f)
         {
-            acceleration += SteerTowards(_smoothedAvoidDirection) * _settings.avoidCollisionWeight * _collisionUrgency;
+            acceleration += SteerTowards(obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
         }
 
         // Smooth acceleration
@@ -605,6 +585,8 @@ public class Boid : MonoBehaviour
             position = newPos;
             forward = smoothedRotation * Vector3.forward;
         }
+
+        UpdateRegistryPosition();
     }
 
     private Vector3 CalculateFormationAcceleration()
@@ -672,115 +654,100 @@ public class Boid : MonoBehaviour
         }
     }
 
-    private Vector3 FindUnobstructedDirectionIncremental()
-    {
-        Vector3[] directions = BoidDirections.viewDirections;
-        int checksPerFrame = 8;
-
-        for (int i = 0; i < checksPerFrame; i++)
-        {
-            int idx = (_avoidDirectionIndex + i) % directions.Length;
-            Vector3 dir = _cachedTransform.TransformDirection(directions[idx]);
-
-            if (!Physics.SphereCast(position, _settings.boundsRadius, dir, out _, _settings.collisionAvoidDistance, _settings.obstacleMask))
-            {
-                _avoidDirectionIndex = idx;
-                return dir;
-            }
-        }
-
-        _avoidDirectionIndex = (_avoidDirectionIndex + checksPerFrame) % directions.Length;
-        return forward;
-    }
-
     private Vector3 SteerTowards(Vector3 direction)
     {
         Vector3 v = direction.normalized * _settings.maxSpeed - _velocity;
         return Vector3.ClampMagnitude(v, _settings.maxSteerForce);
     }
 
-    // Add method
-    private Vector3 CalculateEnemyAvoidance()
+    /// <summary>
+    /// Unified separation from ALL nearby boids (allies get soft push, enemies get hard push only when not in combat).
+    /// </summary>
+    private Vector3 CalculateBoidSeparation()
     {
-        if (_targetManager == null) return Vector3.zero;
+        if (BoidRegistry.Instance == null)
+            return Vector3.zero;
 
-        Vector3 avoidance = Vector3.zero;
-        int enemyCount = 0;
+        Vector3 separation = Vector3.zero;
+        Faction myFaction = GetFaction();
 
-        // Get nearby colliders
-        int count = Physics.OverlapSphereNonAlloc(
+        // Query ALL nearby boids regardless of faction
+        List<Boid> nearbyBoids = BoidRegistry.Instance.GetNearbyBoids(
             position,
-            _settings.enemyAvoidanceRadius,
-            _nearbyEnemies
+            _settings.separationRadius
         );
 
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < nearbyBoids.Count; i++)
         {
-            if (_nearbyEnemies[i] == null) continue;
-
-            Transform other = _nearbyEnemies[i].transform;
-
-            // Skip self
-            if (other == _cachedTransform) continue;
-
-            // Check if it's an enemy (has Boid component but not in our flock)
-            Boid otherBoid = other.GetComponent<Boid>();
-            if (otherBoid == null) continue;
-
-            // Skip if same flock
-            if (otherBoid._targetManager == _targetManager) continue;
+            Boid other = nearbyBoids[i];
+            if (other == null || other == this)
+                continue;
 
             Vector3 toSelf = position - other.position;
             float distance = toSelf.magnitude;
 
-            if (distance < _settings.enemyAvoidanceRadius && distance > 0.01f)
+            if (distance < 0.1f || distance >= _settings.separationRadius)
+                continue;
+
+            float strength = 1f - (distance / _settings.separationRadius);
+
+            bool isEnemy = other.GetFaction() != myFaction;
+
+            if (isEnemy)
             {
-                // Stronger repulsion when closer
-                float strength = 1f - (distance / _settings.enemyAvoidanceRadius);
-                avoidance += toSelf.normalized * strength;
-                enemyCount++;
+                // During combat, let AttackProfile handle spacing - minimal separation
+                // Outside combat, avoid enemies more strongly
+                if (IsInCombat)
+                    strength *= 0.1f;  // Minimal - AttackProfile controls this
+                else
+                    strength *= 1.5f;  // Stronger avoidance when not fighting
             }
+
+            separation += toSelf.normalized * strength;
         }
 
-        if (enemyCount > 0)
+        return separation;
+    }
+
+    private Vector3 CalculateObstacleAvoidance()
+    {
+        if (ObstacleRegistry.Instance == null)
+            return Vector3.zero;
+
+        Vector3 avoidance = Vector3.zero;
+
+        var obstacles = ObstacleRegistry.Instance.GetNearbyObstacles(
+            position,
+            _settings.obstacleDetectionRange
+        );
+
+        for (int i = 0; i < obstacles.Count; i++)
         {
-            avoidance /= enemyCount;
+            var obstacle = obstacles[i];
+
+            Vector3 toSelf = position - obstacle.Position;
+            float distance = toSelf.magnitude;
+            float safeDistance = obstacle.Radius + _settings.boundsRadius;
+
+            if (distance < safeDistance + _settings.obstacleDetectionRange)
+            {
+                float penetration = (safeDistance + _settings.obstacleDetectionRange) - distance;
+                float urgency = Mathf.Clamp01(penetration / _settings.obstacleDetectionRange);
+                urgency = urgency * urgency;
+
+                avoidance += toSelf.normalized * urgency;
+            }
         }
 
         return avoidance;
     }
 
-    private Vector3 CalculateAllySeparation()
+    public Faction GetFaction()
     {
-        Vector3 separation = Vector3.zero;
-        int count = 0;
+        if (_targetManager != null)
+            return _targetManager.GetFaction();
 
-        int found = Physics.OverlapSphereNonAlloc(
-            position,
-            _settings.allySeparationRadius,
-            _nearbyAllies
-        );
-
-        for (int i = 0; i < found; i++)
-        {
-            if (_nearbyAllies[i] == null) continue;
-
-            Boid other = _nearbyAllies[i].GetComponent<Boid>();
-            if (other == null || other == this) continue;
-
-            // Only separate from same flock
-            if (other._targetManager != _targetManager) continue;
-
-            float distance = Vector3.Distance(position, other.position);
-            if (distance > 0.1f)
-            {
-                Vector3 away = position - other.position;
-                separation += away.normalized / distance;
-                count++;
-            }
-        }
-
-        return separation;
+        return Faction.Neutral;
     }
 
     private Vector3 GetWanderForce()
