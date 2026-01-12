@@ -1,4 +1,3 @@
-// BoidAttackBehavior.cs - REPLACEMENT
 using UnityEngine;
 
 public class BoidAttackBehavior : MonoBehaviour

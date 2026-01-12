@@ -11234,7 +11234,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 603892221}
-  - component: {fileID: 603892220}
+  - component: {fileID: 603892223}
+  - component: {fileID: 603892222}
   m_Layer: 0
   m_Name: BoidManager
   m_TagString: Untagged
@@ -11242,20 +11243,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &603892220
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 603892219}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 98aedf5871f3f3f4bbb4cc9989318089, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BoidObstacleSystem
-  _maxBoids: 512
-  _batchCount: 4
 --- !u!4 &603892221
 Transform:
   m_ObjectHideFlags: 0
@@ -11277,6 +11264,33 @@ Transform:
   - {fileID: 1530042875}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &603892222
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 603892219}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c91687ec5d0a9ec4681b3c962c7129ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoidRegistry
+  _cellSize: 100
+--- !u!114 &603892223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 603892219}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25090cffbb60e3d4cb00532b214ae944, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObstacleRegistry
+  _cellSize: 500
+  _debugMode: 0
 --- !u!1 &617277002
 GameObject:
   m_ObjectHideFlags: 0
@@ -29026,7 +29040,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!135 &1535220346
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -40299,7 +40313,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoidsManager
   settings: {fileID: 11400000, guid: 983d9d1f7c702e1488fb76954bf52876, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
-  target: {fileID: 7103346325574244501}
+  target: {fileID: 0}
   HeightRange: {x: -2500, y: 2500}
   syncCombatState: 1
   _targetManager: {fileID: 0}

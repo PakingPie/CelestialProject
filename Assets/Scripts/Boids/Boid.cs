@@ -107,8 +107,8 @@ public class Boid : MonoBehaviour
 
     public void Initialize(BoidSettings settings, Transform fallbackTarget)
     {
-        if (fallbackTarget == null)
-            Debug.LogWarning($"Boid '{name}': fallbackTarget is null!");
+        // if (fallbackTarget == null)
+        //    Debug.LogWarning($"Boid '{name}': fallbackTarget is null!");
         _settings = settings;
         _fallbackTarget = fallbackTarget;  // Store the fallback separately
         _target = fallbackTarget;

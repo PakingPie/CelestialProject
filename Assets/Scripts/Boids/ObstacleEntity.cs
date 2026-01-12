@@ -23,7 +23,7 @@ public class ObstacleEntity : MonoBehaviour
     {
         if (ObstacleRegistry.Instance == null)
         {
-            Debug.LogWarning($"ObstacleEntity '{name}': ObstacleRegistry not found in scene.");
+            // Debug.LogWarning($"ObstacleEntity '{name}': ObstacleRegistry not found in scene.");
             return;
         }
 
