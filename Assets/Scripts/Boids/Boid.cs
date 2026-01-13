@@ -769,6 +769,21 @@ public class Boid : MonoBehaviour
         return SteerTowards(toWander);
     }
 
+    /// <summary>
+    /// Set initial velocity (used when launched from a spawn point).
+    /// </summary>
+    public void SetInitialVelocity(Vector3 velocity)
+    {
+        _velocity = velocity;
+        _smoothedSpeed = velocity.magnitude;
+
+        if (velocity.sqrMagnitude > 0.01f)
+        {
+            forward = velocity.normalized;
+            _cachedTransform.forward = forward;
+        }
+    }
+
     void OnDrawGizmos()
     {
         if (!_EnableDebugGizmos) return;

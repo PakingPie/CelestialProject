@@ -3147,8 +3147,8 @@ GameObject:
   - component: {fileID: 137748515}
   - component: {fileID: 137748518}
   - component: {fileID: 137748517}
-  - component: {fileID: 137748516}
   - component: {fileID: 137748519}
+  - component: {fileID: 137748520}
   m_Layer: 0
   m_Name: BodyBlockIV
   m_TagString: Untagged
@@ -3175,27 +3175,6 @@ Transform:
   - {fileID: 602309860}
   m_Father: {fileID: 447733594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &137748516
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 137748514}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &137748517
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3276,6 +3255,22 @@ MonoBehaviour:
   BoidManager: {fileID: 0}
   VehicleFaction: 1
   DamageMultiplier: 1
+--- !u!114 &137748520
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 137748514}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c5a73e8aa92edc40a67d4b6c64bd994, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObstacleEntity
+  _isStatic: 0
+  _radiusMultiplier: 1
+  _radiusOverride: -1
+  _updateInterval: 0.1
 --- !u!1 &139626465
 GameObject:
   m_ObjectHideFlags: 0
@@ -4636,8 +4631,8 @@ GameObject:
   - component: {fileID: 231653845}
   - component: {fileID: 231653848}
   - component: {fileID: 231653847}
-  - component: {fileID: 231653846}
   - component: {fileID: 231653849}
+  - component: {fileID: 231653850}
   m_Layer: 0
   m_Name: BodyBlockI
   m_TagString: Untagged
@@ -4660,27 +4655,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 447733594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &231653846
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 231653844}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &231653847
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4761,6 +4735,22 @@ MonoBehaviour:
   BoidManager: {fileID: 0}
   VehicleFaction: 1
   DamageMultiplier: 1
+--- !u!114 &231653850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 231653844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c5a73e8aa92edc40a67d4b6c64bd994, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObstacleEntity
+  _isStatic: 0
+  _radiusMultiplier: 1
+  _radiusOverride: -1
+  _updateInterval: 0.1
 --- !u!1 &232662361
 GameObject:
   m_ObjectHideFlags: 0
@@ -7496,7 +7486,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &413969322
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7764,8 +7754,8 @@ GameObject:
   - component: {fileID: 430220005}
   - component: {fileID: 430220008}
   - component: {fileID: 430220007}
-  - component: {fileID: 430220006}
   - component: {fileID: 430220009}
+  - component: {fileID: 430220010}
   m_Layer: 0
   m_Name: BodyBlockIII
   m_TagString: Untagged
@@ -7788,27 +7778,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 447733594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &430220006
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 430220004}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &430220007
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7889,6 +7858,22 @@ MonoBehaviour:
   BoidManager: {fileID: 0}
   VehicleFaction: 1
   DamageMultiplier: 1
+--- !u!114 &430220010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 430220004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c5a73e8aa92edc40a67d4b6c64bd994, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObstacleEntity
+  _isStatic: 0
+  _radiusMultiplier: 1
+  _radiusOverride: -1
+  _updateInterval: 0.1
 --- !u!1 &436449041
 GameObject:
   m_ObjectHideFlags: 0
@@ -9390,7 +9375,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
   spawnRadius: 500
-  spawnCount: 30
+  spawnCount: 10
   color: {r: 0, g: 0, b: 0, a: 0}
   showSpawnRegion: 0
   HeightRange: {x: -500, y: 500}
@@ -15047,8 +15032,8 @@ GameObject:
   - component: {fileID: 780965682}
   - component: {fileID: 780965685}
   - component: {fileID: 780965684}
-  - component: {fileID: 780965683}
   - component: {fileID: 780965686}
+  - component: {fileID: 780965687}
   m_Layer: 0
   m_Name: BodyBlockV
   m_TagString: Untagged
@@ -15071,27 +15056,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 447733594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &780965683
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 780965681}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &780965684
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -15172,6 +15136,22 @@ MonoBehaviour:
   BoidManager: {fileID: 0}
   VehicleFaction: 1
   DamageMultiplier: 1
+--- !u!114 &780965687
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 780965681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c5a73e8aa92edc40a67d4b6c64bd994, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObstacleEntity
+  _isStatic: 0
+  _radiusMultiplier: 1
+  _radiusOverride: -1
+  _updateInterval: 0.1
 --- !u!1 &784486518
 GameObject:
   m_ObjectHideFlags: 0
@@ -26360,8 +26340,8 @@ GameObject:
   - component: {fileID: 1398508543}
   - component: {fileID: 1398508546}
   - component: {fileID: 1398508545}
-  - component: {fileID: 1398508544}
   - component: {fileID: 1398508547}
+  - component: {fileID: 1398508548}
   m_Layer: 0
   m_Name: BodyBlockII
   m_TagString: Untagged
@@ -26384,27 +26364,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 447733594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &1398508544
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1398508542}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1398508545
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -26485,6 +26444,22 @@ MonoBehaviour:
   BoidManager: {fileID: 0}
   VehicleFaction: 1
   DamageMultiplier: 1
+--- !u!114 &1398508548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1398508542}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c5a73e8aa92edc40a67d4b6c64bd994, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObstacleEntity
+  _isStatic: 0
+  _radiusMultiplier: 1
+  _radiusOverride: -1
+  _updateInterval: 0.1
 --- !u!1 &1399177722
 GameObject:
   m_ObjectHideFlags: 0
@@ -37744,8 +37719,8 @@ GameObject:
   - component: {fileID: 2002570132}
   - component: {fileID: 2002570135}
   - component: {fileID: 2002570134}
-  - component: {fileID: 2002570133}
   - component: {fileID: 2002570136}
+  - component: {fileID: 2002570137}
   m_Layer: 0
   m_Name: BodyBlockVI
   m_TagString: Untagged
@@ -37768,27 +37743,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 447733594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &2002570133
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2002570131}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &2002570134
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -37869,6 +37823,22 @@ MonoBehaviour:
   BoidManager: {fileID: 0}
   VehicleFaction: 1
   DamageMultiplier: 1
+--- !u!114 &2002570137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2002570131}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c5a73e8aa92edc40a67d4b6c64bd994, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObstacleEntity
+  _isStatic: 0
+  _radiusMultiplier: 1
+  _radiusOverride: -1
+  _updateInterval: 0.1
 --- !u!1 &2005586265
 GameObject:
   m_ObjectHideFlags: 0

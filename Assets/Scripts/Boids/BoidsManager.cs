@@ -1,3 +1,4 @@
+// BoidsManager.cs - UPDATED with full dynamic support
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -33,10 +34,21 @@ public class BoidsManager : MonoBehaviour
     private Boid _formationLeader = null;
 
     private bool _wasAnyInCombat = false;
+    
+    private List<BoidSpawner> _spawners = new List<BoidSpawner>();
+    
+    // Track when formation needs reassignment
+    private bool _formationDirty = false;
+    private float _formationDirtyTimer = 0f;
+    private const float FormationReassignDelay = 0.1f; // Small delay to batch changes
+
+    // Events for external listeners
+    public System.Action<Boid> OnBoidAdded;
+    public System.Action<Boid> OnBoidRemoved;
+    public System.Action OnFlockChanged;
 
     void Start()
     {
-        // Create target manager if not assigned
         if (_targetManager == null)
         {
             _targetManager = gameObject.AddComponent<BoidFlockTargetManager>();
@@ -44,31 +56,22 @@ public class BoidsManager : MonoBehaviour
 
         _targetManager.Initialize(_flockId, _team, _detectionRadius, _targetTags, _ignoreTags);
 
-        var spawners = GetComponentsInChildren<BoidSpawner>();
         boids = new List<Boid>();
         _boidWeapons = new List<WeaponBase>();
 
+        var spawners = GetComponentsInChildren<BoidSpawner>();
         foreach (BoidSpawner spawner in spawners)
         {
-            var spawnedBoids = spawner.SpawnedObjects;
-            foreach (GameObject boidObj in spawnedBoids)
+            _spawners.Add(spawner);
+            
+            spawner.OnBoidSpawned += OnBoidSpawned;
+            spawner.OnSpawningComplete += OnSpawnerComplete;
+            
+            if (spawner.SpawnedObjects != null)
             {
-                var boid = boidObj.GetComponent<Boid>();
-                if (boid != null)
+                foreach (GameObject boidObj in spawner.SpawnedObjects)
                 {
-                    boids.Add(boid);
-                    boid.Initialize(settings, target);
-                    boid.SetTargetManager(_targetManager);
-                    boid.transform.gameObject.GetComponent<VehicleBase>().BoidManager = this;
-
-                    _targetManager.RegisterBoid(boid);
-                }
-
-                var weapons = boidObj.GetComponentsInChildren<WeaponBase>();
-                foreach (var weapon in weapons)
-                {
-                    weapon.UseManagedUpdates = false;
-                    _boidWeapons.Add(weapon);
+                    RegisterBoidInternal(boidObj);
                 }
             }
         }
@@ -79,6 +82,157 @@ public class BoidsManager : MonoBehaviour
         _lastUseFormation = settings.useFormation;
     }
 
+    void OnDestroy()
+    {
+        foreach (var spawner in _spawners)
+        {
+            if (spawner != null)
+            {
+                spawner.OnBoidSpawned -= OnBoidSpawned;
+                spawner.OnSpawningComplete -= OnSpawnerComplete;
+            }
+        }
+    }
+
+    private void OnBoidSpawned(Boid boid)
+    {
+        if (boid == null) return;
+        
+        RegisterBoidInternal(boid.gameObject);
+        MarkFormationDirty();
+    }
+
+    private void OnSpawnerComplete()
+    {
+        AssignFormationPositions();
+    }
+
+    private void RegisterBoidInternal(GameObject boidObj)
+    {
+        if (boidObj == null) return;
+        
+        var boid = boidObj.GetComponent<Boid>();
+        if (boid == null) return;
+        
+        if (boids.Contains(boid)) return;
+        
+        boids.Add(boid);
+        boid.Initialize(settings, target);
+        boid.SetTargetManager(_targetManager);
+        
+        var vehicle = boidObj.GetComponent<VehicleBase>();
+        if (vehicle != null)
+        {
+            vehicle.BoidManager = this;
+        }
+
+        _targetManager.RegisterBoid(boid);
+
+        var weapons = boidObj.GetComponentsInChildren<WeaponBase>();
+        foreach (var weapon in weapons)
+        {
+            if (!_boidWeapons.Contains(weapon))
+            {
+                weapon.UseManagedUpdates = false;
+                _boidWeapons.Add(weapon);
+            }
+        }
+        
+        OnBoidAdded?.Invoke(boid);
+    }
+
+    /// <summary>
+    /// Add a boid to this flock at runtime.
+    /// </summary>
+    public void AddBoid(Boid boid)
+    {
+        if (boid == null || boids.Contains(boid)) return;
+        
+        RegisterBoidInternal(boid.gameObject);
+        MarkFormationDirty();
+    }
+
+    /// <summary>
+    /// Add multiple boids at runtime.
+    /// </summary>
+    public void AddBoids(IEnumerable<Boid> newBoids)
+    {
+        bool anyAdded = false;
+        
+        foreach (var boid in newBoids)
+        {
+            if (boid != null && !boids.Contains(boid))
+            {
+                RegisterBoidInternal(boid.gameObject);
+                anyAdded = true;
+            }
+        }
+        
+        if (anyAdded)
+        {
+            MarkFormationDirty();
+        }
+    }
+
+    /// <summary>
+    /// Remove a boid from this flock.
+    /// </summary>
+    public void RemoveBoid(Boid boid)
+    {
+        if (boid == null) return;
+        
+        bool wasLeader = (boid == _formationLeader);
+        
+        _targetManager.UnregisterBoid(boid);
+        boids.Remove(boid);
+
+        var weapons = boid.GetComponentsInChildren<WeaponBase>();
+        foreach (var weapon in weapons)
+        {
+            _boidWeapons.Remove(weapon);
+        }
+        
+        OnBoidRemoved?.Invoke(boid);
+
+        if (wasLeader || boids.Count > 0)
+        {
+            MarkFormationDirty();
+        }
+    }
+
+    /// <summary>
+    /// Transfer a boid to another flock manager.
+    /// </summary>
+    public void TransferBoid(Boid boid, BoidsManager targetFlock)
+    {
+        if (boid == null || targetFlock == null || targetFlock == this) return;
+        if (!boids.Contains(boid)) return;
+        
+        // Remove from this flock
+        _targetManager.UnregisterBoid(boid);
+        boids.Remove(boid);
+        
+        var weapons = boid.GetComponentsInChildren<WeaponBase>();
+        foreach (var weapon in weapons)
+        {
+            _boidWeapons.Remove(weapon);
+        }
+        
+        // Add to target flock
+        targetFlock.AddBoid(boid);
+        
+        MarkFormationDirty();
+    }
+
+    /// <summary>
+    /// Mark formation as needing reassignment (batched for performance).
+    /// </summary>
+    private void MarkFormationDirty()
+    {
+        _formationDirty = true;
+        _formationDirtyTimer = FormationReassignDelay;
+    }
+
     void AssignFormationPositions()
     {
         boids.RemoveAll(b => b == null);
@@ -86,13 +240,14 @@ public class BoidsManager : MonoBehaviour
         if (boids.Count == 0)
         {
             _formationLeader = null;
+            OnFlockChanged?.Invoke();
             return;
         }
 
         _formationLeader = boids[0];
         _formationLeader.FormationIndex = 0;
         _formationLeader.FormationLeader = null;
-        _formationLeader.OnFormationChanged(); // Also reset leader
+        _formationLeader.OnFormationChanged();
 
         for (int i = 1; i < boids.Count; i++)
         {
@@ -100,6 +255,9 @@ public class BoidsManager : MonoBehaviour
             boids[i].FormationLeader = _formationLeader;
             boids[i].OnFormationChanged();
         }
+        
+        _formationDirty = false;
+        OnFlockChanged?.Invoke();
     }
 
     void Update()
@@ -107,7 +265,17 @@ public class BoidsManager : MonoBehaviour
         if (boids == null)
             return;
 
-        CleanupDestroyedBoids();
+        // Handle deferred formation reassignment
+        if (_formationDirty)
+        {
+            _formationDirtyTimer -= Time.deltaTime;
+            if (_formationDirtyTimer <= 0f)
+            {
+                AssignFormationPositions();
+            }
+        }
+
+        int removedCount = CleanupDestroyedBoids();
 
         int numBoids = boids.Count;
         if (numBoids <= 0)
@@ -124,7 +292,6 @@ public class BoidsManager : MonoBehaviour
             }
         }
 
-        // Sync combat state if enabled - only when entering combat, not every frame
         if (syncCombatState && anyInCombat && !_wasAnyInCombat)
         {
             foreach (var boid in boids)
@@ -134,7 +301,6 @@ public class BoidsManager : MonoBehaviour
             }
         }
 
-        // Combat just ended - reassign formation
         if (_wasAnyInCombat && !anyInCombat)
         {
             AssignFormationPositions();
@@ -170,7 +336,6 @@ public class BoidsManager : MonoBehaviour
             boids[i].UpdateBoid();
         }
 
-        // Detect formation settings changes from inspector/profile
         if (settings.formationType != _lastFormationType || settings.useFormation != _lastUseFormation)
         {
             _lastFormationType = settings.formationType;
@@ -188,47 +353,30 @@ public class BoidsManager : MonoBehaviour
         boidBuffer.Release();
     }
 
-    private void CleanupDestroyedBoids()
+    /// <summary>
+    /// Returns number of boids removed.
+    /// </summary>
+    private int CleanupDestroyedBoids()
     {
         bool leaderRemoved = false;
+        int removedCount = 0;
 
         for (int i = boids.Count - 1; i >= 0; i--)
         {
             if (boids[i] == null)
             {
                 if (i == 0) leaderRemoved = true;
-                // Don't call UnregisterBoid with null - it's already gone
                 boids.RemoveAt(i);
+                removedCount++;
             }
         }
 
-        if (leaderRemoved)
+        if (removedCount > 0 && (leaderRemoved || _formationDirty))
         {
-            AssignFormationPositions();
-        }
-    }
-
-    private void SyncCombatState()
-    {
-        bool anyInCombat = false;
-
-        for (int i = 0; i < boids.Count; i++)
-        {
-            if (boids[i] != null && boids[i].IsInCombat)
-            {
-                anyInCombat = true;
-                break;
-            }
+            MarkFormationDirty();
         }
 
-        if (anyInCombat)
-        {
-            for (int i = 0; i < boids.Count; i++)
-            {
-                if (boids[i] != null)
-                    boids[i].EnterCombat();
-            }
-        }
+        return removedCount;
     }
 
     private void UpdateBoidWeapons()
@@ -246,55 +394,26 @@ public class BoidsManager : MonoBehaviour
 
     public void UpdateBoidList()
     {
-        var spawners = GetComponentsInChildren<BoidSpawner>();
-        boids = new List<Boid>();
-        _boidWeapons = new List<WeaponBase>();
+        boids.Clear();
+        _boidWeapons.Clear();
 
-        foreach (BoidSpawner spawner in spawners)
+        foreach (BoidSpawner spawner in _spawners)
         {
-            var spawnedBoids = spawner.SpawnedObjects;
-            foreach (GameObject boidObj in spawnedBoids)
+            if (spawner == null || spawner.SpawnedObjects == null) continue;
+            
+            foreach (GameObject boidObj in spawner.SpawnedObjects)
             {
-                var boid = boidObj.GetComponent<Boid>();
-                if (boid != null)
-                {
-                    boids.Add(boid);
-                    boid.Initialize(settings, target);
-                    boid.SetTargetManager(_targetManager);
-                    boid.transform.gameObject.GetComponent<VehicleBase>().BoidManager = this;
-
-                    _targetManager.RegisterBoid(boid);
-                }
-
-                var weapons = boidObj.GetComponentsInChildren<WeaponBase>();
-                foreach (var weapon in weapons)
-                {
-                    weapon.UseManagedUpdates = false;
-                    _boidWeapons.Add(weapon);
-                }
+                RegisterBoidInternal(boidObj);
             }
         }
 
         AssignFormationPositions();
     }
 
-    public void RemoveBoid(Boid boid)
-    {
-        bool wasLeader = (boid == _formationLeader);
-        _targetManager.UnregisterBoid(boid);
-        boids.Remove(boid);
-
-        if (wasLeader)
-        {
-            AssignFormationPositions();
-        }
-    }
-
     public void SetFormationType(FormationType type)
     {
         settings.formationType = type;
 
-        // Notify all boids of formation change
         foreach (var boid in boids)
         {
             if (boid != null)
@@ -326,6 +445,31 @@ public class BoidsManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Get a spawner to spawn additional boids.
+    /// </summary>
+    public BoidSpawner GetSpawner(int index = 0)
+    {
+        if (index >= 0 && index < _spawners.Count)
+            return _spawners[index];
+        return null;
+    }
+
+    /// <summary>
+    /// Spawn additional boids using the first spawner.
+    /// </summary>
+    public void SpawnAdditional(int count)
+    {
+        if (_spawners.Count > 0 && _spawners[0] != null)
+        {
+            _spawners[0].SpawnAdditionalSequential(count);
+        }
+    }
+
+    // Properties
+    public int BoidCount => boids?.Count ?? 0;
+    public IReadOnlyList<Boid> Boids => boids;
+    public Boid Leader => _formationLeader;
     public BoidFlockTargetManager TargetManager => _targetManager;
 
     public struct BoidData
@@ -344,14 +488,12 @@ public class BoidsManager : MonoBehaviour
     {
         if (boids == null) return;
 
-        // Show flock info
         if (_formationLeader != null)
         {
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(_formationLeader.position, 30f);
         }
 
-        // Show combat state
         Gizmos.color = _wasAnyInCombat ? Color.red : Color.green;
         Gizmos.DrawWireCube(transform.position, Vector3.one * 50f);
     }
@@ -360,7 +502,6 @@ public class BoidsManager : MonoBehaviour
     {
         if (boids == null) return;
 
-        // Draw formation structure
         for (int i = 0; i < boids.Count; i++)
         {
             if (boids[i] == null) continue;
@@ -368,7 +509,6 @@ public class BoidsManager : MonoBehaviour
             Gizmos.color = (i == 0) ? Color.yellow : Color.cyan;
             Gizmos.DrawWireSphere(boids[i].position, 8f);
 
-            // Draw index number position
 #if UNITY_EDITOR
             UnityEditor.Handles.Label(boids[i].position + Vector3.up * 25f, $"#{i}");
 #endif

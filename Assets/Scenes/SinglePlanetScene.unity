@@ -895,7 +895,7 @@ Transform:
   m_GameObject: {fileID: 764762348}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1500}
+  m_LocalPosition: {x: 0, y: 0, z: 1000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1018,13 +1018,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
-  spawnRadius: 100
-  spawnCount: 40
+  spawnCount: 10
   color: {r: 0, g: 0, b: 0, a: 0}
-  showSpawnRegion: 0
   HeightRange: {x: -100, y: 100}
-  SpawnedObjects: []
+  spawnMode: 0
+  spawnRadius: 100
+  spawnPoints: []
+  spawnInterval: 0.5
+  spawnPointRandomness: 2
+  launchDirection: {x: 0, y: 0, z: 1}
+  launchSpeed: 50
+  autoStart: 1
+  boidsPerWave: 5
+  timeBetweenWaves: 3
+  maintainPopulation: 1
+  respawnDelay: 2
+  maxTotalSpawns: 0
   attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
+  showSpawnRegion: 0
 --- !u!1 &1057615357
 GameObject:
   m_ObjectHideFlags: 0
@@ -2088,7 +2099,7 @@ Transform:
   m_GameObject: {fileID: 1503629323}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -2000}
+  m_LocalPosition: {x: 0, y: 0, z: -1000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2349,13 +2360,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
-  spawnRadius: 100
-  spawnCount: 40
+  spawnCount: 10
   color: {r: 0, g: 0, b: 0, a: 0}
-  showSpawnRegion: 0
   HeightRange: {x: -100, y: 100}
-  SpawnedObjects: []
+  spawnMode: 1
+  spawnRadius: 100
+  spawnPoints: []
+  spawnInterval: 0.5
+  spawnPointRandomness: 2
+  launchDirection: {x: 0, y: 0, z: 1}
+  launchSpeed: 50
+  autoStart: 1
+  boidsPerWave: 5
+  timeBetweenWaves: 3
+  maintainPopulation: 1
+  respawnDelay: 2
+  maxTotalSpawns: 0
   attackProfile: {fileID: 11400000, guid: ca3472a5a3aaa674291bf15cfcbe5f82, type: 2}
+  showSpawnRegion: 0
 --- !u!1 &1763561579
 GameObject:
   m_ObjectHideFlags: 0
