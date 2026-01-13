@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using static GlobalHelper;
 
 public class BoidFlockTargetManager : MonoBehaviour
 {
@@ -63,6 +64,21 @@ public class BoidFlockTargetManager : MonoBehaviour
         _detectionRadius = detectionRadius;
         _targetTags = targetTags ?? new List<string>();
         _ignoreTags = ignoreTags ?? new List<string>();
+    }
+
+    public Faction GetFaction()
+    {
+        switch (_team)
+        {
+            case GlobalHelper.Team.Player:
+                return GlobalHelper.Faction.Player;
+            case GlobalHelper.Team.Ally:
+                return GlobalHelper.Faction.Ally;
+            case GlobalHelper.Team.Foe:
+                return GlobalHelper.Faction.Foe;
+            default:
+                return GlobalHelper.Faction.Neutral;
+        }
     }
 
     private bool IsValidTarget(Transform target)
@@ -155,6 +171,22 @@ public class BoidFlockTargetManager : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// Get the list of boids managed by this target manager.
+    /// </summary>
+    public IReadOnlyList<Boid> GetManagedBoids()
+    {
+        return _managedBoids;
+    }
+
+    /// <summary>
+    /// Get the dictionary of known enemy targets.
+    /// </summary>
+    public IReadOnlyDictionary<Transform, BoidTargetInfo> GetKnownTargets()
+    {
+        return _knownTargets;
+    }
+
     void Update()
     {
         CleanupNullBoids();
@@ -223,7 +255,8 @@ public class BoidFlockTargetManager : MonoBehaviour
         GlobalHelper.Faction targetFactions = GetTargetFactions();
 
         // Query CombatRegistry instead of Physics
-        CombatRegistry.FindEnemiesInRange(center, _detectionRadius, targetFactions, _nearbyEnemies);
+        CombatRegistry.GetNearbyEnemies(center, _detectionRadius, targetFactions, _nearbyEnemies);
+
 
         HashSet<Transform> currentTargets = new HashSet<Transform>();
 

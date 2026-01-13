@@ -531,7 +531,7 @@ Shader "Custom/VolumetricCloudSphere"
                 if (alpha < 0.003)
                 {
                     output.color = float4(0, 0, 0, 0);
-                    output.depth = WorldToDepth(_WorldSpaceCameraPos.xyz + rayDirWS * hitDepth);
+                    output.depth = WorldToDepth(input.positionWS + rayDirWS * hitDepth);
                     return output;
                 }
                 
@@ -547,7 +547,7 @@ Shader "Custom/VolumetricCloudSphere"
                 float NoL = saturate(dot(input.normalWS, mainLight.direction));
                 output.color.rgb *= clamp(NoL, 0.0, 1.0);
 
-                float3 endPos = _WorldSpaceCameraPos.xyz + rayDirWS * hitDepth;
+                float3 endPos = input.positionWS + rayDirWS * hitDepth;
                 
                 output.depth = WorldToDepth(endPos);
                 return output;
