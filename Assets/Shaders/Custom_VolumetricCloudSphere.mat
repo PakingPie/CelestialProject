@@ -34,16 +34,22 @@ Material:
     m_Ints: []
     m_Floats:
     - _AmbientLight: 1
-    - _CloudCoverage: 0.475
-    - _CloudDensity: 5
-    - _CloudScale: 1
-    - _DetailScale: 1
+    - _Billowness: 1
+    - _CloudAbsorption: 5
+    - _CloudCoverage: 0.484
+    - _CloudDensity: 50
+    - _CloudLayerDensity: 1.5
+    - _CloudScale: 2
+    - _DetailScale: 7.2
     - _DetailStrength: 1
+    - _DetailWindMultiplier: 1.5
     - _ErosionStrength: 1
-    - _InnerRadius: 0
-    - _LightAbsorption: 2.97
-    - _MaxSteps: 32
-    - _OuterRadius: 0.56
+    - _InnerRadius: 0.15
+    - _LightAbsorption: 5
+    - _LightSteps: 3
+    - _MaxSteps: 64
+    - _MultiScatter: 0.5
+    - _OuterRadius: 1
     - _PatchScale: 1
     - _Patchiness: 1
     - _PowderStrength: 0.3
@@ -52,13 +58,18 @@ Material:
     - _ScatteringForward: 0.99
     - _SilverLiningIntensity: 0.8
     - _SilverLiningSpread: 3
-    - _StepSize: 0.01
-    - _WindSpeed: 0.009
+    - _StepSize: 0.0031
+    - _WindSpeed: 0.048
     m_Colors:
     - _AmbientColorBottom: {r: 0.39999998, g: 0.39999998, b: 0.5, a: 1}
     - _AmbientColorTop: {r: 0.6, g: 0.7, b: 0.9, a: 1}
+    - _BlueNoiseOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _BlueNoiseTiling: {r: 1, g: 1, b: 0, a: 0}
     - _CloudColorBright: {r: 1, g: 1, b: 1, a: 1}
     - _CloudColorDark: {r: 0.39999998, g: 0.45, b: 0.5, a: 1}
+    - _NoiseOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _NoiseTiling: {r: 1, g: 1, b: 1, a: 0}
+    - _SunColor: {r: 1, g: 0.95, b: 0.85, a: 1}
     - _WindDirection: {r: 1, g: 0, b: 0.5, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

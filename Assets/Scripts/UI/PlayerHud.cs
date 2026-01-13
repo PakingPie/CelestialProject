@@ -142,12 +142,12 @@ public class PlayerHud : MonoBehaviour
 
         if (_throttleSlider != null)
         {
-            _throttleSlider.value = _shipMovement.ThrustPercent;
+            _throttleSlider.value = _shipMovement.ThrottlePercent;
         }
 
         if (_throttleText != null)
         {
-            _throttleText.text = $"{_shipMovement.CurrentThrust:F0}";
+            _throttleText.text = $"{_shipMovement.Speed:F0}";
         }
     }
 

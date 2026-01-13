@@ -10,22 +10,24 @@ using UnityEditor;
 [ExecuteInEditMode]
 public class AsteroidRingSpawner : MonoBehaviour
 {
+    [Header("Creation Settings")]
+    public bool autoGenerateOnStart = false;
     [Header("Ring Settings")]
     [SerializeField] private float innerRadius = 50f;
     [SerializeField] private float outerRadius = 100f;
     [SerializeField] private float ringThickness = 5f;
     [SerializeField] private Transform planetCenter;
-    
+
     [Header("Spawn Settings")]
     [SerializeField] private int asteroidCount = 1000;
     [SerializeField] private int seed = 42;
-    
+
     [Header("Asteroid Settings")]
     [SerializeField] private Vector2 scaleRange = new Vector2(0.5f, 3f);
     [SerializeField] private Material asteroidMaterial;
     [SerializeField] private Color asteroidColor = new Color(0.5f, 0.45f, 0.4f);
     [SerializeField] private Vector2Int healthRange = new Vector2Int(5, 20);
-    
+
     [Header("Interactive Asteroids")]
     [Tooltip("Reference to the player transform. If null, will try to find by tag.")]
     [SerializeField] private Transform playerTransform;
@@ -34,51 +36,59 @@ public class AsteroidRingSpawner : MonoBehaviour
     [SerializeField] private ParticleSystem asteroidDestructionFX;
     [SerializeField] private GameObject[] debrisPrefabs;
     [SerializeField] private GameObject[] dropPrefabs;
-    
+
     [Header("LOD Settings")]
     [SerializeField] private float lodDistance1 = 100f;
     [SerializeField] private float lodDistance2 = 300f;
     [SerializeField] private float cullDistance = 500f;
-    
+
     [Header("Mesh Variants")]
     [SerializeField, Range(2, 32)] private int highResolution = 16;
     [SerializeField, Range(2, 16)] private int mediumResolution = 8;
     [SerializeField, Range(2, 8)] private int lowResolution = 4;
     [SerializeField] private int meshVariantCount = 10;
-    
+
     [Header("Debug")]
     [SerializeField] private bool showDebugInfo = true;
-    
+
     // Mesh variants
     private Mesh[] _highLodMeshes;
     private Mesh[] _mediumLodMeshes;
     private Mesh[] _lowLodMeshes;
-    
+
     // Data for GPU instancing
     private NativeArray<AsteroidData> _asteroidData;
     private NativeArray<Matrix4x4> _matrices;
     private NativeArray<int> _meshIndices;
     private NativeArray<bool> _isDestroyed;
-    
+
     // Batching for GPU instancing
     private List<Matrix4x4>[] _highLodBatches;
     private List<Matrix4x4>[] _mediumLodBatches;
     private List<Matrix4x4>[] _lowLodBatches;
-    
+
     // Interactive asteroid GameObjects
     private Dictionary<int, GameObject> _interactiveAsteroids = new Dictionary<int, GameObject>();
     private HashSet<int> _destroyedIndices = new HashSet<int>();
     private float _interactiveDistSqr;
-    
+
     private MaterialPropertyBlock _propertyBlock;
     private bool _isInitialized;
-    
+
     // Stats
     private int _visibleCount;
     private int _highLodCount;
     private int _mediumLodCount;
     private int _lowLodCount;
     private int _interactiveCount;
+
+    void Start()
+    {
+        if (autoGenerateOnStart && !_isInitialized)
+        {
+            GenerateRing();
+        }
+    }
 
     private struct AsteroidData
     {
@@ -161,7 +171,7 @@ public class AsteroidRingSpawner : MonoBehaviour
     {
         if (playerTransform != null)
             return playerTransform;
-        
+
         // Try to find player by tag
         GameObject playerGO = GameObject.FindGameObjectWithTag("Player");
         if (playerGO != null)
@@ -169,11 +179,11 @@ public class AsteroidRingSpawner : MonoBehaviour
             playerTransform = playerGO.transform;
             return playerTransform;
         }
-        
+
         // Fallback to camera if no player found
         if (Camera.main != null)
             return Camera.main.transform;
-        
+
         return null;
     }
 
@@ -181,39 +191,39 @@ public class AsteroidRingSpawner : MonoBehaviour
     {
         System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
         sw.Start();
-        
+
         DisposeNativeArrays();
         ClearInteractiveAsteroids();
         _destroyedIndices.Clear();
-        
+
         _propertyBlock = new MaterialPropertyBlock();
         _interactiveDistSqr = interactiveDistance * interactiveDistance;
-        
+
         EnsureMaterial();
-        
+
         Random.InitState(seed);
-        
+
         GenerateMeshVariants();
         GenerateAsteroidData();
-        
+
         _highLodBatches = new List<Matrix4x4>[meshVariantCount];
         _mediumLodBatches = new List<Matrix4x4>[meshVariantCount];
         _lowLodBatches = new List<Matrix4x4>[meshVariantCount];
-        
+
         for (int i = 0; i < meshVariantCount; i++)
         {
             _highLodBatches[i] = new List<Matrix4x4>(256);
             _mediumLodBatches[i] = new List<Matrix4x4>(512);
             _lowLodBatches[i] = new List<Matrix4x4>(1024);
         }
-        
+
         UpdateAsteroidMatrices(0f);
-        
+
         _isInitialized = true;
-        
+
         sw.Stop();
         Debug.Log($"AsteroidRingSpawner: Ring generated in {sw.ElapsedMilliseconds}ms");
-        
+
 #if UNITY_EDITOR
         SceneView.RepaintAll();
 #endif
@@ -222,11 +232,11 @@ public class AsteroidRingSpawner : MonoBehaviour
     private void EnsureMaterial()
     {
         if (asteroidMaterial != null && asteroidMaterial.enableInstancing) return;
-        
+
         Shader shader = Shader.Find("Universal Render Pipeline/Lit");
         if (shader == null) shader = Shader.Find("Standard");
         if (shader == null) shader = Shader.Find("Diffuse");
-        
+
         asteroidMaterial = new Material(shader);
         asteroidMaterial.name = "Asteroid Material (Auto-generated)";
         asteroidMaterial.color = asteroidColor;
@@ -246,7 +256,7 @@ public class AsteroidRingSpawner : MonoBehaviour
             foreach (var mesh in _mediumLodMeshes) if (mesh != null) DestroyImmediate(mesh);
             foreach (var mesh in _lowLodMeshes) if (mesh != null) DestroyImmediate(mesh);
         }
-        
+
         _highLodMeshes = new Mesh[meshVariantCount];
         _mediumLodMeshes = new Mesh[meshVariantCount];
         _lowLodMeshes = new Mesh[meshVariantCount];
@@ -255,10 +265,10 @@ public class AsteroidRingSpawner : MonoBehaviour
         {
             _highLodMeshes[i] = GenerateAsteroidMesh(1f, highResolution, i);
             _highLodMeshes[i].name = $"Asteroid_High_{i}";
-            
+
             _mediumLodMeshes[i] = GenerateAsteroidMesh(1f, mediumResolution, i);
             _mediumLodMeshes[i].name = $"Asteroid_Medium_{i}";
-            
+
             _lowLodMeshes[i] = GenerateAsteroidMesh(1f, lowResolution, i);
             _lowLodMeshes[i].name = $"Asteroid_Low_{i}";
         }
@@ -348,22 +358,25 @@ public class AsteroidRingSpawner : MonoBehaviour
     private void Update()
     {
         if (!_isInitialized) return;
-
+#if UNITY_EDITOR
         float time = Application.isPlaying ? Time.time : (float)EditorApplication.timeSinceStartup;
+#else
+        float time = Time.time;
+#endif
         UpdateAsteroidMatrices(time);
-        
+
         if (Application.isPlaying)
         {
             UpdateInteractiveAsteroids();
         }
-        
+
         RenderAsteroids();
     }
 
     private void UpdateAsteroidMatrices(float time)
     {
         if (!_asteroidData.IsCreated) return;
-        
+
         Vector3 center = GetRingCenter();
 
         var job = new UpdateAsteroidPositionsJob
@@ -391,9 +404,9 @@ public class AsteroidRingSpawner : MonoBehaviour
         public void Execute(int index)
         {
             AsteroidData data = AsteroidData[index];
-            
+
             float currentAngle = data.OrbitAngle + Time * data.OrbitSpeed;
-            
+
             Vector3 localPos = new Vector3(
                 Mathf.Cos(currentAngle) * data.OrbitDistance,
                 data.HeightOffset,
@@ -401,14 +414,14 @@ public class AsteroidRingSpawner : MonoBehaviour
             );
 
             Vector3 worldPos = Center + RingRotation * localPos;
-            
+
             float rotSpeed = 5f + (index % 10);
             Quaternion rotation = data.Rotation * Quaternion.Euler(
                 Time * rotSpeed,
                 Time * rotSpeed * 1.3f,
                 Time * rotSpeed * 0.7f
             );
-            
+
             Matrices[index] = Matrix4x4.TRS(worldPos, rotation, Vector3.one * data.Scale);
         }
     }
@@ -420,26 +433,26 @@ public class AsteroidRingSpawner : MonoBehaviour
     {
         Transform player = GetPlayerTransform();
         if (player == null) return;
-        
+
         Vector3 playerPos = player.position;
-        
+
         // Track which interactive asteroids should exist
         HashSet<int> shouldBeInteractive = new HashSet<int>();
-        
+
         for (int i = 0; i < asteroidCount; i++)
         {
             // Skip destroyed asteroids
             if (_destroyedIndices.Contains(i)) continue;
-            
+
             Matrix4x4 matrix = _matrices[i];
             Vector3 asteroidPos = new Vector3(matrix.m03, matrix.m13, matrix.m23);
-            
+
             float distSqr = (asteroidPos - playerPos).sqrMagnitude;
-            
+
             if (distSqr < _interactiveDistSqr)
             {
                 shouldBeInteractive.Add(i);
-                
+
                 // Spawn if not already spawned
                 if (!_interactiveAsteroids.ContainsKey(i))
                 {
@@ -459,7 +472,7 @@ public class AsteroidRingSpawner : MonoBehaviour
                 }
             }
         }
-        
+
         // Remove interactive asteroids that are too far from player
         List<int> toRemove = new List<int>();
         foreach (var kvp in _interactiveAsteroids)
@@ -473,39 +486,39 @@ public class AsteroidRingSpawner : MonoBehaviour
                 toRemove.Add(kvp.Key);
             }
         }
-        
+
         foreach (int index in toRemove)
         {
             _interactiveAsteroids.Remove(index);
         }
-        
+
         _interactiveCount = _interactiveAsteroids.Count;
     }
 
     private void SpawnInteractiveAsteroid(int index, Matrix4x4 matrix)
     {
         AsteroidData data = _asteroidData[index];
-        
+
         // Create GameObject
         GameObject asteroidGO = new GameObject($"Asteroid_{index}");
         asteroidGO.layer = LayerMask.NameToLayer("Asteroid");
-        
+
         // Set transform
         Vector3 position = new Vector3(matrix.m03, matrix.m13, matrix.m23);
         asteroidGO.transform.SetPositionAndRotation(position, matrix.rotation);
         asteroidGO.transform.localScale = Vector3.one * data.Scale;
-        
+
         // Add mesh
         MeshFilter meshFilter = asteroidGO.AddComponent<MeshFilter>();
         meshFilter.sharedMesh = _highLodMeshes[data.MeshIndex];
-        
+
         MeshRenderer meshRenderer = asteroidGO.AddComponent<MeshRenderer>();
         meshRenderer.sharedMaterial = asteroidMaterial;
-        
+
         // Add Asteroid component
         Asteroid asteroid = asteroidGO.AddComponent<Asteroid>();
         asteroid.Initialize(this, index, data.Health);
-        
+
         _interactiveAsteroids[index] = asteroidGO;
     }
 
@@ -515,14 +528,14 @@ public class AsteroidRingSpawner : MonoBehaviour
     public void OnAsteroidDestroyed(int index)
     {
         if (index < 0 || index >= asteroidCount) return;
-        
+
         _destroyedIndices.Add(index);
-        
+
         if (_interactiveAsteroids.ContainsKey(index))
         {
             _interactiveAsteroids.Remove(index);
         }
-        
+
         // Mark as destroyed in native array
         if (_isDestroyed.IsCreated && index < _isDestroyed.Length)
         {
@@ -539,7 +552,7 @@ public class AsteroidRingSpawner : MonoBehaviour
         if (cam == null) return;
 
         ClearBatches();
-        
+
         Vector3 cameraPos = cam.transform.position;
         float cullDistSq = cullDistance * cullDistance;
         float lod1DistSq = lodDistance1 * lodDistance1;
@@ -554,15 +567,15 @@ public class AsteroidRingSpawner : MonoBehaviour
         {
             // Skip destroyed asteroids
             if (_destroyedIndices.Contains(i)) continue;
-            
+
             // Skip interactive asteroids (they render themselves)
             if (Application.isPlaying && _interactiveAsteroids.ContainsKey(i)) continue;
-            
+
             Matrix4x4 matrix = _matrices[i];
             Vector3 asteroidPos = new Vector3(matrix.m03, matrix.m13, matrix.m23);
-            
+
             float distSq = (asteroidPos - cameraPos).sqrMagnitude;
-            
+
             if (distSq > cullDistSq) continue;
 
             _visibleCount++;
@@ -593,7 +606,7 @@ public class AsteroidRingSpawner : MonoBehaviour
     private void ClearBatches()
     {
         if (_highLodBatches == null) return;
-        
+
         for (int i = 0; i < meshVariantCount; i++)
         {
             _highLodBatches[i].Clear();
@@ -605,9 +618,9 @@ public class AsteroidRingSpawner : MonoBehaviour
     private void RenderBatches(List<Matrix4x4>[] batches, Mesh[] meshes)
     {
         if (batches == null || meshes == null) return;
-        
+
         Matrix4x4[] tempArray = new Matrix4x4[1023];
-        
+
         for (int meshIndex = 0; meshIndex < meshVariantCount; meshIndex++)
         {
             List<Matrix4x4> matrices = batches[meshIndex];
@@ -615,11 +628,11 @@ public class AsteroidRingSpawner : MonoBehaviour
 
             Mesh mesh = meshes[meshIndex];
             if (mesh == null) continue;
-            
+
             for (int i = 0; i < matrices.Count; i += 1023)
             {
                 int count = Mathf.Min(1023, matrices.Count - i);
-                
+
                 for (int j = 0; j < count; j++)
                 {
                     tempArray[j] = matrices[i + j];
@@ -635,25 +648,25 @@ public class AsteroidRingSpawner : MonoBehaviour
         DisposeNativeArrays();
         ClearInteractiveAsteroids();
         _destroyedIndices.Clear();
-        
+
         if (_highLodMeshes != null)
         {
             foreach (var mesh in _highLodMeshes) if (mesh != null) DestroyImmediate(mesh);
             foreach (var mesh in _mediumLodMeshes) if (mesh != null) DestroyImmediate(mesh);
             foreach (var mesh in _lowLodMeshes) if (mesh != null) DestroyImmediate(mesh);
         }
-        
+
         _highLodMeshes = null;
         _mediumLodMeshes = null;
         _lowLodMeshes = null;
         _highLodBatches = null;
         _mediumLodBatches = null;
         _lowLodBatches = null;
-        
+
         _isInitialized = false;
-        
+
         Debug.Log("AsteroidRingSpawner: Ring cleared");
-        
+
 #if UNITY_EDITOR
         SceneView.RepaintAll();
 #endif
@@ -662,10 +675,10 @@ public class AsteroidRingSpawner : MonoBehaviour
     private void OnGUI()
     {
         if (!showDebugInfo || !_isInitialized || !Application.isPlaying) return;
-        
+
         GUILayout.BeginArea(new Rect(10, 10, 300, 200));
         GUILayout.BeginVertical("box");
-        
+
         GUILayout.Label($"Asteroid Ring Debug Info");
         GUILayout.Label($"Total Asteroids: {asteroidCount}");
         GUILayout.Label($"Destroyed: {_destroyedIndices.Count}");
@@ -675,7 +688,7 @@ public class AsteroidRingSpawner : MonoBehaviour
         GUILayout.Label($"  Medium LOD: {_mediumLodCount}");
         GUILayout.Label($"  Low LOD: {_lowLodCount}");
         GUILayout.Label($"Player: {(playerTransform != null ? playerTransform.name : "Not Found")}");
-        
+
         GUILayout.EndVertical();
         GUILayout.EndArea();
     }
@@ -683,13 +696,13 @@ public class AsteroidRingSpawner : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Vector3 center = GetRingCenter();
-        
+
         Gizmos.color = new Color(1f, 0.5f, 0f, 0.8f);
         DrawWireDisc(center, transform.up, innerRadius, 64);
-        
+
         Gizmos.color = new Color(1f, 0.3f, 0f, 0.8f);
         DrawWireDisc(center, transform.up, outerRadius, 64);
-        
+
         // Draw interactive distance around player (not camera)
         Transform player = GetPlayerTransform();
         if (player != null)
@@ -706,7 +719,7 @@ public class AsteroidRingSpawner : MonoBehaviour
             from = Vector3.Cross(normal, Vector3.right).normalized;
 
         Vector3 prevPoint = center + Quaternion.AngleAxis(0, normal) * from * radius;
-        
+
         for (int i = 1; i <= segments; i++)
         {
             float angle = (float)i / segments * 360f;
@@ -737,9 +750,9 @@ public class AsteroidRingSpawnerEditor : Editor
         DrawDefaultInspector();
 
         AsteroidRingSpawner spawner = (AsteroidRingSpawner)target;
-        
+
         EditorGUILayout.Space(10);
-        
+
         EditorGUILayout.HelpBox(
             "Setup:\n" +
             "1. Assign Player Transform (or tag your player as 'Player')\n" +
@@ -747,25 +760,25 @@ public class AsteroidRingSpawnerEditor : Editor
             "3. Click Generate Ring\n" +
             "4. Asteroids within Interactive Distance of the player become destructible",
             MessageType.Info);
-        
+
         EditorGUILayout.Space(5);
-        
+
         EditorGUILayout.BeginHorizontal();
-        
+
         GUI.backgroundColor = new Color(0.5f, 1f, 0.5f);
         if (GUILayout.Button("Generate Ring", GUILayout.Height(35)))
         {
             spawner.GenerateRing();
             EditorUtility.SetDirty(spawner);
         }
-        
+
         GUI.backgroundColor = new Color(1f, 0.5f, 0.5f);
         if (GUILayout.Button("Clear Ring", GUILayout.Height(35)))
         {
             spawner.ClearRing();
             EditorUtility.SetDirty(spawner);
         }
-        
+
         GUI.backgroundColor = Color.white;
         EditorGUILayout.EndHorizontal();
     }
