@@ -34,9 +34,9 @@ public class BoidsManager : MonoBehaviour
     private Boid _formationLeader = null;
 
     private bool _wasAnyInCombat = false;
-    
+
     private List<BoidSpawner> _spawners = new List<BoidSpawner>();
-    
+
     // Track when formation needs reassignment
     private bool _formationDirty = false;
     private float _formationDirtyTimer = 0f;
@@ -63,10 +63,10 @@ public class BoidsManager : MonoBehaviour
         foreach (BoidSpawner spawner in spawners)
         {
             _spawners.Add(spawner);
-            
+
             spawner.OnBoidSpawned += OnBoidSpawned;
             spawner.OnSpawningComplete += OnSpawnerComplete;
-            
+
             if (spawner.SpawnedObjects != null)
             {
                 foreach (GameObject boidObj in spawner.SpawnedObjects)
@@ -97,7 +97,7 @@ public class BoidsManager : MonoBehaviour
     private void OnBoidSpawned(Boid boid)
     {
         if (boid == null) return;
-        
+
         RegisterBoidInternal(boid.gameObject);
         MarkFormationDirty();
     }
@@ -110,16 +110,16 @@ public class BoidsManager : MonoBehaviour
     private void RegisterBoidInternal(GameObject boidObj)
     {
         if (boidObj == null) return;
-        
+
         var boid = boidObj.GetComponent<Boid>();
         if (boid == null) return;
-        
+
         if (boids.Contains(boid)) return;
-        
+
         boids.Add(boid);
         boid.Initialize(settings, target);
         boid.SetTargetManager(_targetManager);
-        
+
         var vehicle = boidObj.GetComponent<VehicleBase>();
         if (vehicle != null)
         {
@@ -137,7 +137,7 @@ public class BoidsManager : MonoBehaviour
                 _boidWeapons.Add(weapon);
             }
         }
-        
+
         OnBoidAdded?.Invoke(boid);
     }
 
@@ -147,7 +147,7 @@ public class BoidsManager : MonoBehaviour
     public void AddBoid(Boid boid)
     {
         if (boid == null || boids.Contains(boid)) return;
-        
+
         RegisterBoidInternal(boid.gameObject);
         MarkFormationDirty();
     }
@@ -158,7 +158,7 @@ public class BoidsManager : MonoBehaviour
     public void AddBoids(IEnumerable<Boid> newBoids)
     {
         bool anyAdded = false;
-        
+
         foreach (var boid in newBoids)
         {
             if (boid != null && !boids.Contains(boid))
@@ -167,7 +167,7 @@ public class BoidsManager : MonoBehaviour
                 anyAdded = true;
             }
         }
-        
+
         if (anyAdded)
         {
             MarkFormationDirty();
@@ -180,9 +180,9 @@ public class BoidsManager : MonoBehaviour
     public void RemoveBoid(Boid boid)
     {
         if (boid == null) return;
-        
+
         bool wasLeader = (boid == _formationLeader);
-        
+
         _targetManager.UnregisterBoid(boid);
         boids.Remove(boid);
 
@@ -191,7 +191,7 @@ public class BoidsManager : MonoBehaviour
         {
             _boidWeapons.Remove(weapon);
         }
-        
+
         OnBoidRemoved?.Invoke(boid);
 
         if (wasLeader || boids.Count > 0)
@@ -207,20 +207,20 @@ public class BoidsManager : MonoBehaviour
     {
         if (boid == null || targetFlock == null || targetFlock == this) return;
         if (!boids.Contains(boid)) return;
-        
+
         // Remove from this flock
         _targetManager.UnregisterBoid(boid);
         boids.Remove(boid);
-        
+
         var weapons = boid.GetComponentsInChildren<WeaponBase>();
         foreach (var weapon in weapons)
         {
             _boidWeapons.Remove(weapon);
         }
-        
+
         // Add to target flock
         targetFlock.AddBoid(boid);
-        
+
         MarkFormationDirty();
     }
 
@@ -255,7 +255,7 @@ public class BoidsManager : MonoBehaviour
             boids[i].FormationLeader = _formationLeader;
             boids[i].OnFormationChanged();
         }
-        
+
         _formationDirty = false;
         OnFlockChanged?.Invoke();
     }
@@ -400,7 +400,7 @@ public class BoidsManager : MonoBehaviour
         foreach (BoidSpawner spawner in _spawners)
         {
             if (spawner == null || spawner.SpawnedObjects == null) continue;
-            
+
             foreach (GameObject boidObj in spawner.SpawnedObjects)
             {
                 RegisterBoidInternal(boidObj);
@@ -463,6 +463,15 @@ public class BoidsManager : MonoBehaviour
         if (_spawners.Count > 0 && _spawners[0] != null)
         {
             _spawners[0].SpawnAdditionalSequential(count);
+        }
+    }
+
+    public void SetTarget(Transform newTarget)
+    {
+        target = newTarget;
+        foreach (var boid in boids)
+        {
+            boid.SetFallbackTarget(newTarget);
         }
     }
 

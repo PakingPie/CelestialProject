@@ -3,9 +3,18 @@ using UnityEngine;
 using static GlobalHelper;
 public class Boid : MonoBehaviour
 {
+
+    [Header("Command State")]
+    private float _targetSpeed = -1f; // -1 means use default
+    private Vector3? _moveTarget = null;
+    private bool _holdingPosition = false;
+    private Transform _priorityTarget = null;
+
+    [Header("Debug")]
+    [SerializeField] private Transform _target;
+
     private BoidSettings _settings;
     private Transform _cachedTransform;
-    [SerializeField] private Transform _target;
     private Material _material;
     private BoidFlockTargetManager _targetManager;
     private Vector3 _velocity;
@@ -144,9 +153,22 @@ public class Boid : MonoBehaviour
 
     public void UpdateTarget()
     {
+        // Check boid-level priority target first (from direct command)
+        if (_priorityTarget != null)
+        {
+            if (_target != _priorityTarget && AttackBehavior != null)
+            {
+                AttackBehavior.ResetSideCommitment();
+            }
+            _target = _priorityTarget;
+            return;
+        }
+        
         if (_targetManager != null)
         {
-            Transform assignedTarget = _targetManager.GetAssignedTarget(this);
+            // Use the new method that respects priority targets and defense mode
+            Transform assignedTarget = _targetManager.GetTargetForBoid(this);
+
             if (assignedTarget != null)
             {
                 if (_target != assignedTarget && AttackBehavior != null)
@@ -782,6 +804,101 @@ public class Boid : MonoBehaviour
             forward = velocity.normalized;
             _cachedTransform.forward = forward;
         }
+    }
+
+    public void SetFallbackTarget(Transform target)
+    {
+        _fallbackTarget = target;
+    }
+
+    // Boid Command Handling
+    /// <summary>
+    /// Set a specific speed for this boid to match.
+    /// </summary>
+    public void SetTargetSpeed(float speed)
+    {
+        _targetSpeed = speed;
+    }
+
+    /// <summary>
+    /// Clear target speed and return to normal behavior.
+    /// </summary>
+    public void ClearTargetSpeed()
+    {
+        _targetSpeed = -1f;
+    }
+
+    /// <summary>
+    /// Set a specific position to move toward.
+    /// </summary>
+    public void SetMoveTarget(Vector3 position)
+    {
+        _moveTarget = position;
+        _holdingPosition = false;
+    }
+
+    /// <summary>
+    /// Clear move target.
+    /// </summary>
+    public void ClearMoveTarget()
+    {
+        _moveTarget = null;
+        _holdingPosition = false;
+    }
+
+    /// <summary>
+    /// Hold at current position.
+    /// </summary>
+    public void HoldPosition()
+    {
+        _holdingPosition = true;
+        _moveTarget = position;
+    }
+
+    /// <summary>
+    /// Set a priority target for attack.
+    /// </summary>
+    public void SetPriorityTarget(Transform target)
+    {
+        _priorityTarget = target;
+    }
+
+    /// <summary>
+    /// Clear priority target.
+    /// </summary>
+    public void ClearPriorityTarget()
+    {
+        _priorityTarget = null;
+    }
+
+    // Modify your existing speed calculation in UpdateBoid() or GetSpeed():
+    private float GetEffectiveSpeed()
+    {
+        if (_targetSpeed >= 0f)
+            return _targetSpeed;
+
+        // Your existing speed logic
+        return _settings.maxSpeed;
+    }
+
+    // Modify your steering calculation to account for move target:
+    private Vector3 GetMoveTargetSteering()
+    {
+        if (_moveTarget.HasValue)
+        {
+            Vector3 toTarget = _moveTarget.Value - position;
+            float distance = toTarget.magnitude;
+
+            if (distance < 10f && _holdingPosition)
+            {
+                // Arrived at hold position - apply braking
+                return -_velocity.normalized * _settings.maxSpeed;
+            }
+
+            return toTarget.normalized;
+        }
+
+        return Vector3.zero;
     }
 
     void OnDrawGizmos()
