@@ -328,6 +328,9 @@ public class BoidsManager : MonoBehaviour
 
         for (int i = 0; i < numBoids; i++)
         {
+            // Check bounds in case boids were removed during update
+            if (i >= boids.Count || boids[i] == null) continue;
+
             boids[i].avgFlockHeading = boidData[i].flockHeading;
             boids[i].avgAvoidanceHeading = boidData[i].seperationHeading;
             boids[i].flockmatesCenter = boidData[i].flockCenter;
@@ -464,6 +467,52 @@ public class BoidsManager : MonoBehaviour
         {
             _spawners[0].SpawnAdditionalSequential(count);
         }
+    }
+
+    /// <summary>
+    /// Pause all spawners from spawning new boids.
+    /// </summary>
+    public void PauseSpawning()
+    {
+        foreach (var spawner in _spawners)
+        {
+            if (spawner != null)
+                spawner.Pause();
+        }
+    }
+
+    /// <summary>
+    /// Resume spawning on all spawners.
+    /// </summary>
+    public void ResumeSpawning()
+    {
+        foreach (var spawner in _spawners)
+        {
+            if (spawner != null)
+                spawner.Resume();
+        }
+    }
+
+    /// <summary>
+    /// Spawn boids using the specified spawner.
+    /// </summary>
+    public void SpawnBoids(int count, int spawnerIndex = 0)
+    {
+        if (spawnerIndex >= 0 && spawnerIndex < _spawners.Count && _spawners[spawnerIndex] != null)
+        {
+            _spawners[spawnerIndex].Resume(); // Ensure not paused
+            _spawners[spawnerIndex].SpawnAdditionalSequential(count);
+        }
+    }
+
+    /// <summary>
+    /// Get the default spawn count from the first spawner.
+    /// </summary>
+    public int GetDefaultSpawnCount()
+    {
+        if (_spawners.Count > 0 && _spawners[0] != null)
+            return _spawners[0].spawnCount;
+        return 0;
     }
 
     public void SetTarget(Transform newTarget)

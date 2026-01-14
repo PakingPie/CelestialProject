@@ -9,6 +9,9 @@ public class Boid : MonoBehaviour
     private Vector3? _moveTarget = null;
     private bool _holdingPosition = false;
     private Transform _priorityTarget = null;
+    private Vector3 _spawnPosition;
+    private bool _isDespawning = false;
+    private System.Action _onDespawnArrived;
 
     [Header("Debug")]
     [SerializeField] private Transform _target;
@@ -140,6 +143,28 @@ public class Boid : MonoBehaviour
         _wanderTimer = Random.Range(0f, WanderInterval);
     }
 
+    public void SetSpawnPosition(Vector3 pos)
+    {
+        _spawnPosition = pos;
+    }
+
+    public Vector3 SpawnPosition => _spawnPosition;
+    public bool IsDespawning => _isDespawning;
+
+    public void BeginDespawn(System.Action onArrived = null)
+    {
+        _isDespawning = true;
+        _onDespawnArrived = onArrived;
+        IsInCombat = false;
+        ClearPriorityTarget();
+    }
+
+    public void CancelDespawn()
+    {
+        _isDespawning = false;
+        _onDespawnArrived = null;
+    }
+
     private void UpdateRegistryPosition()
     {
         if (BoidRegistry.Instance != null)
@@ -163,7 +188,7 @@ public class Boid : MonoBehaviour
             _target = _priorityTarget;
             return;
         }
-        
+
         if (_targetManager != null)
         {
             // Use the new method that respects priority targets and defense mode
@@ -451,6 +476,113 @@ public class Boid : MonoBehaviour
     {
         UpdateTarget();
         UpdateCombatState();
+
+        // Handle despawn movement
+        if (_isDespawning)
+        {
+            float distToSpawn = Vector3.Distance(position, _spawnPosition);
+            if (distToSpawn < 50f) // Arrival threshold
+            {
+                _onDespawnArrived?.Invoke();
+                return;
+            }
+
+            // Override normal behavior - move toward spawn
+            Vector3 toSpawn = _spawnPosition - position;
+            Vector3 local_acceleration = SteerTowards(toSpawn) * _settings.targetWeight * 2f;
+
+            // Still do obstacle avoidance
+            Vector3 local_obstacleAvoidance = CalculateObstacleAvoidance();
+            if (local_obstacleAvoidance.sqrMagnitude > 0.01f)
+            {
+                local_acceleration += SteerTowards(local_obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
+            }
+
+            _velocity += local_acceleration * Time.deltaTime;
+            float local_speed = _velocity.magnitude;
+            if (local_speed > 0.001f)
+            {
+                Vector3 dir = _velocity / local_speed;
+                float targetSpeed = Mathf.Clamp(local_speed, _settings.minSpeed, _settings.maxSpeed);
+                _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, targetSpeed, Time.deltaTime * SpeedSmoothSpeed);
+                _velocity = dir * _smoothedSpeed;
+
+                Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
+                newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+
+                Quaternion targetRotation = Quaternion.LookRotation(dir);
+                Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
+
+                _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
+                position = newPos;
+                forward = smoothedRotation * Vector3.forward;
+            }
+
+            UpdateRegistryPosition();
+            return; // Skip normal behavior
+        }
+
+        // Handle hold position
+        if (_holdingPosition && _moveTarget.HasValue)
+        {
+            Vector3 toHoldPos = _moveTarget.Value - position;
+            float distToHold = toHoldPos.magnitude;
+
+            Vector3 local_acceleration = Vector3.zero;
+
+            if (distToHold > 20f)
+            {
+                // Move back toward hold position
+                local_acceleration = SteerTowards(toHoldPos) * _settings.targetWeight;
+            }
+            else
+            {
+                // At hold position - apply braking
+                if (_velocity.sqrMagnitude > 1f)
+                {
+                    local_acceleration = -_velocity.normalized * _settings.maxSteerForce * 2f;
+                }
+            }
+
+            // Still do obstacle avoidance while holding
+            Vector3 local_obstacleAvoidance = CalculateObstacleAvoidance();
+            if (local_obstacleAvoidance.sqrMagnitude > 0.01f)
+            {
+                local_acceleration += SteerTowards(local_obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
+            }
+
+            // Still do boid separation while holding
+            Vector3 local_boidSeparation = CalculateBoidSeparation();
+            if (local_boidSeparation.sqrMagnitude > 0.01f)
+            {
+                local_acceleration += SteerTowards(local_boidSeparation) * _settings.separateWeight * 0.5f;
+            }
+
+            _velocity += local_acceleration * Time.deltaTime;
+
+            // Apply strong speed damping when holding
+            float targetSpeed = distToHold > 20f ? _settings.maxSpeed * 0.5f : _settings.minSpeed * 0.5f;
+            float local_speed = _velocity.magnitude;
+
+            if (local_speed > 0.001f)
+            {
+                Vector3 dir = _velocity / local_speed;
+                _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, Mathf.Min(local_speed, targetSpeed), Time.deltaTime * SpeedSmoothSpeed * 2f);
+                _velocity = dir * _smoothedSpeed;
+
+                Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
+                newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+
+                // Face the direction we were facing when hold was issued, or current forward
+                Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, Quaternion.LookRotation(forward), Time.deltaTime * RotationSmoothSpeed * 0.5f);
+
+                _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
+                position = newPos;
+            }
+
+            UpdateRegistryPosition();
+            return; // Skip normal behavior
+        }
 
         if (!IsInCombat && _postCombatTimer < PostCombatSteadyTime)
         {
@@ -853,6 +985,7 @@ public class Boid : MonoBehaviour
     {
         _holdingPosition = true;
         _moveTarget = position;
+        IsInCombat = false; // Exit combat when holding
     }
 
     /// <summary>

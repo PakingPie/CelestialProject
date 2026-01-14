@@ -12,7 +12,8 @@ public enum BoidCommandType
     FormUp,            // Tighten formation around leader
     BreakFormation,    // Free movement / engage at will
     Defend,            // Defend a specific target
-    Hold               // Hold current position
+    Hold,              // Hold current position
+    Spawn            // Spawn new boids (not a movement command)
 }
 
 [System.Serializable]
@@ -23,17 +24,25 @@ public class BoidCommand
     public Vector3 Position;
     public float Radius;
     public float Duration; // 0 = indefinite
-    
+
     private float _startTime;
-    
+
     public bool IsExpired => Duration > 0 && Time.time - _startTime > Duration;
-    
+
     public BoidCommand(BoidCommandType type)
     {
         Type = type;
         _startTime = Time.time;
     }
-    
+
+    public static BoidCommand Spawn(int count = -1)
+    {
+        return new BoidCommand(BoidCommandType.Spawn)
+        {
+            Radius = count  // Reuse Radius field to store spawn count
+        };
+    }
+
     public static BoidCommand Follow(Transform target)
     {
         return new BoidCommand(BoidCommandType.FollowTarget)
@@ -41,7 +50,7 @@ public class BoidCommand
             Target = target
         };
     }
-    
+
     public static BoidCommand Attack(Transform target)
     {
         return new BoidCommand(BoidCommandType.AttackTarget)
@@ -49,7 +58,7 @@ public class BoidCommand
             Target = target
         };
     }
-    
+
     public static BoidCommand MoveTo(Vector3 position, float radius = 50f)
     {
         return new BoidCommand(BoidCommandType.MoveToPosition)
@@ -58,7 +67,12 @@ public class BoidCommand
             Radius = radius
         };
     }
-    
+
+    public static BoidCommand ReturnToBase()
+    {
+        return new BoidCommand(BoidCommandType.ReturnToBase);
+    }
+
     public static BoidCommand Defend(Transform target, float radius = 200f)
     {
         return new BoidCommand(BoidCommandType.Defend)
@@ -67,7 +81,7 @@ public class BoidCommand
             Radius = radius
         };
     }
-    
+
     public static BoidCommand Hold(float duration = 0f)
     {
         return new BoidCommand(BoidCommandType.Hold)

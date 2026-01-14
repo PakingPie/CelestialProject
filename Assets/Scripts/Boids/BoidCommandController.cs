@@ -1,6 +1,7 @@
 // BoidCommandController.cs - Manages commands for a flock
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 public class BoidCommandController : MonoBehaviour
 {
@@ -17,12 +18,17 @@ public class BoidCommandController : MonoBehaviour
     [SerializeField] private BoidCommandType _currentCommandType;
     [SerializeField] private Transform _currentTarget;
 
+    private int _returnToBasePendingCount = 0;
+    private bool _isReturningToBase = false;
+
     private BoidCommand _currentCommand;
 
     public BoidCommand CurrentCommand => _currentCommand;
     public BoidCommandType CurrentCommandType => _currentCommand?.Type ?? BoidCommandType.None;
 
     public event Action<BoidCommand> OnCommandChanged;
+
+    private Queue<Boid> _pendingDestroy = new Queue<Boid>();
 
     void Awake()
     {
@@ -49,6 +55,19 @@ public class BoidCommandController : MonoBehaviour
         ExecuteCommand();
     }
 
+    void LateUpdate()
+    {
+        while (_pendingDestroy.Count > 0)
+        {
+            Boid boid = _pendingDestroy.Dequeue();
+            if (boid != null)
+            {
+                _boidsManager.RemoveBoid(boid);
+                GameObject.Destroy(boid.gameObject);
+            }
+        }
+    }
+
     private void ExecuteCommand()
     {
         switch (_currentCommand.Type)
@@ -63,6 +82,14 @@ public class BoidCommandController : MonoBehaviour
 
             case BoidCommandType.MoveToPosition:
                 ExecuteMoveToPosition();
+                break;
+
+            case BoidCommandType.ReturnToBase:
+                ExecuteReturnToBase();
+                break;
+
+            case BoidCommandType.Spawn:
+                ExecuteSpawn();
                 break;
 
             case BoidCommandType.Defend:
@@ -175,6 +202,90 @@ public class BoidCommandController : MonoBehaviour
         }
     }
 
+    private void ExecuteReturnToBase()
+    {
+        if (_returnToBasePendingCount > 0) return;
+
+        _isReturningToBase = true;
+
+        // Stop any ongoing spawning
+        _boidsManager.PauseSpawning();
+
+        _boidsManager.SetUseFormation(false);
+
+        foreach (var boid in _boidsManager.Boids)
+        {
+            if (boid == null || boid.IsDespawning) continue;
+
+            _returnToBasePendingCount++;
+
+            Boid capturedBoid = boid;
+            boid.BeginDespawn(() => OnBoidReturnedToBase(capturedBoid));
+        }
+
+        if (_returnToBasePendingCount == 0)
+        {
+            _isReturningToBase = false;
+            ClearCommand();
+        }
+    }
+
+    private void OnBoidReturnedToBase(Boid boid)
+    {
+        if (boid == null) return;
+
+        _returnToBasePendingCount--;
+
+        _pendingDestroy.Enqueue(boid);
+
+        if (_returnToBasePendingCount <= 0)
+        {
+            Debug.Log($"[{_boidsManager.name}] All boids returned to base");
+            _returnToBasePendingCount = 0;
+            _isReturningToBase = false;
+            ClearCommand();
+        }
+    }
+
+    private void CancelReturnToBase()
+    {
+        _isReturningToBase = false;
+        _returnToBasePendingCount = 0;
+
+        // Cancel despawn on any boids still flying back
+        foreach (var boid in _boidsManager.Boids)
+        {
+            if (boid != null && boid.IsDespawning)
+            {
+                boid.CancelDespawn();
+            }
+        }
+
+        _boidsManager.ResumeSpawning();
+    }
+
+    private void ExecuteSpawn()
+    {
+        // Spawn command is a one-time action, execute once then clear
+        int count = (int)_currentCommand.Radius;
+
+        // If count not specified, use default from spawner
+        if (count <= 0)
+        {
+            count = _boidsManager.GetDefaultSpawnCount();
+        }
+
+        // Resume spawning (in case it was paused from RTB)
+        _boidsManager.ResumeSpawning();
+
+        // Spawn the boids
+        _boidsManager.SpawnBoids(count);
+
+        Debug.Log($"[{_boidsManager.name}] Spawning {count} boids");
+
+        // Clear command immediately - spawning is handled by spawner
+        ClearCommand();
+    }
     private void ExecuteDefend()
     {
         if (_currentCommand.Target == null)
@@ -239,6 +350,8 @@ public class BoidCommandController : MonoBehaviour
         }
     }
 
+    public bool IsReturningToBase => _isReturningToBase;
+
     #endregion
 
     #region Public Command Interface
@@ -279,6 +392,22 @@ public class BoidCommandController : MonoBehaviour
         IssueCommand(BoidCommand.MoveTo(position, arrivalRadius));
     }
 
+    public void ReturnToBase()
+    {
+        IssueCommand(BoidCommand.ReturnToBase());
+    }
+
+    public void Spawn(int count = -1)
+    {
+        // Cancel any RTB in progress
+        if (_isReturningToBase)
+        {
+            CancelReturnToBase();
+        }
+
+        IssueCommand(BoidCommand.Spawn(count));
+    }
+
     public void DefendTarget(Transform target, float radius = 200f)
     {
         IssueCommand(BoidCommand.Defend(target, radius));
@@ -304,6 +433,7 @@ public class BoidCommandController : MonoBehaviour
         _currentCommand = null;
         _currentCommandType = BoidCommandType.None;
         _currentTarget = null;
+        _isReturningToBase = false;  // Add this
 
         // Reset to default behavior
         foreach (var boid in _boidsManager.Boids)
