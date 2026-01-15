@@ -80,7 +80,6 @@ public class BoidSpawner : MonoBehaviour
     public int RemainingToSpawn => spawnCount - _currentSpawnIndex;
     public int ActiveBoidCount => CountActiveBoids();
     public int TotalSpawnedCount => _totalSpawnedCount;
-    // Add this field near other state fields
     [SerializeField] private bool _isPaused = false;
     public bool IsPaused => _isPaused;
 
@@ -465,6 +464,8 @@ public class BoidSpawner : MonoBehaviour
         }
     }
 
+    #region Debug Gizmos
+
     private void OnDrawGizmos()
     {
         if (showSpawnRegion == GizmoType.Always)
@@ -516,4 +517,5 @@ public class BoidSpawner : MonoBehaviour
             }
         }
     }
+    #endregion
 }
