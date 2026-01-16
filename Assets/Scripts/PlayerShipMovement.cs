@@ -84,6 +84,12 @@ public class PlayerShipMovement : MonoBehaviour
     [Range(0f, 1f)]
     public float flightAssistStrength = 0.5f;
 
+    [Header("Velocity Coupling")]
+    [Tooltip("How much velocity rotates with the ship (0 = full drift, 1 = full coupling)")]
+    [Range(0f, 1f)]
+    public float velocityCoupling = 0.8f;
+
+
     [Header("Debug")]
     [SerializeField] private Vector3 currentVelocity = Vector3.zero;
     [SerializeField] private float currentSpeed = 0f;
@@ -116,6 +122,9 @@ public class PlayerShipMovement : MonoBehaviour
     // Auto-level timer
     private float timeSinceRollInput = 0f;
     private float timeSinceRotationInput = 0f;
+    
+    private Quaternion previousRotation;
+
 
     // Properties for external access
     public Vector3 Velocity => velocity;
@@ -123,7 +132,7 @@ public class PlayerShipMovement : MonoBehaviour
     public float SpeedLimit => speedLimit;
     public float ThrottlePercent => smoothedThrottleInput;
     public Vector3 AngularVelocity => angularVelocity;
-    
+
     // Useful for UI - shows velocity relative to ship orientation
     public float ForwardSpeed => Vector3.Dot(velocity, transform.forward);
     public float LateralSpeed => Vector3.Dot(velocity, transform.right);
@@ -137,6 +146,7 @@ public class PlayerShipMovement : MonoBehaviour
             if (cameraController == null)
                 Debug.LogWarning(name + ": PlayerShipMovement - No PlayerMovementController found.");
         }
+        previousRotation = transform.rotation;
     }
 
     private void Update()
@@ -149,11 +159,32 @@ public class PlayerShipMovement : MonoBehaviour
         UpdateSpeedLimit(deltaTime);
         ApplyThrust(deltaTime);
         ApplyRotationalPhysics(deltaTime);
+
+        ApplyVelocityCoupling();
+
         ApplyDrag(deltaTime);
         ApplyFlightAssist(deltaTime);
         ApplySpeedLimiter(deltaTime);
         ApplyMovement(deltaTime);
         UpdateDebugValues();
+    }
+
+    private void ApplyVelocityCoupling()
+    {
+        if (velocityCoupling <= 0f) return;
+        if (velocity.sqrMagnitude < 0.01f) return;
+
+        // Calculate the rotation delta since last frame
+        Quaternion rotationDelta = transform.rotation * Quaternion.Inverse(previousRotation);
+
+        // Rotate velocity by a portion of ship's rotation
+        Vector3 rotatedVelocity = rotationDelta * velocity;
+
+        // Blend between old velocity (drift) and rotated velocity (coupled)
+        velocity = Vector3.Lerp(velocity, rotatedVelocity, velocityCoupling);
+
+        // Store for next frame
+        previousRotation = transform.rotation;
     }
 
     private void ReadRawInput()
@@ -306,8 +337,8 @@ public class PlayerShipMovement : MonoBehaviour
     private void ApplyRotationalPhysics(float deltaTime)
     {
         // Track time since rotation input
-        bool hasRotationInput = Mathf.Abs(rawPitchInput) > 0.01f || 
-                                Mathf.Abs(rawYawInput) > 0.01f || 
+        bool hasRotationInput = Mathf.Abs(rawPitchInput) > 0.01f ||
+                                Mathf.Abs(rawYawInput) > 0.01f ||
                                 Mathf.Abs(rawRollInput) > 0.01f;
 
         if (hasRotationInput)
@@ -396,7 +427,7 @@ public class PlayerShipMovement : MonoBehaviour
                 if (Vector3.Cross(transform.forward, newUp).sqrMagnitude > 0.001f)
                 {
                     transform.rotation = Quaternion.LookRotation(transform.forward, newUp);
-                    
+
                     // Also reduce roll angular velocity when auto-leveling
                     angularVelocity.z *= (1f - autoLevelSpeed * deltaTime);
                 }
