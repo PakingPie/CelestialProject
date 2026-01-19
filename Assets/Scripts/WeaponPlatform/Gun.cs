@@ -7,6 +7,7 @@ public class Gun : WeaponBase
     [Header("Ballistics")]
     [Tooltip("Time (s) between each shot.")]
     [SerializeField] private float _fireDelay = .2f;
+    public float CooldownTime = 5.0f;
     // [Tooltip("Speed (m/s) that the bullet is fired from the barrel.")]
     // public float MuzzleVelocity = 200f;
     // [Tooltip("Time (s) after which the bullet will self-destruct.")]

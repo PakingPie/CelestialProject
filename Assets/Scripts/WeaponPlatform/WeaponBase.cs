@@ -59,7 +59,6 @@ public class WeaponBase : MonoBehaviour
     [Tooltip("Range to detect missiles")]
     public float MissileDetectionRange = 200f;
 
-
     [Header("Status")]
     public float Effectiveness = 1f;
     public bool IsFunctional = true;

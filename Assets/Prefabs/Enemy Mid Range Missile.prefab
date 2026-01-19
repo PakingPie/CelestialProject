@@ -492,7 +492,7 @@ MonoBehaviour:
   ejectVelocity: {x: 0, y: -5, z: 0}
   gravity: 0
   ActiveRange: 10000
-  Damage: 50
+  Damage: 20
   ExplodeRadius: 20
   DetonationRadius: 20
   MissileScale: {x: 0.5, y: 0.5, z: 0.5}
@@ -510,6 +510,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
   OwnerShip: {fileID: 0}
+  IsShowHitpointBar: 0
   HitPoints: 20
   MaxHitPoints: 20
   ArmorPoints: 10
@@ -519,6 +520,7 @@ MonoBehaviour:
   BoidManager: {fileID: 0}
   VehicleFaction: 4
   Type: 0
+  HitpointBarCanvas: {fileID: 0}
   HealthBar: {fileID: 0}
   ArmorBar: {fileID: 0}
   ShieldBar: {fileID: 0}
@@ -526,6 +528,10 @@ MonoBehaviour:
   EnergyShieldShader: {fileID: 0}
   ShieldEffect: {fileID: 0}
   ExplodeEffect: {fileID: 0}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 40
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 40
   ShieldRegenerationRate: 1
   ShieldRegenerationDelay: 5
   EnableIndication: 0
