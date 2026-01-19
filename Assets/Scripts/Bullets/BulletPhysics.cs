@@ -177,24 +177,24 @@ public class BulletPhysics : MonoBehaviour
                 ? target.OwnerShip.GetComponent<VehicleBase>() 
                 : target;
 
-            if (ownerShip != null && ownerShip.ShieldPoints > 0)
-            {
-                Vector3 targetPos = ownerShip.CachedTransform.position;
-                Vector3 dir = (targetPos - impactPoint).normalized;
+            // if (ownerShip != null && ownerShip.ShieldPoints > 0)
+            // {
+            //     Vector3 targetPos = ownerShip.CachedTransform.position;
+            //     Vector3 dir = (targetPos - impactPoint).normalized;
 
-                float targetRadius = GetTargetRadius(ownerShip);
-                float rayStartOffset = targetRadius * 2f;
-                float rayDistance = targetRadius * 3f;
+            //     float targetRadius = GetTargetRadius(ownerShip);
+            //     float rayStartOffset = targetRadius * 2f;
+            //     float rayDistance = targetRadius * 3f;
 
-                Vector3 rayStart = targetPos - dir * rayStartOffset;
+            //     Vector3 rayStart = targetPos - dir * rayStartOffset;
 
-                if (Physics.Raycast(rayStart, dir, out _hit, rayDistance, LayerMask.GetMask("Shield")))
-                {
-                    ShieldHitEffect shieldEffect = _hit.collider.GetComponent<ShieldHitEffect>();
-                    if (shieldEffect != null)
-                        shieldEffect.GetHit(_hit);
-                }
-            }
+            //     if (Physics.Raycast(rayStart, dir, out _hit, rayDistance, LayerMask.GetMask("Shield")))
+            //     {
+            //         ShieldHitEffect shieldEffect = _hit.collider.GetComponent<ShieldHitEffect>();
+            //         if (shieldEffect != null)
+            //             shieldEffect.GetHit(_hit);
+            //     }
+            // }
 
             target.TakeDamage(Damage, DamageType);
         }

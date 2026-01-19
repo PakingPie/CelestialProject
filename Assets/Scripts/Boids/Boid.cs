@@ -3,9 +3,21 @@ using UnityEngine;
 using static GlobalHelper;
 public class Boid : MonoBehaviour
 {
+
+    [Header("Command State")]
+    private float _targetSpeed = -1f; // -1 means use default
+    private Vector3? _moveTarget = null;
+    private bool _holdingPosition = false;
+    private Transform _priorityTarget = null;
+    private Vector3 _spawnPosition;
+    private bool _isDespawning = false;
+    private System.Action _onDespawnArrived;
+
+    [Header("Debug")]
+    [SerializeField] private Transform _target;
+
     private BoidSettings _settings;
     private Transform _cachedTransform;
-    [SerializeField] private Transform _target;
     private Material _material;
     private BoidFlockTargetManager _targetManager;
     private Vector3 _velocity;
@@ -131,6 +143,28 @@ public class Boid : MonoBehaviour
         _wanderTimer = Random.Range(0f, WanderInterval);
     }
 
+    public void SetSpawnPosition(Vector3 pos)
+    {
+        _spawnPosition = pos;
+    }
+
+    public Vector3 SpawnPosition => _spawnPosition;
+    public bool IsDespawning => _isDespawning;
+
+    public void BeginDespawn(System.Action onArrived = null)
+    {
+        _isDespawning = true;
+        _onDespawnArrived = onArrived;
+        IsInCombat = false;
+        ClearPriorityTarget();
+    }
+
+    public void CancelDespawn()
+    {
+        _isDespawning = false;
+        _onDespawnArrived = null;
+    }
+
     private void UpdateRegistryPosition()
     {
         if (BoidRegistry.Instance != null)
@@ -144,9 +178,22 @@ public class Boid : MonoBehaviour
 
     public void UpdateTarget()
     {
+        // Check boid-level priority target first (from direct command)
+        if (_priorityTarget != null)
+        {
+            if (_target != _priorityTarget && AttackBehavior != null)
+            {
+                AttackBehavior.ResetSideCommitment();
+            }
+            _target = _priorityTarget;
+            return;
+        }
+
         if (_targetManager != null)
         {
-            Transform assignedTarget = _targetManager.GetAssignedTarget(this);
+            // Use the new method that respects priority targets and defense mode
+            Transform assignedTarget = _targetManager.GetTargetForBoid(this);
+
             if (assignedTarget != null)
             {
                 if (_target != assignedTarget && AttackBehavior != null)
@@ -429,6 +476,113 @@ public class Boid : MonoBehaviour
     {
         UpdateTarget();
         UpdateCombatState();
+
+        // Handle despawn movement
+        if (_isDespawning)
+        {
+            float distToSpawn = Vector3.Distance(position, _spawnPosition);
+            if (distToSpawn < 50f) // Arrival threshold
+            {
+                _onDespawnArrived?.Invoke();
+                return;
+            }
+
+            // Override normal behavior - move toward spawn
+            Vector3 toSpawn = _spawnPosition - position;
+            Vector3 local_acceleration = SteerTowards(toSpawn) * _settings.targetWeight * 2f;
+
+            // Still do obstacle avoidance
+            Vector3 local_obstacleAvoidance = CalculateObstacleAvoidance();
+            if (local_obstacleAvoidance.sqrMagnitude > 0.01f)
+            {
+                local_acceleration += SteerTowards(local_obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
+            }
+
+            _velocity += local_acceleration * Time.deltaTime;
+            float local_speed = _velocity.magnitude;
+            if (local_speed > 0.001f)
+            {
+                Vector3 dir = _velocity / local_speed;
+                float targetSpeed = Mathf.Clamp(local_speed, _settings.minSpeed, _settings.maxSpeed);
+                _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, targetSpeed, Time.deltaTime * SpeedSmoothSpeed);
+                _velocity = dir * _smoothedSpeed;
+
+                Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
+                newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+
+                Quaternion targetRotation = Quaternion.LookRotation(dir);
+                Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
+
+                _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
+                position = newPos;
+                forward = smoothedRotation * Vector3.forward;
+            }
+
+            UpdateRegistryPosition();
+            return; // Skip normal behavior
+        }
+
+        // Handle hold position
+        if (_holdingPosition && _moveTarget.HasValue)
+        {
+            Vector3 toHoldPos = _moveTarget.Value - position;
+            float distToHold = toHoldPos.magnitude;
+
+            Vector3 local_acceleration = Vector3.zero;
+
+            if (distToHold > 20f)
+            {
+                // Move back toward hold position
+                local_acceleration = SteerTowards(toHoldPos) * _settings.targetWeight;
+            }
+            else
+            {
+                // At hold position - apply braking
+                if (_velocity.sqrMagnitude > 1f)
+                {
+                    local_acceleration = -_velocity.normalized * _settings.maxSteerForce * 2f;
+                }
+            }
+
+            // Still do obstacle avoidance while holding
+            Vector3 local_obstacleAvoidance = CalculateObstacleAvoidance();
+            if (local_obstacleAvoidance.sqrMagnitude > 0.01f)
+            {
+                local_acceleration += SteerTowards(local_obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
+            }
+
+            // Still do boid separation while holding
+            Vector3 local_boidSeparation = CalculateBoidSeparation();
+            if (local_boidSeparation.sqrMagnitude > 0.01f)
+            {
+                local_acceleration += SteerTowards(local_boidSeparation) * _settings.separateWeight * 0.5f;
+            }
+
+            _velocity += local_acceleration * Time.deltaTime;
+
+            // Apply strong speed damping when holding
+            float targetSpeed = distToHold > 20f ? _settings.maxSpeed * 0.5f : _settings.minSpeed * 0.5f;
+            float local_speed = _velocity.magnitude;
+
+            if (local_speed > 0.001f)
+            {
+                Vector3 dir = _velocity / local_speed;
+                _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, Mathf.Min(local_speed, targetSpeed), Time.deltaTime * SpeedSmoothSpeed * 2f);
+                _velocity = dir * _smoothedSpeed;
+
+                Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
+                newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+
+                // Face the direction we were facing when hold was issued, or current forward
+                Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, Quaternion.LookRotation(forward), Time.deltaTime * RotationSmoothSpeed * 0.5f);
+
+                _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
+                position = newPos;
+            }
+
+            UpdateRegistryPosition();
+            return; // Skip normal behavior
+        }
 
         if (!IsInCombat && _postCombatTimer < PostCombatSteadyTime)
         {
@@ -782,6 +936,102 @@ public class Boid : MonoBehaviour
             forward = velocity.normalized;
             _cachedTransform.forward = forward;
         }
+    }
+
+    public void SetFallbackTarget(Transform target)
+    {
+        _fallbackTarget = target;
+    }
+
+    // Boid Command Handling
+    /// <summary>
+    /// Set a specific speed for this boid to match.
+    /// </summary>
+    public void SetTargetSpeed(float speed)
+    {
+        _targetSpeed = speed;
+    }
+
+    /// <summary>
+    /// Clear target speed and return to normal behavior.
+    /// </summary>
+    public void ClearTargetSpeed()
+    {
+        _targetSpeed = -1f;
+    }
+
+    /// <summary>
+    /// Set a specific position to move toward.
+    /// </summary>
+    public void SetMoveTarget(Vector3 position)
+    {
+        _moveTarget = position;
+        _holdingPosition = false;
+    }
+
+    /// <summary>
+    /// Clear move target.
+    /// </summary>
+    public void ClearMoveTarget()
+    {
+        _moveTarget = null;
+        _holdingPosition = false;
+    }
+
+    /// <summary>
+    /// Hold at current position.
+    /// </summary>
+    public void HoldPosition()
+    {
+        _holdingPosition = true;
+        _moveTarget = position;
+        IsInCombat = false; // Exit combat when holding
+    }
+
+    /// <summary>
+    /// Set a priority target for attack.
+    /// </summary>
+    public void SetPriorityTarget(Transform target)
+    {
+        _priorityTarget = target;
+    }
+
+    /// <summary>
+    /// Clear priority target.
+    /// </summary>
+    public void ClearPriorityTarget()
+    {
+        _priorityTarget = null;
+    }
+
+    // Modify your existing speed calculation in UpdateBoid() or GetSpeed():
+    private float GetEffectiveSpeed()
+    {
+        if (_targetSpeed >= 0f)
+            return _targetSpeed;
+
+        // Your existing speed logic
+        return _settings.maxSpeed;
+    }
+
+    // Modify your steering calculation to account for move target:
+    private Vector3 GetMoveTargetSteering()
+    {
+        if (_moveTarget.HasValue)
+        {
+            Vector3 toTarget = _moveTarget.Value - position;
+            float distance = toTarget.magnitude;
+
+            if (distance < 10f && _holdingPosition)
+            {
+                // Arrived at hold position - apply braking
+                return -_velocity.normalized * _settings.maxSpeed;
+            }
+
+            return toTarget.normalized;
+        }
+
+        return Vector3.zero;
     }
 
     void OnDrawGizmos()
