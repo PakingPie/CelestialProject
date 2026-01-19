@@ -179,33 +179,42 @@ public class Gun : WeaponBase
             else
             {
                 Vector3 aimPosition = Targeted.position;
+                // In the else block where GuidanceType == Lead:
                 if (GuidanceType == GlobalHelper.GuidanceType.Lead)
                 {
                     Vector3 targetVelocity = LeadCalculator.GetTargetVelocity(Targeted);
                     Vector3 shipVelocity = AutoInheritVelocity ? InheritedVelocity : Vector3.zero;
 
+                    // Use fire point position, not transform.position
+                    Transform firePoint = FirePoints.Count > 0
+                        ? FirePoints[_firePointIndex % FirePoints.Count]
+                        : transform;
+
                     Vector3 interceptPoint = LeadCalculator.CalculateInterceptPoint(
-                        transform.position,
+                        firePoint.position,
                         shipVelocity,
                         BulletPrefab.Speed,
                         Targeted.position,
                         targetVelocity,
+                        BulletPrefab.velocityInheritance,  // Account for inheritance
                         5f
                     );
 
                     if (interceptPoint != Vector3.zero)
                     {
                         aimPosition = interceptPoint;
+                        GimbalTarget = interceptPoint;  // Also update gimbal
                     }
                     else
                     {
                         aimPosition = LeadCalculator.CalculateSimpleLead(
-                            transform.position,
+                            firePoint.position,
                             Targeted.position,
                             targetVelocity,
                             BulletPrefab.Speed,
                             5f
                         );
+                        GimbalTarget = aimPosition;
                     }
                 }
 
@@ -523,69 +532,30 @@ public class Gun : WeaponBase
         InheritedVelocity = Vector3.zero;
     }
 
-    /// <summary>
-    /// Calculates the intercept point for a projectile to hit a moving target.
-    /// Accounts for shooter velocity (bullet inherits shooter momentum).
-    /// </summary>
-    private Vector3 CalculateInterceptPoint(
-        Vector3 shooterPos,
-        Vector3 shooterVelocity,
-        float projectileSpeed,
-        Vector3 targetPos,
-        Vector3 targetVelocity)
-    {
-        // Relative position and velocity
-        Vector3 relativePos = targetPos - shooterPos;
-        Vector3 relativeVel = targetVelocity - shooterVelocity;
-
-        // Quadratic equation coefficients: at² + bt + c = 0
-        float a = Vector3.Dot(relativeVel, relativeVel) - (projectileSpeed * projectileSpeed);
-        float b = 2f * Vector3.Dot(relativePos, relativeVel);
-        float c = Vector3.Dot(relativePos, relativePos);
-
-        // Handle case where a is nearly zero (relative velocity matches projectile speed)
-        if (Mathf.Abs(a) < 0.0001f)
-        {
-            if (Mathf.Abs(b) < 0.0001f)
-                return Vector3.zero;
-
-            float lt = -c / b;
-            if (lt > 0f)
-                return targetPos + targetVelocity * lt;
-            return Vector3.zero;
-        }
-
-        float discriminant = b * b - 4f * a * c;
-
-        // No real solution means target is unreachable
-        if (discriminant < 0f)
-            return Vector3.zero;
-
-        float sqrtDiscriminant = Mathf.Sqrt(discriminant);
-        float t1 = (-b + sqrtDiscriminant) / (2f * a);
-        float t2 = (-b - sqrtDiscriminant) / (2f * a);
-
-        // Choose the smallest positive time
-        float t;
-        if (t1 > 0f && t2 > 0f)
-            t = Mathf.Min(t1, t2);
-        else if (t1 > 0f)
-            t = t1;
-        else if (t2 > 0f)
-            t = t2;
-        else
-            return Vector3.zero;
-
-        // Cap prediction time to reasonable value
-        t = Mathf.Min(t, 5f);
-
-        return targetPos + targetVelocity * t;
-    }
-
     // TODO: Need to check change ammo while firing
     public void SetAmmoType(GameObject ammoPrefab)
     {
         BulletPrefab = ammoPrefab.GetComponent<BulletPhysics>();
         ActiveRange.y = BulletPrefab.Speed * BulletPrefab.LifeTime * 0.8f;
     }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (!EnableDebug || Targeted == null) return;
+
+        // Draw intercept point
+        if (GimbalTarget != Vector3.zero)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(GimbalTarget, 2f);
+            Gizmos.DrawLine(transform.position, GimbalTarget);
+        }
+
+        // Draw target velocity
+        Vector3 targetVel = LeadCalculator.GetTargetVelocity(Targeted);
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawRay(Targeted.position, targetVel);
+    }
+#endif
 }

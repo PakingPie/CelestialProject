@@ -12,10 +12,12 @@ public static class LeadCalculator
         float projectileSpeed,
         Vector3 targetPos,
         Vector3 targetVelocity,
+        float velocityInheritance = 1f,
         float maxPredictionTime = 5f)
     {
         Vector3 relativePos = targetPos - shooterPos;
-        Vector3 relativeVel = targetVelocity - shooterVelocity;
+        Vector3 effectiveShooterVel = shooterVelocity * velocityInheritance;
+        Vector3 relativeVel = targetVelocity - effectiveShooterVel;
 
         float a = Vector3.Dot(relativeVel, relativeVel) - (projectileSpeed * projectileSpeed);
         float b = 2f * Vector3.Dot(relativePos, relativeVel);
