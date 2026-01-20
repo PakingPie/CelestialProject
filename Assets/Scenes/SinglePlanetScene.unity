@@ -697,7 +697,6 @@ MonoBehaviour:
   ShowGunAngles: 0
   UseManagedUpdates: 1
   _fireDelay: 0.1
-  CooldownTime: 5
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -722,6 +721,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: d32e877e73e0730498fa8516097758c6, type: 3}
   FireInFixed: 0
   IsFiring: 1
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 2
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -1186,7 +1189,6 @@ MonoBehaviour:
   ShowGunAngles: 0
   UseManagedUpdates: 1
   _fireDelay: 0.1
-  CooldownTime: 5
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -1211,6 +1213,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: d32e877e73e0730498fa8516097758c6, type: 3}
   FireInFixed: 0
   IsFiring: 1
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 2
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -1891,7 +1897,6 @@ MonoBehaviour:
   ShowGunAngles: 0
   UseManagedUpdates: 1
   _fireDelay: 0.1
-  CooldownTime: 5
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -1916,6 +1921,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: d32e877e73e0730498fa8516097758c6, type: 3}
   FireInFixed: 0
   IsFiring: 1
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 2
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -2214,7 +2223,6 @@ MonoBehaviour:
   ShowGunAngles: 0
   UseManagedUpdates: 1
   _fireDelay: 0.1
-  CooldownTime: 5
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -2239,6 +2247,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: d32e877e73e0730498fa8516097758c6, type: 3}
   FireInFixed: 0
   IsFiring: 1
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 2
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -2890,7 +2902,7 @@ Transform:
   m_GameObject: {fileID: 764762348}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 500, y: 500, z: 0}
+  m_LocalPosition: {x: 800, y: 300, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2912,7 +2924,7 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: 983d9d1f7c702e1488fb76954bf52876, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 0}
-  HeightRange: {x: -100, y: 100}
+  HeightRange: {x: 200, y: 1000}
   syncCombatState: 1
   _targetManager: {fileID: 0}
   _flockId: Enemy Flock 1
@@ -3316,7 +3328,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
-  spawnCount: 20
+  spawnCount: 32
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -100, y: 100}
   spawnMode: 0
@@ -3329,9 +3341,9 @@ MonoBehaviour:
   autoStart: 1
   boidsPerWave: 10
   timeBetweenWaves: 2
-  maintainPopulation: 0
+  maintainPopulation: 1
   respawnDelay: 2
-  maxTotalSpawns: 200
+  maxTotalSpawns: 32
   attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
   showSpawnRegion: 0
   _isPaused: 0
@@ -5753,7 +5765,7 @@ Transform:
   m_GameObject: {fileID: 1802494800}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 80, y: 0, z: -52.5}
+  m_LocalPosition: {x: -151, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

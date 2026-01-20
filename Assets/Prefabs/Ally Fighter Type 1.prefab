@@ -529,7 +529,7 @@ MonoBehaviour:
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.5
+  _fireDelay: 0.2
   Deviation: 0.1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -537,7 +537,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.25
+  SequentialFiringInterval: 0.1
   FirePoints:
   - {fileID: 6528210914579297316}
   - {fileID: 3734917714810795797}
@@ -548,6 +548,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 2
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -1430,6 +1434,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
