@@ -5,6 +5,8 @@ using UnityEngine.InputSystem;
 
 public class AAFire : WeaponBase
 {
+    [Header("Missile Fire Settings")]
+    [Tooltip("The target to fire at.")]
     public float FireInterval = 10.0f;
     private float _fireTimer = 0f;
     private AALauncher _launcher;
