@@ -18,12 +18,12 @@ public class AAFire : WeaponBase
     {
         if (Targeted != null)
         {
-            // Get Relative angles to target 
-            Vector2 relativeAngles = CalcuateRelativeAngles(Targeted);
-            // Get seeker cone angle from launcher's prebab
-            float seekerCone = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone;
-            if (Mathf.Abs(relativeAngles.x) > seekerCone / 2f || Mathf.Abs(relativeAngles.y) > seekerCone / 2f)
-                return;
+            // // Get Relative angles to target 
+            // Vector2 relativeAngles = CalcuateRelativeAngles(Targeted);
+            // // Get seeker cone angle from launcher's prebab
+            // float seekerCone = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone;
+            // if (Mathf.Abs(relativeAngles.x) > seekerCone / 2f || Mathf.Abs(relativeAngles.y) > seekerCone / 2f)
+            //     return;
 
             // Distance
             float distanceToTarget = Vector3.Distance(transform.position, Targeted.position);
