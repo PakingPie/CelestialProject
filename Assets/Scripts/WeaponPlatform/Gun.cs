@@ -212,6 +212,8 @@ public class Gun : WeaponBase
                             Targeted.position,
                             targetVelocity,
                             BulletPrefab.Speed,
+                            shipVelocity,                      // Add
+                            BulletPrefab.velocityInheritance,  // Add
                             5f
                         );
                         GimbalTarget = aimPosition;
@@ -519,17 +521,10 @@ public class Gun : WeaponBase
         return true;
     }
 
+    // Adds more checks to automatically fill InheritedVelocity
     private void UpdateInheritedVelocity()
     {
-
-        PlayerShipMovement shipMovement = GetComponentInParent<PlayerShipMovement>();
-        if (shipMovement != null)
-        {
-            InheritedVelocity = shipMovement.Velocity;
-            return;
-        }
-
-        InheritedVelocity = Vector3.zero;
+        InheritedVelocity = LeadCalculator.GetTargetVelocity(transform);
     }
 
     // TODO: Need to check change ammo while firing

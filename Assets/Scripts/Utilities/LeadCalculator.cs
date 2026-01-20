@@ -7,13 +7,13 @@ public static class LeadCalculator
     /// Returns Vector3.zero if no valid intercept exists.
     /// </summary>
     public static Vector3 CalculateInterceptPoint(
-        Vector3 shooterPos,
-        Vector3 shooterVelocity,
-        float projectileSpeed,
-        Vector3 targetPos,
-        Vector3 targetVelocity,
-        float velocityInheritance = 1f,
-        float maxPredictionTime = 5f)
+    Vector3 shooterPos,
+    Vector3 shooterVelocity,
+    float projectileSpeed,
+    Vector3 targetPos,
+    Vector3 targetVelocity,
+    float velocityInheritance = 1f,
+    float maxPredictionTime = 5f)
     {
         Vector3 relativePos = targetPos - shooterPos;
         Vector3 effectiveShooterVel = shooterVelocity * velocityInheritance;
@@ -31,7 +31,8 @@ public static class LeadCalculator
 
             float lt = -c / b;
             if (lt > 0f && lt <= maxPredictionTime)
-                return targetPos + targetVelocity * lt;
+                // FIX: Subtract effectiveShooterVel to compensate for velocity inheritance
+                return targetPos + targetVelocity * lt - effectiveShooterVel * lt;
             return Vector3.zero;
         }
 
@@ -56,22 +57,26 @@ public static class LeadCalculator
 
         t = Mathf.Min(t, maxPredictionTime);
 
-        return targetPos + targetVelocity * t;
+        // FIX: Return the correct aim point that compensates for velocity inheritance
+        return targetPos + targetVelocity * t - effectiveShooterVel * t;
     }
 
     /// <summary>
     /// Simple linear prediction fallback when intercept calculation fails.
     /// </summary>
     public static Vector3 CalculateSimpleLead(
-        Vector3 shooterPos,
-        Vector3 targetPos,
-        Vector3 targetVelocity,
-        float projectileSpeed,
-        float maxPredictionTime = 5f)
+    Vector3 shooterPos,
+    Vector3 targetPos,
+    Vector3 targetVelocity,
+    float projectileSpeed,
+    Vector3 shooterVelocity,        // Add this parameter
+    float velocityInheritance = 1f, // Add this parameter
+    float maxPredictionTime = 5f)
     {
         float distance = Vector3.Distance(shooterPos, targetPos);
         float timeToTarget = Mathf.Min(distance / projectileSpeed, maxPredictionTime);
-        return targetPos + targetVelocity * timeToTarget;
+        Vector3 effectiveShooterVel = shooterVelocity * velocityInheritance;
+        return targetPos + targetVelocity * timeToTarget - effectiveShooterVel * timeToTarget;
     }
 
     /// <summary>
