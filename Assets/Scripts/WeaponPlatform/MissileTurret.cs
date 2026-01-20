@@ -7,8 +7,6 @@ public class MissileTurret : WeaponBase
     private AALauncher _launcher;
 
     public float FireInterval = 2.0f;
-    public bool IsFiring = false;
-
 
     void Start()
     {
@@ -17,19 +15,8 @@ public class MissileTurret : WeaponBase
 
     void Update()
     {
-        // base.Update();
-        if (!IsAimed)
-            IsFiring = false;
-        else
-            IsFiring = true;
-
-        if (IsFiring && Targeted != null)
+        if (IsAimed && Targeted != null)
         {
-            // _fireTimer += Time.deltaTime;
-            // if (_fireTimer < FireInterval)
-            //     return;
-            // _fireTimer = 0.0f;
-
             // Get Relative angles to target 
             Vector2 relativeAngles = CalcuateRelativeAngles(Targeted);
             // Get seeker cone angle from launcher's prebab
