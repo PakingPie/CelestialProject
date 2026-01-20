@@ -27,8 +27,14 @@ public class AAFire : WeaponBase
 
             // Distance
             float distanceToTarget = Vector3.Distance(transform.position, Targeted.position);
-            if(distanceToTarget < ActiveRange.y)
+            if(distanceToTarget < ActiveRange.y && _fireTimer <= 0.0f)
+            {
                 _launcher.Launch(Targeted);
+                _fireTimer = FireInterval;
+            }
+
+            if (_fireTimer > 0.0f)
+                _fireTimer -= Time.deltaTime;
         }
     }
 }
