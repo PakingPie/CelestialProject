@@ -16,7 +16,7 @@ public class ShipComponentCatalog : ScriptableObject
             ShipComponentType.Body => bodyComponents,
             ShipComponentType.Engine => engineComponents,
             ShipComponentType.Bridge => bridgeComponents,
-            ShipComponentType.DeckGun => deckGunComponents,
+            ShipComponentType.Weapon => deckGunComponents,
             _ => new List<ShipComponentData>()
         };
     }

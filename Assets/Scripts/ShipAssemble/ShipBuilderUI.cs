@@ -19,7 +19,7 @@ public class ShipBuilderUI : MonoBehaviour
     public Button bodyTabButton;
     public Button engineTabButton;
     public Button bridgeTabButton;
-    public Button deckGunTabButton;
+    public Button weaponTabButton;
     
     [Header("Info Panel")]
     public GameObject infoPanel;
@@ -54,8 +54,10 @@ public class ShipBuilderUI : MonoBehaviour
         // Show body components by default
         ShowCategory(ShipComponentType.Body);
         UpdateShipStats();
-        
+
         cancelPlacementButton.gameObject.SetActive(false);
+        
+        inputHandler.DeselectComponent();
     }
     
     private void SetupTabButtons()
@@ -63,7 +65,7 @@ public class ShipBuilderUI : MonoBehaviour
         bodyTabButton.onClick.AddListener(() => ShowCategory(ShipComponentType.Body));
         engineTabButton.onClick.AddListener(() => ShowCategory(ShipComponentType.Engine));
         bridgeTabButton.onClick.AddListener(() => ShowCategory(ShipComponentType.Bridge));
-        deckGunTabButton.onClick.AddListener(() => ShowCategory(ShipComponentType.DeckGun));
+        weaponTabButton.onClick.AddListener(() => ShowCategory(ShipComponentType.Weapon));
     }
     
     private void SetupActionButtons()
@@ -112,7 +114,7 @@ public class ShipBuilderUI : MonoBehaviour
         SetTabActive(bodyTabButton, currentCategory == ShipComponentType.Body);
         SetTabActive(engineTabButton, currentCategory == ShipComponentType.Engine);
         SetTabActive(bridgeTabButton, currentCategory == ShipComponentType.Bridge);
-        SetTabActive(deckGunTabButton, currentCategory == ShipComponentType.DeckGun);
+        SetTabActive(weaponTabButton, currentCategory == ShipComponentType.Weapon);
     }
     
     private void SetTabActive(Button tab, bool active)

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class ShipBuilderCamera : MonoBehaviour
 {
@@ -27,8 +28,6 @@ public class ShipBuilderCamera : MonoBehaviour
     public float panSmoothing = 10f;
 
     [Header("Input Settings")]
-    public KeyCode orbitKey = KeyCode.Mouse1; // Right mouse button
-    public KeyCode panKey = KeyCode.Mouse2;   // Middle mouse button
     public bool invertY = false;
 
     [Header("Auto Rotation")]
@@ -105,10 +104,10 @@ public class ShipBuilderCamera : MonoBehaviour
         bool inputReceived = false;
 
         // Orbit (Right Mouse Button)
-        if (Input.GetKey(orbitKey))
+        if (Mouse.current.rightButton.isPressed)
         {
-            float horizontal = Input.GetAxis("Mouse X") * orbitSpeed;
-            float vertical = Input.GetAxis("Mouse Y") * orbitSpeed * (invertY ? 1f : -1f);
+            float horizontal = Mouse.current.delta.ReadValue().x * orbitSpeed;
+            float vertical = Mouse.current.delta.ReadValue().y * orbitSpeed * (invertY ? 1f : -1f);
 
             targetHorizontalAngle += horizontal;
             targetVerticalAngle = Mathf.Clamp(targetVerticalAngle + vertical, minVerticalAngle, maxVerticalAngle);
@@ -117,10 +116,10 @@ public class ShipBuilderCamera : MonoBehaviour
         }
 
         // Pan (Middle Mouse Button)
-        if (Input.GetKey(panKey))
+        if (Mouse.current.middleButton.isPressed)
         {
-            float horizontal = -Input.GetAxis("Mouse X") * panSpeed;
-            float vertical = -Input.GetAxis("Mouse Y") * panSpeed;
+            float horizontal = -Mouse.current.delta.ReadValue().x * panSpeed;
+            float vertical = -Mouse.current.delta.ReadValue().y * panSpeed;
 
             // Pan relative to camera orientation
             Vector3 right = transform.right * horizontal;
@@ -138,7 +137,7 @@ public class ShipBuilderCamera : MonoBehaviour
         }
 
         // Zoom (Scroll Wheel)
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        float scroll = Mouse.current.scroll.ReadValue().y;
         if (Mathf.Abs(scroll) > 0.01f)
         {
             targetDistance -= scroll * zoomSpeed * (targetDistance * 0.3f); // Scale zoom by distance
@@ -148,7 +147,7 @@ public class ShipBuilderCamera : MonoBehaviour
         }
 
         // Reset view (Home key or double-click middle mouse)
-        if (Input.GetKeyDown(KeyCode.Home))
+        if (Keyboard.current.homeKey.wasPressedThisFrame)
         {
             ResetView();
             inputReceived = true;

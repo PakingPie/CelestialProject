@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 public class ShipBuilderInputHandler : MonoBehaviour
 {
@@ -9,20 +10,20 @@ public class ShipBuilderInputHandler : MonoBehaviour
     public Camera builderCamera;
     public LayerMask attachmentPointLayer;
     public LayerMask shipLayer;
-    
+
     [Header("Preview Settings")]
     public Material previewValidMaterial;
     public Material previewInvalidMaterial;
-    
+
     [Header("State")]
     [SerializeField] private ShipComponentData selectedComponent;
     [SerializeField] private BuildMode currentMode = BuildMode.None;
-    
+
     private GameObject previewObject;
     private AttachmentPoint hoveredPoint;
     private AttachmentPoint lastHoveredPoint;
     private List<AttachmentPoint> highlightedPoints = new List<AttachmentPoint>();
-    
+
     public enum BuildMode
     {
         None,
@@ -30,28 +31,38 @@ public class ShipBuilderInputHandler : MonoBehaviour
         PlacingComponent,
         Removing
     }
-    
+
     // Events for UI updates
     public event Action<ShipComponentData> OnComponentSelected;
     public event Action OnComponentDeselected;
     public event Action<AttachmentPoint> OnAttachmentPointHovered;
     public event Action OnPlacementComplete;
-    
+
+    void Awake()
+    {
+        // Initialize state in Awake (runs before Start)
+        selectedComponent = null;
+        currentMode = BuildMode.None;
+        previewObject = null;
+        hoveredPoint = null;
+        highlightedPoints = new List<AttachmentPoint>();
+    }
+
     void Start()
     {
         if (builderCamera == null)
             builderCamera = Camera.main;
     }
-    
+
     void Update()
     {
         if (currentMode == BuildMode.None) return;
-        
+
         HandleRaycast();
         HandleInput();
         UpdatePreview();
     }
-    
+
     /// <summary>
     /// Select a component to place
     /// </summary>
@@ -59,13 +70,13 @@ public class ShipBuilderInputHandler : MonoBehaviour
     {
         // Clear previous selection
         DeselectComponent();
-        
+
         selectedComponent = component;
-        
+
         if (component.ComponentType == ShipComponentType.Body)
         {
             currentMode = BuildMode.PlacingBody;
-            
+
             // If no body segments exist, we're placing the first one
             if (assemblyManager.bodySegments.Count == 0)
             {
@@ -81,11 +92,11 @@ public class ShipBuilderInputHandler : MonoBehaviour
             currentMode = BuildMode.PlacingComponent;
             HighlightAvailableAttachmentPoints(component.ComponentType);
         }
-        
+
         CreatePreviewObject();
         OnComponentSelected?.Invoke(component);
     }
-    
+
     /// <summary>
     /// Deselect current component
     /// </summary>
@@ -93,13 +104,13 @@ public class ShipBuilderInputHandler : MonoBehaviour
     {
         selectedComponent = null;
         currentMode = BuildMode.None;
-        
+
         ClearHighlights();
         DestroyPreview();
-        
+
         OnComponentDeselected?.Invoke();
     }
-    
+
     /// <summary>
     /// Enter remove mode
     /// </summary>
@@ -108,26 +119,26 @@ public class ShipBuilderInputHandler : MonoBehaviour
         DeselectComponent();
         currentMode = BuildMode.Removing;
     }
-    
+
     private void HandleRaycast()
     {
-        Ray ray = builderCamera.ScreenPointToRay(Input.mousePosition);
-        
+        Ray ray = builderCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+
         // Check for attachment points
         if (Physics.Raycast(ray, out RaycastHit hit, 100f, attachmentPointLayer))
         {
             AttachmentPoint point = hit.collider.GetComponent<AttachmentPoint>();
             if (point == null)
                 point = hit.collider.GetComponentInParent<AttachmentPoint>();
-            
+
             if (point != hoveredPoint)
             {
                 // Unhover previous
                 if (hoveredPoint != null)
                     hoveredPoint.SetHovered(false);
-                
+
                 hoveredPoint = point;
-                
+
                 // Hover new
                 if (hoveredPoint != null)
                 {
@@ -145,75 +156,85 @@ public class ShipBuilderInputHandler : MonoBehaviour
             }
         }
     }
-    
+
     private void HandleInput()
     {
         // Left click to place
-        if (Input.GetMouseButtonDown(0))
+        if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             TryPlaceComponent();
         }
-        
+
         // Right click to cancel
-        if (Input.GetMouseButtonDown(1))
+        if (Mouse.current.rightButton.wasPressedThisFrame)
         {
             DeselectComponent();
         }
-        
+
         // Escape to cancel
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             DeselectComponent();
         }
     }
-    
+
     private void TryPlaceComponent()
+{
+    if (selectedComponent == null) return;
+
+    // Special case: placing first body segment
+    if (currentMode == BuildMode.PlacingBody && assemblyManager.bodySegments.Count == 0)
     {
-        if (selectedComponent == null) return;
+        assemblyManager.AddInitialBodySegment(selectedComponent);
+        OnPlacementComplete?.Invoke();
+
+        // Refresh highlights for additional placements
+        ClearHighlights();
+        HighlightAvailableBodyConnections();
         
-        // Special case: placing first body segment
-        if (currentMode == BuildMode.PlacingBody && assemblyManager.bodySegments.Count == 0)
+        // IMPORTANT: Recreate preview for next placement
+        DestroyPreview();
+        CreatePreviewObject();
+        return;
+    }
+
+    // Need a valid hovered point
+    if (hoveredPoint == null || hoveredPoint.isOccupied) return;
+
+    if (currentMode == BuildMode.PlacingBody)
+    {
+        if (hoveredPoint.CanAccept(ShipComponentType.Body) || IsBodyConnectionPoint(hoveredPoint))
         {
-            assemblyManager.AddInitialBodySegment(selectedComponent);
+            assemblyManager.AttachBodySegment(selectedComponent, hoveredPoint);
             OnPlacementComplete?.Invoke();
-            
-            // Continue placing or deselect based on preference
-            // DeselectComponent();
-            
-            // Or allow placing more bodies
+
+            // Refresh highlights for additional placements
+            ClearHighlights();
             HighlightAvailableBodyConnections();
-            return;
-        }
-        
-        // Need a valid hovered point
-        if (hoveredPoint == null || hoveredPoint.isOccupied) return;
-        
-        if (currentMode == BuildMode.PlacingBody)
-        {
-            if (hoveredPoint.CanAccept(ShipComponentType.Body) || IsBodyConnectionPoint(hoveredPoint))
-            {
-                assemblyManager.AttachBodySegment(selectedComponent, hoveredPoint);
-                OnPlacementComplete?.Invoke();
-                
-                // Refresh highlights for additional placements
-                ClearHighlights();
-                HighlightAvailableBodyConnections();
-            }
-        }
-        else if (currentMode == BuildMode.PlacingComponent)
-        {
-            if (hoveredPoint.CanAccept(selectedComponent.ComponentType))
-            {
-                assemblyManager.AttachComponent(selectedComponent, hoveredPoint);
-                OnPlacementComplete?.Invoke();
-                
-                // Refresh highlights
-                ClearHighlights();
-                HighlightAvailableAttachmentPoints(selectedComponent.ComponentType);
-            }
+            
+            // Recreate preview for next placement
+            DestroyPreview();
+            CreatePreviewObject();
         }
     }
-    
+    else if (currentMode == BuildMode.PlacingComponent)
+    {
+        if (hoveredPoint.CanAccept(selectedComponent.ComponentType))
+        {
+            assemblyManager.AttachComponent(selectedComponent, hoveredPoint);
+            OnPlacementComplete?.Invoke();
+
+            // Refresh highlights
+            ClearHighlights();
+            HighlightAvailableAttachmentPoints(selectedComponent.ComponentType);
+            
+            // Recreate preview for next placement
+            DestroyPreview();
+            CreatePreviewObject();
+        }
+    }
+}
+
     private bool IsBodyConnectionPoint(AttachmentPoint point)
     {
         // Check if this is one of the 6-direction body connections
@@ -231,18 +252,18 @@ public class ShipBuilderInputHandler : MonoBehaviour
         }
         return false;
     }
-    
+
     private void HighlightShipRoot()
     {
         // For first body placement, we might show a ground indicator
         // This is optional - you could also just place at origin
         Debug.Log("Ready to place first body segment. Click anywhere to place.");
     }
-    
+
     private void HighlightAvailableBodyConnections()
     {
         ClearHighlights();
-        
+
         var available = assemblyManager.GetAllAvailableBodyConnections();
         foreach (var point in available)
         {
@@ -250,18 +271,18 @@ public class ShipBuilderInputHandler : MonoBehaviour
             highlightedPoints.Add(point);
         }
     }
-    
+
     private void HighlightAvailableAttachmentPoints(ShipComponentType type)
     {
         ClearHighlights();
-        
+
         var available = assemblyManager.GetAllAttachmentPointsForType(type);
         foreach (var point in available)
         {
             point.ShowHighlight(true);
             highlightedPoints.Add(point);
         }
-        
+
         // Also show invalid points dimmed
         foreach (var segment in assemblyManager.bodySegments)
         {
@@ -275,7 +296,7 @@ public class ShipBuilderInputHandler : MonoBehaviour
             }
         }
     }
-    
+
     private void ClearHighlights()
     {
         foreach (var point in highlightedPoints)
@@ -285,24 +306,24 @@ public class ShipBuilderInputHandler : MonoBehaviour
         }
         highlightedPoints.Clear();
     }
-    
+
     private void CreatePreviewObject()
     {
         if (selectedComponent == null || selectedComponent.Prefab == null) return;
-        
+
         previewObject = Instantiate(selectedComponent.Prefab);
         previewObject.name = "PlacementPreview";
-        
+
         // Disable all functional components
         DisablePreviewFunctionality(previewObject);
-        
+
         // Apply preview material
         ApplyPreviewMaterial(previewObject, true);
-        
+
         // Initially hide until we have a valid position
         previewObject.SetActive(false);
     }
-    
+
     private void DisablePreviewFunctionality(GameObject obj)
     {
         // Disable colliders
@@ -310,38 +331,38 @@ public class ShipBuilderInputHandler : MonoBehaviour
         {
             col.enabled = false;
         }
-        
+
         // Disable scripts except transform-related
         foreach (var mb in obj.GetComponentsInChildren<MonoBehaviour>())
         {
             if (!(mb is Transform))
                 mb.enabled = false;
         }
-        
+
         // Disable rigidbodies
         foreach (var rb in obj.GetComponentsInChildren<Rigidbody>())
         {
             rb.isKinematic = true;
         }
     }
-    
+
     private void ApplyPreviewMaterial(GameObject obj, bool isValid)
     {
         Material mat = isValid ? previewValidMaterial : previewInvalidMaterial;
-        
+
         if (mat == null)
         {
             // Create default preview materials if not assigned
             mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
             mat.color = isValid ? new Color(0, 1, 0, 0.4f) : new Color(1, 0, 0, 0.4f);
-            
+
             mat.SetFloat("_Surface", 1);
             mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
             mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
             mat.SetInt("_ZWrite", 0);
             mat.renderQueue = 3000;
         }
-        
+
         foreach (var renderer in obj.GetComponentsInChildren<MeshRenderer>())
         {
             Material[] mats = new Material[renderer.materials.Length];
@@ -352,11 +373,11 @@ public class ShipBuilderInputHandler : MonoBehaviour
             renderer.materials = mats;
         }
     }
-    
+
     private void UpdatePreview()
     {
         if (previewObject == null) return;
-        
+
         if (hoveredPoint != null && !hoveredPoint.isOccupied && CanPlaceAt(hoveredPoint))
         {
             previewObject.SetActive(true);
@@ -375,11 +396,11 @@ public class ShipBuilderInputHandler : MonoBehaviour
             previewObject.SetActive(false);
         }
     }
-    
+
     private bool CanPlaceAt(AttachmentPoint point)
     {
         if (selectedComponent == null) return false;
-        
+
         if (currentMode == BuildMode.PlacingBody)
         {
             return IsBodyConnectionPoint(point);
@@ -389,7 +410,7 @@ public class ShipBuilderInputHandler : MonoBehaviour
             return point.CanAccept(selectedComponent.ComponentType);
         }
     }
-    
+
     private void PositionPreviewAt(AttachmentPoint point)
     {
         if (currentMode == BuildMode.PlacingBody)
@@ -400,18 +421,18 @@ public class ShipBuilderInputHandler : MonoBehaviour
             {
                 AttachmentDirection oppositeDir = AttachmentPoint.GetOppositeDirection(point.direction);
                 AttachmentPoint previewConnection = previewComponent.GetBodyConnection(oppositeDir);
-                
+
                 if (previewConnection != null)
                 {
                     // Align rotation
                     Vector3 existingForward = point.transform.forward;
                     Vector3 previewPointLocalForward = previewObject.transform.InverseTransformDirection(previewConnection.transform.forward);
-                    
+
                     Quaternion targetRotation = Quaternion.LookRotation(-existingForward, point.transform.up);
                     Quaternion pointLocalRotation = Quaternion.LookRotation(previewPointLocalForward, Vector3.up);
-                    
+
                     previewObject.transform.rotation = targetRotation * Quaternion.Inverse(pointLocalRotation);
-                    
+
                     // Align position
                     Vector3 offset = point.transform.position - previewConnection.transform.position;
                     previewObject.transform.position += offset;
@@ -425,19 +446,19 @@ public class ShipBuilderInputHandler : MonoBehaviour
             previewObject.transform.rotation = point.transform.rotation;
         }
     }
-    
+
     private void PositionPreviewAtMouseGround()
     {
-        Ray ray = builderCamera.ScreenPointToRay(Input.mousePosition);
+        Ray ray = builderCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-        
+
         if (groundPlane.Raycast(ray, out float distance))
         {
             Vector3 point = ray.GetPoint(distance);
             previewObject.transform.position = point;
         }
     }
-    
+
     private void DestroyPreview()
     {
         if (previewObject != null)
@@ -446,7 +467,7 @@ public class ShipBuilderInputHandler : MonoBehaviour
             previewObject = null;
         }
     }
-    
+
     void OnDisable()
     {
         DeselectComponent();

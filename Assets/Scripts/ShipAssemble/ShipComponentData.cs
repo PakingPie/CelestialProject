@@ -6,7 +6,7 @@ public enum ShipComponentType
     Body,
     Engine,
     Bridge,
-    DeckGun
+    Weapon
 }
 
 // Base component data
