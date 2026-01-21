@@ -13,12 +13,12 @@ public enum ShipComponentType
 [CreateAssetMenu(fileName = "ShipComponent", menuName = "Ship/Component")]
 public class ShipComponentData : ScriptableObject
 {
-    public string componentName;
-    public ShipComponentType componentType;
-    public GameObject prefab;
-    public Sprite uiIcon;
+    public string ComponentName;
+    public ShipComponentType ComponentType;
+    public GameObject Prefab;
+    public Sprite UiIcon;
     
     // Stats this component contributes
-    public float hullPoints;
-    public float weight;
+    public float HullPoints;
+    public float Weight;
 }
