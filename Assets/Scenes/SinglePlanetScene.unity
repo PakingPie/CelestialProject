@@ -1182,7 +1182,7 @@ MonoBehaviour:
   deckGuns:
   - {fileID: 7182338704753766591, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
   shipRoot: {fileID: 297833019}
-  maxBodySegments: 3
+  maxBodySegments: 10
   maxDeckGuns: 20
 --- !u!4 &152998127
 Transform:
@@ -1539,16 +1539,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShipBuilderInputHandler
   assemblyManager: {fileID: 152998126}
   builderCamera: {fileID: 1557464055}
-  attachmentPointLayer:
-    serializedVersion: 2
-    m_Bits: 16384
-  shipLayer:
-    serializedVersion: 2
-    m_Bits: 32768
   previewValidMaterial: {fileID: 2100000, guid: f4ba47cd11d2de74c8709e83a3971e86, type: 2}
   previewInvalidMaterial: {fileID: 2100000, guid: d446da29b4600a949a90ec1805195cd3, type: 2}
   selectedComponent: {fileID: 0}
   currentMode: 1
+  attachmentPointScreenRadius: 30
 --- !u!1 &297833018
 GameObject:
   m_ObjectHideFlags: 0
@@ -2437,8 +2432,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 320, y: -950}
-  m_SizeDelta: {x: 600, y: 100}
+  m_AnchoredPosition: {x: 220, y: -950}
+  m_SizeDelta: {x: 400, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &664178636
 MonoBehaviour:
@@ -4017,8 +4012,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 320, y: -640}
-  m_SizeDelta: {x: 600, y: 150}
+  m_AnchoredPosition: {x: 220, y: -640}
+  m_SizeDelta: {x: 400, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1053139796
 MonoBehaviour:
@@ -7481,8 +7476,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 320, y: -800}
-  m_SizeDelta: {x: 600, y: 150}
+  m_AnchoredPosition: {x: 220, y: -800}
+  m_SizeDelta: {x: 400, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1652746884
 MonoBehaviour:

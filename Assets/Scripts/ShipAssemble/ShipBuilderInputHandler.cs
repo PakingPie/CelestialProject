@@ -8,8 +8,6 @@ public class ShipBuilderInputHandler : MonoBehaviour
     [Header("References")]
     public ShipAssemblyManager assemblyManager;
     public Camera builderCamera;
-    public LayerMask attachmentPointLayer;
-    public LayerMask shipLayer;
 
     [Header("Preview Settings")]
     public Material previewValidMaterial;
@@ -18,7 +16,9 @@ public class ShipBuilderInputHandler : MonoBehaviour
     [Header("State")]
     [SerializeField] private ShipComponentData selectedComponent;
     [SerializeField] private BuildMode currentMode = BuildMode.None;
+    [SerializeField] private int rotationStep = 0; // 0, 1, 2, 3 = 0°, 90°, 180°, 270°
 
+    private float PlacementRotationAngle => rotationStep * 90f;
     private GameObject previewObject;
     private AttachmentPoint hoveredPoint;
     private AttachmentPoint lastHoveredPoint;
@@ -37,16 +37,6 @@ public class ShipBuilderInputHandler : MonoBehaviour
     public event Action OnComponentDeselected;
     public event Action<AttachmentPoint> OnAttachmentPointHovered;
     public event Action OnPlacementComplete;
-
-    void Awake()
-    {
-        // Initialize state in Awake (runs before Start)
-        selectedComponent = null;
-        currentMode = BuildMode.None;
-        previewObject = null;
-        hoveredPoint = null;
-        highlightedPoints = new List<AttachmentPoint>();
-    }
 
     void Start()
     {
@@ -104,6 +94,7 @@ public class ShipBuilderInputHandler : MonoBehaviour
     {
         selectedComponent = null;
         currentMode = BuildMode.None;
+        rotationStep = 0;
 
         ClearHighlights();
         DestroyPreview();
@@ -120,41 +111,85 @@ public class ShipBuilderInputHandler : MonoBehaviour
         currentMode = BuildMode.Removing;
     }
 
+    [Header("Detection Settings")]
+    public float attachmentPointScreenRadius = 30f; // Pixel radius for detection
+
     private void HandleRaycast()
     {
-        Ray ray = builderCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Vector2 mousePos = Mouse.current.position.ReadValue();
 
-        // Check for attachment points
-        if (Physics.Raycast(ray, out RaycastHit hit, 100f, attachmentPointLayer))
+        AttachmentPoint closestPoint = null;
+        float closestDistance = attachmentPointScreenRadius; // Max detection radius in pixels
+
+        // Get all available attachment points based on current mode
+        List<AttachmentPoint> pointsToCheck = GetRelevantAttachmentPoints();
+
+        foreach (var point in pointsToCheck)
         {
-            AttachmentPoint point = hit.collider.GetComponent<AttachmentPoint>();
-            if (point == null)
-                point = hit.collider.GetComponentInParent<AttachmentPoint>();
+            if (point == null || point.isOccupied) continue;
 
-            if (point != hoveredPoint)
+            // Convert world position to screen position
+            Vector3 screenPos = builderCamera.WorldToScreenPoint(point.transform.position);
+
+            // Skip if behind camera
+            if (screenPos.z < 0) continue;
+
+            // Calculate distance in screen space (2D)
+            float distance = Vector2.Distance(mousePos, new Vector2(screenPos.x, screenPos.y));
+
+            if (distance < closestDistance)
             {
-                // Unhover previous
-                if (hoveredPoint != null)
-                    hoveredPoint.SetHovered(false);
+                closestDistance = distance;
+                closestPoint = point;
+            }
+        }
 
-                hoveredPoint = point;
+        // Update hovered point
+        if (closestPoint != hoveredPoint)
+        {
+            // Unhover previous
+            if (hoveredPoint != null)
+                hoveredPoint.SetHovered(false);
 
-                // Hover new
-                if (hoveredPoint != null)
+            hoveredPoint = closestPoint;
+
+            // Hover new
+            if (hoveredPoint != null)
+            {
+                hoveredPoint.SetHovered(true);
+                OnAttachmentPointHovered?.Invoke(hoveredPoint);
+            }
+        }
+    }
+
+    private List<AttachmentPoint> GetRelevantAttachmentPoints()
+    {
+        List<AttachmentPoint> points = new List<AttachmentPoint>();
+
+        if (currentMode == BuildMode.PlacingBody)
+        {
+            // Get all available body connection points
+            points.AddRange(assemblyManager.GetAllAvailableBodyConnections());
+        }
+        else if (currentMode == BuildMode.PlacingComponent && selectedComponent != null)
+        {
+            // Get all points that accept this component type
+            points.AddRange(assemblyManager.GetAllAttachmentPointsForType(selectedComponent.ComponentType));
+        }
+        else if (currentMode == BuildMode.Removing)
+        {
+            // For removing, we might want all occupied points
+            foreach (var segment in assemblyManager.bodySegments)
+            {
+                foreach (var point in segment.AttachmentPoints)
                 {
-                    hoveredPoint.SetHovered(true);
-                    OnAttachmentPointHovered?.Invoke(hoveredPoint);
+                    if (point.isOccupied)
+                        points.Add(point);
                 }
             }
         }
-        else
-        {
-            if (hoveredPoint != null)
-            {
-                hoveredPoint.SetHovered(false);
-                hoveredPoint = null;
-            }
-        }
+
+        return points;
     }
 
     private void HandleInput()
@@ -176,64 +211,100 @@ public class ShipBuilderInputHandler : MonoBehaviour
         {
             DeselectComponent();
         }
+
+        // R to rotate clockwise
+        if (Keyboard.current.rKey.wasPressedThisFrame)
+        {
+            RotatePlacement(1);
+        }
+
+        // Q to rotate counter-clockwise (optional)
+        if (Keyboard.current.qKey.wasPressedThisFrame)
+        {
+            RotatePlacement(-1);
+        }
+
+        // Scroll wheel to rotate (optional alternative)
+        float scroll = Mouse.current.scroll.ReadValue().y;
+        if (Mathf.Abs(scroll) > 0.1f)
+        {
+            RotatePlacement(scroll > 0 ? 1 : -1);
+        }
+    }
+
+    private void RotatePlacement(int direction)
+    {
+        if (currentMode == BuildMode.None || selectedComponent == null) return;
+
+        // Only allow rotation for non-body components (optional: you can allow for bodies too)
+        if (currentMode == BuildMode.PlacingBody) return;
+
+        rotationStep = (rotationStep + direction + 4) % 4; // Keep in range 0-3
+
+        // Debug.Log($"Rotation: {PlacementRotationAngle}°");
     }
 
     private void TryPlaceComponent()
-{
-    if (selectedComponent == null) return;
-
-    // Special case: placing first body segment
-    if (currentMode == BuildMode.PlacingBody && assemblyManager.bodySegments.Count == 0)
     {
-        assemblyManager.AddInitialBodySegment(selectedComponent);
-        OnPlacementComplete?.Invoke();
+        if (selectedComponent == null) return;
 
-        // Refresh highlights for additional placements
-        ClearHighlights();
-        HighlightAvailableBodyConnections();
-        
-        // IMPORTANT: Recreate preview for next placement
-        DestroyPreview();
-        CreatePreviewObject();
-        return;
-    }
+        Debug.Log($"TryPlaceComponent: Mode={currentMode}, " +
+                  $"ComponentType={selectedComponent.ComponentType}, " +
+                  $"Rotation={PlacementRotationAngle}°");
 
-    // Need a valid hovered point
-    if (hoveredPoint == null || hoveredPoint.isOccupied) return;
-
-    if (currentMode == BuildMode.PlacingBody)
-    {
-        if (hoveredPoint.CanAccept(ShipComponentType.Body) || IsBodyConnectionPoint(hoveredPoint))
+        // Special case: placing first body segment
+        if (currentMode == BuildMode.PlacingBody && assemblyManager.bodySegments.Count == 0)
         {
-            assemblyManager.AttachBodySegment(selectedComponent, hoveredPoint);
+            assemblyManager.AddInitialBodySegment(selectedComponent);
             OnPlacementComplete?.Invoke();
 
-            // Refresh highlights for additional placements
             ClearHighlights();
             HighlightAvailableBodyConnections();
-            
-            // Recreate preview for next placement
-            DestroyPreview();
-            CreatePreviewObject();
-        }
-    }
-    else if (currentMode == BuildMode.PlacingComponent)
-    {
-        if (hoveredPoint.CanAccept(selectedComponent.ComponentType))
-        {
-            assemblyManager.AttachComponent(selectedComponent, hoveredPoint);
-            OnPlacementComplete?.Invoke();
 
-            // Refresh highlights
-            ClearHighlights();
-            HighlightAvailableAttachmentPoints(selectedComponent.ComponentType);
-            
-            // Recreate preview for next placement
             DestroyPreview();
             CreatePreviewObject();
+            return;
+        }
+
+        if (hoveredPoint == null || hoveredPoint.isOccupied)
+        {
+            Debug.Log("No valid attachment point hovered.");
+            return;
+        }
+
+        if (currentMode == BuildMode.PlacingBody)
+        {
+            if (hoveredPoint.CanAccept(ShipComponentType.Body) || IsBodyConnectionPoint(hoveredPoint))
+            {
+                assemblyManager.AttachBodySegment(selectedComponent, hoveredPoint);
+                OnPlacementComplete?.Invoke();
+
+                ClearHighlights();
+                HighlightAvailableBodyConnections();
+
+                DestroyPreview();
+                CreatePreviewObject();
+            }
+        }
+        else if (currentMode == BuildMode.PlacingComponent)
+        {
+            if (hoveredPoint.CanAccept(selectedComponent.ComponentType))
+            {
+                // Pass rotation to assembly manager
+                assemblyManager.AttachComponent(selectedComponent, hoveredPoint, PlacementRotationAngle);
+                OnPlacementComplete?.Invoke();
+
+                ClearHighlights();
+                HighlightAvailableAttachmentPoints(selectedComponent.ComponentType);
+
+                DestroyPreview();
+                CreatePreviewObject();
+
+                // Optionally reset rotation after placement, or keep it for next placement
+                // rotationStep = 0;
+            }
         }
     }
-}
 
     private bool IsBodyConnectionPoint(AttachmentPoint point)
     {
@@ -415,7 +486,7 @@ public class ShipBuilderInputHandler : MonoBehaviour
     {
         if (currentMode == BuildMode.PlacingBody)
         {
-            // For body segments, calculate proper alignment
+            // Body segment positioning (unchanged)
             ShipComponent previewComponent = previewObject.GetComponent<ShipComponent>();
             if (previewComponent != null)
             {
@@ -424,26 +495,66 @@ public class ShipBuilderInputHandler : MonoBehaviour
 
                 if (previewConnection != null)
                 {
-                    // Align rotation
-                    Vector3 existingForward = point.transform.forward;
-                    Vector3 previewPointLocalForward = previewObject.transform.InverseTransformDirection(previewConnection.transform.forward);
+                    previewObject.transform.position = Vector3.zero;
+                    previewObject.transform.rotation = Quaternion.identity;
 
-                    Quaternion targetRotation = Quaternion.LookRotation(-existingForward, point.transform.up);
-                    Quaternion pointLocalRotation = Quaternion.LookRotation(previewPointLocalForward, Vector3.up);
-
-                    previewObject.transform.rotation = targetRotation * Quaternion.Inverse(pointLocalRotation);
-
-                    // Align position
-                    Vector3 offset = point.transform.position - previewConnection.transform.position;
-                    previewObject.transform.position += offset;
+                    Vector3 connectionOffset = previewConnection.transform.position;
+                    previewObject.transform.position = point.transform.position - connectionOffset;
                 }
             }
         }
         else
         {
-            // For other components, just parent to attachment point
-            previewObject.transform.position = point.transform.position;
-            previewObject.transform.rotation = point.transform.rotation;
+            // For weapons, engines, bridges - use full rotation alignment with player rotation
+            ShipComponent previewComponent = previewObject.GetComponent<ShipComponent>();
+            AttachmentPoint componentPoint = null;
+
+            if (previewComponent != null && previewComponent.AttachmentPoints.Length > 0)
+            {
+                foreach (var p in previewComponent.AttachmentPoints)
+                {
+                    if (p.direction == AttachmentDirection.Bottom)
+                    {
+                        componentPoint = p;
+                        break;
+                    }
+                }
+                if (componentPoint == null)
+                    componentPoint = previewComponent.AttachmentPoints[0];
+            }
+
+            if (componentPoint != null)
+            {
+                // Reset to origin
+                previewObject.transform.position = Vector3.zero;
+                previewObject.transform.rotation = Quaternion.identity;
+
+                // Get mount point's local orientation
+                Vector3 mountForward = componentPoint.transform.forward;
+                Vector3 mountUp = componentPoint.transform.up;
+
+                // Get target orientation
+                Vector3 targetForward = point.transform.forward;
+                Vector3 targetUp = point.transform.up;
+
+                // Calculate base rotation alignment
+                Quaternion mountCurrentRotation = Quaternion.LookRotation(mountForward, mountUp);
+                Quaternion mountDesiredRotation = Quaternion.LookRotation(-targetForward, targetUp);
+                Quaternion baseRotation = mountDesiredRotation * Quaternion.Inverse(mountCurrentRotation);
+
+                // Apply player's rotation offset around the attachment axis (target's forward)
+                Quaternion playerRotation = Quaternion.AngleAxis(PlacementRotationAngle, -targetForward);
+                previewObject.transform.rotation = playerRotation * baseRotation;
+
+                // Position so attachment points overlap (recalculate after rotation)
+                Vector3 offset = componentPoint.transform.position - previewObject.transform.position;
+                previewObject.transform.position = point.transform.position - offset;
+            }
+            else
+            {
+                previewObject.transform.position = point.transform.position;
+                previewObject.transform.rotation = point.transform.rotation;
+            }
         }
     }
 
@@ -471,5 +582,21 @@ public class ShipBuilderInputHandler : MonoBehaviour
     void OnDisable()
     {
         DeselectComponent();
+    }
+
+    void OnDrawGizmos()
+    {
+        if (!Application.isPlaying || currentMode == BuildMode.None) return;
+
+        var points = GetRelevantAttachmentPoints();
+
+        foreach (var point in points)
+        {
+            if (point == null) continue;
+
+            // Draw sphere at each attachment point
+            Gizmos.color = point == hoveredPoint ? Color.green : Color.yellow;
+            Gizmos.DrawWireSphere(point.transform.position, 0.2f);
+        }
     }
 }

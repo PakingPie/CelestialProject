@@ -12,8 +12,8 @@ public class ShipAssemblyManager : MonoBehaviour
 
     [Header("Build Settings")]
     public Transform shipRoot;
-    public int maxBodySegments = 3;
-    public int maxDeckGuns = 4;
+    public int maxBodySegments = 10;
+    public int maxDeckGuns = 100;
 
     public event System.Action OnShipModified;
 
@@ -125,75 +125,191 @@ public class ShipAssemblyManager : MonoBehaviour
     {
         Transform newTransform = newComponent.transform;
 
-        // Step 1: Rotate so the connection points face each other
-        // The new segment's connection point should face opposite to the existing point
-        Vector3 existingForward = existingPoint.transform.forward;
-        Vector3 newPointLocalForward = newComponent.transform.InverseTransformDirection(newPoint.transform.forward);
+        // Step 1: Reset the new component to origin with no rotation
+        newTransform.position = Vector3.zero;
+        newTransform.rotation = Quaternion.identity;
 
-        // Calculate the rotation needed to make new point face opposite to existing point
-        Quaternion targetRotation = Quaternion.LookRotation(-existingForward, existingPoint.transform.up);
-        Quaternion pointLocalRotation = Quaternion.LookRotation(newPointLocalForward, Vector3.up);
+        // Step 2: Now newPoint.transform.position IS its offset from the component center
+        // (because component is at origin with identity rotation)
+        Vector3 connectionOffset = newPoint.transform.position;
 
-        newTransform.rotation = targetRotation * Quaternion.Inverse(pointLocalRotation);
+        // Step 3: Position the component so newPoint aligns with existingPoint
+        // newComponent.position + connectionOffset = existingPoint.position
+        // Therefore: newComponent.position = existingPoint.position - connectionOffset
+        newTransform.position = existingPoint.transform.position - connectionOffset;
 
-        // Step 2: Position so the connection points overlap
-        Vector3 offset = existingPoint.transform.position - newPoint.transform.position;
-        newTransform.position += offset;
+        Debug.Log($"Aligned new body: existingPoint at {existingPoint.transform.position}, " +
+                  $"connectionOffset {connectionOffset}, final position {newTransform.position}");
     }
 
     /// <summary>
     /// Attach a non-body component (engine, bridge, deck gun) to an attachment point
     /// </summary>
-    public ShipComponent AttachComponent(ShipComponentData componentData, AttachmentPoint targetPoint)
+    /// <summary>
+    /// Attach a component (weapon, engine, etc.) to an attachment point with optional rotation
+    /// </summary>
+    public GameObject AttachComponent(ShipComponentData componentData, AttachmentPoint targetPoint, float rotationAngle = 0f)
     {
-        if (targetPoint.isOccupied)
+        if (targetPoint == null || targetPoint.isOccupied)
         {
-            Debug.LogWarning("Target point is already occupied");
+            Debug.LogWarning("Target point is null or occupied!");
             return null;
         }
 
-        if (!targetPoint.acceptedTypes.Contains(componentData.ComponentType))
+        if (!targetPoint.CanAccept(componentData.ComponentType))
         {
-            Debug.LogWarning($"Target point doesn't accept {componentData.ComponentType}");
+            Debug.LogWarning($"Target point doesn't accept {componentData.ComponentType}!");
             return null;
         }
 
-        // Check limits
-        if (componentData.ComponentType == ShipComponentType.Weapon && deckGuns.Count >= maxDeckGuns)
+        // Instantiate the component
+        GameObject componentObj = Instantiate(componentData.Prefab);
+        componentObj.name = componentData.name;
+
+        ShipComponent component = componentObj.GetComponent<ShipComponent>();
+        if (component == null)
         {
-            Debug.LogWarning("Maximum deck guns reached");
+            Debug.LogError("Component prefab missing ShipComponent!");
+            Destroy(componentObj);
             return null;
         }
 
-        GameObject instance = Instantiate(componentData.Prefab, targetPoint.transform);
-        instance.transform.localPosition = Vector3.zero;
-        instance.transform.localRotation = Quaternion.identity;
+        // Find the component's mount point (usually Bottom direction)
+        AttachmentPoint mountPoint = null;
+        foreach (var point in component.AttachmentPoints)
+        {
+            if (point.direction == AttachmentDirection.Bottom)
+            {
+                mountPoint = point;
+                break;
+            }
+        }
+        if (mountPoint == null && component.AttachmentPoints.Length > 0)
+        {
+            mountPoint = component.AttachmentPoints[0];
+        }
 
-        ShipComponent component = instance.GetComponent<ShipComponent>();
+        // Align component to target with rotation
+        AlignComponentToTarget(targetPoint, mountPoint, componentObj.transform, rotationAngle);
+
+        // Parent to target's body segment
+        componentObj.transform.SetParent(targetPoint.transform.parent, true);
+
+        // Mark point as occupied
         targetPoint.isOccupied = true;
+        // Track the component
         targetPoint.attachedComponent = component;
 
-        switch (componentData.ComponentType)
+        // Debug.Log($"Attached {componentData.name} to {targetPoint.name} with {rotationAngle}° rotation");
+
+        return componentObj;
+    }
+
+    /// <summary>
+    /// Align a component with optional rotation offset
+    /// </summary>
+    private void AlignComponentToTarget(AttachmentPoint targetPoint, AttachmentPoint componentPoint, Transform componentTransform, float rotationAngle = 0f)
+    {
+        if (componentPoint == null)
         {
-            case ShipComponentType.Engine:
-                // Remove existing engine if any
-                if (currentEngine != null)
-                    RemoveComponent(currentEngine);
-                currentEngine = component;
-                break;
-            case ShipComponentType.Bridge:
-                // Remove existing bridge if any
-                if (currentBridge != null)
-                    RemoveComponent(currentBridge);
-                currentBridge = component;
-                break;
-            case ShipComponentType.Weapon:
-                deckGuns.Add(component);
-                break;
+            componentTransform.position = targetPoint.transform.position;
+            componentTransform.rotation = targetPoint.transform.rotation;
+            return;
         }
 
-        OnShipModified?.Invoke();
-        return component;
+        // Step 1: Reset component to origin with identity rotation
+        componentTransform.position = Vector3.zero;
+        componentTransform.rotation = Quaternion.identity;
+
+        // Step 2: Get the mount point's local orientation
+        Vector3 mountForward = componentPoint.transform.forward;
+        Vector3 mountUp = componentPoint.transform.up;
+
+        // Step 3: Get the target point's orientation
+        Vector3 targetForward = targetPoint.transform.forward;
+        Vector3 targetUp = targetPoint.transform.up;
+
+        // Step 4: Calculate base rotation alignment
+        Quaternion mountCurrentRotation = Quaternion.LookRotation(mountForward, mountUp);
+        Quaternion mountDesiredRotation = Quaternion.LookRotation(-targetForward, targetUp);
+        Quaternion baseRotation = mountDesiredRotation * Quaternion.Inverse(mountCurrentRotation);
+
+        // Step 5: Apply player's rotation offset around the attachment axis
+        Quaternion playerRotation = Quaternion.AngleAxis(rotationAngle, -targetForward);
+        componentTransform.rotation = playerRotation * baseRotation;
+
+        // Step 6: Position so attachment points overlap (recalculate after rotation)
+        Vector3 componentPointWorldPos = componentPoint.transform.position;
+        Vector3 offset = componentPointWorldPos - componentTransform.position;
+        componentTransform.position = targetPoint.transform.position - offset;
+
+        Debug.Log($"Aligned component with {rotationAngle}° rotation");
+    }
+
+    /// <summary>
+    /// Find the attachment point on a component that should connect to the body
+    /// </summary>
+    private AttachmentPoint FindComponentMountPoint(ShipComponent component)
+    {
+        // For non-body components, find the first/primary attachment point
+        if (component.AttachmentPoints != null && component.AttachmentPoints.Length > 0)
+        {
+            // Prefer Bottom attachment point for mounting (most common for weapons/bridges)
+            foreach (var point in component.AttachmentPoints)
+            {
+                if (point.direction == AttachmentDirection.Bottom)
+                    return point;
+            }
+            // Fallback to first attachment point
+            return component.AttachmentPoints[0];
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Align a component so its attachment point connects properly to the target point
+    /// </summary>
+    /// <summary>
+    /// Align a component so its attachment point connects properly to the target point
+    /// </summary>
+    private void AlignComponentToTarget(AttachmentPoint targetPoint, AttachmentPoint componentPoint, Transform componentTransform)
+    {
+        if (componentPoint == null)
+        {
+            // No attachment point on component, just place at target position/rotation
+            componentTransform.position = targetPoint.transform.position;
+            componentTransform.rotation = targetPoint.transform.rotation;
+            return;
+        }
+
+        // Step 1: Reset component to origin with identity rotation
+        componentTransform.position = Vector3.zero;
+        componentTransform.rotation = Quaternion.identity;
+
+        // Step 2: Get the mount point's local orientation (when component is at identity)
+        Vector3 mountForward = componentPoint.transform.forward;
+        Vector3 mountUp = componentPoint.transform.up;
+
+        // Step 3: Get the target point's orientation
+        Vector3 targetForward = targetPoint.transform.forward;
+        Vector3 targetUp = targetPoint.transform.up;
+
+        // Step 4: Calculate rotation that aligns mount point to face opposite of target
+        // Mount forward should face -targetForward, mount up should align with targetUp
+        Quaternion mountCurrentRotation = Quaternion.LookRotation(mountForward, mountUp);
+        Quaternion mountDesiredRotation = Quaternion.LookRotation(-targetForward, targetUp);
+
+        // Apply the rotation difference to the component
+        componentTransform.rotation = mountDesiredRotation * Quaternion.Inverse(mountCurrentRotation);
+
+        // Step 5: Position so attachment points overlap (recalculate after rotation)
+        Vector3 componentPointWorldPos = componentPoint.transform.position;
+        Vector3 offset = componentPointWorldPos - componentTransform.position;
+        componentTransform.position = targetPoint.transform.position - offset;
+
+        Debug.Log($"Aligned component: mountForward={mountForward}, mountUp={mountUp}, " +
+                  $"targetForward={targetForward}, targetUp={targetUp}, " +
+                  $"finalRotation={componentTransform.rotation.eulerAngles}");
     }
 
     /// <summary>
