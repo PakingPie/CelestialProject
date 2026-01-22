@@ -56,6 +56,7 @@ public class ShipAssemblyManager : MonoBehaviour
         instance.transform.localRotation = Quaternion.identity;
 
         ShipComponent component = instance.GetComponent<ShipComponent>();
+        component.Data = componentData; // Assign the actual component data used
         bodySegments.Add(component);
 
         OnShipModified?.Invoke();
@@ -88,6 +89,7 @@ public class ShipAssemblyManager : MonoBehaviour
         // Instantiate the new segment
         GameObject instance = Instantiate(componentData.Prefab, shipRoot);
         ShipComponent newComponent = instance.GetComponent<ShipComponent>();
+        newComponent.Data = componentData; // Assign the actual component data used
 
         // Find the opposite connection point on the new segment
         AttachmentDirection oppositeDir = AttachmentPoint.GetOppositeDirection(targetPoint.direction);
@@ -138,8 +140,8 @@ public class ShipAssemblyManager : MonoBehaviour
         // Therefore: newComponent.position = existingPoint.position - connectionOffset
         newTransform.position = existingPoint.transform.position - connectionOffset;
 
-        Debug.Log($"Aligned new body: existingPoint at {existingPoint.transform.position}, " +
-                  $"connectionOffset {connectionOffset}, final position {newTransform.position}");
+        // Debug.Log($"Aligned new body: existingPoint at {existingPoint.transform.position}, " +
+        //           $"connectionOffset {connectionOffset}, final position {newTransform.position}");
     }
 
     /// <summary>
@@ -173,6 +175,7 @@ public class ShipAssemblyManager : MonoBehaviour
             Destroy(componentObj);
             return null;
         }
+        component.Data = componentData; // Assign the actual component data used
 
         // Find the component's mount point (usually Bottom direction)
         AttachmentPoint mountPoint = null;
@@ -200,6 +203,21 @@ public class ShipAssemblyManager : MonoBehaviour
         // Track the component
         targetPoint.attachedComponent = component;
 
+        // Track component in the appropriate list based on type
+        switch (componentData.ComponentType)
+        {
+            case ShipComponentType.Engine:
+                currentEngine = component;
+                break;
+            case ShipComponentType.Bridge:
+                currentBridge = component;
+                break;
+            case ShipComponentType.Weapon:
+                deckGuns.Add(component);
+                break;
+        }
+
+        OnShipModified?.Invoke();
         // Debug.Log($"Attached {componentData.name} to {targetPoint.name} with {rotationAngle}° rotation");
 
         return componentObj;
@@ -243,7 +261,7 @@ public class ShipAssemblyManager : MonoBehaviour
         Vector3 offset = componentPointWorldPos - componentTransform.position;
         componentTransform.position = targetPoint.transform.position - offset;
 
-        Debug.Log($"Aligned component with {rotationAngle}° rotation");
+        // Debug.Log($"Aligned component with {rotationAngle}° rotation");
     }
 
     /// <summary>
@@ -307,9 +325,9 @@ public class ShipAssemblyManager : MonoBehaviour
         Vector3 offset = componentPointWorldPos - componentTransform.position;
         componentTransform.position = targetPoint.transform.position - offset;
 
-        Debug.Log($"Aligned component: mountForward={mountForward}, mountUp={mountUp}, " +
-                  $"targetForward={targetForward}, targetUp={targetUp}, " +
-                  $"finalRotation={componentTransform.rotation.eulerAngles}");
+        // Debug.Log($"Aligned component: mountForward={mountForward}, mountUp={mountUp}, " +
+        //           $"targetForward={targetForward}, targetUp={targetUp}, " +
+        //           $"finalRotation={componentTransform.rotation.eulerAngles}");
     }
 
     /// <summary>

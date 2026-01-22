@@ -279,31 +279,23 @@ public class ShipSaveLoadManager : MonoBehaviour
             localRotation = component.transform.localRotation
         };
         
-        // Find parent segment and attachment point
-        Transform parent = component.transform.parent;
-        AttachmentPoint attachPoint = parent?.GetComponent<AttachmentPoint>();
-        
-        if (attachPoint != null)
+        // Find the attachment point that holds this component by searching all body segments
+        foreach (var segment in assemblyManager.bodySegments)
         {
-            data.attachmentPointName = attachPoint.name;
-            
-            ShipComponent parentSegment = attachPoint.GetComponentInParent<ShipComponent>();
-            if (parentSegment != null)
+            for (int i = 0; i < segment.AttachmentPoints.Length; i++)
             {
-                data.parentSegmentIndex = assemblyManager.bodySegments.IndexOf(parentSegment);
-                
-                // Find attachment point index
-                for (int i = 0; i < parentSegment.AttachmentPoints.Length; i++)
+                AttachmentPoint point = segment.AttachmentPoints[i];
+                if (point.attachedComponent == component)
                 {
-                    if (parentSegment.AttachmentPoints[i] == attachPoint)
-                    {
-                        data.attachmentPointIndex = i;
-                        break;
-                    }
+                    data.parentSegmentIndex = assemblyManager.bodySegments.IndexOf(segment);
+                    data.attachmentPointIndex = i;
+                    data.attachmentPointName = point.name;
+                    return data;
                 }
             }
         }
         
+        Debug.LogWarning($"Could not find attachment point for component: {component.name}");
         return data;
     }
     
@@ -393,18 +385,21 @@ public class ShipSaveLoadManager : MonoBehaviour
         }
         
         // Reconstruct attached components
-        if (saveData.engine != null)
+        if (saveData.engine != null && !string.IsNullOrEmpty(saveData.engine.componentId))
         {
             ReconstructAttachedComponent(saveData.engine, reconstructedSegments, ref assemblyManager.currentEngine);
         }
         
-        if (saveData.bridge != null)
+        if (saveData.bridge != null && !string.IsNullOrEmpty(saveData.bridge.componentId))
         {
             ReconstructAttachedComponent(saveData.bridge, reconstructedSegments, ref assemblyManager.currentBridge);
         }
         
         foreach (var gunData in saveData.deckGuns)
         {
+            if (gunData == null || string.IsNullOrEmpty(gunData.componentId))
+                continue;
+                
             ShipComponent gun = null;
             ReconstructAttachedComponent(gunData, reconstructedSegments, ref gun);
             if (gun != null)
@@ -459,12 +454,17 @@ public class ShipSaveLoadManager : MonoBehaviour
             return;
         }
         
-        // Instantiate component
-        GameObject instance = Instantiate(componentData.Prefab, attachPoint.transform);
+        // Instantiate component - parent to the body segment (same as during normal attachment)
+        GameObject instance = Instantiate(componentData.Prefab, parentSegment.transform);
         instance.transform.localPosition = data.localPosition;
         instance.transform.localRotation = data.localRotation;
         
         resultComponent = instance.GetComponent<ShipComponent>();
+        if (resultComponent != null)
+        {
+            resultComponent.Data = componentData; // Assign the component data
+        }
+        
         attachPoint.isOccupied = true;
         attachPoint.attachedComponent = resultComponent;
     }
