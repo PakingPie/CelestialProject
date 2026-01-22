@@ -494,7 +494,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6090927502486155818}
   - component: {fileID: 9193549522913463278}
-  - component: {fileID: 883550920805300769}
+  - component: {fileID: 9179357114393098506}
   - component: {fileID: 7182338704753766591}
   m_Layer: 15
   m_Name: Defensive Quad Gun Type 1
@@ -512,7 +512,7 @@ Transform:
   m_GameObject: {fileID: 5899318295700349875}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 10, y: 0, z: 10}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 4, y: 4, z: 4}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -592,7 +592,7 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
---- !u!114 &883550920805300769
+--- !u!114 &9179357114393098506
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -601,36 +601,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 5899318295700349875}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5fd111861f695545934d2f021080e53, type: 3}
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
   OwnerShip: {fileID: 0}
   IsShowHitpointBar: 0
-  HitPoints: 20000
-  MaxHitPoints: 20000
-  ArmorPoints: 10000
-  MaxArmorPoints: 10000
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 100
+  MaxArmorPoints: 100
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  VehicleFaction: 1
-  Type: 31
-  HitpointBarCanvas: {fileID: 0}
-  HealthBar: {fileID: 0}
-  ArmorBar: {fileID: 0}
-  ShieldBar: {fileID: 0}
-  HealthBarShader: {fileID: 0}
-  EnergyShieldShader: {fileID: 0}
-  ShieldEffect: {fileID: 0}
-  ExplodeEffect: {fileID: 0}
   HitPointsRegenerationRate: 1
-  HitPointsRegenerationDelay: 40
+  HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
-  ArmorRegenerationDelay: 40
-  ShieldRegenerationRate: 1
-  ShieldRegenerationDelay: 20
-  EnableIndication: 0
-  EnableModuleHits: 0
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 1
 --- !u!114 &7182338704753766591
 MonoBehaviour:
   m_ObjectHideFlags: 0
