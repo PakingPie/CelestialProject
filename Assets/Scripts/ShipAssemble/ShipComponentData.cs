@@ -20,7 +20,18 @@ public class ShipComponentData : ScriptableObject
     public GameObject Prefab;
     public Sprite UiIcon;
     
-    // Stats this component contributes
+    [Header("Defense Stats")]
     public float HullPoints;
+    public float ArmorPoints;
+    public float ShieldPoints;
+    
+    [Header("Regeneration Stats")]
+    public float HullRegenRate;
+    public float ArmorRegenRate;
+    public float ShieldRegenRate;
+    
+    [Header("Physical Stats")]
     public float Weight;
+    public float PowerConsumption;
+    public float PowerGeneration;
 }

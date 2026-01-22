@@ -16,7 +16,14 @@ public class ShipSaveData
     
     // Metadata
     public float totalHull;
+    public float totalArmor;
+    public float totalShield;
+    public float totalHullRegen;
+    public float totalArmorRegen;
+    public float totalShieldRegen;
     public float totalWeight;
+    public float totalPowerConsumption;
+    public float totalPowerGeneration;
     public string thumbnailBase64; // Optional: store thumbnail as base64
 }
 

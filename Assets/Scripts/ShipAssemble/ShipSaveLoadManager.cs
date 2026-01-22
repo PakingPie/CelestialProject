@@ -305,31 +305,40 @@ public class ShipSaveLoadManager : MonoBehaviour
         {
             if (segment.Data != null)
             {
-                saveData.totalHull += segment.Data.HullPoints;
-                saveData.totalWeight += segment.Data.Weight;
+                AddComponentStats(saveData, segment.Data);
             }
         }
         
         if (assemblyManager.currentEngine?.Data != null)
         {
-            saveData.totalHull += assemblyManager.currentEngine.Data.HullPoints;
-            saveData.totalWeight += assemblyManager.currentEngine.Data.Weight;
+            AddComponentStats(saveData, assemblyManager.currentEngine.Data);
         }
         
         if (assemblyManager.currentBridge?.Data != null)
         {
-            saveData.totalHull += assemblyManager.currentBridge.Data.HullPoints;
-            saveData.totalWeight += assemblyManager.currentBridge.Data.Weight;
+            AddComponentStats(saveData, assemblyManager.currentBridge.Data);
         }
         
         foreach (var gun in assemblyManager.deckGuns)
         {
             if (gun.Data != null)
             {
-                saveData.totalHull += gun.Data.HullPoints;
-                saveData.totalWeight += gun.Data.Weight;
+                AddComponentStats(saveData, gun.Data);
             }
         }
+    }
+    
+    private void AddComponentStats(ShipSaveData saveData, ShipComponentData data)
+    {
+        saveData.totalHull += data.HullPoints;
+        saveData.totalArmor += data.ArmorPoints;
+        saveData.totalShield += data.ShieldPoints;
+        saveData.totalHullRegen += data.HullRegenRate;
+        saveData.totalArmorRegen += data.ArmorRegenRate;
+        saveData.totalShieldRegen += data.ShieldRegenRate;
+        saveData.totalWeight += data.Weight;
+        saveData.totalPowerConsumption += data.PowerConsumption;
+        saveData.totalPowerGeneration += data.PowerGeneration;
     }
     
     private void ReconstructShip(ShipSaveData saveData)
