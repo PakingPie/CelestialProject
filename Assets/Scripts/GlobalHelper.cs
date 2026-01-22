@@ -25,6 +25,21 @@ public static class GlobalHelper
         Platform = 31
     }
 
+    public enum WeaponSize
+    {
+        Large,
+        Medium,
+        Small,
+    }
+
+    public enum WeaponType
+    {
+        Gun,
+        MissileLauncher,
+        LaserLauncher,
+        PointDefense
+    }
+
     [System.Flags]
     public enum Faction
     {
