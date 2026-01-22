@@ -3,7 +3,9 @@ using UnityEngine;
 // Define component types
 public enum ShipComponentType
 {
+    Bow,
     Body,
+    Stern,
     Engine,
     Bridge,
     Weapon

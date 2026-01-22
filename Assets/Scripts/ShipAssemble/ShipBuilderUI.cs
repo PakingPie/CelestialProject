@@ -16,7 +16,9 @@ public class ShipBuilderUI : MonoBehaviour
     public GameObject componentButtonPrefab;
     
     [Header("Category Tabs")]
+    public Button bowTabButton;
     public Button bodyTabButton;
+    public Button sternTabButton;
     public Button engineTabButton;
     public Button bridgeTabButton;
     public Button weaponTabButton;
@@ -62,7 +64,9 @@ public class ShipBuilderUI : MonoBehaviour
     
     private void SetupTabButtons()
     {
+        bowTabButton?.onClick.AddListener(() => ShowCategory(ShipComponentType.Bow));
         bodyTabButton.onClick.AddListener(() => ShowCategory(ShipComponentType.Body));
+        sternTabButton?.onClick.AddListener(() => ShowCategory(ShipComponentType.Stern));
         engineTabButton.onClick.AddListener(() => ShowCategory(ShipComponentType.Engine));
         bridgeTabButton.onClick.AddListener(() => ShowCategory(ShipComponentType.Bridge));
         weaponTabButton.onClick.AddListener(() => ShowCategory(ShipComponentType.Weapon));
@@ -111,10 +115,12 @@ public class ShipBuilderUI : MonoBehaviour
     private void UpdateTabVisuals()
     {
         // Highlight active tab
-        SetTabActive(bodyTabButton, currentCategory == ShipComponentType.Body);
-        SetTabActive(engineTabButton, currentCategory == ShipComponentType.Engine);
-        SetTabActive(bridgeTabButton, currentCategory == ShipComponentType.Bridge);
-        SetTabActive(weaponTabButton, currentCategory == ShipComponentType.Weapon);
+        if (bowTabButton != null) SetTabActive(bowTabButton, currentCategory == ShipComponentType.Bow);
+        if (bodyTabButton != null) SetTabActive(bodyTabButton, currentCategory == ShipComponentType.Body);
+        if (sternTabButton != null) SetTabActive(sternTabButton, currentCategory == ShipComponentType.Stern);
+        if (engineTabButton != null) SetTabActive(engineTabButton, currentCategory == ShipComponentType.Engine);
+        if (bridgeTabButton != null) SetTabActive(bridgeTabButton, currentCategory == ShipComponentType.Bridge);
+        if (weaponTabButton != null) SetTabActive(weaponTabButton, currentCategory == ShipComponentType.Weapon);
     }
     
     private void SetTabActive(Button tab, bool active)

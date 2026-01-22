@@ -63,7 +63,7 @@ public class ShipBuilderInputHandler : MonoBehaviour
 
         selectedComponent = component;
 
-        if (component.ComponentType == ShipComponentType.Body)
+        if (IsHullComponentType(component.ComponentType))
         {
             currentMode = BuildMode.PlacingBody;
 
@@ -274,7 +274,7 @@ public class ShipBuilderInputHandler : MonoBehaviour
 
         if (currentMode == BuildMode.PlacingBody)
         {
-            if (hoveredPoint.CanAccept(ShipComponentType.Body) || IsBodyConnectionPoint(hoveredPoint))
+            if (CanAcceptHullComponent(hoveredPoint) || IsBodyConnectionPoint(hoveredPoint))
             {
                 assemblyManager.AttachBodySegment(selectedComponent, hoveredPoint);
                 OnPlacementComplete?.Invoke();
@@ -366,6 +366,24 @@ public class ShipBuilderInputHandler : MonoBehaviour
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Check if the component type is a hull segment (Bow, Body, or Stern)
+    /// </summary>
+    private bool IsHullComponentType(ShipComponentType type)
+    {
+        return ShipAssemblyManager.IsHullComponentType(type);
+    }
+
+    /// <summary>
+    /// Check if an attachment point can accept hull components (Bow, Body, or Stern)
+    /// </summary>
+    private bool CanAcceptHullComponent(AttachmentPoint point)
+    {
+        return point.CanAccept(ShipComponentType.Bow) ||
+               point.CanAccept(ShipComponentType.Body) ||
+               point.CanAccept(ShipComponentType.Stern);
     }
 
     private void ClearHighlights()

@@ -32,6 +32,7 @@ public class AttachmentPoint : MonoBehaviour
     
     private bool isHighlighted;
     private bool isHovered;
+    private bool canAttachState; // Track the current valid/invalid state for material restoration
     
     void Awake()
     {
@@ -93,6 +94,7 @@ public class AttachmentPoint : MonoBehaviour
         if (highlightObject == null) return;
         
         isHighlighted = true;
+        canAttachState = canAttach; // Store for hover restoration
         highlightObject.SetActive(true);
         highlightRenderer.material = canAttach ? validMaterial : invalidMaterial;
     }
@@ -113,6 +115,8 @@ public class AttachmentPoint : MonoBehaviour
         }
         else if (isHighlighted)
         {
+            // Restore the correct material based on canAttach state
+            highlightRenderer.material = canAttachState ? validMaterial : invalidMaterial;
             highlightObject.transform.localScale = Vector3.one * 0.5f;
         }
     }

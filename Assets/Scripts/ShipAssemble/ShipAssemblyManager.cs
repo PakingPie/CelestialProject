@@ -45,9 +45,9 @@ public class ShipAssemblyManager : MonoBehaviour
             return null;
         }
 
-        if (componentData.ComponentType != ShipComponentType.Body)
+        if (!IsHullComponentType(componentData.ComponentType))
         {
-            Debug.LogError("Component must be of type Body");
+            Debug.LogError("Component must be of type Bow, Body, or Stern");
             return null;
         }
 
@@ -73,9 +73,9 @@ public class ShipAssemblyManager : MonoBehaviour
             return null;
         }
 
-        if (componentData.ComponentType != ShipComponentType.Body)
+        if (!IsHullComponentType(componentData.ComponentType))
         {
-            Debug.LogError("Component must be of type Body");
+            Debug.LogError("Component must be of type Bow, Body, or Stern");
             return null;
         }
 
@@ -394,5 +394,15 @@ public class ShipAssemblyManager : MonoBehaviour
         currentBridge = null;
 
         OnShipModified?.Invoke();
+    }
+
+    /// <summary>
+    /// Check if the component type is a hull segment (Bow, Body, or Stern)
+    /// </summary>
+    public static bool IsHullComponentType(ShipComponentType type)
+    {
+        return type == ShipComponentType.Bow || 
+               type == ShipComponentType.Body || 
+               type == ShipComponentType.Stern;
     }
 }
