@@ -147,7 +147,7 @@ public class Gun : WeaponBase
                 RegisterRecoilingBarrel(barrel);
         }
 
-        ActiveRange.y = BulletPrefab.Speed * BulletPrefab.LifeTime * 0.8f;
+        ActiveRange.y = BulletPrefab.Speed * BulletPrefab.LifeTime;
     }
 
     private void Update()

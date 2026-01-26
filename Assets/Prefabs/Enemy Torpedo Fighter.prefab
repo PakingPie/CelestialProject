@@ -334,6 +334,8 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 5, y: 3000}
   UpdateRate: 60
+  UseTargetDistribution: 1
+  AvoidOverTargeting: 1
   PriorityConfig: {fileID: 0}
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
@@ -346,6 +348,8 @@ MonoBehaviour:
   ShowGunAngles: 0
   UseManagedUpdates: 1
   FireInterval: 20
+  DistributeTargetsPerMissile: 1
+  MaxMissilesPerTarget: 1
   EnableDebugGizmos: 0
   TestSeekerCone: 30
 --- !u!1 &1521133606170650114
@@ -564,12 +568,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
   OwnerShip: {fileID: 4103674997823826176}
   IsShowHitpointBar: 0
-  HitPoints: 100
-  MaxHitPoints: 100
+  HitPoints: 300
+  MaxHitPoints: 300
   ArmorPoints: 100
   MaxArmorPoints: 100
-  ShieldPoints: 100
-  MaxShieldPoints: 100
+  ShieldPoints: 200
+  MaxShieldPoints: 200
   BoidManager: {fileID: 0}
   VehicleFaction: 4
   Type: 0
