@@ -293,7 +293,7 @@ MonoBehaviour:
   ownShip: {fileID: 1510646433887854243}
   missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 98d3101fcf769324aa65031f6615b17f, type: 3}
   missileCount: 1
-  fireDelay: 20
+  fireDelay: 40
   launchPoints:
   - {fileID: 2244796503385388051}
   - {fileID: 2834817184501814660}
@@ -302,6 +302,9 @@ MonoBehaviour:
   fireVolume: 1
   minDistance: 10
   maxDistance: 200
+  FireOnFullyReload: 1
+  SalvoInterval: 5
+  ReloadAfterSalvo: 1
 --- !u!114 &8088048282258183154
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -342,7 +345,7 @@ MonoBehaviour:
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
-  FireInterval: 10
+  FireInterval: 20
   EnableDebugGizmos: 0
   TestSeekerCone: 30
 --- !u!1 &1521133606170650114

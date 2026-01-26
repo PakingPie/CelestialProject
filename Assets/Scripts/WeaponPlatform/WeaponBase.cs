@@ -44,6 +44,12 @@ public class WeaponBase : MonoBehaviour
     [Tooltip("Number of updates per second for the turret targeting system.")]
     public int UpdateRate = 60;
 
+    [Header("Target Distribution")]
+    [Tooltip("Enable target distribution to prevent multiple weapons targeting the same enemy")]
+    public bool UseTargetDistribution = true;
+    [Tooltip("If true, this weapon will avoid targets that have reached max weapon count")]
+    public bool AvoidOverTargeting = true;
+
     [Header("Priority Targeting")]
     [Tooltip("Optional: Configure target priority by vehicle type")]
     public TargetPriorityConfig PriorityConfig;
@@ -132,6 +138,7 @@ public class WeaponBase : MonoBehaviour
     protected virtual void OnDisable()
     {
         CombatManager.Instance?.UnregisterTurret(this);
+        TargetDistributor.Instance?.UnregisterWeapon(this);
     }
 
     protected void CacheRangeValues()
@@ -262,6 +269,15 @@ public class WeaponBase : MonoBehaviour
             if (HasLimitedTraverse && (angles.x > RightLimit || angles.x < -LeftLimit))
                 continue;
 
+            // Check target distribution - skip if target has too many weapons already
+            if (UseTargetDistribution && AvoidOverTargeting && TargetDistributor.Instance != null)
+            {
+                // Allow if we're already targeting this enemy (don't block our own target)
+                bool isOurCurrentTarget = (currentTargetVehicle != null && enemy == currentTargetVehicle);
+                if (!isOurCurrentTarget && !TargetDistributor.Instance.CanTargetAcceptMoreWeapons(enemyTransform))
+                    continue;
+            }
+
             // Calculate score
             float score = CalculateTargetScore(enemy, distance, currentTargetVehicle);
 
@@ -270,6 +286,14 @@ public class WeaponBase : MonoBehaviour
                 bestScore = score;
                 bestTarget = enemy;
             }
+        }
+
+        Transform newTarget = bestTarget != null ? bestTarget.transform : null;
+        
+        // Update target distributor
+        if (UseTargetDistribution && TargetDistributor.Instance != null)
+        {
+            TargetDistributor.Instance.UpdateWeaponTarget(this, newTarget);
         }
 
         if (bestTarget != null)
@@ -324,6 +348,9 @@ public class WeaponBase : MonoBehaviour
         float shortestDistanceSqr = Mathf.Infinity;
         Transform nearestEnemy = null;
 
+        // Get current target for checking
+        Transform currentTarget = Targeted;
+
         for (int i = 0; i < _nearbyEnemies.Count; i++)
         {
             VehicleBase enemy = _nearbyEnemies[i];
@@ -343,8 +370,23 @@ public class WeaponBase : MonoBehaviour
             if (HasLimitedTraverse && (angles.x > RightLimit || angles.x < -LeftLimit))
                 continue;
 
+            // Check target distribution - skip if target has too many weapons already
+            if (UseTargetDistribution && AvoidOverTargeting && TargetDistributor.Instance != null)
+            {
+                // Allow if we're already targeting this enemy
+                bool isOurCurrentTarget = (currentTarget != null && enemyTransform == currentTarget);
+                if (!isOurCurrentTarget && !TargetDistributor.Instance.CanTargetAcceptMoreWeapons(enemyTransform))
+                    continue;
+            }
+
             shortestDistanceSqr = distanceSqr;
             nearestEnemy = enemyTransform;
+        }
+
+        // Update target distributor
+        if (UseTargetDistribution && TargetDistributor.Instance != null)
+        {
+            TargetDistributor.Instance.UpdateWeaponTarget(this, nearestEnemy);
         }
 
         Targeted = nearestEnemy;
