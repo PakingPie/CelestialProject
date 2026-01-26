@@ -364,6 +364,17 @@ public class AAMissile : MonoBehaviour
             if (!missileActive && dropDelay > 0.0f && TimeSince(launchTime) > dropDelay)
                 ActivateMissile();
 
+            // During drop delay, continue moving with inherited velocity
+            if (!missileActive && dropDelay > 0.0f)
+            {
+                // Apply gravity if enabled
+                if (gravity)
+                    launchVelocity += Physics.gravity * Time.deltaTime;
+
+                // Move with inherited velocity + eject velocity
+                transform.Translate((launchVelocity + transform.TransformDirection(ejectVelocity)) * Time.deltaTime, Space.World);
+            }
+
             // Missile active, move it and guide it in.
             if (missileActive)
             {
@@ -459,10 +470,10 @@ public class AAMissile : MonoBehaviour
         {
             if (dropDelay > 0.0f)
             {
-                // When dropping, used the forward speed of the currently free-falling missile.
-                // float localForwardSpeed = transform.InverseTransformDirection(rigidbody.linearVelocity).z;
-                float localForwardSpeed = Vector3.Dot(launchVelocity + transform.TransformDirection(ejectVelocity), transform.up);
-                initialSpeed = localForwardSpeed;
+                // When dropping, use the forward speed component of inherited velocity
+                // Project the launch velocity onto the missile's forward direction
+                float localForwardSpeed = Vector3.Dot(launchVelocity, transform.forward);
+                initialSpeed = Mathf.Max(0f, localForwardSpeed); // Don't allow negative initial speed
             }
             else
             {

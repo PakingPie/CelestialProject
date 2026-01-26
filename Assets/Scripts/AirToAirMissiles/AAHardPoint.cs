@@ -64,7 +64,13 @@ public class AAHardpoint : AALauncher
     /// <param name="target">If no target is given, the missile will fire without guidance.</param>
     public override void Launch(Transform target)
     {
-        Launch(target, Vector3.zero);
+        // Get owner ship velocity for missiles with drop delay
+        Vector3 inheritedVelocity = Vector3.zero;
+        if (ownShip != null && missilePrefabToLaunch != null && missilePrefabToLaunch.dropDelay > 0f)
+        {
+            inheritedVelocity = GetOwnerVelocity();
+        }
+        Launch(target, inheritedVelocity);
     }
 
     /// <summary>
