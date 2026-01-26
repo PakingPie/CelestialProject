@@ -39,6 +39,13 @@ public class ShipBuilderUI : MonoBehaviour
     public Button clearShipButton;
     public Button finishButton;
     public Button cancelPlacementButton;
+    public Button exportToPlayerButton;
+    
+    [Header("Export Settings")]
+    [Tooltip("The player GameObject that will receive the exported ship as a child")]
+    public GameObject targetPlayerObject;
+    [Tooltip("The root GameObject containing all ship builder components (will be hidden on export)")]
+    public GameObject shipBuilderRoot;
     
     [Header("Tooltip")]
     public GameObject tooltipPanel;
@@ -77,6 +84,9 @@ public class ShipBuilderUI : MonoBehaviour
         clearShipButton.onClick.AddListener(OnClearShipClicked);
         finishButton.onClick.AddListener(OnFinishClicked);
         cancelPlacementButton.onClick.AddListener(OnCancelPlacementClicked);
+        
+        if (exportToPlayerButton != null)
+            exportToPlayerButton.onClick.AddListener(OnExportToPlayerClicked);
     }
     
     private void SetupEventListeners()
@@ -305,6 +315,89 @@ public class ShipBuilderUI : MonoBehaviour
     private void OnCancelPlacementClicked()
     {
         inputHandler.DeselectComponent();
+    }
+    
+    private void OnExportToPlayerClicked()
+    {
+        // Validate ship before export
+        bool hasBody = assemblyManager.bodySegments.Count > 0;
+        bool hasEngine = assemblyManager.currentEngine != null;
+        bool hasBridge = assemblyManager.currentBridge != null;
+        
+        if (!hasBody || !hasEngine || !hasBridge)
+        {
+            ShowTooltip("Ship requires at least 1 body, 1 engine, and 1 bridge to export!");
+            return;
+        }
+        
+        if (targetPlayerObject == null)
+        {
+            ShowTooltip("No target player object assigned!");
+            Debug.LogError("ShipBuilderUI: targetPlayerObject is not assigned!");
+            return;
+        }
+        
+        ExportShipToPlayer();
+    }
+    
+    /// <summary>
+    /// Export the built ship to the target player GameObject as a child
+    /// </summary>
+    private void ExportShipToPlayer()
+    {
+        if (assemblyManager.shipRoot == null)
+        {
+            Debug.LogError("ShipAssemblyManager shipRoot is null!");
+            return;
+        }
+        
+        // Create a container for the exported ship
+        GameObject exportedShip = new GameObject("ExportedShip");
+        exportedShip.transform.SetParent(targetPlayerObject.transform, false);
+        exportedShip.transform.localPosition = Vector3.zero;
+        exportedShip.transform.localRotation = Quaternion.identity;
+        exportedShip.transform.localScale = Vector3.one;
+        
+        // Clone all ship components to the exported container
+        foreach (Transform child in assemblyManager.shipRoot)
+        {
+            GameObject clonedComponent = Instantiate(child.gameObject, exportedShip.transform);
+            clonedComponent.name = child.name; // Keep original names
+            
+            // Preserve local transform relative to ship root
+            clonedComponent.transform.localPosition = child.localPosition;
+            clonedComponent.transform.localRotation = child.localRotation;
+            clonedComponent.transform.localScale = child.localScale;
+        }
+        
+        ShowTooltip("Ship exported to player successfully!");
+        Debug.Log($"Ship exported to {targetPlayerObject.name} with {exportedShip.transform.childCount} components");
+        
+        // Hide the ship builder components
+        HideShipBuilder();
+    }
+    
+    /// <summary>
+    /// Hide all ship builder related GameObjects in the scene
+    /// </summary>
+    private void HideShipBuilder()
+    {
+        if (shipBuilderRoot != null)
+        {
+            shipBuilderRoot.SetActive(false);
+            Debug.Log("Ship builder hidden");
+        }
+        else
+        {
+            // Fallback: try to find and hide individual components
+            if (mainPanel != null)
+                mainPanel.SetActive(false);
+            
+            if (assemblyManager != null && assemblyManager.shipRoot != null)
+                assemblyManager.shipRoot.gameObject.SetActive(false);
+            
+            Debug.LogWarning("ShipBuilderRoot not assigned. Only hiding UI panel and ship root.");
+        }
     }
     
     private void ShowTooltip(string message)

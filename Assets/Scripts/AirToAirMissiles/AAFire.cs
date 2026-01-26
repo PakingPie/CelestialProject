@@ -44,8 +44,9 @@ public class AAFire : WeaponBase
         }
     }
 
-    void OnDrawGizmos()
+    public void OnDrawGizmos()
     {
+        base.OnDrawGizmos();
         if (Targeted != null && EnableDebugGizmos)
         {
             // Draw line to test target

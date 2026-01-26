@@ -602,6 +602,8 @@ public class Gun : WeaponBase
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
+        base.OnDrawGizmos();
+        
         if (!EnableDebug || Targeted == null) return;
 
         // Draw intercept point

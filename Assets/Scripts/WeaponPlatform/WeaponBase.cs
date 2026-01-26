@@ -543,7 +543,7 @@ public class WeaponBase : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    private void OnDrawGizmos()
+    public void OnDrawGizmos()
     {
         if (!EnableDebug) return;
         // Draw line between turret and aim position
