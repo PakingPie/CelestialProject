@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 630813504571981237}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.2, z: 0}
+  m_LocalPosition: {x: 0, y: 0.12, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -56,7 +56,7 @@ Transform:
   m_GameObject: {fileID: 1236072236589573511}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.15, z: 0}
+  m_LocalPosition: {x: 0, y: 0.13, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -90,8 +90,8 @@ Transform:
   m_GameObject: {fileID: 1673730720929626472}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.15}
-  m_LocalScale: {x: 0.25, y: 3, z: 0.15}
+  m_LocalPosition: {x: 0, y: 0, z: 0.3}
+  m_LocalScale: {x: 0.2, y: 2, z: 0.05}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7746795957058829720}
@@ -409,9 +409,9 @@ GameObject:
   - component: {fileID: 8617120702527641383}
   - component: {fileID: 6122844415495389849}
   - component: {fileID: 5355222595161521942}
-  - component: {fileID: 8660124420405105490}
+  - component: {fileID: -5454974199882435325}
   m_Layer: 0
-  m_Name: Mid Range Missile
+  m_Name: Short Range Missile
   m_TagString: Missile
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -451,7 +451,7 @@ MonoBehaviour:
   EnableEffects: 1
   trailAlwaysOn: 1
   trailFxPoint: {fileID: 0}
-  trailPrefab: {fileID: 0}
+  trailPrefab: {fileID: 3986023011507405815, guid: 6154d0f450f6f894b9d3baf51c32a763, type: 3}
   particleTrailPrefab: {fileID: 128602908056493726, guid: c73b41204b7b07f45b917fc22c25bfe0, type: 3}
   explosionFXPrefab: {fileID: 7698972359503818749, guid: 8696c1021f07aed4180a586385d9c9cc, type: 3}
   playExplosionOnSelfDestruct: 1
@@ -459,7 +459,7 @@ MonoBehaviour:
   fireClip: {fileID: 8300000, guid: 87444d04163f42e43b027b5536bd85ca, type: 3}
   fireVolume: 0.5
   fireMinDistance: 25
-  fireMaxDistance: 500
+  fireMaxDistance: 200
   loopClip: {fileID: 8300000, guid: 25359635208d1dd4cb7640f713805805, type: 3}
   loopVolume: 0.5
   loopMinDistance: 25
@@ -480,24 +480,24 @@ MonoBehaviour:
   ownShip: {fileID: 0}
   attachPoint: {fileID: 0}
   guidanceType: 1
-  seekerCone: 120
-  seekerRange: 10000
+  seekerCone: 150
+  seekerRange: 7500
   overrideInitialSpeed: 0
-  initialSpeed: 120
-  motorLifetime: 5
-  acceleration: 16
-  turnRate: 40
-  timeToLive: 20
-  dropDelay: 0.2
+  initialSpeed: 200
+  motorLifetime: 0
+  acceleration: 0
+  turnRate: 75
+  timeToLive: 10
+  dropDelay: 0
   ejectVelocity: {x: 0, y: -5, z: 0}
   gravity: 0
   ActiveRange: 5000
-  Damage: 150
-  ExplodeRadius: 10
-  DetonationRadius: 5
+  Damage: 80
+  ExplodeRadius: 8
+  DetonationRadius: 2
   MissileScale: {x: 0.5, y: 0.5, z: 0.5}
   SourceFaction: 1
---- !u!114 &8660124420405105490
+--- !u!114 &-5454974199882435325
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -511,10 +511,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
   OwnerShip: {fileID: 0}
   IsShowHitpointBar: 0
-  HitPoints: 100
-  MaxHitPoints: 100
-  ArmorPoints: 50
-  MaxArmorPoints: 50
+  HitPoints: 40
+  MaxHitPoints: 40
+  ArmorPoints: 20
+  MaxArmorPoints: 20
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
@@ -528,11 +528,11 @@ MonoBehaviour:
   EnergyShieldShader: {fileID: 0}
   ShieldEffect: {fileID: 0}
   ExplodeEffect: {fileID: 0}
-  HitPointsRegenerationRate: 1
+  HitPointsRegenerationRate: 0
   HitPointsRegenerationDelay: 40
-  ArmorRegenerationRate: 1
+  ArmorRegenerationRate: 0
   ArmorRegenerationDelay: 40
-  ShieldRegenerationRate: 1
+  ShieldRegenerationRate: 0
   ShieldRegenerationDelay: 20
   EnableIndication: 0
   EnableModuleHits: 0
@@ -564,8 +564,8 @@ Transform:
   m_GameObject: {fileID: 6928817742548037658}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.70710677, w: 0.7071069}
-  m_LocalPosition: {x: 0, y: 0, z: 0.15}
-  m_LocalScale: {x: 0.25, y: 3, z: 0.15}
+  m_LocalPosition: {x: 0, y: 0, z: 0.3}
+  m_LocalScale: {x: 0.2, y: 2, z: 0.05}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7746795957058829720}
@@ -677,7 +677,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.38268343, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.6, y: 0.6, z: 10}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8864816284003992073}
