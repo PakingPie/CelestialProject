@@ -8,8 +8,6 @@ public class AAFire : WeaponBase
     [Header("Missile Fire Settings")]
     [Tooltip("The target to fire at.")]
     public float FireInterval = 10.0f;
-    private float _fireTimer = 0f;
-    private AALauncher _launcher;
 
     [Header("Multi-Target Settings")]
     [Tooltip("If true, each missile in a salvo can target a different enemy")]
@@ -17,14 +15,18 @@ public class AAFire : WeaponBase
     [Tooltip("Maximum missiles to fire at a single target before switching")]
     public int MaxMissilesPerTarget = 1;
 
-    // Track targets and missiles fired at each
-    private List<Transform> _availableTargets = new List<Transform>(16);
-    private Dictionary<Transform, int> _missilesFiredAtTarget = new Dictionary<Transform, int>();
-    private int _currentTargetIndex = 0;
 
     [Header("Debug Settings")]
     public bool EnableDebugGizmos = false;
     public float TestSeekerCone = 30f;
+
+    private float _fireTimer = 0f;
+    private AALauncher _launcher;
+
+    // Track targets and missiles fired at each
+    private List<Transform> _availableTargets = new List<Transform>(16);
+    private Dictionary<Transform, int> _missilesFiredAtTarget = new Dictionary<Transform, int>();
+    private int _currentTargetIndex = 0;
 
     private void Start()
     {
