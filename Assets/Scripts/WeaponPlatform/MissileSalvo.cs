@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
 
-public class AAFire : WeaponBase
+public class MissileSalvo : WeaponBase
 {
     [Header("Missile Fire Settings")]
     [Tooltip("The target to fire at.")]

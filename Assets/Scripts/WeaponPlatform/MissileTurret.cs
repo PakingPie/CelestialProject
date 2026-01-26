@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class MissileTurret : WeaponBase
+public class MissileTurretFire : WeaponBase
 {
     [Header("Missile Fire Settings")]
     [Tooltip("The target to fire at.")]
