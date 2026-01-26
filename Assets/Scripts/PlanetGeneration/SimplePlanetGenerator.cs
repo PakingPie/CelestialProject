@@ -18,10 +18,15 @@ public class SimplePlanetGenerator : MonoBehaviour
     public float oceanFloorDepth = 0.15f;
 
     [Header("Continents")]
-    [Range(1, 15)]
+    [Range(0, 10)]
     public int continentCount = 5;
     public float continentScale = 0.8f;
     public float continentShelfNoise = 0.3f;
+    [Range(0f, 1f)]
+    public float continentFragmentation = 0.5f;  // NEW: How broken up continents are
+    [Range(0f, 1f)]
+    public float coastlineComplexity = 0.6f;     // NEW: Fractal coastline detail
+    public float domainWarpStrength = 0.4f;      // NEW: How much to warp the shapes
 
     [Header("Mountains")]
     public float mountainHeight = 1.5f;
@@ -100,6 +105,8 @@ public class SimplePlanetGenerator : MonoBehaviour
     // Crater and continent data
     private List<CraterData> craters = new List<CraterData>();
     private List<Vector3> continentCenters = new List<Vector3>();
+    private List<float> continentSizes = new List<float>();
+    private List<Vector3> continentWarpOffsets = new List<Vector3>();
 
     struct CraterData
     {
@@ -137,6 +144,7 @@ public class SimplePlanetGenerator : MonoBehaviour
         neighborStartsBuffer?.Release();
         randomStatesBuffer?.Release();
     }
+    #region Planet Generation
 
     [ContextMenu("Generate Planet")]
     public void GeneratePlanet()
@@ -158,15 +166,18 @@ public class SimplePlanetGenerator : MonoBehaviour
     void GenerateContinentCenters()
     {
         continentCenters.Clear();
+        continentSizes.Clear();
+        continentWarpOffsets.Clear();
 
         for (int i = 0; i < continentCount; i++)
         {
+            // Fibonacci sphere distribution with perturbation
             float t = (float)i / continentCount;
             float inclination = Mathf.Acos(1 - 2 * t);
             float azimuth = 2 * Mathf.PI * 0.618033988749895f * i;
 
-            inclination += (float)(random.NextDouble() - 0.5) * 0.5f;
-            azimuth += (float)(random.NextDouble() - 0.5) * 0.5f;
+            inclination += (float)(random.NextDouble() - 0.5) * 0.8f;
+            azimuth += (float)(random.NextDouble() - 0.5) * 0.8f;
 
             Vector3 center = new Vector3(
                 Mathf.Sin(inclination) * Mathf.Cos(azimuth),
@@ -175,8 +186,171 @@ public class SimplePlanetGenerator : MonoBehaviour
             );
 
             continentCenters.Add(center.normalized);
+
+            // Random size for each continent (0.5 to 1.5 base size)
+            continentSizes.Add(0.5f + (float)random.NextDouble() * 1.0f);
+
+            // Unique warp offset for each continent
+            continentWarpOffsets.Add(new Vector3(
+                (float)random.NextDouble() * 100f,
+                (float)random.NextDouble() * 100f,
+                (float)random.NextDouble() * 100f
+            ));
         }
     }
+
+    float CalculateContinentMask(Vector3 point)
+    {
+        // === DOMAIN WARPING ===
+        // Warp the sample point to break up circular patterns
+        Vector3 warpedPoint = ApplyDomainWarping(point);
+
+        // === MULTI-LAYER CONTINENT INFLUENCE ===
+        float maxInfluence = -1f;
+
+        for (int i = 0; i < continentCenters.Count; i++)
+        {
+            Vector3 center = continentCenters[i];
+            float baseSize = continentSizes[i];
+            Vector3 warpOffset = continentWarpOffsets[i];
+
+            // Calculate warped distance (not simple euclidean)
+            float influence = CalculateContinentInfluence(
+                warpedPoint, center, baseSize, warpOffset);
+
+            maxInfluence = Mathf.Max(maxInfluence, influence);
+        }
+
+        // === FRAGMENTATION LAYER ===
+        // Adds islands, breaks up continent edges
+        float fragmentation = CalculateFragmentation(warpedPoint);
+        maxInfluence += fragmentation * continentFragmentation * 0.4f;
+
+        // === COASTLINE COMPLEXITY ===
+        // High-frequency noise for detailed coastlines
+        float coastDetail = CalculateCoastlineDetail(point);
+        maxInfluence += coastDetail * coastlineComplexity * 0.15f;
+
+        return Mathf.Clamp(maxInfluence * 2f - 1f, -1f, 1f);
+    }
+
+    Vector3 ApplyDomainWarping(Vector3 point)
+    {
+        // Multi-octave domain warping for organic shapes
+        float warpScale = continentScale * 0.3f;
+
+        // First warp layer (large scale)
+        Vector3 warp1 = new Vector3(
+            FractalNoise(point + new Vector3(0, 0, 0), warpScale, 3, 2f, 0.5f),
+            FractalNoise(point + new Vector3(43, 67, 91), warpScale, 3, 2f, 0.5f),
+            FractalNoise(point + new Vector3(113, 157, 193), warpScale, 3, 2f, 0.5f)
+        ) * domainWarpStrength;
+
+        Vector3 warped = point + warp1;
+
+        // Second warp layer (medium scale) - warp the warped coordinates
+        Vector3 warp2 = new Vector3(
+            FractalNoise(warped + new Vector3(173, 211, 239), warpScale * 2f, 2, 2f, 0.5f),
+            FractalNoise(warped + new Vector3(263, 281, 307), warpScale * 2f, 2, 2f, 0.5f),
+            FractalNoise(warped + new Vector3(337, 359, 383), warpScale * 2f, 2, 2f, 0.5f)
+        ) * domainWarpStrength * 0.5f;
+
+        return warped + warp2;
+    }
+
+    float CalculateContinentInfluence(Vector3 point, Vector3 center, float baseSize, Vector3 warpOffset)
+    {
+        // Warp the center-to-point direction for non-circular shapes
+        Vector3 toPoint = point - center;
+
+        // Create an irregular "blob" shape using noise
+        float angle1 = Mathf.Atan2(toPoint.y, toPoint.x);
+        float angle2 = Mathf.Atan2(toPoint.z, Mathf.Sqrt(toPoint.x * toPoint.x + toPoint.y * toPoint.y));
+
+        // Sample noise based on angular position around the continent
+        Vector3 angularSample = new Vector3(
+            Mathf.Cos(angle1 * 3f) + Mathf.Sin(angle2 * 2f),
+            Mathf.Sin(angle1 * 3f) + Mathf.Cos(angle2 * 2f),
+            Mathf.Sin(angle1 * 2f + angle2 * 3f)
+        ) + warpOffset;
+
+        // Multi-frequency shape distortion
+        float shapeNoise = 0f;
+        shapeNoise += FractalNoise(angularSample * 0.5f, 1f, 2, 2f, 0.5f) * 0.4f;
+        shapeNoise += FractalNoise(angularSample * 1.0f, 2f, 3, 2f, 0.5f) * 0.3f;
+        shapeNoise += FractalNoise(angularSample * 2.0f, 4f, 2, 2f, 0.5f) * 0.15f;
+
+        // Modify the effective radius based on direction
+        float effectiveRadius = baseSize * (0.6f + shapeNoise * 0.8f);
+
+        // Calculate distance with the modified radius
+        float dist = Vector3.Distance(point, center);
+
+        // Add distance-based noise warping too
+        float distWarp = FractalNoise(point * continentScale, continentScale, 3, 2f, 0.5f)
+                         * continentShelfNoise * 0.5f;
+        dist += distWarp;
+
+        // Smooth falloff with modified radius
+        float influence = 1f - Mathf.Clamp01(dist / effectiveRadius);
+
+        // Apply smooth step for natural edges
+        influence = Mathf.SmoothStep(0, 1, influence);
+
+        // Add "tendrils" - peninsulas and bays
+        float tendrils = CalculateTendrils(point, center, warpOffset);
+        influence = Mathf.Max(influence, influence * 0.3f + tendrils * 0.7f);
+
+        return influence;
+    }
+
+    float CalculateTendrils(Vector3 point, Vector3 center, Vector3 offset)
+    {
+        // Creates peninsula and bay features extending from continents
+        Vector3 dir = (point - center).normalized;
+
+        // Ridged noise creates tendril-like extensions
+        float tendrilNoise = RidgedNoise(dir * 3f + offset, 2f, 3, 2.2f, 0.5f);
+
+        float dist = Vector3.Distance(point, center);
+        float distFalloff = Mathf.Exp(-dist * 2f); // Exponential falloff
+
+        return tendrilNoise * distFalloff * 0.5f;
+    }
+
+    float CalculateFragmentation(Vector3 point)
+    {
+        // Creates archipelagos and isolated landmasses
+
+        // Large islands
+        float largeIslands = RidgedNoise(point, continentScale * 2f, 3, 2f, 0.5f);
+        largeIslands = Mathf.Pow(Mathf.Max(0, largeIslands - 0.3f), 1.5f);
+
+        // Small islands (higher frequency)
+        float smallIslands = RidgedNoise(point + Vector3.one * 50f, continentScale * 4f, 2, 2f, 0.5f);
+        smallIslands = Mathf.Pow(Mathf.Max(0, smallIslands - 0.5f), 2f);
+
+        // Voronoi-based archipelago clusters
+        float archipelago = 1f - VoronoiNoise(point, continentScale * 3f);
+        archipelago = Mathf.Pow(Mathf.Max(0, archipelago - 0.6f), 2f);
+
+        return largeIslands * 0.5f + smallIslands * 0.25f + archipelago * 0.25f;
+    }
+
+    float CalculateCoastlineDetail(Vector3 point)
+    {
+        // High-frequency detail for realistic coastlines
+        float detail = 0f;
+
+        // Multiple octaves of high-frequency noise
+        detail += FractalNoise(point, continentScale * 6f, 3, 2.2f, 0.6f) * 0.5f;
+        detail += FractalNoise(point + Vector3.one * 30f, continentScale * 12f, 2, 2f, 0.5f) * 0.3f;
+        detail += FractalNoise(point + Vector3.one * 60f, continentScale * 24f, 2, 2f, 0.4f) * 0.2f;
+
+        return detail;
+    }
+
+    #endregion
 
     void GenerateCraters()
     {
@@ -634,9 +808,13 @@ public class SimplePlanetGenerator : MonoBehaviour
         // Get continent mask (-1 to 1, where positive = land)
         float continentValue = CalculateContinentMask(point);
 
-        // Sharp land/ocean transition
-        float landMask = Mathf.Clamp01(continentValue * 2f + 0.5f); // 0 = ocean, 1 = land
-        landMask = Mathf.SmoothStep(0, 1, landMask); // Smooth the transition
+        // More gradual land/ocean transition with noise
+        float transitionNoise = FractalNoise(point * 3f, continentScale * 2f, 2, 2f, 0.5f) * 0.1f;
+        float landMask = Mathf.Clamp01((continentValue + transitionNoise) * 1.5f + 0.5f);
+
+        // Use a sharper but still smooth transition
+        landMask = Mathf.Pow(landMask, 0.8f);
+        landMask = Mathf.SmoothStep(0.1f, 0.9f, landMask);
 
         // OCEAN
         if (landMask < 0.5f)
@@ -687,29 +865,6 @@ public class SimplePlanetGenerator : MonoBehaviour
         }
 
         return elevation;
-    }
-
-    float CalculateContinentMask(Vector3 point)
-    {
-        float maxInfluence = -1f;
-
-        foreach (var center in continentCenters)
-        {
-            float dist = Vector3.Distance(point, center);
-            float warp = FractalNoise(point, continentScale * 0.5f, 3, 2f, 0.5f) * continentShelfNoise;
-            dist += warp;
-
-            float continentSize = 0.8f + FractalNoise(center, 1f, 2, 2f, 0.5f) * 0.4f;
-            float influence = 1f - Mathf.Clamp01(dist / continentSize);
-            influence = Mathf.SmoothStep(0, 1, influence);
-
-            maxInfluence = Mathf.Max(maxInfluence, influence);
-        }
-
-        float edgeNoise = FractalNoise(point * 2f, continentScale, 4, 2f, 0.5f) * 0.3f;
-        maxInfluence += edgeNoise;
-
-        return (maxInfluence - 0.5f) * 2f;
     }
 
     float CalculateBaseShape(Vector3 point)

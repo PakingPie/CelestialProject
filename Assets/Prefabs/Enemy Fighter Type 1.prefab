@@ -413,7 +413,7 @@ MonoBehaviour:
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
-  _fireDelay: 4
+  _fireDelay: 2
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -431,6 +431,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 2
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -588,7 +592,7 @@ MonoBehaviour:
   ActiveRange: {x: 50, y: 1500}
   UpdateRate: 60
   PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
-  CanTargetMissiles: 1
+  CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 2000
   Effectiveness: 1
@@ -602,7 +606,7 @@ MonoBehaviour:
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.2
   FireInterval: 12
-  LaserDPS: 10
+  LaserDPS: 2
   IsFiring: 0
   LaserOrigin: {fileID: 1605155439695663349}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
@@ -1260,7 +1264,7 @@ MonoBehaviour:
   ActiveRange: {x: 50, y: 1500}
   UpdateRate: 60
   PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
-  CanTargetMissiles: 1
+  CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 2000
   Effectiveness: 1
@@ -1274,7 +1278,7 @@ MonoBehaviour:
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.2
   FireInterval: 12
-  LaserDPS: 10
+  LaserDPS: 2
   IsFiring: 0
   LaserOrigin: {fileID: 5673041138898698918}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
@@ -1723,7 +1727,7 @@ MonoBehaviour:
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
-  _fireDelay: 4
+  _fireDelay: 2
   Deviation: 1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -1741,6 +1745,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 2
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -1839,7 +1847,7 @@ MonoBehaviour:
   numPerceivedFlockmates: 0
   HeightRange: {x: -2500, y: 2500}
   _EnableDebugLogs: 0
-  _EnableDebugGizmos: 1
+  _EnableDebugGizmos: 0
   IsInCombat: 0
   FormationIndex: 0
   FormationLeader: {fileID: 0}
@@ -1865,7 +1873,7 @@ MonoBehaviour:
   MaxShieldPoints: 200
   BoidManager: {fileID: 0}
   VehicleFaction: 4
-  Type: 0
+  Type: 1
   HitpointBarCanvas: {fileID: 6894111711972518283}
   HealthBar: {fileID: 4407329836811907037}
   ArmorBar: {fileID: 656281697264504808}
@@ -1931,11 +1939,11 @@ TrailRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Time: 4
+  m_Time: 8
   m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 2
+    widthMultiplier: 4
     widthCurve:
       serializedVersion: 2
       m_Curve:

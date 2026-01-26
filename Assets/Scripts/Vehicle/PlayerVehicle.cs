@@ -11,15 +11,15 @@ public class PlayerVehicle : VehicleBase
 {
     public VehicleType Type = VehicleType.Frigate;
     [Header("UI")]
-    public Image HealthBar;
+    public Image HullPoint;
     public Image ArmorBar;
     public Image ShieldBar;
-    public Shader HealthBarShader;
+    public Shader HullPointShader;
     public Shader EnergyShieldShader;
     public GameObject ShieldEffect;
-    public Color HealthBarColor1 = Color.green;
-    public Color HealthBarColor2 = Color.yellow;
-    public Color HealthBarColor3 = Color.red;
+    public Color HullPointColor1 = Color.green;
+    public Color HullPointColor2 = Color.yellow;
+    public Color HullPointColor3 = Color.red;
     public Color ArmorBarColor1 = Color.yellow;
     public Color ArmorBarColor2 = Color.yellow;
     public Color ArmorBarColor3 = Color.yellow;
@@ -36,13 +36,13 @@ public class PlayerVehicle : VehicleBase
     public int ShieldRegenerationRate = 1;
     public float ShieldRegenerationDelay = 5f;
 
-    private float _hitPointsRegenTimer = 0f;
+    private float _hullPointsRegenTimer = 0f;
     private float _armorRegenTimer = 0f;
     private float _shieldRegenTimer = 0f;
     private float _lastDamageTime = 0f;
 
     // Cache components to avoid repeated GetComponent calls
-    private Material _healthBarMaterial;
+    private Material _HullPointMaterial;
     private Material _armorBarMaterial;
     private Material _shieldBarMaterial;
     private Material _shieldEffectMaterial;
@@ -73,15 +73,15 @@ public class PlayerVehicle : VehicleBase
         if (!Application.isPlaying) return;
 
         // Create and cache materials
-        _healthBarMaterial = new Material(HealthBarShader);
-        _healthBarMaterial.SetInt("_MaxHitPoints", MaxHitPoints);
-        _healthBarMaterial.SetInt("_CurrentHitPoints", HitPoints);
-        _healthBarMaterial.SetVector("_Color1", HealthBarColor1);
-        _healthBarMaterial.SetVector("_Color2", HealthBarColor2);
-        _healthBarMaterial.SetVector("_Color3", HealthBarColor3);
-        HealthBar.material = _healthBarMaterial;
+        _HullPointMaterial = new Material(HullPointShader);
+        _HullPointMaterial.SetInt("_MaxHitPoints", MaxHitPoints);
+        _HullPointMaterial.SetInt("_CurrentHitPoints", HitPoints);
+        _HullPointMaterial.SetVector("_Color1", HullPointColor1);
+        _HullPointMaterial.SetVector("_Color2", HullPointColor2);
+        _HullPointMaterial.SetVector("_Color3", HullPointColor3);
+        HullPoint.material = _HullPointMaterial;
 
-        _armorBarMaterial = new Material(HealthBarShader);
+        _armorBarMaterial = new Material(HullPointShader);
         _armorBarMaterial.SetInt("_MaxHitPoints", MaxArmorPoints);
         _armorBarMaterial.SetInt("_CurrentHitPoints", ArmorPoints);
         _armorBarMaterial.SetVector("_Color1", ArmorBarColor1);
@@ -89,7 +89,7 @@ public class PlayerVehicle : VehicleBase
         _armorBarMaterial.SetVector("_Color3", ArmorBarColor3);
         ArmorBar.material = _armorBarMaterial;
 
-        _shieldBarMaterial = new Material(HealthBarShader);
+        _shieldBarMaterial = new Material(HullPointShader);
         _shieldBarMaterial.SetInt("_MaxHitPoints", MaxShieldPoints);
         _shieldBarMaterial.SetInt("_CurrentHitPoints", ShieldPoints);
         _shieldBarMaterial.SetVector("_Color1", ShieldBarColor1);
@@ -128,7 +128,7 @@ public class PlayerVehicle : VehicleBase
         }
     }
 
-    public override void RestoreHitPoints() => RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer, 0.1f, ref _healthBarMaterial, "_CurrentHitPoints");    
+    public override void RestoreHitPoints() => RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hullPointsRegenTimer, 0.1f, ref _HullPointMaterial, "_CurrentHitPoints");    
     public override void RestoreArmor() => RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer, 0.1f, ref _armorBarMaterial, "_CurrentHitPoints");
     public override void RestoreShield() => RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer, 0.1f, ref _shieldBarMaterial, "_CurrentHitPoints", true);
 
@@ -195,7 +195,7 @@ public class PlayerVehicle : VehicleBase
 
     private void UpdateUI()
     {
-        _healthBarMaterial.SetInt("_CurrentHitPoints", HitPoints);
+        _HullPointMaterial.SetInt("_CurrentHitPoints", HitPoints);
         _armorBarMaterial.SetInt("_CurrentHitPoints", ArmorPoints);
         _shieldBarMaterial.SetInt("_CurrentHitPoints", ShieldPoints);
         _shieldEffectMaterial.SetFloat("_Strength", ShieldPoints / (float)MaxShieldPoints);

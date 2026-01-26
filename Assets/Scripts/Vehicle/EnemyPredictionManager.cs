@@ -329,6 +329,7 @@ public class EnemyPredictionManager : MonoBehaviour
                 targetPosition,
                 targetVelocity,
                 bulletSpeed,
+                playerVelocity,
                 _maxPredictionTime
             );
         }

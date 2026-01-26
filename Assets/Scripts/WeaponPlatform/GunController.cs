@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
+using static GlobalHelper;
 
 public class GunController : MonoBehaviour
 {
@@ -54,6 +55,38 @@ public class GunController : MonoBehaviour
 
         if (ship == null)
             ship = transform;
+    }
+
+    void Start()
+    {
+        InitializeGunGroup();
+    }
+
+    public void InitializeGunGroup()
+    {
+        // PrimaryGuns are find by looking for children with componentWeaponPlatform that has attribute WeaponType = Gun, WeaponSize = Large
+        primaryGuns.Clear();
+        secondaryGuns.Clear();
+        tertiaryGuns.Clear();
+        Gun[] allGuns = GetComponentsInChildren<Gun>();
+        foreach (var gun in allGuns)
+        {
+            if (gun.GetComponent<WeaponPlatform>().PlatformWeaponCategory == WeaponType.Gun)
+            {
+                switch (gun.GetComponent<WeaponPlatform>().PlatformWeaponType)
+                {
+                    case WeaponSize.Large:
+                        primaryGuns.Add(gun);
+                        break;
+                    case WeaponSize.Medium:
+                        secondaryGuns.Add(gun);
+                        break;
+                    case WeaponSize.Small:
+                        tertiaryGuns.Add(gun);
+                        break;
+                }
+            }
+        }
     }
 
     private void Update()

@@ -141,11 +141,29 @@ public class EnemyVehicle : VehicleBase
         }
     }
 
-    public override void RestoreHitPoints() => RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer, 0.1f, HealthBar.GetComponent<Image>().material, "_CurrentHitPoints");
-    public override void RestoreArmor() => RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer, 0.1f, ArmorBar.GetComponent<Image>().material, "_CurrentHitPoints");
-    public override void RestoreShield() => RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer, 0.1f, ShieldBar.GetComponent<Image>().material, "_CurrentHitPoints", true);
+    public override void RestoreHitPoints()
+    {
+        if (HealthBar != null)
+            RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer, 0.1f, HealthBar.GetComponent<Image>().material, "_CurrentHitPoints");
+        else
+            RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer);
+    }
+    public override void RestoreArmor()
+    {
+        if (ArmorBar != null)
+            RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer, 0.1f, ArmorBar.GetComponent<Image>().material, "_CurrentHitPoints");
+        else
+            RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer);
 
-    private void RegenerateAttributtes(ref int currentAmount, ref int maxAmount, ref int regenerationRate, ref float regenTimer, float delay, Material barMat, string matKeyword, bool isShield = false)
+    }
+    public override void RestoreShield()
+    {
+        if (ShieldBar != null)
+            RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer, 0.1f, ShieldBar.GetComponent<Image>().material, "_CurrentHitPoints", true);
+        else
+            RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer);
+    }
+    private void RegenerateAttributtes(ref int currentAmount, ref int maxAmount, ref int regenerationRate, ref float regenTimer, float delay, Material barMat = null, string matKeyword = "", bool isShield = false)
     {
         regenTimer += Time.deltaTime;
         if (regenTimer >= delay && currentAmount < maxAmount)
@@ -155,6 +173,23 @@ public class EnemyVehicle : VehicleBase
                 currentAmount = maxAmount;
 
             barMat.SetInt(matKeyword, currentAmount);
+            if (isShield)
+            {
+                ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", currentAmount / (float)maxAmount);
+            }
+            regenTimer = 0f;
+        }
+    }
+
+    private void RegenerateAttributtes(ref int currentAmount, ref int maxAmount, ref int regenerationRate, ref float regenTimer, float delay = 0.1f, bool isShield = false)
+    {
+        regenTimer += Time.deltaTime;
+        if (regenTimer >= delay && currentAmount < maxAmount)
+        {
+            currentAmount += regenerationRate;
+            if (currentAmount > maxAmount)
+                currentAmount = maxAmount;
+
             if (isShield)
             {
                 ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", currentAmount / (float)maxAmount);
@@ -237,7 +272,7 @@ public class EnemyVehicle : VehicleBase
 
     public void EnableHitpointBar(bool enable)
     {
-        if(HitpointBarCanvas)
+        if (HitpointBarCanvas)
             HitpointBarCanvas.SetActive(enable);
     }
 }

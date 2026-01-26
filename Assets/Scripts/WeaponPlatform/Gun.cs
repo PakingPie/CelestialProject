@@ -7,10 +7,6 @@ public class Gun : WeaponBase
     [Header("Ballistics")]
     [Tooltip("Time (s) between each shot.")]
     [SerializeField] private float _fireDelay = .2f;
-    // [Tooltip("Speed (m/s) that the bullet is fired from the barrel.")]
-    // public float MuzzleVelocity = 200f;
-    // [Tooltip("Time (s) after which the bullet will self-destruct.")]
-    // public float SelfDestructionTime = 10f;
     [Tooltip("Amount of spread the gun has. Higher values result in more spread.")]
     public float Deviation = .1f;
     [Tooltip("Automatically inherit the velocity of a parent Rigidbody when firing bullets.")]
@@ -50,6 +46,16 @@ public class Gun : WeaponBase
     [Tooltip("Set to true to fire the gun automatically.")]
     public bool IsFiring = false;
 
+    [Header("Overheating")]
+    [Tooltip("Maximum heat before the gun overheats and must cool down.")]
+    public float MaxHeat = 100f;
+    [Tooltip("Heat generated per shot.")]
+    public float HeatPerShot = 10f;
+    [Tooltip("Heat dissipated per second when not overheated.")]
+    public float HeatDissipationRate = 20f;
+    [Tooltip("Time (s) the gun is locked when overheated. After this, heat resets to 0.")]
+    public float CooldownTime = 5.0f;
+
     [Header("Ammo")]
     public bool UseAmmo = false;
     public int MaxAmmo = 10000;
@@ -73,6 +79,33 @@ public class Gun : WeaponBase
     private List<GunBarrel> barrelVisuals = new List<GunBarrel>();
     private float _lastShotTime = -float.MaxValue;
     private int _firePointIndex = 0;
+    private Vector3 _targetPosLastFrame;
+
+    private float _currentHeat = 0f;
+    private bool _isOverheated = false;
+    private float _overheatStartTime = 0f;
+
+    /// <summary>
+    /// Current heat value (0 to MaxHeat).
+    /// </summary>
+    public float CurrentHeat => _currentHeat;
+
+    /// <summary>
+    /// Normalized heat value (0 to 1) for UI display.
+    /// </summary>
+    public float HeatPercent => _currentHeat / MaxHeat;
+
+    /// <summary>
+    /// True if the gun is currently overheated and cannot fire.
+    /// </summary>
+    public bool IsOverheated => _isOverheated;
+
+    /// <summary>
+    /// Normalized cooldown progress (0 to 1). 1 means ready to fire again.
+    /// </summary>
+    public float CooldownProgress => _isOverheated
+        ? Mathf.Clamp01((Time.time - _overheatStartTime) / CooldownTime)
+        : 1f;
 
     /// <summary>
     /// Value used when firing for inherited velocity. Normally this is filled in automatically
@@ -80,13 +113,11 @@ public class Gun : WeaponBase
     /// </summary>
     public Vector3 InheritedVelocity { get; set; } = Vector3.zero;
 
-    public bool ReadyToFire => Time.time - _lastShotTime >= FireDelay && HasAmmo;
-
+    public bool ReadyToFire => Time.time - _lastShotTime >= FireDelay && HasAmmo && !_isOverheated;
     public bool HasAmmo => !UseAmmo || (UseAmmo && AmmoCount > 0);
     public int AmmoCount { get; private set; } = 10000;
     public Vector3 ManualAimPosition => _manualAimPosition;
 
-    private Vector3 _targetPosLastFrame;
 
     private void Start()
     {
@@ -116,13 +147,16 @@ public class Gun : WeaponBase
                 RegisterRecoilingBarrel(barrel);
         }
 
-        ActiveRange.y = BulletPrefab.Speed * BulletPrefab.LifeTime * 0.8f;
+        ActiveRange.y = BulletPrefab.Speed * BulletPrefab.LifeTime;
     }
 
     private void Update()
     {
         if (!IsFunctional)
             return;
+
+        UpdateHeat();
+
         // Auto-populate inherited velocity from parent rigidbody or ship movement
         if (AutoInheritVelocity)
         {
@@ -178,33 +212,44 @@ public class Gun : WeaponBase
             else
             {
                 Vector3 aimPosition = Targeted.position;
+                // In the else block where GuidanceType == Lead:
                 if (GuidanceType == GlobalHelper.GuidanceType.Lead)
                 {
                     Vector3 targetVelocity = LeadCalculator.GetTargetVelocity(Targeted);
                     Vector3 shipVelocity = AutoInheritVelocity ? InheritedVelocity : Vector3.zero;
 
+                    // Use fire point position, not transform.position
+                    Transform firePoint = FirePoints.Count > 0
+                        ? FirePoints[_firePointIndex % FirePoints.Count]
+                        : transform;
+
                     Vector3 interceptPoint = LeadCalculator.CalculateInterceptPoint(
-                        transform.position,
+                        firePoint.position,
                         shipVelocity,
                         BulletPrefab.Speed,
                         Targeted.position,
                         targetVelocity,
+                        BulletPrefab.velocityInheritance,  // Account for inheritance
                         5f
                     );
 
                     if (interceptPoint != Vector3.zero)
                     {
                         aimPosition = interceptPoint;
+                        GimbalTarget = interceptPoint;  // Also update gimbal
                     }
                     else
                     {
                         aimPosition = LeadCalculator.CalculateSimpleLead(
-                            transform.position,
+                            firePoint.position,
                             Targeted.position,
                             targetVelocity,
                             BulletPrefab.Speed,
+                            shipVelocity,                      // Add
+                            BulletPrefab.velocityInheritance,  // Add
                             5f
                         );
+                        GimbalTarget = aimPosition;
                     }
                 }
 
@@ -231,6 +276,24 @@ public class Gun : WeaponBase
 
             foreach (var barrel in barrelVisuals)
                 barrel.ResetBarrelOverTime(Time.deltaTime);
+        }
+    }
+
+    private void UpdateHeat()
+    {
+        if (_isOverheated)
+        {
+            // Check if cooldown period has elapsed
+            if (Time.time - _overheatStartTime >= CooldownTime)
+            {
+                _isOverheated = false;
+                _currentHeat = 0f;
+            }
+        }
+        else if (!IsFiring && _currentHeat > 0f)
+        {
+            // Dissipate heat when not firing
+            _currentHeat = Mathf.Max(0f, _currentHeat - HeatDissipationRate * Time.deltaTime);
         }
     }
 
@@ -309,7 +372,7 @@ public class Gun : WeaponBase
             _firePointIndex += 1;
 
             AmmoCount -= 1;
-
+            AddHeat(HeatPerShot);
             // Decrement burst counter in manual mode
             if (IsManualMode && _isSequentialBurstActive)
             {
@@ -339,11 +402,25 @@ public class Gun : WeaponBase
                 _firePointIndex += 1;
 
                 AmmoCount -= 1;
+                AddHeat(HeatPerShot);
             }
             _lastShotTime = Time.time;
         }
 
         return true;
+    }
+
+    private void AddHeat(float amount)
+    {
+        _currentHeat += amount;
+
+        if (_currentHeat >= MaxHeat)
+        {
+            _currentHeat = MaxHeat;
+            _isOverheated = true;
+            _overheatStartTime = Time.time;
+            IsFiring = false;  // Stop firing immediately
+        }
     }
 
     private void FireBulletFromFirePoint(Transform firePoint, Vector3 velocity)
@@ -509,76 +586,10 @@ public class Gun : WeaponBase
         return true;
     }
 
+    // Adds more checks to automatically fill InheritedVelocity
     private void UpdateInheritedVelocity()
     {
-
-        PlayerShipMovement shipMovement = GetComponentInParent<PlayerShipMovement>();
-        if (shipMovement != null)
-        {
-            InheritedVelocity = shipMovement.Velocity;
-            return;
-        }
-
-        InheritedVelocity = Vector3.zero;
-    }
-
-    /// <summary>
-    /// Calculates the intercept point for a projectile to hit a moving target.
-    /// Accounts for shooter velocity (bullet inherits shooter momentum).
-    /// </summary>
-    private Vector3 CalculateInterceptPoint(
-        Vector3 shooterPos,
-        Vector3 shooterVelocity,
-        float projectileSpeed,
-        Vector3 targetPos,
-        Vector3 targetVelocity)
-    {
-        // Relative position and velocity
-        Vector3 relativePos = targetPos - shooterPos;
-        Vector3 relativeVel = targetVelocity - shooterVelocity;
-
-        // Quadratic equation coefficients: at² + bt + c = 0
-        float a = Vector3.Dot(relativeVel, relativeVel) - (projectileSpeed * projectileSpeed);
-        float b = 2f * Vector3.Dot(relativePos, relativeVel);
-        float c = Vector3.Dot(relativePos, relativePos);
-
-        // Handle case where a is nearly zero (relative velocity matches projectile speed)
-        if (Mathf.Abs(a) < 0.0001f)
-        {
-            if (Mathf.Abs(b) < 0.0001f)
-                return Vector3.zero;
-
-            float lt = -c / b;
-            if (lt > 0f)
-                return targetPos + targetVelocity * lt;
-            return Vector3.zero;
-        }
-
-        float discriminant = b * b - 4f * a * c;
-
-        // No real solution means target is unreachable
-        if (discriminant < 0f)
-            return Vector3.zero;
-
-        float sqrtDiscriminant = Mathf.Sqrt(discriminant);
-        float t1 = (-b + sqrtDiscriminant) / (2f * a);
-        float t2 = (-b - sqrtDiscriminant) / (2f * a);
-
-        // Choose the smallest positive time
-        float t;
-        if (t1 > 0f && t2 > 0f)
-            t = Mathf.Min(t1, t2);
-        else if (t1 > 0f)
-            t = t1;
-        else if (t2 > 0f)
-            t = t2;
-        else
-            return Vector3.zero;
-
-        // Cap prediction time to reasonable value
-        t = Mathf.Min(t, 5f);
-
-        return targetPos + targetVelocity * t;
+        InheritedVelocity = LeadCalculator.GetTargetVelocity(transform);
     }
 
     // TODO: Need to check change ammo while firing
@@ -587,4 +598,26 @@ public class Gun : WeaponBase
         BulletPrefab = ammoPrefab.GetComponent<BulletPhysics>();
         ActiveRange.y = BulletPrefab.Speed * BulletPrefab.LifeTime * 0.8f;
     }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        base.OnDrawGizmos();
+        
+        if (!EnableDebug || Targeted == null) return;
+
+        // Draw intercept point
+        if (GimbalTarget != Vector3.zero)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(GimbalTarget, 2f);
+            Gizmos.DrawLine(transform.position, GimbalTarget);
+        }
+
+        // Draw target velocity
+        Vector3 targetVel = LeadCalculator.GetTargetVelocity(Targeted);
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawRay(Targeted.position, targetVel);
+    }
+#endif
 }

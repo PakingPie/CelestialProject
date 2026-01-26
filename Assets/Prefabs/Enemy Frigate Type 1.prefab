@@ -183,6 +183,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -207,6 +211,8 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
+  PlatformWeaponCategory: 0
+  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -1230,7 +1236,6 @@ MonoBehaviour:
   ShowGunAngles: 0
   UseManagedUpdates: 1
   FireInterval: 15
-  IsFiring: 0
 --- !u!114 &6353497001222432082
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2501,6 +2506,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -2525,6 +2534,8 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
+  PlatformWeaponCategory: 0
+  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -3229,11 +3240,11 @@ TrailRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Time: 4
+  m_Time: 8
   m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 1
+    widthMultiplier: 8
     widthCurve:
       serializedVersion: 2
       m_Curve:
@@ -5067,6 +5078,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -5091,6 +5106,8 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
+  PlatformWeaponCategory: 0
+  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -6137,7 +6154,6 @@ MonoBehaviour:
   ShowGunAngles: 0
   UseManagedUpdates: 1
   FireInterval: 15
-  IsFiring: 0
 --- !u!114 &6034943185228390744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6371,6 +6387,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -6395,6 +6415,8 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
+  PlatformWeaponCategory: 0
+  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -6619,6 +6641,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -6643,6 +6669,8 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
+  PlatformWeaponCategory: 0
+  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -6761,7 +6789,7 @@ MonoBehaviour:
   LaserEffectDuration: 4
   MinimumLaserDamageInterval: 0.2
   FireInterval: 12
-  LaserDPS: 10
+  LaserDPS: 2
   IsFiring: 0
   LaserOrigin: {fileID: 3971230538134890396}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
@@ -6786,6 +6814,8 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
+  PlatformWeaponCategory: 0
+  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -7275,6 +7305,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -7299,6 +7333,8 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
+  PlatformWeaponCategory: 0
+  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
