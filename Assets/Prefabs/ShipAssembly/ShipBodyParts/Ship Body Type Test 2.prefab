@@ -287,6 +287,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6425643202267215223}
   - component: {fileID: 4376545211767520319}
+  - component: {fileID: 8401563770517200307}
   m_Layer: 15
   m_Name: Ship Body Type Test 2
   m_TagString: Untagged
@@ -331,6 +332,29 @@ MonoBehaviour:
   RightConnection: {fileID: 2567607071452930035}
   TopConnection: {fileID: 3357841334850282003}
   BottomConnection: {fileID: 8709340830570859347}
+--- !u!114 &8401563770517200307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3864666418062769948}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 0}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &3881789990461180149
 GameObject:
   m_ObjectHideFlags: 0

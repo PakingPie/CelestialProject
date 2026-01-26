@@ -47,6 +47,12 @@ public class ShipBuilderUI : MonoBehaviour
     [Tooltip("The root GameObject containing all ship builder components (will be hidden on export)")]
     public GameObject shipBuilderRoot;
     
+    [Header("Camera Settings")]
+    [Tooltip("The camera used in ship builder mode (will be deactivated on export)")]
+    public GameObject shipBuilderCamera;
+    [Tooltip("The name of the camera rig child object under the player")]
+    public GameObject PlayerCameraRig;
+    
     [Header("Tooltip")]
     public GameObject tooltipPanel;
     public TextMeshProUGUI tooltipText;
@@ -370,6 +376,12 @@ public class ShipBuilderUI : MonoBehaviour
             clonedComponent.transform.localScale = child.localScale;
         }
         
+        // Set OwnerShip for all WeaponPlatforms and VehicleModules
+        AssignOwnershipToComponents(exportedShip);
+        
+        // Assign stats to PlayerVehicle
+        AssignStatsToPlayer();
+        
         ShowTooltip("Ship exported to player successfully!");
         Debug.Log($"Ship exported to {targetPlayerObject.name} with {exportedShip.transform.childCount} components");
         
@@ -378,10 +390,125 @@ public class ShipBuilderUI : MonoBehaviour
     }
     
     /// <summary>
+    /// Set OwnerShip reference on all WeaponPlatform and VehicleModule components
+    /// </summary>
+    private void AssignOwnershipToComponents(GameObject exportedShip)
+    {
+        // Find all WeaponPlatforms in the exported ship and set their OwnerShip
+        WeaponPlatform[] weaponPlatforms = exportedShip.GetComponentsInChildren<WeaponPlatform>(true);
+        foreach (var weapon in weaponPlatforms)
+        {
+            weapon.OwnerShip = targetPlayerObject;
+        }
+        Debug.Log($"Assigned OwnerShip to {weaponPlatforms.Length} WeaponPlatforms");
+        
+        // Find all VehicleModules in the exported ship and set their OwnerShip
+        VehicleModule[] vehicleModules = exportedShip.GetComponentsInChildren<VehicleModule>(true);
+        foreach (var module in vehicleModules)
+        {
+            module.OwnerShip = targetPlayerObject;
+        }
+        Debug.Log($"Assigned OwnerShip to {vehicleModules.Length} VehicleModules");
+    }
+    
+    /// <summary>
+    /// Calculate total stats from assembled ship and assign to PlayerVehicle
+    /// </summary>
+    private void AssignStatsToPlayer()
+    {
+        if (targetPlayerObject == null) return;
+        
+        PlayerVehicle playerVehicle = targetPlayerObject.GetComponent<PlayerVehicle>();
+        if (playerVehicle == null)
+        {
+            Debug.LogWarning("No PlayerVehicle component found on target player object!");
+            return;
+        }
+        
+        // Calculate totals from all ship components
+        float totalHull = 0;
+        float totalArmor = 0;
+        float totalShield = 0;
+        float totalHullRegen = 0;
+        float totalArmorRegen = 0;
+        float totalShieldRegen = 0;
+        
+        // Body segments
+        foreach (var segment in assemblyManager.bodySegments)
+        {
+            if (segment.Data != null)
+            {
+                totalHull += segment.Data.HullPoints;
+                totalArmor += segment.Data.ArmorPoints;
+                totalShield += segment.Data.ShieldPoints;
+                totalHullRegen += segment.Data.HullRegenRate;
+                totalArmorRegen += segment.Data.ArmorRegenRate;
+                totalShieldRegen += segment.Data.ShieldRegenRate;
+            }
+        }
+        
+        // Engine
+        if (assemblyManager.currentEngine?.Data != null)
+        {
+            totalHull += assemblyManager.currentEngine.Data.HullPoints;
+            totalArmor += assemblyManager.currentEngine.Data.ArmorPoints;
+            totalShield += assemblyManager.currentEngine.Data.ShieldPoints;
+            totalHullRegen += assemblyManager.currentEngine.Data.HullRegenRate;
+            totalArmorRegen += assemblyManager.currentEngine.Data.ArmorRegenRate;
+            totalShieldRegen += assemblyManager.currentEngine.Data.ShieldRegenRate;
+        }
+        
+        // Bridge
+        if (assemblyManager.currentBridge?.Data != null)
+        {
+            totalHull += assemblyManager.currentBridge.Data.HullPoints;
+            totalArmor += assemblyManager.currentBridge.Data.ArmorPoints;
+            totalShield += assemblyManager.currentBridge.Data.ShieldPoints;
+            totalHullRegen += assemblyManager.currentBridge.Data.HullRegenRate;
+            totalArmorRegen += assemblyManager.currentBridge.Data.ArmorRegenRate;
+            totalShieldRegen += assemblyManager.currentBridge.Data.ShieldRegenRate;
+        }
+        
+        // Weapons
+        foreach (var gun in assemblyManager.deckGuns)
+        {
+            if (gun.Data != null)
+            {
+                totalHull += gun.Data.HullPoints;
+                totalArmor += gun.Data.ArmorPoints;
+                totalShield += gun.Data.ShieldPoints;
+                totalHullRegen += gun.Data.HullRegenRate;
+                totalArmorRegen += gun.Data.ArmorRegenRate;
+                totalShieldRegen += gun.Data.ShieldRegenRate;
+            }
+        }
+        
+        // Assign to PlayerVehicle
+        playerVehicle.HitPoints = Mathf.RoundToInt(totalHull);
+        playerVehicle.MaxHitPoints = Mathf.RoundToInt(totalHull);
+        playerVehicle.ArmorPoints = Mathf.RoundToInt(totalArmor);
+        playerVehicle.MaxArmorPoints = Mathf.RoundToInt(totalArmor);
+        playerVehicle.ShieldPoints = Mathf.RoundToInt(totalShield);
+        playerVehicle.MaxShieldPoints = Mathf.RoundToInt(totalShield);
+        playerVehicle.HitPointsRegenerationRate = Mathf.RoundToInt(totalHullRegen);
+        playerVehicle.ArmorRegenerationRate = Mathf.RoundToInt(totalArmorRegen);
+        playerVehicle.ShieldRegenerationRate = Mathf.RoundToInt(totalShieldRegen);
+        
+        Debug.Log($"Assigned stats to player - Hull: {playerVehicle.MaxHitPoints}, Armor: {playerVehicle.MaxArmorPoints}, Shield: {playerVehicle.MaxShieldPoints}");
+    }
+    
+    /// <summary>
     /// Hide all ship builder related GameObjects in the scene
     /// </summary>
     private void HideShipBuilder()
     {
+        // Disable input handler first to stop camera rotation
+        if (inputHandler != null)
+        {
+            inputHandler.enabled = false;
+            Debug.Log("Ship builder input handler disabled");
+        }
+        
         if (shipBuilderRoot != null)
         {
             shipBuilderRoot.SetActive(false);
@@ -397,6 +524,23 @@ public class ShipBuilderUI : MonoBehaviour
                 assemblyManager.shipRoot.gameObject.SetActive(false);
             
             Debug.LogWarning("ShipBuilderRoot not assigned. Only hiding UI panel and ship root.");
+        }
+        
+        // Deactivate ship builder camera
+        if (shipBuilderCamera != null)
+        {
+            shipBuilderCamera.SetActive(false);
+            Debug.Log("Ship builder camera deactivated");
+        }
+        
+        // Activate player's camera rig
+        if (targetPlayerObject != null)
+        {
+            if (PlayerCameraRig != null)
+            {
+                PlayerCameraRig.SetActive(true);
+                Debug.Log("Player camera rig activated");
+            }
         }
     }
     

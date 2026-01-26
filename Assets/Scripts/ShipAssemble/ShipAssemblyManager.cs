@@ -17,6 +17,14 @@ public class ShipAssemblyManager : MonoBehaviour
 
     public event System.Action OnShipModified;
 
+    /// <summary>
+    /// Notify listeners that the ship has been modified (used by save/load system)
+    /// </summary>
+    public void NotifyShipModified()
+    {
+        OnShipModified?.Invoke();
+    }
+
     void Awake()
     {
         // Clear any inspector-assigned entries to ensure clean state

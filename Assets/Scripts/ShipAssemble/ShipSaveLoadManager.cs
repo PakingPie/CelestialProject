@@ -366,6 +366,7 @@ public class ShipSaveLoadManager : MonoBehaviour
             instance.transform.rotation = segmentData.rotation;
             
             ShipComponent segment = instance.GetComponent<ShipComponent>();
+            segment.Data = componentData; // Assign the component data for proper saving later
             assemblyManager.bodySegments.Add(segment);
             reconstructedSegments[segmentData.segmentIndex] = segment;
         }
@@ -414,6 +415,9 @@ public class ShipSaveLoadManager : MonoBehaviour
             if (gun != null)
                 assemblyManager.deckGuns.Add(gun);
         }
+        
+        // Notify that the ship has been modified so UI can update
+        assemblyManager.NotifyShipModified();
     }
     
     private void ReconstructAttachedComponent(
@@ -435,17 +439,17 @@ public class ShipSaveLoadManager : MonoBehaviour
             return;
         }
         
-        // Find attachment point
-        AttachmentPoint attachPoint = null;
-        
-        // Try by index first
-        if (data.attachmentPointIndex >= 0 && data.attachmentPointIndex < parentSegment.AttachmentPoints.Length)
+        // Ensure AttachmentPoints is populated (Awake may not have run yet)
+        if (parentSegment.AttachmentPoints == null || parentSegment.AttachmentPoints.Length == 0)
         {
-            attachPoint = parentSegment.AttachmentPoints[data.attachmentPointIndex];
+            parentSegment.AttachmentPoints = parentSegment.GetComponentsInChildren<AttachmentPoint>();
         }
         
-        // Fallback to name
-        if (attachPoint == null && !string.IsNullOrEmpty(data.attachmentPointName))
+        // Find attachment point - prioritize name-based lookup for reliability
+        AttachmentPoint attachPoint = null;
+        
+        // Try by name first (more reliable across sessions)
+        if (!string.IsNullOrEmpty(data.attachmentPointName))
         {
             foreach (var point in parentSegment.AttachmentPoints)
             {
@@ -457,9 +461,17 @@ public class ShipSaveLoadManager : MonoBehaviour
             }
         }
         
+        // Fallback to index
+        if (attachPoint == null && data.attachmentPointIndex >= 0 && data.attachmentPointIndex < parentSegment.AttachmentPoints.Length)
+        {
+            attachPoint = parentSegment.AttachmentPoints[data.attachmentPointIndex];
+        }
+        
         if (attachPoint == null)
         {
-            Debug.LogError($"Failed to find attachment point for component: {data.componentId}");
+            Debug.LogError($"Failed to find attachment point for component: {data.componentId}. " +
+                $"Looking for name='{data.attachmentPointName}', index={data.attachmentPointIndex}. " +
+                $"Parent segment has {parentSegment.AttachmentPoints.Length} attachment points.");
             return;
         }
         
@@ -476,6 +488,8 @@ public class ShipSaveLoadManager : MonoBehaviour
         
         attachPoint.isOccupied = true;
         attachPoint.attachedComponent = resultComponent;
+        
+        Debug.Log($"Reconstructed component '{data.componentId}' at attachment point '{attachPoint.name}'");
     }
     
     private string GenerateThumbnail()

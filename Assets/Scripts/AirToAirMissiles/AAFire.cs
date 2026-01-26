@@ -36,7 +36,20 @@ public class AAFire : WeaponBase
             if (distanceToTarget < ActiveRange.y && _fireTimer <= 0.0f)
             {
                 _launcher.Launch(Targeted);
-                _fireTimer = FireInterval;
+                
+                // Check if using salvo mode (FireOnFullyReload)
+                AAHardpoint hardpoint = _launcher as AAHardpoint;
+                if (hardpoint != null && hardpoint.FireOnFullyReload)
+                {
+                    // In salvo mode: use SalvoInterval between shots
+                    // Reload timing is handled internally by hardpoint's reloadTime
+                    _fireTimer = hardpoint.SalvoInterval;
+                }
+                else
+                {
+                    // Normal mode: use FireInterval between shots
+                    _fireTimer = FireInterval;
+                }
             }
 
             if (_fireTimer > 0.0f)
