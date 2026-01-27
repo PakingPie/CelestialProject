@@ -1881,7 +1881,7 @@ GameObject:
   m_Icon: {fileID: 2800000, guid: ba33c838ffc8544b0a9b09eb5b693fa4, type: 3}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &116697732
 Transform:
   m_ObjectHideFlags: 0
@@ -2472,7 +2472,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -4}
-  m_LocalScale: {x: 8, y: 8, z: 1}
+  m_LocalScale: {x: 16, y: 16, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1966545109}
@@ -4964,7 +4964,7 @@ Transform:
   m_GameObject: {fileID: 354415933}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3, y: 0, z: 0}
+  m_LocalPosition: {x: 6, y: -4, z: 4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -8130,7 +8130,7 @@ Transform:
   m_GameObject: {fileID: 734552799}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1, y: 2, z: 0}
+  m_LocalPosition: {x: 2, y: 4, z: 4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -8842,7 +8842,7 @@ Transform:
   m_GameObject: {fileID: 806789054}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1, y: 0, z: 0}
+  m_LocalPosition: {x: -2, y: -4, z: 4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -11017,8 +11017,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4679bf0c3599884a889d94ed8a14e8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAHardpoint
-  ownShip: {fileID: 0}
-  missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 2c5b5ac80c2cab44d8602ab49f57ef42, type: 3}
+  ownShip: {fileID: 962977631}
+  missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 186f748ec5c613c40adf86aded408efd, type: 3}
   missileCount: 1
   fireDelay: 10
   launchPoints:
@@ -11036,7 +11036,7 @@ MonoBehaviour:
   minDistance: 10
   maxDistance: 200
   FireOnFullyReload: 1
-  SalvoInterval: 2
+  SalvoInterval: 1
   ReloadAfterSalvo: 1
 --- !u!1 &963635548
 GameObject:
@@ -11322,7 +11322,7 @@ Transform:
   m_GameObject: {fileID: 1016757131}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1, y: 0, z: 0}
+  m_LocalPosition: {x: 2, y: -4, z: 4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -11758,7 +11758,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
-  spawnCount: 10
+  - {fileID: 3109858766895225120, guid: d603c2ec335e1964387eb3ca57d0e5f3, type: 3}
+  spawnCount: 20
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: 0, y: 1000}
   spawnMode: 0
@@ -12427,7 +12428,7 @@ Transform:
   m_GameObject: {fileID: 1083081531}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3, y: 2, z: 0}
+  m_LocalPosition: {x: -6, y: 4, z: 4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -12654,7 +12655,7 @@ Transform:
   m_GameObject: {fileID: 1100274822}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3, y: 2, z: 0}
+  m_LocalPosition: {x: 6, y: 4, z: 4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -13311,7 +13312,7 @@ Transform:
   m_GameObject: {fileID: 1147211771}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1, y: 2, z: 0}
+  m_LocalPosition: {x: -2, y: 4, z: 4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -15098,7 +15099,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1364433976
 Transform:
   m_ObjectHideFlags: 0
@@ -19301,7 +19302,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1802494801
 Transform:
   m_ObjectHideFlags: 0
@@ -21234,7 +21235,7 @@ Transform:
   m_GameObject: {fileID: 1963202581}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3, y: 0, z: 0}
+  m_LocalPosition: {x: -6, y: -4, z: 4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
