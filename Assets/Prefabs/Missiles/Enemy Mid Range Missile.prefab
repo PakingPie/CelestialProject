@@ -452,8 +452,8 @@ MonoBehaviour:
   EnableEffects: 1
   trailAlwaysOn: 1
   trailFxPoint: {fileID: 0}
-  trailPrefab: {fileID: 3986023011507405815, guid: 3a5b4e448c248d44bade034cd48245bb, type: 3}
-  particleTrailPrefab: {fileID: 128602908056493726, guid: c73b41204b7b07f45b917fc22c25bfe0, type: 3}
+  trailPrefab: {fileID: 0}
+  particleTrailPrefab: {fileID: 128602908056493726, guid: a6a3c0927f377504e811402534fef0f3, type: 3}
   explosionFXPrefab: {fileID: 7698972359503818749, guid: 8696c1021f07aed4180a586385d9c9cc, type: 3}
   playExplosionOnSelfDestruct: 1
   mixerGroup: {fileID: 0}
@@ -489,14 +489,14 @@ MonoBehaviour:
   acceleration: 10
   turnRate: 30
   timeToLive: 20
-  dropDelay: 0
+  dropDelay: 0.5
   ejectVelocity: {x: 0, y: -5, z: 0}
   gravity: 0
   ActiveRange: 10000
   Damage: 40
   ExplodeRadius: 10
   DetonationRadius: 4
-  MissileScale: {x: 0.5, y: 0.5, z: 0.5}
+  MissileScale: {x: 1, y: 1, z: 1}
   SourceFaction: 4
 --- !u!114 &-1105232913993206850
 MonoBehaviour:
