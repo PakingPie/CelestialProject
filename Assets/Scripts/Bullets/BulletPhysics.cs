@@ -124,7 +124,7 @@ public class BulletPhysics : MonoBehaviour
         if (CanDamageAsteroids)
         {
             List<VehicleBase> nearbyNeutrals = new List<VehicleBase>(32);
-            CombatRegistry.GetNearbyEnemies(myPosition, ExplosionRadius, Faction.Neutral, nearbyNeutrals, false);
+            CombatRegistry.GetNearbyEnemies(myPosition, ExplosionRadius, Faction.Neutral, nearbyNeutrals, true);
             _nearbyTargets.AddRange(nearbyNeutrals);
         }
 
