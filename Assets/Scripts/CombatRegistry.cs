@@ -169,15 +169,16 @@ public static class CombatRegistry
         for (int i = vehicles.Count - 1; i >= 0; i--)
         {
             VehicleBase vehicle = vehicles[i];
-            if(!isTargetingMissile && vehicle.tag == "Missile")
-                continue;
 
-            // Remove destroyed vehicles
+            // Remove destroyed vehicles - must check BEFORE accessing any properties
             if (vehicle == null)
             {
                 vehicles.RemoveAt(i);
                 continue;
             }
+
+            if (!isTargetingMissile && vehicle.CompareTag("Missile"))
+                continue;
 
             float distSqr = (vehicle.transform.position - position).sqrMagnitude;
             if (distSqr <= rangeSqr)

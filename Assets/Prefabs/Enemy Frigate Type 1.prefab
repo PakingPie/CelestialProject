@@ -152,7 +152,6 @@ MonoBehaviour:
   FireTarget: 3
   GuidanceType: 1
   ActiveRange: {x: 5, y: 2000}
-  UpdateRate: 60
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 0a90eebba10d5e247a2a50474bd6c47e, type: 2}
@@ -738,11 +737,10 @@ MonoBehaviour:
   FireTarget: 3
   GuidanceType: 1
   ActiveRange: {x: 100, y: 6000}
-  UpdateRate: 30
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 1af727335389b4d4fa581e766857809d, type: 2}
-  CanTargetMissiles: 1
+  CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 3000
   Effectiveness: 1
@@ -2701,11 +2699,10 @@ MonoBehaviour:
   FireTarget: 3
   GuidanceType: 1
   ActiveRange: {x: 100, y: 6000}
-  UpdateRate: 30
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 1af727335389b4d4fa581e766857809d, type: 2}
-  CanTargetMissiles: 1
+  CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 3000
   Effectiveness: 1
@@ -2815,7 +2812,7 @@ GameObject:
   - component: {fileID: 8015267476549228092}
   - component: {fileID: 5987118773523783008}
   m_Layer: 0
-  m_Name: IronShroud
+  m_Name: MissileHive
   m_TagString: Ally
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2864,7 +2861,7 @@ MonoBehaviour:
   minDistance: 10
   maxDistance: 200
   FireOnFullyReload: 1
-  SalvoInterval: 4
+  SalvoInterval: 1
   ReloadAfterSalvo: 1
 --- !u!114 &8015267476549228092
 MonoBehaviour:
@@ -2894,11 +2891,10 @@ MonoBehaviour:
   FireTarget: 11
   GuidanceType: 1
   ActiveRange: {x: 5, y: 3000}
-  UpdateRate: 60
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 1
+  CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 3000
   Effectiveness: 1
@@ -3015,11 +3011,10 @@ MonoBehaviour:
   FireTarget: 3
   GuidanceType: 1
   ActiveRange: {x: 100, y: 6000}
-  UpdateRate: 30
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 1af727335389b4d4fa581e766857809d, type: 2}
-  CanTargetMissiles: 1
+  CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 3000
   Effectiveness: 1
@@ -3297,7 +3292,7 @@ Transform:
   m_GameObject: {fileID: 2982594148944199416}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1, y: -1.5, z: -6}
+  m_LocalPosition: {x: -0.8, y: -0.8, z: -8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -3328,7 +3323,7 @@ Transform:
   m_GameObject: {fileID: 3014685831756242472}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1, y: 1.5, z: -6}
+  m_LocalPosition: {x: 0.8, y: 0.8, z: -8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -4917,7 +4912,7 @@ Transform:
   m_GameObject: {fileID: 4986981673875672441}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1, y: 1.5, z: -6}
+  m_LocalPosition: {x: -0.8, y: 0.8, z: -8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -5128,7 +5123,7 @@ Transform:
   m_GameObject: {fileID: 5245897894152381938}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1, y: -1.5, z: -6}
+  m_LocalPosition: {x: 0.8, y: -0.8, z: -8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -5552,11 +5547,10 @@ MonoBehaviour:
   FireTarget: 3
   GuidanceType: 1
   ActiveRange: {x: 100, y: 6000}
-  UpdateRate: 30
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 1af727335389b4d4fa581e766857809d, type: 2}
-  CanTargetMissiles: 1
+  CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 3000
   Effectiveness: 1
@@ -5972,7 +5966,7 @@ RectTransform:
   m_GameObject: {fileID: 6894111711972518283}
   m_LocalRotation: {x: -0, y: 0.9659258, z: -0.25881907, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 3110045092184062921}
@@ -5980,7 +5974,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 50}
+  m_AnchoredPosition: {x: 0, y: 150}
   m_SizeDelta: {x: 100, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &5795151401370849225
@@ -6323,7 +6317,6 @@ MonoBehaviour:
   FireTarget: 3
   GuidanceType: 1
   ActiveRange: {x: 5, y: 2000}
-  UpdateRate: 60
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 1af727335389b4d4fa581e766857809d, type: 2}
@@ -7197,7 +7190,6 @@ MonoBehaviour:
   FireTarget: 3
   GuidanceType: 1
   ActiveRange: {x: 5, y: 3500}
-  UpdateRate: 60
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
@@ -7673,7 +7665,6 @@ MonoBehaviour:
   FireTarget: 3
   GuidanceType: 1
   ActiveRange: {x: 5, y: 2000}
-  UpdateRate: 60
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 1af727335389b4d4fa581e766857809d, type: 2}
@@ -8502,7 +8493,6 @@ MonoBehaviour:
   FireTarget: 3
   GuidanceType: 1
   ActiveRange: {x: 5, y: 2000}
-  UpdateRate: 60
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 0a90eebba10d5e247a2a50474bd6c47e, type: 2}

@@ -177,8 +177,9 @@ public class AAMissile : MonoBehaviour
         else if (isLaunched && missileActive)
         {
             // Seek another target if the current one is lost
+            // Use bitwise check since Faction is a flags enum
             GlobalHelper.Faction targetFactions;
-            if (SourceFaction == GlobalHelper.Faction.Player || SourceFaction == GlobalHelper.Faction.Ally)
+            if ((SourceFaction & (GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally)) != 0)
             {
                 targetFactions = GlobalHelper.Faction.Foe;
             }
@@ -239,8 +240,9 @@ public class AAMissile : MonoBehaviour
         if (ExplodeRadius > 0)
         {
             // Get hostile factions based on who fired the missile
+            // Use bitwise check since Faction is a flags enum
             GlobalHelper.Faction targetFactions;
-            if (SourceFaction == GlobalHelper.Faction.Player || SourceFaction == GlobalHelper.Faction.Ally)
+            if ((SourceFaction & (GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally)) != 0)
             {
                 targetFactions = GlobalHelper.Faction.Foe;
             }
@@ -249,9 +251,8 @@ public class AAMissile : MonoBehaviour
                 targetFactions = GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally;
             }
 
-            // Use CombatRegistry instead of FindGameObjectsWithTag
             List<VehicleBase> nearbyTargets = new List<VehicleBase>(16);
-            CombatRegistry.FindEnemiesInRange(transform.position, ExplodeRadius, targetFactions, nearbyTargets);
+            CombatRegistry.GetNearbyEnemies(transform.position, ExplodeRadius, targetFactions, nearbyTargets);
 
             foreach (VehicleBase vehicle in nearbyTargets)
             {
