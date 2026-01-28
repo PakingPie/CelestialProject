@@ -549,6 +549,8 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 10, y: 2000}
   UpdateRate: 60
+  UseTargetDistribution: 1
+  AvoidOverTargeting: 1
   PriorityConfig: {fileID: 0}
   CanTargetMissiles: 1
   PrioritizeMissiles: 1
@@ -613,10 +615,12 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
+  PlatformWeaponCategory: 0
+  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
-  HitPointsRegenerationDelay: 5
+  HitPointsRegenerationDelay: 20
   ArmorRegenerationRate: 1
-  ArmorRegenerationDelay: 5
+  ArmorRegenerationDelay: 20
   VehicleFaction: 1
 --- !u!114 &7182338704753766591
 MonoBehaviour:
