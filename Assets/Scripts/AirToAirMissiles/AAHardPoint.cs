@@ -54,7 +54,10 @@ public class AAHardpoint : AALauncher
         {
             // Station update returns true when a new missile was created.
             if (sta.Update(Time.deltaTime, canReload))
+            {
+                missileCount++;
                 spawnedMissiles++;
+            }
         }
     }
 
@@ -217,6 +220,11 @@ public class AAHardpoint : AALauncher
 
             if (loadedMissile != null)
             {
+                // Enable EnemyVehicle so missile can be targeted/damaged after launch
+                var enemyVehicle = loadedMissile.GetComponent<EnemyVehicle>();
+                if (enemyVehicle != null)
+                    enemyVehicle.enabled = true;
+                
                 loadedMissile.Launch(target, inheritedVelocity);
                 loadedMissile = null;
                 cooldown = reloadTime;
@@ -247,6 +255,11 @@ public class AAHardpoint : AALauncher
         {
             AAMissile mis = Instantiate(prefab, newParent);
             mis.ownShip = ownShip;
+
+            // Disable EnemyVehicle so missile can't be targeted/damaged before launch
+            var enemyVehicle = mis.GetComponent<EnemyVehicle>();
+            if (enemyVehicle != null)
+                enemyVehicle.enabled = false;
 
             // Attach the missile to the hardpoint by its attach point if possible.
             if (mis.attachPoint != null)
