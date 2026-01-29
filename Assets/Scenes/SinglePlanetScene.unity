@@ -9021,7 +9021,7 @@ Transform:
   m_GameObject: {fileID: 764762348}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 5500, z: 1000}
+  m_LocalPosition: {x: 0, y: 1500, z: 2000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -17078,7 +17078,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1503629324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23425,7 +23425,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2113835125
 Transform:
   m_ObjectHideFlags: 0
@@ -23434,15 +23434,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2113835124}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
-  m_LocalPosition: {x: -10, y: 5.5, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -10, y: 5.5, z: 93.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 963635549}
   - {fileID: 813613222}
   m_Father: {fileID: 94674489}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2113835128
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23450,7 +23450,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2113835124}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f5fd111861f695545934d2f021080e53, type: 3}
   m_Name: 
@@ -23494,7 +23494,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1eeb6afbc8e4c1643ab878793442c779, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MissileTurret
-  TurretBase: {fileID: 813613222}
+  TurretBase: {fileID: 963635549}
   Barrels: {fileID: 1076541827}
   _elevationSpeed: 30
   MaxElevation: 85
@@ -23513,7 +23513,7 @@ MonoBehaviour:
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 1
+  CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
   Effectiveness: 1
@@ -23521,7 +23521,7 @@ MonoBehaviour:
   IsManualTargeting: 0
   ManualTargetDuration: 0
   EnableDebug: 1
-  ShowGunAngles: 0
+  ShowGunAngles: 1
   UseManagedUpdates: 1
   FireInterval: 2
   DistributeTargetsPerMissile: 1
