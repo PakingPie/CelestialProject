@@ -9,6 +9,12 @@ public class FollowTransform : MonoBehaviour
     [HideInInspector] public Transform target;
     [HideInInspector] public Vector3 localPositionOffset;
     [HideInInspector] public Quaternion localRotationOffset;
+    
+    /// <summary>
+    /// If true, this object will be destroyed when the target is destroyed.
+    /// Set to false before launching so the missile survives.
+    /// </summary>
+    [HideInInspector] public bool destroyWithTarget = true;
 
     /// <summary>
     /// Sets the target to follow with optional local offsets.
@@ -18,13 +24,21 @@ public class FollowTransform : MonoBehaviour
         target = followTarget;
         localPositionOffset = posOffset;
         localRotationOffset = rotOffset == default ? Quaternion.identity : rotOffset;
+        destroyWithTarget = true;
     }
 
     void LateUpdate()
     {
         if (target == null)
         {
-            // Target lost - disable following (missile may have launched)
+            // Target lost - destroy self if still attached (not launched)
+            if (destroyWithTarget)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            
+            // Otherwise just disable following (missile has launched)
             enabled = false;
             return;
         }
@@ -41,6 +55,7 @@ public class FollowTransform : MonoBehaviour
     /// </summary>
     public void StopFollowing()
     {
+        destroyWithTarget = false;
         target = null;
         enabled = false;
     }

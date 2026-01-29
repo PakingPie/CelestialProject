@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using static GlobalHelper;
+using System.Linq;
 
 public class GunController : MonoBehaviour
 {
@@ -68,7 +69,9 @@ public class GunController : MonoBehaviour
         primaryGuns.Clear();
         secondaryGuns.Clear();
         tertiaryGuns.Clear();
-        Gun[] allGuns = GetComponentsInChildren<Gun>();
+        // The Gun that would be found here should have WeaponPlatform component
+        Gun[] allGuns = GetComponentsInChildren<Gun>().Where(g => g.GetComponent<WeaponPlatform>() != null).ToArray();
+        
         foreach (var gun in allGuns)
         {
             if (gun.GetComponent<WeaponPlatform>().PlatformWeaponCategory == WeaponType.Gun)
