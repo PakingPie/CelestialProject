@@ -1,6 +1,7 @@
 // BoidsManager.cs - UPDATED with full dynamic support
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEditor.EditorTools;
 
 public class BoidsManager : MonoBehaviour
 {
@@ -11,7 +12,8 @@ public class BoidsManager : MonoBehaviour
     List<Boid> boids;
 
     public Transform target;
-    public Vector2 HeightRange = new Vector2(-1.0f, 1.0f);
+    [Tooltip("Height range for boid movement (Y axis)")]
+    public Vector2 HeightRange = new Vector2(-1000.0f, 1000.0f);
 
     [Header("Formation")]
     public bool syncCombatState = true;
