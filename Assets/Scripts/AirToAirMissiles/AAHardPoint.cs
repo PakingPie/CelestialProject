@@ -10,7 +10,7 @@ public class AAHardpoint : AALauncher
     public float SalvoInterval = 0.2f;
     [Tooltip("If true, all hardpoints wait until the salvo is complete before starting to reload. If false, each hardpoint reloads immediately after firing.")]
     public bool ReloadAfterSalvo = false;
-    
+
     Queue<HardpointStation> stations;
     int initialMisCount = 1;
     int spawnedMissiles = 0;
@@ -220,6 +220,11 @@ public class AAHardpoint : AALauncher
 
             if (loadedMissile != null)
             {
+                // Stop following hardpoint before launch
+                var follower = loadedMissile.GetComponent<FollowTransform>();
+                if (follower != null)
+                    follower.StopFollowing();
+                
                 // Enable EnemyVehicle so missile can be targeted/damaged after launch
                 var enemyVehicle = loadedMissile.GetComponent<EnemyVehicle>();
                 if (enemyVehicle != null)
@@ -249,11 +254,12 @@ public class AAHardpoint : AALauncher
         /// <summary>
         /// Spawns a missile on a station.
         /// </summary>
-        /// <param name="newParent">Point where the missile will be attached to.</param>
+        /// <param name="hardpoint">Point where the missile will follow (not parented to avoid scale inheritance).</param>
         /// <returns></returns>
-        private AAMissile CreateMissile(Transform newParent)
+        private AAMissile CreateMissile(Transform hardpoint)
         {
-            AAMissile mis = Instantiate(prefab, newParent);
+            // Instantiate without parent to avoid inheriting scaled parent hierarchy
+            AAMissile mis = Instantiate(prefab, hardpoint.position, hardpoint.rotation);
             mis.ownShip = ownShip;
 
             // Disable EnemyVehicle so missile can't be targeted/damaged before launch
@@ -261,17 +267,26 @@ public class AAHardpoint : AALauncher
             if (enemyVehicle != null)
                 enemyVehicle.enabled = false;
 
-            // Attach the missile to the hardpoint by its attach point if possible.
+            // Calculate local offsets based on attach point
+            Vector3 positionOffset = Vector3.zero;
+            Quaternion rotationOffset = Quaternion.identity;
+            
             if (mis.attachPoint != null)
             {
-                mis.transform.localPosition = -mis.attachPoint.localPosition;
-                mis.transform.localEulerAngles = -mis.attachPoint.localEulerAngles;
+                positionOffset = -mis.attachPoint.localPosition;
+                rotationOffset = Quaternion.Euler(-mis.attachPoint.localEulerAngles);
             }
-            else
-            {
-                mis.transform.localPosition = Vector3.zero;
-                mis.transform.localEulerAngles = Vector3.zero;
-            }
+
+            // Use FollowTransform to track hardpoint without parenting
+            FollowTransform follower = mis.GetComponent<FollowTransform>();
+            if (follower == null)
+                follower = mis.gameObject.AddComponent<FollowTransform>();
+            
+            follower.SetTarget(hardpoint, positionOffset, rotationOffset);
+            
+            // Apply initial position/rotation
+            mis.transform.position = hardpoint.TransformPoint(positionOffset);
+            mis.transform.rotation = hardpoint.rotation * rotationOffset;
 
             return mis;
         }
