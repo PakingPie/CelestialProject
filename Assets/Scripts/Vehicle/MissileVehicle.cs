@@ -8,11 +8,24 @@ public class MissileVehicle : VehicleBase
 {
     public Faction VehicleFaction = Faction.Foe;
     [SerializeField] private VehicleType _vehicleType = VehicleType.Missile;
-    
+
     public override VehicleType VehicleType => _vehicleType;
     public bool IsDying { get; private set; } = false;
     public bool EnableIndication = false;
     // No need registration for missiles because it is done on AAMissile script
+
+    private EnemyPredictionManager _predictionManager;
+
+    void OnEnable()
+    {
+        CombatRegistry.Register(this, FactionType);
+    }
+
+    void OnDisable()
+    {
+        CombatRegistry.Unregister(this, FactionType);
+    }
+
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
     {
@@ -55,6 +68,14 @@ public class MissileVehicle : VehicleBase
         if (IsDying) return; // Prevent double-destroy
         IsDying = true;
 
-        Destroy(gameObject, 0.1f);
+        var missile = GetComponent<AAMissile>();
+        if (missile != null)
+        {
+            missile.DestroyMissile(false);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 }

@@ -499,7 +499,7 @@ public class AAMissile : MonoBehaviour
             targetPosLastFrame = target.transform.position;
     }
 
-    private void DestroyMissile(bool impact)
+    public void DestroyMissile(bool impact)
     {
         Destroy(gameObject);
 

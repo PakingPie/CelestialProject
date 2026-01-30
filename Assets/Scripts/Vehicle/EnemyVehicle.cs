@@ -151,7 +151,7 @@ public class EnemyVehicle : VehicleBase
             EnableHitpointBar(false);
         }
 
-        if (HitPoints < MaxHitPoints / 3)
+        if (HitPoints < MaxHitPoints / 2)
         {
             if (_damagedSmokeInstance != null && !_damagedSmokeInstance.isPlaying)
             {
