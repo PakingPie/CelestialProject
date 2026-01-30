@@ -342,7 +342,7 @@ MonoBehaviour:
   trailFxPoint: {fileID: 0}
   trailPrefab: {fileID: 0}
   particleTrailPrefab: {fileID: 128602908056493726, guid: c73b41204b7b07f45b917fc22c25bfe0, type: 3}
-  explosionFXPrefab: {fileID: 7698972359503818749, guid: 8696c1021f07aed4180a586385d9c9cc, type: 3}
+  explosionFXPrefab: {fileID: 7698972359503818749, guid: d16348247d407614785c07e58b0ce450, type: 3}
   playExplosionOnSelfDestruct: 1
   mixerGroup: {fileID: 0}
   fireClip: {fileID: 8300000, guid: 87444d04163f42e43b027b5536bd85ca, type: 3}
@@ -372,18 +372,18 @@ MonoBehaviour:
   seekerCone: 180
   seekerRange: 10000
   overrideInitialSpeed: 0
-  initialSpeed: 60
+  initialSpeed: 40
   motorLifetime: 20
-  acceleration: 15
+  acceleration: 20
   turnRate: 60
   timeToLive: 60
-  dropDelay: 1.2
-  ejectVelocity: {x: 0, y: 0, z: 50}
+  dropDelay: 0.1
+  ejectVelocity: {x: 0, y: 0, z: 0}
   gravity: 0
   ActiveRange: 10000
-  Damage: 500
-  ExplodeRadius: 20
-  DetonationRadius: 10
+  Damage: 1000
+  ExplodeRadius: 50
+  DetonationRadius: 20
   MissileScale: {x: 1, y: 1, z: 1}
   SourceFaction: 3
 --- !u!114 &2449945864438797322
@@ -400,10 +400,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
   OwnerShip: {fileID: 0}
   IsShowHitpointBar: 0
-  HitPoints: 120
-  MaxHitPoints: 120
-  ArmorPoints: 80
-  MaxArmorPoints: 80
+  HitPoints: 200
+  MaxHitPoints: 200
+  ArmorPoints: 100
+  MaxArmorPoints: 100
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
@@ -566,7 +566,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.38268343, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 15}
+  m_LocalScale: {x: 1, y: 1, z: 18}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8864816284003992073}
