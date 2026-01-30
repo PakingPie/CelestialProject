@@ -6060,7 +6060,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6513,7 +6513,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6848,7 +6848,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -8373,6 +8373,8 @@ MonoBehaviour:
   EnergyShieldShader: {fileID: 0}
   ShieldEffect: {fileID: 0}
   ExplodeEffect: {fileID: 0}
+  DamagedSmokeEffect: {fileID: 0}
+  DamagedPoint: {fileID: 0}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 40
   ArmorRegenerationRate: 1
@@ -8505,7 +8507,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -8691,7 +8693,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -8801,7 +8803,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -8915,6 +8917,8 @@ MonoBehaviour:
   EnergyShieldShader: {fileID: 0}
   ShieldEffect: {fileID: 0}
   ExplodeEffect: {fileID: 0}
+  DamagedSmokeEffect: {fileID: 0}
+  DamagedPoint: {fileID: 0}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 40
   ArmorRegenerationRate: 1
@@ -9021,11 +9025,12 @@ Transform:
   m_GameObject: {fileID: 764762348}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 7500, z: 2000}
+  m_LocalPosition: {x: 0, y: 500, z: -1000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1045763961}
+  - {fileID: 903738097}
   m_Father: {fileID: 914120769}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &764762350
@@ -10850,6 +10855,71 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 894632010}
   m_CullTransparentMesh: 1
+--- !u!1 &903738096
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 903738097}
+  - component: {fileID: 903738098}
+  m_Layer: 0
+  m_Name: Spawn 1_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &903738097
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 903738096}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 764762349}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &903738098
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 903738096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 300c8a9d9806cce4ea6a210416e51027, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Spawner
+  prefabs:
+  - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
+  spawnCount: 1
+  color: {r: 0, g: 0, b: 0, a: 0}
+  HeightRange: {x: 0, y: 10000}
+  spawnMode: 0
+  spawnRadius: 500
+  spawnPoints: []
+  spawnInterval: 5
+  spawnPointRandomness: 2
+  launchDirection: {x: 0, y: 0, z: 1}
+  launchSpeed: 50
+  autoStart: 1
+  boidsPerWave: 10
+  timeBetweenWaves: 2
+  maintainPopulation: 0
+  respawnDelay: 10
+  maxTotalSpawns: 0
+  attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
+  showSpawnRegion: 0
+  _isPaused: 0
 --- !u!1 &904740558
 GameObject:
   m_ObjectHideFlags: 0
@@ -11829,7 +11899,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &962977631
 Transform:
   m_ObjectHideFlags: 0
@@ -11878,6 +11948,8 @@ MonoBehaviour:
   EnergyShieldShader: {fileID: 0}
   ShieldEffect: {fileID: 0}
   ExplodeEffect: {fileID: 0}
+  DamagedSmokeEffect: {fileID: 0}
+  DamagedPoint: {fileID: 0}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 40
   ArmorRegenerationRate: 1
@@ -12671,7 +12743,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1045763961
 Transform:
   m_ObjectHideFlags: 0
@@ -12700,8 +12772,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
-  - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
-  spawnCount: 2
+  - {fileID: 3109858766895225120, guid: d603c2ec335e1964387eb3ca57d0e5f3, type: 3}
+  spawnCount: 3
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: 0, y: 10000}
   spawnMode: 0
@@ -12714,7 +12786,7 @@ MonoBehaviour:
   autoStart: 1
   boidsPerWave: 10
   timeBetweenWaves: 2
-  maintainPopulation: 1
+  maintainPopulation: 0
   respawnDelay: 10
   maxTotalSpawns: 0
   attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
@@ -13989,7 +14061,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -15031,6 +15103,8 @@ MonoBehaviour:
   EnergyShieldShader: {fileID: 0}
   ShieldEffect: {fileID: 0}
   ExplodeEffect: {fileID: 0}
+  DamagedSmokeEffect: {fileID: 0}
+  DamagedPoint: {fileID: 0}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 40
   ArmorRegenerationRate: 1
@@ -15655,7 +15729,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!81 &1312769388
 AudioListener:
   m_ObjectHideFlags: 0
@@ -17117,7 +17191,7 @@ Transform:
   m_GameObject: {fileID: 1503629323}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: -500, z: 1500}
+  m_LocalPosition: {x: 0, y: 500, z: 2500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -18543,7 +18617,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
-  spawnCount: 10
+  spawnCount: 12
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -2000, y: 2000}
   spawnMode: 0
@@ -20315,7 +20389,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1802494801
 Transform:
   m_ObjectHideFlags: 0
@@ -23474,6 +23548,8 @@ MonoBehaviour:
   EnergyShieldShader: {fileID: 0}
   ShieldEffect: {fileID: 0}
   ExplodeEffect: {fileID: 0}
+  DamagedSmokeEffect: {fileID: 0}
+  DamagedPoint: {fileID: 0}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 40
   ArmorRegenerationRate: 1

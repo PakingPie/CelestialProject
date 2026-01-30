@@ -17,6 +17,8 @@ public class EnemyVehicle : VehicleBase
     public Shader EnergyShieldShader;
     public GameObject ShieldEffect;
     public ParticleSystem ExplodeEffect;
+    public ParticleSystem DamagedSmokeEffect;
+    public Transform DamagedPoint;
     [Header("Regeneration")]
     public int HitPointsRegenerationRate = 1;
     public float HitPointsRegenerationDelay = 40f;
@@ -39,6 +41,7 @@ public class EnemyVehicle : VehicleBase
     private Vector3 _velocity;
     public Vector3 Velocity => _velocity;
     private EnemyPredictionManager _predictionManager;
+    private ParticleSystem _damagedSmokeInstance;
 
     void OnEnable()
     {
@@ -108,6 +111,14 @@ public class EnemyVehicle : VehicleBase
             ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial = new Material(EnergyShieldShader);
             ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", 1.0f);
         }
+
+        if (_damagedSmokeInstance == null && DamagedSmokeEffect != null && DamagedPoint != null)
+        {
+            _damagedSmokeInstance = Instantiate(DamagedSmokeEffect, DamagedPoint);
+            _damagedSmokeInstance.transform.localPosition = Vector3.zero;
+            _damagedSmokeInstance.transform.localEulerAngles = Vector3.zero;
+            _damagedSmokeInstance.Stop();
+        }
     }
 
     void Update()
@@ -138,6 +149,22 @@ public class EnemyVehicle : VehicleBase
         else
         {
             EnableHitpointBar(false);
+        }
+
+        if (HitPoints < MaxHitPoints / 3)
+        {
+            if (_damagedSmokeInstance != null && !_damagedSmokeInstance.isPlaying)
+            {
+                _damagedSmokeInstance.transform.position = DamagedPoint.position;
+                _damagedSmokeInstance.Play();
+            }
+        }
+        else
+        {
+            if (_damagedSmokeInstance != null && _damagedSmokeInstance.isPlaying)
+            {
+                _damagedSmokeInstance.Stop();
+            }
         }
     }
 
