@@ -7,14 +7,19 @@ using UnityEngine.UI;
 public class MissileVehicle : VehicleBase
 {
     public Faction VehicleFaction = Faction.Foe;
-    [SerializeField] private VehicleType _vehicleType = VehicleType.Missile;
+    public VehicleType Type = VehicleType.Missile;
 
-    public override VehicleType VehicleType => _vehicleType;
+    private EnemyPredictionManager _predictionManager;
+    private Vector3 _lastPosition;
+    private Vector3 _velocity;
+
+    public float Velocity => _velocity.magnitude;
+    public override Faction FactionType =>VehicleFaction;
+    public override VehicleType VehicleType => Type;
     public bool IsDying { get; private set; } = false;
     public bool EnableIndication = false;
     // No need registration for missiles because it is done on AAMissile script
 
-    private EnemyPredictionManager _predictionManager;
 
     void OnEnable()
     {
@@ -26,6 +31,32 @@ public class MissileVehicle : VehicleBase
         CombatRegistry.Unregister(this, FactionType);
     }
 
+    void OnDestroy()
+    {
+        if (_predictionManager != null && EnableIndication)
+        {
+            _predictionManager.UnregisterMissile(this);
+        }
+    }
+
+    void Start()
+    {
+        _lastPosition = transform.position;
+
+        // Register with manager
+        _predictionManager = FindAnyObjectByType<EnemyPredictionManager>();
+        if (_predictionManager != null && EnableIndication)
+        {
+            _predictionManager.RegisterMissile(this);
+        }
+    }
+
+    void Update()
+    {
+        _velocity = (transform.position - _lastPosition) / Time.deltaTime;
+
+        _lastPosition = transform.position;
+    }
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
     {
