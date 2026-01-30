@@ -297,7 +297,7 @@ GameObject:
   - component: {fileID: 8617120702527641383}
   - component: {fileID: 6122844415495389849}
   - component: {fileID: 5355222595161521942}
-  - component: {fileID: 2449945864438797322}
+  - component: {fileID: -7433616003651495375}
   m_Layer: 0
   m_Name: Middle Surface Launch Missile 1
   m_TagString: Missile
@@ -386,7 +386,7 @@ MonoBehaviour:
   DetonationRadius: 8
   MissileScale: {x: 1, y: 1, z: 1}
   SourceFaction: 3
---- !u!114 &2449945864438797322
+--- !u!114 &-7433616003651495375
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -395,36 +395,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 4762070880209434818}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5fd111861f695545934d2f021080e53, type: 3}
+  m_Script: {fileID: 11500000, guid: 054d56f1e1ecffa4fb0d75fe79a915a0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
+  m_EditorClassIdentifier: Assembly-CSharp::MissileVehicle
   OwnerShip: {fileID: 0}
   IsShowHitpointBar: 0
-  HitPoints: 120
-  MaxHitPoints: 120
-  ArmorPoints: 80
-  MaxArmorPoints: 80
+  HitPoints: 200
+  MaxHitPoints: 200
+  ArmorPoints: 150
+  MaxArmorPoints: 150
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
   VehicleFaction: 3
   Type: 0
-  HitpointBarCanvas: {fileID: 0}
-  HealthBar: {fileID: 0}
-  ArmorBar: {fileID: 0}
-  ShieldBar: {fileID: 0}
-  HealthBarShader: {fileID: 0}
-  EnergyShieldShader: {fileID: 0}
-  ShieldEffect: {fileID: 0}
-  ExplodeEffect: {fileID: 7698972359503818749, guid: 8696c1021f07aed4180a586385d9c9cc, type: 3}
-  HitPointsRegenerationRate: 1
-  HitPointsRegenerationDelay: 40
-  ArmorRegenerationRate: 1
-  ArmorRegenerationDelay: 40
-  ShieldRegenerationRate: 0
-  ShieldRegenerationDelay: 0
   EnableIndication: 0
-  EnableModuleHits: 0
 --- !u!1 &6439558698045852572
 GameObject:
   m_ObjectHideFlags: 0
