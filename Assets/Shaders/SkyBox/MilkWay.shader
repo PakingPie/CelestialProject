@@ -3,6 +3,11 @@ Shader "Custom/MilyWay"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _ZoomScale("Zoom Scale", Float) = 1.0
+        _BandWidth("Band Half Width", Range(0.0, 1.0)) = 0.22
+        _BandSoftness("Band Softness", Range(0.01, 0.5)) = 0.15
+        _BandLongitudeFade("Band Longitude Fade", Range(0.0, 1.0)) = 0.25
+        _BandBreakup("Band Breakup", Range(0.0, 1.0)) = 0.35
     }
     SubShader
     {
@@ -16,10 +21,14 @@ Shader "Custom/MilyWay"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
+            float _ZoomScale;
+            float _BandWidth;
+            float _BandSoftness;
+            float _BandLongitudeFade;
+            float _BandBreakup;
 
-            #define ITERATIONS 5
-            #define MILKY_WAY_ITERATIONS 4
-            #define MILKY_WAY_SEED 42.0
+            #define MILKY_WAY_ITERATIONS 5
+            #define MILKY_WAY_SEED 107.0
 
             struct Attributes
             {
@@ -31,7 +40,7 @@ Shader "Custom/MilyWay"
             {
                 float4 positionHCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
-                float3 positionWS : TEXCOORD1;
+                float3 viewDirWS : TEXCOORD1;
             };
 
             Varyings vert (Attributes IN)
@@ -39,7 +48,7 @@ Shader "Custom/MilyWay"
                 Varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS);
                 OUT.uv = IN.texcoord;
-                OUT.positionWS = TransformObjectToWorld(IN.positionOS);
+                OUT.viewDirWS = TransformObjectToWorldDir(IN.positionOS.xyz);
                 return OUT;
             }
 
@@ -79,8 +88,8 @@ Shader "Custom/MilyWay"
             float stars( float3 dir, float seed, float curve )
             {
                 float f, ff = 0.0;
-                float s = 5e2 / 0.35 / _ScreenParams.y;
-                float a = 2e-3*_ScreenParams.x * 0.35* 0.35;
+                float s = 5e2 / _ZoomScale / _ScreenParams.y;
+                float a = 2e-3*_ScreenParams.x * _ZoomScale * _ZoomScale;
                 f = sphere(dir*350.0, seed+254.564, 1.0, 0.45*s, 0.025, 0.1);
                 ff += pow(f,1000.0*curve)*1.5;
                 f = sphere(dir*350.0, seed+26.274, 1.0, 0.25*s, 0.25, 0.05);
@@ -120,6 +129,7 @@ Shader "Custom/MilyWay"
 
             float3 getFar(float3 uvToSpace)
             {
+                // Milky Way Core, Periphery, and Nebulae
                 float core = 0.0, periphery = 0.0, neb = 0.0;
                 float3 galaxyAxis = normalize(float3(0.4, 1.0, -0.2));
                 float3 galaxyDirection = float3(0.0, 0.0, 1.0);
@@ -128,6 +138,15 @@ Shader "Custom/MilyWay"
                 float3 proj = projection(galaxyAxis, uvToSpace);
                 float3 col = 0;
 
+                // Band Masking (currently disabled)
+                float latitude = abs(dir.y);
+                float band = smoothstep(_BandWidth + _BandSoftness, _BandWidth, latitude);
+                float longitude = atan2(dir.x, dir.z) * (1.0 / PI);
+                float longMask = smoothstep(_BandLongitudeFade, 1.0, 1.0 - abs(longitude));
+                float breakup = lerp(1.0, sphereNoise(dir * 2.0, 991.123 + MILKY_WAY_SEED, 0.35), _BandBreakup);
+                float bandMask = band * longMask * breakup;
+
+                // Core
                 float3 coreColor = float3(0.99, 0.95, 0.9);
                 float coreWidth = 0.22;
                 float coreHeight = 0.7;
@@ -139,6 +158,8 @@ Shader "Custom/MilyWay"
                 {
                     core = max(0, pow(coreMask, 3.0) * 5.0 - 0.5 * nebula(dir * 5.0, 291.432 + MILKY_WAY_SEED, float(MILKY_WAY_ITERATIONS), 0.15, 0.7, 1.8));
                 }
+
+                // Glow
                 float3 glowColor = float3(0.99, 0.95, 0.9);
                 float glowWidth=0.47;
                 float glowHeight=0.3;
@@ -147,6 +168,7 @@ Shader "Custom/MilyWay"
                 smoothstep(0, glowSmooth,dot(uvToSpace, -galaxyAxis + proj *glowHeight) + glowWidth) * 
                 smoothstep(0, glowSmooth,dot(uvToSpace, galaxyAxis + proj*glowHeight) + glowWidth);
 
+                // Periphery
                 float3 peripheryColor = float3(0.1, 0.3, 0.99);
                 float peripheryWidth = 0.22;
                 float peripheryHeight = 0.19;
@@ -160,6 +182,7 @@ Shader "Custom/MilyWay"
                     periphery = max(0, peripheryMask * 4.0 - 1.0 * nebula(dir * 5.0, 583.457 + MILKY_WAY_SEED, float(MILKY_WAY_ITERATIONS), 0.1, 0.6, 2.1));
                 }
 
+                // Nebulae
                 float nebulaWidth=0.75;
                 float nebulaHeight=0.13;
                 float nebulaSmooth=0.8;
@@ -168,33 +191,35 @@ Shader "Custom/MilyWay"
                 smoothstep(0, nebulaSmooth, dot(uvToSpace, galaxyAxis + proj * nebulaHeight) + nebulaWidth);
                 if(nebulaMask > 0) neb = max(0, nebulaMask * 9.0 - 1.5*nebula((dir) * 4.0, 1276.12 + MILKY_WAY_SEED, float(MILKY_WAY_ITERATIONS), 0.2, 0.6, 2.1));
                 
+                // Combine
                 col += pow(core, 3.0) * coreColor * 0.002;
                 col += pow(glowMask, 2.0) * glowColor * 0.07;
                 col *= exp(-periphery * nebulaAbs * 0.2);
                 col += periphery * peripheryColor * 0.05;
                 col *= exp(-pow(neb * 0.7, 5.1) * nebulaAbs * 0.0015);
-                // col += stars(uvToSpace*0.5,968.148,2.0) * 0.46;
+                col *= bandMask;
+                col += stars(uvToSpace * 0.5, 968.148, 2.0) * 0.07;
 
                 return col;
             }
 
-            float3 frameSubProcessing(float3 positionWS)
+            float3 frameSubProcessing(float3 viewDirWS)
             {
                 float3 c = 0;
-                float3 rayDir = GetWorldSpaceViewDir(positionWS).xyz;
+                float3 rayDir = normalize(viewDirWS);
                 c += getFar(rayDir);
-                c *= 7.0;
+                c *= 1.0;
                 return 1.0 - exp(-c * 1.5);
             }
 
-            float3 frameProcessing(float3 positionWS, int subs)
+            float3 frameProcessing(float3 viewDirWS, int subs)
             {
-                return frameSubProcessing(positionWS);
+                return frameSubProcessing(viewDirWS);
             }
 
             half4 frag (Varyings IN) : SV_Target
             {
-                float3 color = frameProcessing(IN.positionWS, 1);
+                float3 color = frameProcessing(IN.viewDirWS, 1);
                 return float4(color, 1.0);
             }
             ENDHLSL
