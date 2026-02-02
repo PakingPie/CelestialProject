@@ -225,10 +225,10 @@ public class AAHardpoint : AALauncher
                 if (follower != null)
                     follower.StopFollowing();
                 
-                // Enable EnemyVehicle so missile can be targeted/damaged after launch
-                var enemyVehicle = loadedMissile.GetComponent<EnemyVehicle>();
-                if (enemyVehicle != null)
-                    enemyVehicle.enabled = true;
+                // Enable MissileVehicle so missile can be targeted/damaged after launch
+                var missileVehicle = loadedMissile.GetComponent<MissileVehicle>();
+                if (missileVehicle != null)
+                    missileVehicle.enabled = true;
                 
                 loadedMissile.Launch(target, inheritedVelocity);
                 loadedMissile = null;
@@ -262,10 +262,10 @@ public class AAHardpoint : AALauncher
             AAMissile mis = Instantiate(prefab, hardpoint.position, hardpoint.rotation);
             mis.ownShip = ownShip;
 
-            // Disable EnemyVehicle so missile can't be targeted/damaged before launch
-            var enemyVehicle = mis.GetComponent<EnemyVehicle>();
-            if (enemyVehicle != null)
-                enemyVehicle.enabled = false;
+            // Disable MissileVehicle so missile can't be targeted/damaged before launch
+            var missileVehicle = mis.GetComponent<MissileVehicle>();
+            if (missileVehicle != null)
+                missileVehicle.enabled = false;
 
             // Calculate local offsets based on attach point
             Vector3 positionOffset = Vector3.zero;
