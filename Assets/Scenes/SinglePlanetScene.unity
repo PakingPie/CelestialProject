@@ -9025,7 +9025,7 @@ Transform:
   m_GameObject: {fileID: 764762348}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 3500, z: -1000}
+  m_LocalPosition: {x: 0, y: 1500, z: -1000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -10901,7 +10901,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
-  spawnCount: 8
+  spawnCount: 5
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: 0, y: 10000}
   spawnMode: 0
@@ -11989,7 +11989,7 @@ MonoBehaviour:
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 0}
-  CanTargetMissiles: 1
+  CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 5000
   Effectiveness: 1
@@ -12017,9 +12017,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAHardpoint
   ownShip: {fileID: 962977631}
-  missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 2c5b5ac80c2cab44d8602ab49f57ef42, type: 3}
+  missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 186f748ec5c613c40adf86aded408efd, type: 3}
   missileCount: 0
-  fireDelay: 80
+  fireDelay: 40
   launchPoints:
   - {fileID: 1100274823}
   - {fileID: 734552800}
@@ -12032,7 +12032,7 @@ MonoBehaviour:
   mixerGroup: {fileID: 0}
   fireClip: {fileID: 8300000, guid: a8a51cd9a54ff1c4f8d8578ca479fa03, type: 3}
   fireVolume: 1
-  minDistance: 10
+  minDistance: 5
   maxDistance: 200
   FireOnFullyReload: 1
   SalvoInterval: 10
@@ -18617,7 +18617,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
-  spawnCount: 12
+  spawnCount: 20
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -2000, y: 2000}
   spawnMode: 0

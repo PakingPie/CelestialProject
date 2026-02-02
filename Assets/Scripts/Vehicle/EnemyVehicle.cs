@@ -294,7 +294,16 @@ public class EnemyVehicle : VehicleBase
         {
             Instantiate(ExplodeEffect, transform.position, transform.rotation);
         }
-        Destroy(gameObject, 0.1f);
+        // Disable all weapons but keeps visual, then destroy after short delay
+        var weapons = GetComponentsInChildren<WeaponBase>();
+        foreach (var weapon in weapons)
+        {
+            weapon.enabled = false;
+        }
+        // Set Faction to Neutral to avoid further interactions
+        VehicleFaction = Faction.Neutral;
+
+        Destroy(gameObject, 3.0f);
     }
 
     public void EnableHitpointBar(bool enable)
