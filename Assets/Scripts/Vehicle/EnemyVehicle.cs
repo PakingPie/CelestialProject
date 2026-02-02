@@ -42,6 +42,7 @@ public class EnemyVehicle : VehicleBase
     public Vector3 Velocity => _velocity;
     private EnemyPredictionManager _predictionManager;
     private ParticleSystem _damagedSmokeInstance;
+    private bool _smokeEffectInitialized = false;
 
     void OnEnable()
     {
@@ -112,12 +113,13 @@ public class EnemyVehicle : VehicleBase
             ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", 1.0f);
         }
 
-        if (_damagedSmokeInstance == null && DamagedSmokeEffect != null && DamagedPoint != null)
+        if (!_smokeEffectInitialized && DamagedSmokeEffect != null && DamagedPoint != null)
         {
             _damagedSmokeInstance = Instantiate(DamagedSmokeEffect, DamagedPoint);
             _damagedSmokeInstance.transform.localPosition = Vector3.zero;
             _damagedSmokeInstance.transform.localEulerAngles = Vector3.zero;
             _damagedSmokeInstance.Stop();
+            _smokeEffectInitialized = true;
         }
     }
 
