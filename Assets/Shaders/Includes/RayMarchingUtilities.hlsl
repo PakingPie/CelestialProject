@@ -12,6 +12,25 @@ half2 IntersectAABB(half3 rayOrigin, half3 rayDir, half3 boxMin, half3 boxMax)
     return half2(tNear, tFar);
 }
 
+// Sphere intersection for arbitrary mesh shapes
+half2 IntersectSphere(half3 rayOrigin, half3 rayDir, half3 sphereCenter, half sphereRadius)
+{
+    half3 oc = rayOrigin - sphereCenter;
+    half a = dot(rayDir, rayDir);
+    half b = 2.0 * dot(oc, rayDir);
+    half c = dot(oc, oc) - sphereRadius * sphereRadius;
+    half discriminant = b * b - 4.0 * a * c;
+    
+    if (discriminant < 0.0)
+        return half2(-1, -1);
+    
+    half sqrtDisc = sqrt(discriminant);
+    half t0 = (-b - sqrtDisc) / (2.0 * a);
+    half t1 = (-b + sqrtDisc) / (2.0 * a);
+    
+    return half2(max(0.0, t0), t1);
+}
+
 // Based upon Unity's shadergraph library functions
 float3 RotateAboutAxis(float3 In, float3 Axis, float Rotation)
 {
@@ -32,31 +51,36 @@ void RayMarching_float(
     float3 ro, float3 rd, float rayMarchSteps, UnityTexture3D dataTex,
     out float4 color) 
 {
-    float2 inters = IntersectAABB(ro, rd, float3(0,0,0), float3(1,1,1));
-    float3 farPos = ro + rd * inters.y - 0.5;
-    float4 clipPos = TransformObjectToHClip(farPos);
-    inters += min(clipPos.w, 0.0);
+    // Use sphere intersection instead of AABB for mesh-independent ray marching
+    half2 inters = IntersectSphere(ro, rd, float3(0.5, 0.5, 0.5), 0.866); // sqrt(3)/2 ≈ 0.866 for unit sphere
+    
+    // Early exit if ray doesn't intersect
+    if (inters.x < 0.0 || inters.y <= 0.0)
+    {
+        color = float4(0, 0, 0, 0);
+        return;
+    }
+    
+    float3 rstart = ro + rd * max(0.0, inters.x);
     float3 rend = ro + rd * inters.y;
 
-    // rd = -rd;
-    // float3 temp = ro;
-    // ro = rend;
-    // rend = temp;
+    float stepSize = length(rend - rstart) / rayMarchSteps;
+    uint numSteps = (uint)clamp(rayMarchSteps, 1, 256);
 
-    float stepSize = 1.732 / rayMarchSteps;
-    uint numSteps = (uint)clamp(abs(inters.y - inters.x) / stepSize, 1, rayMarchSteps);
-
-    ro += rd * stepSize;
-
-    color = 0;
+    color = float4(0, 0, 0, 0);
 
     UNITY_LOOP
     for(int iStep = 0; iStep < numSteps; iStep++) 
     {
-        const float t = iStep * rcp(rayMarchSteps);
-        float3 samplePos = lerp(ro, rend, t);
-        samplePos = RotateAboutAxis(samplePos - 0.5, float3(0,1,0), _Time.y * 0.2) + 0.5;
-        float sampleVal = tex3D(dataTex, float4(samplePos, 0)).r;
+        const float t = iStep / rayMarchSteps;
+        float3 samplePos = lerp(rstart, rend, t);
+        
+        // Apply rotation to sample position
+        samplePos = RotateAboutAxis(samplePos - 0.5, float3(0, 1, 0), _Time.y * 0.2) + 0.5;
+        
+        // Sample from 3D texture (ensure coordinates are within [0,1] range)
+        float3 texCoord = frac(samplePos * 10.0);
+        float sampleVal = tex3D(dataTex, float4(texCoord, 0)).r;
 
         color += float4(sampleVal, sampleVal, sampleVal, sampleVal) * (1.0 / rayMarchSteps);
     }
