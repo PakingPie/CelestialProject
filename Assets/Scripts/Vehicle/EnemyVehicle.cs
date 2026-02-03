@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.VFX;
 using System.Collections;
 using System.Collections.Generic;
 using static GlobalHelper;
@@ -16,8 +17,8 @@ public class EnemyVehicle : VehicleBase
     public Shader HealthBarShader;
     public Shader EnergyShieldShader;
     public GameObject ShieldEffect;
-    public ParticleSystem ExplodeEffect;
-    public ParticleSystem DamagedSmokeEffect;
+    public VisualEffect ExplodeEffect;
+    public VisualEffect DamagedSmokeEffect;
     public Transform DamagedPoint;
     [Header("Regeneration")]
     public int HitPointsRegenerationRate = 1;
@@ -41,7 +42,7 @@ public class EnemyVehicle : VehicleBase
     private Vector3 _velocity;
     public Vector3 Velocity => _velocity;
     private EnemyPredictionManager _predictionManager;
-    private ParticleSystem _damagedSmokeInstance;
+    private VisualEffect _damagedSmokeInstance;
     private bool _smokeEffectInitialized = false;
 
     void OnEnable()
@@ -155,7 +156,7 @@ public class EnemyVehicle : VehicleBase
 
         if (HitPoints < MaxHitPoints / 2)
         {
-            if (_damagedSmokeInstance != null && !_damagedSmokeInstance.isPlaying)
+            if (_damagedSmokeInstance != null && _damagedSmokeInstance.aliveParticleCount == 0)
             {
                 _damagedSmokeInstance.transform.position = DamagedPoint.position;
                 _damagedSmokeInstance.Play();
@@ -163,7 +164,7 @@ public class EnemyVehicle : VehicleBase
         }
         else
         {
-            if (_damagedSmokeInstance != null && _damagedSmokeInstance.isPlaying)
+            if (_damagedSmokeInstance != null && _damagedSmokeInstance.aliveParticleCount > 0)
             {
                 _damagedSmokeInstance.Stop();
             }
@@ -294,7 +295,8 @@ public class EnemyVehicle : VehicleBase
 
         if (ExplodeEffect != null)
         {
-            Instantiate(ExplodeEffect, transform.position, transform.rotation);
+            VisualEffect explode = Instantiate(ExplodeEffect, transform.position, transform.rotation);
+            explode.Play();
         }
         // Disable all weapons but keeps visual, then destroy after short delay
         var weapons = GetComponentsInChildren<WeaponBase>();

@@ -20,7 +20,7 @@ public class AAMissileEffects : MonoBehaviour
     public VisualEffect visualEffectPrefab;
 
     [Tooltip("Effect spawened when missile explodes.")]
-    public ParticleSystem explosionFXPrefab;
+    public VisualEffect explosionFXPrefab;
     public bool playExplosionOnSelfDestruct = false;
 
     [Header("Audio")]
@@ -170,19 +170,20 @@ public class AAMissileEffects : MonoBehaviour
 
         if (explosionFXPrefab != null)
         {
-            ParticleSystem explode = GameObject.Instantiate(explosionFXPrefab);
+            VisualEffect explode = GameObject.Instantiate(explosionFXPrefab);
             explode.transform.position = transform.position;
             explode.transform.rotation = transform.rotation;
 
-            // Give the explosion particle system the component to destroy itself after it finished playing.
+            // Play the explosion effect
+            explode.Play();
+
+            // Give the explosion VFX the component to destroy itself after it finished playing.
             AARemoveEffect remove = explode.GetComponent<AARemoveEffect>();
             if (remove == null)    
                 remove = explode.gameObject.AddComponent<AARemoveEffect>();
-
-            remove.readyToDestroy = true;
         }
         else
-            Debug.LogWarning("No ParticleSystem prefab assigned for explosions on missile " + transform.name + ".");
+            Debug.LogWarning("No Visual Effect prefab assigned for explosions on missile " + transform.name + ".");
     }
 
     /// <summary>
