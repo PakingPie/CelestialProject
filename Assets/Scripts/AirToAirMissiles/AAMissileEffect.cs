@@ -210,12 +210,16 @@ public class AAMissileEffects : MonoBehaviour
 
         if (visualEffect != null)
         {
-            // If the effect was disabled, just delete it straight up.
+            // Disable the flame but keep smoke trail alive
+            visualEffect.SetBool("EnableFlame", false);
+            
+            // If the effect is active, unparent it so it persists after missile is destroyed
             if (visualEffect.gameObject.activeSelf)
             {
                 visualEffect.transform.parent = null;
-                visualEffect.Stop();
-                effectRemover.readyToDestroy = true;
+                // Add AARemoveEffect if not already present to clean up after smoke finishes
+                if (visualEffect.GetComponent<AARemoveEffect>() == null)
+                    visualEffect.gameObject.AddComponent<AARemoveEffect>();
             }
             else
                 GameObject.Destroy(visualEffect);
