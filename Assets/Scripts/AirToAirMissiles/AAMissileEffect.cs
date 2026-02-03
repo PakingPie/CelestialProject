@@ -210,8 +210,9 @@ public class AAMissileEffects : MonoBehaviour
 
         if (visualEffect != null)
         {
-            // Disable the flame but keep smoke trail alive
+            // Disable the flame and stop new particle emission
             visualEffect.SetBool("EnableFlame", false);
+            visualEffect.Stop();
             
             // If the effect is active, unparent it so it persists after missile is destroyed
             if (visualEffect.gameObject.activeSelf)
