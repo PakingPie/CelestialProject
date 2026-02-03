@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.VFX;
 
 [RequireComponent(typeof(AAMissile))]
 public class AAMissileEffects : MonoBehaviour
@@ -15,8 +16,8 @@ public class AAMissileEffects : MonoBehaviour
     [Tooltip("TrailRenderer played at missile's attach point.")]
     public TrailRenderer trailPrefab;
 
-    [Tooltip("ParticleSystem played at missile's attach point.")]
-    public ParticleSystem particleTrailPrefab;
+    [Tooltip("Visual Effect Graph played at missile's attach point.")]
+    public VisualEffect visualEffectPrefab;
 
     [Tooltip("Effect spawened when missile explodes.")]
     public ParticleSystem explosionFXPrefab;
@@ -41,7 +42,7 @@ public class AAMissileEffects : MonoBehaviour
     protected AudioSource loopSource;
 
     TrailRenderer trail;
-    ParticleSystem particleTrail;
+    VisualEffect visualEffect;
 
     AAMissile missile;
     AARemoveEffect effectRemover;
@@ -86,7 +87,7 @@ public class AAMissileEffects : MonoBehaviour
     private void Start()
     {
         // First make sure that an effect was assigned at all.
-        if (trailPrefab != null || particleTrailPrefab != null)
+        if (trailPrefab != null || visualEffectPrefab != null)
         {
             // Make sure there is a reference point for where to spawn the trail.
             if (trailFxPoint == null)
@@ -112,18 +113,18 @@ public class AAMissileEffects : MonoBehaviour
                 trail.enabled = false;
             }
 
-            // Instantiate the ParticleSystem trail.
-            if (particleTrailPrefab != null)
+            // Instantiate the Visual Effect Graph.
+            if (visualEffectPrefab != null)
             {
-                particleTrail = Instantiate(particleTrailPrefab, trailFxPoint);
-                particleTrail.transform.localPosition = Vector3.zero;
-                particleTrail.transform.localEulerAngles = Vector3.zero;
+                visualEffect = Instantiate(visualEffectPrefab, trailFxPoint);
+                visualEffect.transform.localPosition = Vector3.zero;
+                visualEffect.transform.localEulerAngles = Vector3.zero;
 
-                particleTrail.Stop();
+                visualEffect.Stop();
 
-                // Ensure that the effect remover is on the gameobject to prevent undeleted particle effects.
-                if (particleTrail.GetComponent<AARemoveEffect>() == null)
-                    effectRemover = particleTrail.gameObject.AddComponent<AARemoveEffect>();
+                // Ensure that the effect remover is on the gameobject to prevent undeleted effects.
+                if (visualEffect.GetComponent<AARemoveEffect>() == null)
+                    effectRemover = visualEffect.gameObject.AddComponent<AARemoveEffect>();
             }
         }
     }
@@ -144,10 +145,10 @@ public class AAMissileEffects : MonoBehaviour
 
             if (trail != null)
                 trail.enabled = true;
-            else if (particleTrail != null)
-                particleTrail.Play();            
+            else if (visualEffect != null)
+                visualEffect.Play();            
             else
-                Debug.LogWarning("No TrailRenderer or ParticleSystem prefabs assigned for missile trail FX on " + transform.name + ".");
+                Debug.LogWarning("No TrailRenderer or Visual Effect Graph prefabs assigned for missile trail FX on " + transform.name + ".");
         }
 
         // Detach the trail when motor shuts off. (If applicable.)
@@ -162,7 +163,7 @@ public class AAMissileEffects : MonoBehaviour
     /// </summary>
     public void Explode()
     {
-        // If particle systems or trails are destroyed, their trail/particles do not persist.
+        // If effects are destroyed, their particles do not persist.
         // Unparenting them before destruction prevents this. The missile calls this function
         // when it gets destroyed.
         DetachTrail();
@@ -206,17 +207,17 @@ public class AAMissileEffects : MonoBehaviour
                 GameObject.Destroy(trail);
         }
 
-        if (particleTrail != null)
+        if (visualEffect != null)
         {
-            // If the trail was disabled, just delete it straight up.
-            if (particleTrail.gameObject.activeSelf)
+            // If the effect was disabled, just delete it straight up.
+            if (visualEffect.gameObject.activeSelf)
             {
-                particleTrail.transform.parent = null;
-                particleTrail.Stop();
+                visualEffect.transform.parent = null;
+                visualEffect.Stop();
                 effectRemover.readyToDestroy = true;
             }
             else
-                GameObject.Destroy(particleTrail);
+                GameObject.Destroy(visualEffect);
         }
     }
 }
