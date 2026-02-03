@@ -198,7 +198,7 @@ Shader "Custom/MilyWay"
                 col += periphery * peripheryColor * 0.05;
                 col *= exp(-pow(neb * 0.7, 5.1) * nebulaAbs * 0.0015);
                 col *= bandMask;
-                col += stars(uvToSpace * 0.5, 968.148, 2.0) * 0.07;
+                col += stars(uvToSpace * 0.5, 968.148, 2.0) * 0.01;
 
                 return col;
             }
@@ -208,7 +208,7 @@ Shader "Custom/MilyWay"
                 float3 c = 0;
                 float3 rayDir = normalize(viewDirWS);
                 c += getFar(rayDir);
-                c *= 1.0;
+                c *= 3.0;
                 return 1.0 - exp(-c * 1.5);
             }
 
