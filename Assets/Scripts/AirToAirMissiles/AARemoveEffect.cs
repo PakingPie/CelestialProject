@@ -1,35 +1,36 @@
 using UnityEngine;
+using UnityEngine.VFX;
 
 [DisallowMultipleComponent]
 public class AARemoveEffect : MonoBehaviour
 {
-    ParticleSystem[] particles;
+    VisualEffect[] visualEffects;
     public bool readyToDestroy = false;
 
     float effectStartTime = 0.0f;
 
     void OnEnable()
     {
-        particles = GetComponentsInChildren<ParticleSystem>();
+        visualEffects = GetComponentsInChildren<VisualEffect>();
         effectStartTime = Time.time;
     }
 
     // Update is called once per frame
     void Update()
     {
-        bool allParticlesCountZero = true;
-        foreach (ParticleSystem ps in particles)
+        bool allVfxCountZero = true;
+        foreach (VisualEffect vfx in visualEffects)
         {
-            if (ps.particleCount > 0)
+            if (vfx != null && vfx.aliveParticleCount > 0)
             {
-                allParticlesCountZero = false;
+                allVfxCountZero = false;
                 break;
             }
         }
 
         // Only work this if the effect has been alive for longer than a second. Prevents effects from
         // destroying themselves before they can even start.
-        if (readyToDestroy && allParticlesCountZero && Time.time - effectStartTime > 1.0f)
+        if (readyToDestroy && allVfxCountZero && Time.time - effectStartTime > 1.0f)
             Destroy(gameObject);
     }
 }

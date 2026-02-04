@@ -286,12 +286,13 @@ public class EnemyVehicle : VehicleBase
             PawnCountManager.UpdateAllyCountAction?.Invoke();
         }
 
-        var boid = GetComponent<Boid>();
+        // Keep enemy vehicle moving
+        // var boid = GetComponent<Boid>();
 
-        if (boid != null && BoidManager != null)
-        {
-            BoidManager.RemoveBoid(boid);
-        }
+        // if (boid != null && BoidManager != null)
+        // {
+        //     BoidManager.RemoveBoid(boid);
+        // }
 
         if (ExplodeEffect != null)
         {
@@ -307,7 +308,7 @@ public class EnemyVehicle : VehicleBase
         // Set Faction to Neutral to avoid further interactions
         VehicleFaction = Faction.Neutral;
 
-        Destroy(gameObject, 3.0f);
+        Destroy(gameObject, 1.0f);
     }
 
     public void EnableHitpointBar(bool enable)
