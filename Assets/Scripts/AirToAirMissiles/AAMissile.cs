@@ -252,7 +252,7 @@ public class AAMissile : MonoBehaviour
             }
 
             List<VehicleBase> nearbyTargets = new List<VehicleBase>(16);
-            CombatRegistry.GetNearbyEnemies(transform.position, ExplodeRadius, targetFactions, nearbyTargets);
+            CombatRegistry.GetNearbyEnemies(transform.position, ExplodeRadius, targetFactions, nearbyTargets, true);
 
             foreach (VehicleBase vehicle in nearbyTargets)
             {

@@ -120,6 +120,7 @@ public class EnemyVehicle : VehicleBase
             _damagedSmokeInstance.transform.localPosition = Vector3.zero;
             _damagedSmokeInstance.transform.localEulerAngles = Vector3.zero;
             _damagedSmokeInstance.Stop();
+            _damagedSmokeInstance.gameObject.SetActive(false);
             _smokeEffectInitialized = true;
         }
     }
@@ -156,17 +157,19 @@ public class EnemyVehicle : VehicleBase
 
         if (HitPoints < MaxHitPoints / 2)
         {
-            if (_damagedSmokeInstance != null && _damagedSmokeInstance.aliveParticleCount == 0)
+            if (_damagedSmokeInstance != null && !_damagedSmokeInstance.gameObject.activeSelf)
             {
+                _damagedSmokeInstance.gameObject.SetActive(true);
                 _damagedSmokeInstance.transform.position = DamagedPoint.position;
                 _damagedSmokeInstance.Play();
             }
         }
         else
         {
-            if (_damagedSmokeInstance != null && _damagedSmokeInstance.aliveParticleCount > 0)
+            if (_damagedSmokeInstance != null && _damagedSmokeInstance.gameObject.activeSelf)
             {
                 _damagedSmokeInstance.Stop();
+                _damagedSmokeInstance.gameObject.SetActive(false);
             }
         }
     }
@@ -308,7 +311,7 @@ public class EnemyVehicle : VehicleBase
         // Set Faction to Neutral to avoid further interactions
         VehicleFaction = Faction.Neutral;
 
-        Destroy(gameObject, 1.0f);
+        Destroy(gameObject);
     }
 
     public void EnableHitpointBar(bool enable)
