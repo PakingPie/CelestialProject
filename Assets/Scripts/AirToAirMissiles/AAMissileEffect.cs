@@ -171,18 +171,18 @@ public class AAMissileEffects : MonoBehaviour
 
         if (explosionFXPrefab != null)
         {
-            VisualEffect explode = GameObject.Instantiate(explosionFXPrefab);
-            explode.transform.position = transform.position;
-            explode.transform.rotation = transform.rotation;
-
-            // Play the explosion effect
-            explode.Play();
-
-            // Give the explosion VFX the component to destroy itself after it finished playing.
-            AARemoveEffect remove = explode.GetComponent<AARemoveEffect>();
-            if (remove == null)    
-                remove = explode.gameObject.AddComponent<AARemoveEffect>();
-            remove.readyToDestroy = true;
+                VisualEffect explode = VFXPool.Instance.Get(explosionFXPrefab, transform.position, transform.rotation);
+                if (explode != null)
+                {
+                    VFXPooledInstance pooled = explode.GetComponent<VFXPooledInstance>();
+                    if (pooled == null)
+                    {
+                        pooled = explode.gameObject.AddComponent<VFXPooledInstance>();
+                        pooled.Initialize(explosionFXPrefab);
+                    }
+                    else
+                        pooled.spawnTime = Time.time;
+                }
         }
         else
             Debug.LogWarning("No Visual Effect prefab assigned for explosions on missile " + transform.name + ".");

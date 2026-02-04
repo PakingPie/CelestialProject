@@ -202,15 +202,33 @@ public class BulletPhysics : MonoBehaviour
 
         if (ExplodeOnImpact && _explodeFXPrefab != null)
         {
-            VisualEffect vfx = Instantiate(_explodeFXPrefab, impactPoint, _cachedTransform.rotation);
-            vfx.Play();
-            vfx.gameObject.AddComponent<VFXAutoDestroy>();
+                VisualEffect vfx = VFXPool.Instance.Get(_explodeFXPrefab, impactPoint, _cachedTransform.rotation);
+                if (vfx != null)
+                {
+                    VFXPooledInstance pooled = vfx.GetComponent<VFXPooledInstance>();
+                    if (pooled == null)
+                    {
+                        pooled = vfx.gameObject.AddComponent<VFXPooledInstance>();
+                        pooled.Initialize(_explodeFXPrefab);
+                    }
+                    else
+                        pooled.spawnTime = Time.time;
+                }
         }
         else if (_impactFXPrefab != null)
         {
-            VisualEffect vfx = Instantiate(_impactFXPrefab, impactPoint, _cachedTransform.rotation);
-            vfx.Play();
-            vfx.gameObject.AddComponent<VFXAutoDestroy>();
+                VisualEffect vfx = VFXPool.Instance.Get(_impactFXPrefab, impactPoint, _cachedTransform.rotation);
+                if (vfx != null)
+                {
+                    VFXPooledInstance pooled = vfx.GetComponent<VFXPooledInstance>();
+                    if (pooled == null)
+                    {
+                        pooled = vfx.gameObject.AddComponent<VFXPooledInstance>();
+                        pooled.Initialize(_impactFXPrefab);
+                    }
+                    else
+                        pooled.spawnTime = Time.time;
+                }
         }
 
         CleanUpTrails();
@@ -246,9 +264,18 @@ public class BulletPhysics : MonoBehaviour
     {
         if (_impactFXPrefab != null)
         {
-            VisualEffect vfx = Instantiate(_impactFXPrefab, _cachedTransform.position, _cachedTransform.rotation);
-            vfx.Play();
-            vfx.gameObject.AddComponent<VFXAutoDestroy>();
+                VisualEffect vfx = VFXPool.Instance.Get(_impactFXPrefab, _cachedTransform.position, _cachedTransform.rotation);
+                if (vfx != null)
+                {
+                    VFXPooledInstance pooled = vfx.GetComponent<VFXPooledInstance>();
+                    if (pooled == null)
+                    {
+                        pooled = vfx.gameObject.AddComponent<VFXPooledInstance>();
+                        pooled.Initialize(_impactFXPrefab);
+                    }
+                    else
+                        pooled.spawnTime = Time.time;
+                }
         }
 
         CleanUpTrails();
