@@ -160,6 +160,8 @@ public class MissileSalvo : WeaponBase
             _availableTargets.Add(enemyTransform);
         }
     }
+    
+#if UNITY_EDITOR
     public void OnDrawGizmos()
     {
         base.OnDrawGizmos();
@@ -196,12 +198,11 @@ public class MissileSalvo : WeaponBase
             Gizmos.color = Color.blue;
             Gizmos.DrawRay(transform.position, transform.forward * 15f);
 
-#if UNITY_EDITOR
             UnityEditor.Handles.Label(Targeted.position + Vector3.up * 2f,
                 $"Azimuth: {relativeAngles.x:F1}°  Elev: {relativeAngles.y:F1}°\n" +
                 $"Seeker Cone: {seekerCone}°  In Cone: {withinCone}\n");
-#endif
         }
     }
+#endif
 }
 

@@ -1,7 +1,9 @@
 // BoidsManager.cs - UPDATED with full dynamic support
 using UnityEngine;
 using System.Collections.Generic;
+#if UNITY_EDITOR
 using UnityEditor.EditorTools;
+#endif
 
 public class BoidsManager : MonoBehaviour
 {
@@ -544,6 +546,7 @@ public class BoidsManager : MonoBehaviour
         public static int Size => sizeof(float) * 3 * 5 + sizeof(int);
     }
 
+#if UNITY_EDITOR
     void OnDrawGizmos()
     {
         if (boids == null) return;
@@ -569,9 +572,8 @@ public class BoidsManager : MonoBehaviour
             Gizmos.color = (i == 0) ? Color.yellow : Color.cyan;
             Gizmos.DrawWireSphere(boids[i].position, 8f);
 
-#if UNITY_EDITOR
             UnityEditor.Handles.Label(boids[i].position + Vector3.up * 25f, $"#{i}");
-#endif
         }
     }
+#endif
 }
