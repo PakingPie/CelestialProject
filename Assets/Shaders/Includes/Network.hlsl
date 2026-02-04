@@ -3,8 +3,7 @@
 
 #include "FBM.hlsl"
 
-float CustomLine(float2 a, float2 b, float2 p, float width)
-{
+float CustomLine(float2 a, float2 b, float2 p, float width) {
     // https://iquilezles.org/articles/distfunctions
     float2 pa = p - a, ba = b - a;
     float h = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.);
@@ -13,8 +12,7 @@ float CustomLine(float2 a, float2 b, float2 p, float width)
     return 1.5 * lerp(rexp(a), rexp(b), x) * smoothstep(width / 2., 0., d) * smoothstep(1.75, 0.5, distance(a, b));
 }
 
-float network(float2 p, float width)
-{
+float network(float2 p, float width) {
     // based on https://www.shadertoy.com/view/lscczl
     float2 c = floor(p) + hash22(floor(p));
     float2 n = floor(p) + N + hash22(floor(p) + N);
@@ -28,10 +26,8 @@ float network(float2 p, float width)
     m += CustomLine(s, w, p, width);
     m += CustomLine(w, n, p, width);
 
-    for (float y = -1.; y <= 1.; y++)
-    {
-        for (float x = -1.; x <= 1.; x++)
-        {
+    for (float y = -1.; y <= 1.; y++) {
+        for (float x = -1.; x <= 1.; x++) {
             float2 q = floor(p) + float2(x, y) + hash22(floor(p) + float2(x, y));
             float intensity = distance(p, q) / clamp(rexp(floor(p) + float2(x, y)), 0., 1.);
             m += CustomLine(c, q, p, width);
@@ -42,8 +38,7 @@ float network(float2 p, float width)
     return m;
 }
 
-float2 SampleNetwork(float2 texcoord)
-{
+float2 SampleNetwork(float2 texcoord) {
     float screenWidth = _ScreenParams.x;
     float screenHeight = _ScreenParams.y;
     float lat = 180. * texcoord.y / screenHeight - 90.;
@@ -56,12 +51,10 @@ float2 SampleNetwork(float2 texcoord)
     float height = FBM(3. * p) - 0.5;
     float2 color = 0;
     color.x = height;
-    if (height < 0.)
-    {
+    if (height < 0.) {
         color.y = 0.;
     }
-    else
-    {
+    else {
         float d = 0.75;
         float width = 3e-3;
         d += 0.5 * network(100. * uv + 1.0 * wiggle, 100. * width);
@@ -83,13 +76,10 @@ float2 SampleNetwork(float2 texcoord)
 //     return textureGrad(s, uv, dx, dy);
 // }
 
-float speckle(float2 p, float density)
-{
+float speckle(float2 p, float density) {
     float m = 0.;
-    for (float y = -1.; y <= 1.; y++)
-    {
-        for (float x = -1.; x <= 1.; x++)
-        {
+    for (float y = -1.; y <= 1.; y++) {
+        for (float x = -1.; x <= 1.; x++) {
             float2 q = floor(p) + float2(x, y) + hash22(floor(p) + float2(x, y));
             // m += 1.5 * rexp(q) * exp(-2. * distance(p,q) / clamp(density, 0., 1.));
             float a = 1.5 * rexp(q) * pow(1.5 * clamp(density, 0., 0.67), 1.5);
@@ -99,8 +89,7 @@ float speckle(float2 p, float density)
     return m;
 }
 
-float3 map(float3 p)
-{
+float3 map(float3 p) {
     float lat = 90. - acos(p.y / length(p)) * 180. / PI;
     float lon = atan2(p.x, p.z) * 180. / PI;
     float2 uv = float2(lon / 360., lat / 180.) + 0.5;

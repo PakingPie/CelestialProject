@@ -41,8 +41,6 @@ public class WeaponBase : MonoBehaviour
     public GlobalHelper.GuidanceType GuidanceType = GlobalHelper.GuidanceType.Lead;
     [Tooltip("The range within which the gun can target enemies.")]
     public Vector2 ActiveRange = new Vector2(5f, 500f);
-    [Tooltip("Number of updates per second for the turret targeting system.")]
-    public int UpdateRate = 60;
 
     [Header("Target Distribution")]
     [Tooltip("Enable target distribution to prevent multiple weapons targeting the same enemy")]

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.VFX;
 using static GlobalHelper;
 
 public class Asteroid : VehicleBase
@@ -8,7 +9,7 @@ public class Asteroid : VehicleBase
     [SerializeField] private Faction _faction = Faction.Neutral;
     
     [Header("Destruction")]
-    [SerializeField] private ParticleSystem _destructionFXPrefab;
+    [SerializeField] private VisualEffect _destructionFXPrefab;
     [SerializeField] private GameObject[] _debrisPrefabs;
     [SerializeField] private int _debrisCount = 3;
     [SerializeField] private float _debrisForce = 10f;
@@ -186,7 +187,7 @@ public class Asteroid : VehicleBase
         // Spawn destruction FX
         if (_destructionFXPrefab != null)
         {
-            ParticleSystem fx = Instantiate(_destructionFXPrefab, transform.position, Quaternion.identity);
+            VisualEffect fx = Instantiate(_destructionFXPrefab, transform.position, Quaternion.identity);
             fx.transform.localScale = transform.localScale;
             fx.Play();
         }

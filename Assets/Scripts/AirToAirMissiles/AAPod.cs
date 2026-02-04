@@ -13,6 +13,9 @@ public class AAPod : AALauncher
     [Tooltip("Time to reload a missile pod magazine.\n\nAll missiles must be depleted to start a reload. Alternatively, you can manually call the \"ReloadPod\" function.")]
     public float magazineReloadTime = 6.0f;
 
+    [Tooltip("If true, missiles and magazines are never depleted.")]
+    public bool infiniteAmmo = false;
+
     int tubeCount = 0;
     int initialMissileCount = 1;
     int initialMagCount = 1;
@@ -34,7 +37,7 @@ public class AAPod : AALauncher
         }
 
         // In the middle of a magazine reload.
-        if (magazineCount > 0 && magazineReloadCooldown > 0.0f)
+        if (!infiniteAmmo && magazineCount > 0 && magazineReloadCooldown > 0.0f)
         {
             magazineReloadCooldown -= Time.deltaTime;
 
@@ -71,7 +74,7 @@ public class AAPod : AALauncher
     /// use case would be passing in the velocity of the launching platform.</param>
     public override void Launch(Transform target, Vector3 velocity)
     {
-        if (missileCount > 0 && reloadCooldown <= 0.0f && magazineReloadCooldown <= 0.0f)
+        if ((missileCount > 0 || infiniteAmmo) && reloadCooldown <= 0.0f && magazineReloadCooldown <= 0.0f)
         {
             if (fireSource != null)
                 fireSource.Play();
@@ -89,7 +92,8 @@ public class AAPod : AALauncher
             missile.Launch(target, velocity);
             reloadCooldown = fireDelay;
 
-            missileCount--;
+            if (!infiniteAmmo)
+                missileCount--;
 
             // Cycle through launch points.
             tubeCount++;
@@ -97,7 +101,7 @@ public class AAPod : AALauncher
                 tubeCount = 0;
 
             // Reload magazine if all out of missiles.
-            if (missileCount <= 0)
+            if (!infiniteAmmo && missileCount <= 0)
                 ReloadMagazine();
         }
     }
@@ -123,7 +127,8 @@ public class AAPod : AALauncher
     /// </summary>
     public void ReloadMagazine()
     {
-        magazineReloadCooldown = magazineReloadTime;
+        if (!infiniteAmmo)
+            magazineReloadCooldown = magazineReloadTime;
     }
 
     /// <summary>
@@ -135,7 +140,7 @@ public class AAPod : AALauncher
     {
         get
         {
-            return magazineCount;
+            return infiniteAmmo ? int.MaxValue : magazineCount;
         }
     }
 

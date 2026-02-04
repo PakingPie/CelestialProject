@@ -28,6 +28,8 @@ public class Boid : MonoBehaviour
     [HideInInspector] public Vector3 flockmatesCenter;
     [HideInInspector] public int numPerceivedFlockmates;
 
+    [Header("Movement Constraints")]
+    [Tooltip("Height range for boid movement (Y axis)")]
     public Vector2 HeightRange = new Vector2(-100.0f, 100.0f);
 
 

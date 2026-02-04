@@ -88,13 +88,6 @@ public static class GlobalHelper
         Ally
     }
 
-    public class TeamIdentity : MonoBehaviour
-    {
-        [SerializeField] private Team _team = Team.Neutral;
-        public Team Team => _team;
-    }
-
-
     public class TrackedTarget
     {
         public Transform Transform { get; private set; }

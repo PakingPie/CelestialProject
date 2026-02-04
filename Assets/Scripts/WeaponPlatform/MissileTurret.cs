@@ -137,7 +137,7 @@ public class MissileTurret : WeaponBase
         _availableTargets.Clear();
 
         // Get nearby enemies
-        CombatRegistry.GetNearbyEnemies(transform.position, ActiveRange.y, FireTarget, _nearbyEnemies);
+        CombatRegistry.GetNearbyEnemies(transform.position, ActiveRange.y, FireTarget, _nearbyEnemies, CanTargetMissiles);
 
         float seekerCone = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone;
 

@@ -21,7 +21,8 @@ public class BoidSpawner : MonoBehaviour
     public Boid[] prefabs;
     public int spawnCount = 10;
     public Color color;
-    public Vector2 HeightRange = new Vector2(-1.0f, 1.0f);
+    [Tooltip("Height range for spawning (Y axis)")]
+    public Vector2 HeightRange = new Vector2(-1000.0f, 1000.0f);
 
     [Header("Spawn Mode")]
     public SpawnMode spawnMode = SpawnMode.Instant;

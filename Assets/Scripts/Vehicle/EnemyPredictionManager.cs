@@ -543,7 +543,7 @@ public class EnemyPredictionManager : MonoBehaviour
             UnregisterTarget(enemy.transform);
     }
 
-    public void RegisterMissile(AAMissile missile)
+    public void RegisterMissile(MissileVehicle missile)
     {
         if (missile == null || _trackedTargets.ContainsKey(missile.transform))
             return;
@@ -551,13 +551,13 @@ public class EnemyPredictionManager : MonoBehaviour
         var target = new TrackedTarget(
             missile.transform,
             IndicatorType.Missile,
-            () => missile.transform.forward * missile.initialSpeed // Approximate velocity
+            () => missile.transform.forward * missile.Velocity // Approximate velocity
         );
 
         _trackedTargets[missile.transform] = target;
     }
 
-    public void UnregisterMissile(AAMissile missile)
+    public void UnregisterMissile(MissileVehicle missile)
     {
         if (missile != null)
             UnregisterTarget(missile.transform);

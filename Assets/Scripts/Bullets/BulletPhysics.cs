@@ -1,12 +1,13 @@
 using UnityEngine;
+using UnityEngine.VFX;
 using System.Collections.Generic;
 using static GlobalHelper;
 
 public class BulletPhysics : MonoBehaviour
 {
     [Header("Prefabs")]
-    [SerializeField] private ParticleSystem _impactFXPrefab = null;
-    [SerializeField] private ParticleSystem _explodeFXPrefab = null;
+    [SerializeField] private VisualEffect _impactFXPrefab = null;
+    [SerializeField] private VisualEffect _explodeFXPrefab = null;
     [SerializeField] private List<TrailRenderer> _childTrails = new List<TrailRenderer>();
 
     public int Damage = 2;
@@ -124,7 +125,7 @@ public class BulletPhysics : MonoBehaviour
         if (CanDamageAsteroids)
         {
             List<VehicleBase> nearbyNeutrals = new List<VehicleBase>(32);
-            CombatRegistry.GetNearbyEnemies(myPosition, ExplosionRadius, Faction.Neutral, nearbyNeutrals, false);
+            CombatRegistry.GetNearbyEnemies(myPosition, ExplosionRadius, Faction.Neutral, nearbyNeutrals, true);
             _nearbyTargets.AddRange(nearbyNeutrals);
         }
 
@@ -200,9 +201,35 @@ public class BulletPhysics : MonoBehaviour
         }
 
         if (ExplodeOnImpact && _explodeFXPrefab != null)
-            Instantiate(_explodeFXPrefab, impactPoint, _cachedTransform.rotation).Play();
+        {
+                VisualEffect vfx = VFXPool.Instance.Get(_explodeFXPrefab, impactPoint, _cachedTransform.rotation);
+                if (vfx != null)
+                {
+                    VFXPooledInstance pooled = vfx.GetComponent<VFXPooledInstance>();
+                    if (pooled == null)
+                    {
+                        pooled = vfx.gameObject.AddComponent<VFXPooledInstance>();
+                        pooled.Initialize(_explodeFXPrefab);
+                    }
+                    else
+                        pooled.spawnTime = Time.time;
+                }
+        }
         else if (_impactFXPrefab != null)
-            Instantiate(_impactFXPrefab, impactPoint, _cachedTransform.rotation).Play();
+        {
+                VisualEffect vfx = VFXPool.Instance.Get(_impactFXPrefab, impactPoint, _cachedTransform.rotation);
+                if (vfx != null)
+                {
+                    VFXPooledInstance pooled = vfx.GetComponent<VFXPooledInstance>();
+                    if (pooled == null)
+                    {
+                        pooled = vfx.gameObject.AddComponent<VFXPooledInstance>();
+                        pooled.Initialize(_impactFXPrefab);
+                    }
+                    else
+                        pooled.spawnTime = Time.time;
+                }
+        }
 
         CleanUpTrails();
 
@@ -236,7 +263,20 @@ public class BulletPhysics : MonoBehaviour
     private void DestroyBullet()
     {
         if (_impactFXPrefab != null)
-            Instantiate(_impactFXPrefab, _cachedTransform.position, _cachedTransform.rotation).Play();
+        {
+                VisualEffect vfx = VFXPool.Instance.Get(_impactFXPrefab, _cachedTransform.position, _cachedTransform.rotation);
+                if (vfx != null)
+                {
+                    VFXPooledInstance pooled = vfx.GetComponent<VFXPooledInstance>();
+                    if (pooled == null)
+                    {
+                        pooled = vfx.gameObject.AddComponent<VFXPooledInstance>();
+                        pooled.Initialize(_impactFXPrefab);
+                    }
+                    else
+                        pooled.spawnTime = Time.time;
+                }
+        }
 
         CleanUpTrails();
         ResetBullet();

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.VFX;
 using System.Collections.Generic;
 using static GlobalHelper;
 
@@ -40,7 +41,7 @@ public class Gun : WeaponBase
 
     [Header("Firing")]
     public BulletPhysics BulletPrefab;
-    [SerializeField] private ParticleSystem MuzzleFlashPrefab = null;
+    [SerializeField] private VisualEffect MuzzleFlashPrefab = null;
     [Tooltip("Fire bullets from FixedUpdate. If using a physics based project, this should usually be set to true.")]
     public bool FireInFixed = true;
     [Tooltip("Set to true to fire the gun automatically.")]
@@ -75,7 +76,7 @@ public class Gun : WeaponBase
     private Vector3 _manualAimPosition = Vector3.zero;
     private bool _isSequentialBurstActive = false;
     private int _sequentialBurstShotsRemaining = 0;
-    private Dictionary<Transform, ParticleSystem> firePointToMuzzleFlash = new Dictionary<Transform, ParticleSystem>();
+    private Dictionary<Transform, VisualEffect> firePointToMuzzleFlash = new Dictionary<Transform, VisualEffect>();
     private List<GunBarrel> barrelVisuals = new List<GunBarrel>();
     private float _lastShotTime = -float.MaxValue;
     private int _firePointIndex = 0;
