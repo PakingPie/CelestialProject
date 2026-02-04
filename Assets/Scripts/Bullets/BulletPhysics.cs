@@ -201,9 +201,17 @@ public class BulletPhysics : MonoBehaviour
         }
 
         if (ExplodeOnImpact && _explodeFXPrefab != null)
-            Instantiate(_explodeFXPrefab, impactPoint, _cachedTransform.rotation).Play();
+        {
+            VisualEffect vfx = Instantiate(_explodeFXPrefab, impactPoint, _cachedTransform.rotation);
+            vfx.Play();
+            vfx.gameObject.AddComponent<VFXAutoDestroy>();
+        }
         else if (_impactFXPrefab != null)
-            Instantiate(_impactFXPrefab, impactPoint, _cachedTransform.rotation).Play();
+        {
+            VisualEffect vfx = Instantiate(_impactFXPrefab, impactPoint, _cachedTransform.rotation);
+            vfx.Play();
+            vfx.gameObject.AddComponent<VFXAutoDestroy>();
+        }
 
         CleanUpTrails();
 
@@ -237,7 +245,11 @@ public class BulletPhysics : MonoBehaviour
     private void DestroyBullet()
     {
         if (_impactFXPrefab != null)
-            Instantiate(_impactFXPrefab, _cachedTransform.position, _cachedTransform.rotation).Play();
+        {
+            VisualEffect vfx = Instantiate(_impactFXPrefab, _cachedTransform.position, _cachedTransform.rotation);
+            vfx.Play();
+            vfx.gameObject.AddComponent<VFXAutoDestroy>();
+        }
 
         CleanUpTrails();
         ResetBullet();

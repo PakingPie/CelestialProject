@@ -301,6 +301,9 @@ public class EnemyVehicle : VehicleBase
         {
             VisualEffect explode = Instantiate(ExplodeEffect, transform.position, transform.rotation);
             explode.Play();
+            
+            // Add component to destroy VFX after it finishes
+            VFXAutoDestroy destroyer = explode.gameObject.AddComponent<VFXAutoDestroy>();
         }
         // Disable all weapons but keeps visual, then destroy after short delay
         var weapons = GetComponentsInChildren<WeaponBase>();

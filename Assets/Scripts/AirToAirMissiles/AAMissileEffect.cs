@@ -123,7 +123,8 @@ public class AAMissileEffects : MonoBehaviour
                 visualEffect.Stop();
 
                 // Ensure that the effect remover is on the gameobject to prevent undeleted effects.
-                if (visualEffect.GetComponent<AARemoveEffect>() == null)
+                effectRemover = visualEffect.GetComponent<AARemoveEffect>();
+                if (effectRemover == null)
                     effectRemover = visualEffect.gameObject.AddComponent<AARemoveEffect>();
             }
         }
@@ -181,6 +182,7 @@ public class AAMissileEffects : MonoBehaviour
             AARemoveEffect remove = explode.GetComponent<AARemoveEffect>();
             if (remove == null)    
                 remove = explode.gameObject.AddComponent<AARemoveEffect>();
+            remove.readyToDestroy = true;
         }
         else
             Debug.LogWarning("No Visual Effect prefab assigned for explosions on missile " + transform.name + ".");
@@ -219,8 +221,10 @@ public class AAMissileEffects : MonoBehaviour
             {
                 visualEffect.transform.parent = null;
                 // Add AARemoveEffect if not already present to clean up after smoke finishes
-                if (visualEffect.GetComponent<AARemoveEffect>() == null)
-                    visualEffect.gameObject.AddComponent<AARemoveEffect>();
+                AARemoveEffect remove = visualEffect.GetComponent<AARemoveEffect>();
+                if (remove == null)
+                    remove = visualEffect.gameObject.AddComponent<AARemoveEffect>();
+                remove.readyToDestroy = true;
             }
             else
                 GameObject.Destroy(visualEffect);

@@ -6112,7 +6112,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6569,7 +6569,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6908,7 +6908,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -8571,7 +8571,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -8761,7 +8761,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -8875,7 +8875,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -9075,6 +9075,7 @@ MonoBehaviour:
   dispersionAngle: 0
   magazineCount: 12
   magazineReloadTime: 12
+  infiniteAmmo: 0
 --- !u!1 &764762348
 GameObject:
   m_ObjectHideFlags: 0
@@ -12095,7 +12096,7 @@ MonoBehaviour:
   ownShip: {fileID: 962977631}
   missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 186f748ec5c613c40adf86aded408efd, type: 3}
   missileCount: 0
-  fireDelay: 40
+  fireDelay: 5
   launchPoints:
   - {fileID: 1100274823}
   - {fileID: 734552800}
@@ -12111,7 +12112,7 @@ MonoBehaviour:
   minDistance: 5
   maxDistance: 200
   FireOnFullyReload: 1
-  SalvoInterval: 10
+  SalvoInterval: 1
   ReloadAfterSalvo: 1
 --- !u!114 &962977635
 MonoBehaviour:
@@ -12849,7 +12850,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: d603c2ec335e1964387eb3ca57d0e5f3, type: 3}
-  spawnCount: 15
+  spawnCount: 5
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: 0, y: 10000}
   spawnMode: 0
@@ -14137,7 +14138,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -15134,7 +15135,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1203685297
 Transform:
   m_ObjectHideFlags: 0
@@ -15255,8 +15256,8 @@ MonoBehaviour:
   - {fileID: 2028162492}
   - {fileID: 1913720304}
   - {fileID: 768801199}
-  BulletPrefab: {fileID: -3295528032157664246, guid: 933ad824c5d806540a368873edeeb09f, type: 3}
-  MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: d32e877e73e0730498fa8516097758c6, type: 3}
+  BulletPrefab: {fileID: -3295528032157664246, guid: 7cfb8fef727d0334a9f06078fdd4b20e, type: 3}
+  MuzzleFlashPrefab: {fileID: 4024419132641768552, guid: 8ff11a9e105596d41bc4222ec2ef3fd5, type: 3}
   FireInFixed: 0
   IsFiring: 1
   MaxHeat: 100
@@ -16198,7 +16199,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -20585,7 +20586,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1802494801
 Transform:
   m_ObjectHideFlags: 0
@@ -23695,7 +23696,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2113835125
 Transform:
   m_ObjectHideFlags: 0
@@ -23826,6 +23827,7 @@ MonoBehaviour:
   dispersionAngle: 0
   magazineCount: 1
   magazineReloadTime: 1
+  infiniteAmmo: 1
 --- !u!1 &2116972264
 GameObject:
   m_ObjectHideFlags: 0

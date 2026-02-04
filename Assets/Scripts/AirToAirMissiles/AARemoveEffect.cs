@@ -21,7 +21,7 @@ public class AARemoveEffect : MonoBehaviour
         bool allVfxCountZero = true;
         foreach (VisualEffect vfx in visualEffects)
         {
-            if (vfx != null && vfx.aliveParticleCount > 0)
+            if (vfx != null  && vfx.aliveParticleCount > 0)
             {
                 allVfxCountZero = false;
                 break;
