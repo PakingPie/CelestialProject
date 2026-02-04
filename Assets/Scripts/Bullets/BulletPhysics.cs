@@ -1,12 +1,13 @@
 using UnityEngine;
+using UnityEngine.VFX;
 using System.Collections.Generic;
 using static GlobalHelper;
 
 public class BulletPhysics : MonoBehaviour
 {
     [Header("Prefabs")]
-    [SerializeField] private ParticleSystem _impactFXPrefab = null;
-    [SerializeField] private ParticleSystem _explodeFXPrefab = null;
+    [SerializeField] private VisualEffect _impactFXPrefab = null;
+    [SerializeField] private VisualEffect _explodeFXPrefab = null;
     [SerializeField] private List<TrailRenderer> _childTrails = new List<TrailRenderer>();
 
     public int Damage = 2;

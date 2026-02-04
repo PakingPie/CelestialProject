@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Burst;
@@ -33,7 +34,7 @@ public class AsteroidRingSpawner : MonoBehaviour
     [SerializeField] private Transform playerTransform;
     [Tooltip("Distance from player at which asteroids become interactive GameObjects")]
     [SerializeField] private float interactiveDistance = 150f;
-    [SerializeField] private ParticleSystem asteroidDestructionFX;
+    [SerializeField] private VisualEffect asteroidDestructionFX;
     [SerializeField] private GameObject[] debrisPrefabs;
     [SerializeField] private GameObject[] dropPrefabs;
 
