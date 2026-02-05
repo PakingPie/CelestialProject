@@ -145,8 +145,14 @@ public static class CombatRegistry
     {
         results.Clear();
 
-        float rangeSqr = range * range;
+        // Prefer spatial grid if it's initialized; fallback to list scan if grid is empty
+        if (_spatialGrid.Count > 0)
+        {
+            FindEnemiesInRangeGrid(position, range, targetFactions, results, isTargetingMissile);
+            return;
+        }
 
+        float rangeSqr = range * range;
 
         // Check each target faction
         if ((targetFactions & Faction.Foe) != 0)
@@ -160,6 +166,43 @@ public static class CombatRegistry
 
         if ((targetFactions & Faction.Neutral) != 0)
             AddNearbyFromList(_neutralVehicles, position, rangeSqr, results, isTargetingMissile);
+    }
+
+    private static void FindEnemiesInRangeGrid(Vector3 position, float range, Faction targetFactions, List<VehicleBase> results, bool isTargetingMissile)
+    {
+        Vector2Int centerCell = GetCell(position);
+        int cellRange = Mathf.CeilToInt(range / _cellSize);
+        float rangeSqr = range * range;
+
+        for (int x = -cellRange; x <= cellRange; x++)
+        {
+            for (int z = -cellRange; z <= cellRange; z++)
+            {
+                Vector2Int cell = new Vector2Int(centerCell.x + x, centerCell.y + z);
+
+                if (!_spatialGrid.TryGetValue(cell, out var vehicles))
+                    continue;
+
+                for (int i = 0; i < vehicles.Count; i++)
+                {
+                    VehicleBase vehicle = vehicles[i];
+
+                    if (vehicle == null) continue;
+
+                    if (!isTargetingMissile && vehicle.CompareTag("Missile"))
+                        continue;
+
+                    // Check faction
+                    Faction vehicleFaction = GetVehicleFaction(vehicle);
+                    if ((targetFactions & vehicleFaction) == 0)
+                        continue;
+
+                    float distSqr = (vehicle.transform.position - position).sqrMagnitude;
+                    if (distSqr <= rangeSqr)
+                        results.Add(vehicle);
+                }
+            }
+        }
     }
 
     private static void AddNearbyFromList(List<VehicleBase> vehicles, Vector3 position, float rangeSqr, List<VehicleBase> results, bool isTargetingMissile = false)
