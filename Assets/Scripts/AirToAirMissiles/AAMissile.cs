@@ -254,9 +254,40 @@ public class AAMissile : MonoBehaviour
             List<VehicleBase> nearbyTargets = new List<VehicleBase>(16);
             CombatRegistry.GetNearbyEnemies(transform.position, ExplodeRadius, targetFactions, nearbyTargets, true);
 
+            // Group VehicleModules and WeaponPlatforms by their parent vehicle to prevent multiple damage from same parent
+            HashSet<VehicleBase> damagedParents = new HashSet<VehicleBase>();
+
             foreach (VehicleBase vehicle in nearbyTargets)
             {
-                vehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                if (vehicle is VehicleModule vehicleModule)
+                {
+                    // For VehicleModule, get its parent vehicle
+                    VehicleBase parentVehicle = vehicleModule.OwnerShip?.GetComponent<VehicleBase>();
+                    if (parentVehicle != null && !damagedParents.Contains(parentVehicle))
+                    {
+                        parentVehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                        damagedParents.Add(parentVehicle);
+                    }
+                }
+                else if (vehicle is WeaponPlatform weaponPlatform)
+                {
+                    // For WeaponPlatform, get its parent vehicle
+                    VehicleBase parentVehicle = weaponPlatform.OwnerShip?.GetComponent<VehicleBase>();
+                    if (parentVehicle != null && !damagedParents.Contains(parentVehicle))
+                    {
+                        parentVehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                        damagedParents.Add(parentVehicle);
+                    }
+                }
+                else
+                {
+                    // For other vehicles, damage directly if not already damaged
+                    if (!damagedParents.Contains(vehicle))
+                    {
+                        vehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                        damagedParents.Add(vehicle);
+                    }
+                }
             }
         }
         else if (target != null)

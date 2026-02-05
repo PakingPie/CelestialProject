@@ -32,20 +32,23 @@ public class VehicleModule : VehicleBase
 
         int finalDamage = (int)(damage * DamageMultiplier);
 
-        // Try to use source-tracked damage to prevent duplicates
-        if (ownerVehicle is EnemyVehicle enemyVehicle)
-        {
-            enemyVehicle.TakeDamageFromSource(finalDamage, ammoType, GetInstanceID());
-        }
-        else if (ownerVehicle is PlayerVehicle playerVehicle)
-        {
-            playerVehicle.TakeDamageFromSource(finalDamage, ammoType, GetInstanceID());
-        }
-        else
-        {
-            // Fallback for other vehicle types
-            ownerVehicle.TakeDamage(finalDamage, ammoType);
-        }
+        ownerVehicle.TakeDamage(finalDamage, ammoType);
+
+        // // Try to use source-tracked damage to prevent duplicates, not working, will do in BulletPhysics.cs and AAMissiles.cs
+        // if (ownerVehicle is EnemyVehicle enemyVehicle)
+        // {
+        //     enemyVehicle.TakeDamageFromSource(finalDamage, ammoType, GetInstanceID());
+        // }
+        // else if (ownerVehicle is PlayerVehicle playerVehicle)
+        // {
+        //     playerVehicle.TakeDamageFromSource(finalDamage, ammoType, GetInstanceID());
+        // }
+        // else
+        // {
+        //     // Fallback for other vehicle types
+        //     ownerVehicle.TakeDamage(finalDamage, ammoType);
+        // }
+        Debug.Log($"Module on {OwnerShip.name} took {finalDamage} damage (original: {damage}, multiplier: {DamageMultiplier})");
 
         return true;
     }
