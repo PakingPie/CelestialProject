@@ -197,6 +197,61 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 788240374060021212, guid: 6a826d1c4122970448258e68255e483f, type: 3}
   m_PrefabInstance: {fileID: 40967982}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &48121249
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 48121250}
+  - component: {fileID: 48121251}
+  m_Layer: 0
+  m_Name: DamagePoint_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &48121250
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 48121249}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.5, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 231653845}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &48121251
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 48121249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1001 &72570664
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -868,6 +923,116 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 1
   m_ApplyActiveColorSpace: 1
+--- !u!1 &105343368
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 105343369}
+  - component: {fileID: 105343370}
+  m_Layer: 0
+  m_Name: DamagePoint_3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &105343369
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 105343368}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.5, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 780965682}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &105343370
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 105343368}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
+--- !u!1 &105945967
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 105945968}
+  - component: {fileID: 105945969}
+  m_Layer: 0
+  m_Name: DamagePoint_4
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &105945968
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 105945967}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 231653845}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &105945969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 105945967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1001 &112342517
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -876,6 +1041,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1170274531}
     m_Modifications:
+    - target: {fileID: -505481951103556575, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
+      propertyPath: OwnerShip
+      value: 
+      objectReference: {fileID: 8502438397938148729}
     - target: {fileID: -505481951103556575, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
       propertyPath: PlatformWeaponType
       value: 2
@@ -1238,7 +1407,6 @@ GameObject:
   - component: {fileID: 137748515}
   - component: {fileID: 137748518}
   - component: {fileID: 137748517}
-  - component: {fileID: 137748519}
   - component: {fileID: 137748520}
   m_Layer: 0
   m_Name: BodyBlockIV
@@ -1260,10 +1428,14 @@ Transform:
   m_LocalScale: {x: 20, y: 20, z: 50}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1966803235}
-  - {fileID: 1797140775}
-  - {fileID: 745274147}
-  - {fileID: 602309860}
+  - {fileID: 282338227}
+  - {fileID: 1538162382}
+  - {fileID: 936625750}
+  - {fileID: 1599752556}
+  - {fileID: 994975742}
+  - {fileID: 917194574}
+  - {fileID: 265086385}
+  - {fileID: 855294287}
   m_Father: {fileID: 447733594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &137748517
@@ -1323,29 +1495,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 137748514}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &137748519
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 137748514}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
-  OwnerShip: {fileID: 8502438397938148729}
-  IsShowHitpointBar: 0
-  HitPoints: 100
-  MaxHitPoints: 100
-  ArmorPoints: 10
-  MaxArmorPoints: 10
-  ShieldPoints: 10
-  MaxShieldPoints: 10
-  BoidManager: {fileID: 0}
-  VehicleFaction: 1
-  DamageMultiplier: 1
 --- !u!114 &137748520
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1483,6 +1632,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 139626465}
   m_CullTransparentMesh: 1
+--- !u!1 &140005056
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 140005057}
+  - component: {fileID: 140005058}
+  m_Layer: 0
+  m_Name: DamagePoint_4
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &140005057
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 140005056}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 780965682}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &140005058
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 140005056}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1001 &141477790
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1643,6 +1847,61 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 788240374060021212, guid: 6a826d1c4122970448258e68255e483f, type: 3}
   m_PrefabInstance: {fileID: 153048861}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &173508208
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 173508209}
+  - component: {fileID: 173508210}
+  m_Layer: 0
+  m_Name: DamagePoint_3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &173508209
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 173508208}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.5, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 430220005}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &173508210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 173508208}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1001 &213602724
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1732,7 +1991,6 @@ GameObject:
   - component: {fileID: 231653845}
   - component: {fileID: 231653848}
   - component: {fileID: 231653847}
-  - component: {fileID: 231653849}
   - component: {fileID: 231653850}
   m_Layer: 0
   m_Name: BodyBlockI
@@ -1753,7 +2011,11 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: -57}
   m_LocalScale: {x: 14, y: 14, z: 8}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1930930849}
+  - {fileID: 48121250}
+  - {fileID: 958737058}
+  - {fileID: 105945968}
   m_Father: {fileID: 447733594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &231653847
@@ -1813,29 +2075,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 231653844}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &231653849
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 231653844}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
-  OwnerShip: {fileID: 8502438397938148729}
-  IsShowHitpointBar: 0
-  HitPoints: 100
-  MaxHitPoints: 100
-  ArmorPoints: 10
-  MaxArmorPoints: 10
-  ShieldPoints: 10
-  MaxShieldPoints: 10
-  BoidManager: {fileID: 0}
-  VehicleFaction: 1
-  DamageMultiplier: 1
 --- !u!114 &231653850
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1930,6 +2169,61 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 788240374060021212, guid: 6a826d1c4122970448258e68255e483f, type: 3}
   m_PrefabInstance: {fileID: 236541215}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &265086384
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 265086385}
+  - component: {fileID: 265086386}
+  m_Layer: 0
+  m_Name: DamagePoint_7
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &265086385
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 265086384}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.5, y: 0, z: -0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 137748515}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &265086386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 265086384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!84 &268222084
 RenderTexture:
   m_ObjectHideFlags: 0
@@ -2035,6 +2329,61 @@ Transform:
   m_Children: []
   m_Father: {fileID: 555973314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &282338226
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 282338227}
+  - component: {fileID: 282338228}
+  m_Layer: 0
+  m_Name: DamagePoint_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &282338227
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 282338226}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 137748515}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &282338228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 282338226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &284883240
 GameObject:
   m_ObjectHideFlags: 0
@@ -2283,6 +2632,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 298698341}
   m_CullTransparentMesh: 1
+--- !u!1 &306347128
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 306347129}
+  - component: {fileID: 306347130}
+  m_Layer: 0
+  m_Name: DamagePoint_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &306347129
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 306347128}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.5, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1398508543}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &306347130
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 306347128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &340638500
 GameObject:
   m_ObjectHideFlags: 0
@@ -2420,6 +2824,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 340638500}
   m_CullTransparentMesh: 1
+--- !u!1 &343258489
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 343258490}
+  - component: {fileID: 343258491}
+  m_Layer: 0
+  m_Name: DamagePoint_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &343258490
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343258489}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.5, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 780965682}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &343258491
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343258489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &358985000
 GameObject:
   m_ObjectHideFlags: 0
@@ -2892,7 +3351,6 @@ GameObject:
   - component: {fileID: 430220005}
   - component: {fileID: 430220008}
   - component: {fileID: 430220007}
-  - component: {fileID: 430220009}
   - component: {fileID: 430220010}
   m_Layer: 0
   m_Name: BodyBlockIII
@@ -2913,7 +3371,11 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: -33}
   m_LocalScale: {x: 22, y: 22, z: 16}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 2032012768}
+  - {fileID: 1695103577}
+  - {fileID: 173508209}
+  - {fileID: 864989235}
   m_Father: {fileID: 447733594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &430220007
@@ -2973,29 +3435,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 430220004}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &430220009
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 430220004}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
-  OwnerShip: {fileID: 8502438397938148729}
-  IsShowHitpointBar: 0
-  HitPoints: 100
-  MaxHitPoints: 100
-  ArmorPoints: 10
-  MaxArmorPoints: 10
-  ShieldPoints: 10
-  MaxShieldPoints: 10
-  BoidManager: {fileID: 0}
-  VehicleFaction: 1
-  DamageMultiplier: 1
 --- !u!114 &430220010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3292,7 +3731,6 @@ GameObject:
   - component: {fileID: 476115620}
   - component: {fileID: 476115623}
   - component: {fileID: 476115622}
-  - component: {fileID: 476115621}
   m_Layer: 0
   m_Name: LightStrip 1
   m_TagString: Untagged
@@ -3315,28 +3753,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1768210023}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
---- !u!64 &476115621
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 476115619}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &476115622
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4334,12 +4750,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 602309859}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0.70710677, z: -0.70710677, w: 0}
-  m_LocalPosition: {x: 0.255, y: -0.51, z: 0}
-  m_LocalScale: {x: 0.2, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0.7071068, w: 0}
+  m_LocalPosition: {x: 5.0999994, y: -10.2, z: 0}
+  m_LocalScale: {x: 4, y: 50, z: 20}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 137748515}
+  m_Father: {fileID: 4585582713564908444}
   m_LocalEulerAnglesHint: {x: -90, y: -90, z: -90}
 --- !u!64 &602309861
 MeshCollider:
@@ -4785,7 +5201,6 @@ GameObject:
   - component: {fileID: 623696183}
   - component: {fileID: 623696186}
   - component: {fileID: 623696185}
-  - component: {fileID: 623696184}
   m_Layer: 0
   m_Name: BodyBlockIV (1)
   m_TagString: Untagged
@@ -4808,27 +5223,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1298172864}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 45}
---- !u!65 &623696184
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 623696182}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &623696185
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5067,6 +5461,61 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed84f16f70dc5eb4fa618ce515d7d7db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameoverEvents
+--- !u!1 &665049203
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 665049204}
+  - component: {fileID: 665049205}
+  m_Layer: 0
+  m_Name: DamagePoint_3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &665049204
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 665049203}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.5, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2002570132}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &665049205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 665049203}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &665570401
 GameObject:
   m_ObjectHideFlags: 0
@@ -5495,7 +5944,6 @@ GameObject:
   - component: {fileID: 704204506}
   - component: {fileID: 704204509}
   - component: {fileID: 704204508}
-  - component: {fileID: 704204507}
   m_Layer: 0
   m_Name: BodyBlockIV
   m_TagString: Untagged
@@ -5518,27 +5966,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1298172864}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -45}
---- !u!65 &704204507
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 704204505}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &704204508
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5648,6 +6075,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
       objectReference: {fileID: 0}
+    - target: {fileID: 9179357114393098506, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: OwnerShip
+      value: 
+      objectReference: {fileID: 8502438397938148729}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5795,11 +6226,11 @@ Transform:
   m_GameObject: {fileID: 745274146}
   serializedVersion: 2
   m_LocalRotation: {x: -0.5, y: -0.5, z: 0.5, w: 0.5}
-  m_LocalPosition: {x: 0.51, y: -0.255, z: 0}
-  m_LocalScale: {x: 0.2, y: 1, z: 1}
+  m_LocalPosition: {x: 10.2, y: -5.0999994, z: 0}
+  m_LocalScale: {x: 4, y: 50, z: 20}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 137748515}
+  m_Father: {fileID: 4585582713564908444}
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 90}
 --- !u!64 &745274148
 MeshCollider:
@@ -5880,6 +6311,61 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 745274146}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &765735939
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 765735940}
+  - component: {fileID: 765735941}
+  m_Layer: 0
+  m_Name: DamagePoint_3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &765735940
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 765735939}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.5, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1398508543}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &765735941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 765735939}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1001 &775561988
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5932,6 +6418,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 180
       objectReference: {fileID: 0}
+    - target: {fileID: 9179357114393098506, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: OwnerShip
+      value: 
+      objectReference: {fileID: 8502438397938148729}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5953,7 +6443,6 @@ GameObject:
   - component: {fileID: 780965682}
   - component: {fileID: 780965685}
   - component: {fileID: 780965684}
-  - component: {fileID: 780965686}
   - component: {fileID: 780965687}
   m_Layer: 0
   m_Name: BodyBlockV
@@ -5974,7 +6463,11 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 33}
   m_LocalScale: {x: 18, y: 18, z: 16}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 2015280836}
+  - {fileID: 343258490}
+  - {fileID: 105343369}
+  - {fileID: 140005057}
   m_Father: {fileID: 447733594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &780965684
@@ -6034,29 +6527,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 780965681}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &780965686
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 780965681}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
-  OwnerShip: {fileID: 8502438397938148729}
-  IsShowHitpointBar: 0
-  HitPoints: 100
-  MaxHitPoints: 100
-  ArmorPoints: 10
-  MaxArmorPoints: 10
-  ShieldPoints: 10
-  MaxShieldPoints: 10
-  BoidManager: {fileID: 0}
-  VehicleFaction: 1
-  DamageMultiplier: 1
 --- !u!114 &780965687
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6073,6 +6543,61 @@ MonoBehaviour:
   _radiusMultiplier: 1
   _radiusOverride: -1
   _updateInterval: 0.1
+--- !u!1 &791195046
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 791195047}
+  - component: {fileID: 791195048}
+  m_Layer: 0
+  m_Name: DamagePoint_4
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &791195047
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 791195046}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1398508543}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &791195048
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 791195046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &791786982
 GameObject:
   m_ObjectHideFlags: 0
@@ -6424,6 +6949,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 1170274531}
     m_Modifications:
     - target: {fileID: -505481951103556575, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
+      propertyPath: OwnerShip
+      value: 
+      objectReference: {fileID: 8502438397938148729}
+    - target: {fileID: -505481951103556575, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
       propertyPath: PlatformWeaponType
       value: 2
       objectReference: {fileID: 0}
@@ -6553,6 +7082,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -90
       objectReference: {fileID: 0}
+    - target: {fileID: 9179357114393098506, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: OwnerShip
+      value: 
+      objectReference: {fileID: 8502438397938148729}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6563,6 +7096,61 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
   m_PrefabInstance: {fileID: 820913608}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &855294286
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 855294287}
+  - component: {fileID: 855294288}
+  m_Layer: 0
+  m_Name: DamagePoint_8
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &855294287
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 855294286}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.5, y: 0, z: 0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 137748515}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &855294288
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 855294286}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &855863935
 GameObject:
   m_ObjectHideFlags: 0
@@ -6741,6 +7329,61 @@ Transform:
   - {fileID: 1041950085}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &864989234
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 864989235}
+  - component: {fileID: 864989236}
+  m_Layer: 0
+  m_Name: DamagePoint_4
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &864989235
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 864989234}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 430220005}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &864989236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 864989234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &883016624
 GameObject:
   m_ObjectHideFlags: 0
@@ -6816,6 +7459,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 883016624}
   m_CullTransparentMesh: 1
+--- !u!1 &917194573
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 917194574}
+  - component: {fileID: 917194575}
+  m_Layer: 0
+  m_Name: DamagePoint_6
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &917194574
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 917194573}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.5, z: -0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 137748515}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &917194575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 917194573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1001 &927650138
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6976,6 +7674,61 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6395277569226294552, guid: 7d05e78d625ecbc4db6ce2753ec63dee, type: 3}
   m_PrefabInstance: {fileID: 931184182}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &936625749
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 936625750}
+  - component: {fileID: 936625751}
+  m_Layer: 0
+  m_Name: DamagePoint_3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &936625750
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 936625749}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.5, y: 0, z: -0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 137748515}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &936625751
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 936625749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &955447987
 GameObject:
   m_ObjectHideFlags: 0
@@ -7113,6 +7866,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 955447987}
   m_CullTransparentMesh: 1
+--- !u!1 &958737057
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 958737058}
+  - component: {fileID: 958737059}
+  m_Layer: 0
+  m_Name: DamagePoint_3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &958737058
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 958737057}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.5, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 231653845}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &958737059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 958737057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &975628655
 GameObject:
   m_ObjectHideFlags: 0
@@ -7124,7 +7932,6 @@ GameObject:
   - component: {fileID: 975628656}
   - component: {fileID: 975628659}
   - component: {fileID: 975628658}
-  - component: {fileID: 975628657}
   m_Layer: 0
   m_Name: BodyBlockIV (2)
   m_TagString: Untagged
@@ -7147,27 +7954,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1298172864}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 45}
---- !u!65 &975628657
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 975628655}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &975628658
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7315,6 +8101,61 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 990282426}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &994975741
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 994975742}
+  - component: {fileID: 994975743}
+  m_Layer: 0
+  m_Name: DamagePoint_5
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &994975742
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 994975741}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 137748515}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &994975743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 994975741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &1015266990
 GameObject:
   m_ObjectHideFlags: 0
@@ -7514,6 +8355,61 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 788240374060021212, guid: 6a826d1c4122970448258e68255e483f, type: 3}
   m_PrefabInstance: {fileID: 1022211026}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1027884362
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1027884363}
+  - component: {fileID: 1027884364}
+  m_Layer: 0
+  m_Name: DamagePoint_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1027884363
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1027884362}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1398508543}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1027884364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1027884362}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1001 &1039653816
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7566,6 +8462,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 180
       objectReference: {fileID: 0}
+    - target: {fileID: 9179357114393098506, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: OwnerShip
+      value: 
+      objectReference: {fileID: 8502438397938148729}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8095,6 +8995,61 @@ MonoBehaviour:
   PlayerHud: {fileID: 1380902649744543872}
   PlayerShip: {fileID: 8502438397938148729}
   FreezeGameOnStart: 1
+--- !u!1 &1149964294
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1149964295}
+  - component: {fileID: 1149964296}
+  m_Layer: 0
+  m_Name: DamagePoint_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1149964295
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1149964294}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2002570132}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1149964296
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1149964294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &1163135546
 GameObject:
   m_ObjectHideFlags: 0
@@ -8471,7 +9426,6 @@ GameObject:
   - component: {fileID: 1201571181}
   - component: {fileID: 1201571184}
   - component: {fileID: 1201571183}
-  - component: {fileID: 1201571182}
   m_Layer: 0
   m_Name: LightStrip 1 (1)
   m_TagString: Untagged
@@ -8494,28 +9448,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1768210023}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!64 &1201571182
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1201571180}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &1201571183
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8667,7 +9599,6 @@ GameObject:
   - component: {fileID: 1214534021}
   - component: {fileID: 1214534024}
   - component: {fileID: 1214534023}
-  - component: {fileID: 1214534022}
   m_Layer: 0
   m_Name: LightStrip 2
   m_TagString: Untagged
@@ -8690,28 +9621,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1768210023}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
---- !u!64 &1214534022
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1214534020}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &1214534023
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10311,7 +11220,6 @@ GameObject:
   - component: {fileID: 1388509780}
   - component: {fileID: 1388509783}
   - component: {fileID: 1388509782}
-  - component: {fileID: 1388509781}
   m_Layer: 0
   m_Name: BodyBlockIII
   m_TagString: Untagged
@@ -10334,27 +11242,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1298172864}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -45}
---- !u!65 &1388509781
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1388509779}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1388509782
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10423,7 +11310,6 @@ GameObject:
   - component: {fileID: 1398508543}
   - component: {fileID: 1398508546}
   - component: {fileID: 1398508545}
-  - component: {fileID: 1398508547}
   - component: {fileID: 1398508548}
   m_Layer: 0
   m_Name: BodyBlockII
@@ -10444,7 +11330,11 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: -47}
   m_LocalScale: {x: 24, y: 24, z: 12}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1027884363}
+  - {fileID: 306347129}
+  - {fileID: 765735940}
+  - {fileID: 791195047}
   m_Father: {fileID: 447733594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &1398508545
@@ -10504,29 +11394,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1398508542}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1398508547
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1398508542}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
-  OwnerShip: {fileID: 8502438397938148729}
-  IsShowHitpointBar: 0
-  HitPoints: 100
-  MaxHitPoints: 100
-  ArmorPoints: 10
-  MaxArmorPoints: 10
-  ShieldPoints: 10
-  MaxShieldPoints: 10
-  BoidManager: {fileID: 0}
-  VehicleFaction: 1
-  DamageMultiplier: 1
 --- !u!114 &1398508548
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10802,6 +11669,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9179357114393098506, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: OwnerShip
+      value: 
+      objectReference: {fileID: 8502438397938148729}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10823,7 +11694,6 @@ GameObject:
   - component: {fileID: 1447897542}
   - component: {fileID: 1447897545}
   - component: {fileID: 1447897544}
-  - component: {fileID: 1447897543}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -10846,27 +11716,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4585582713564908444}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 45}
---- !u!65 &1447897543
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1447897541}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1447897544
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -10953,7 +11802,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2142978073}
   - {fileID: 95165105}
   - {fileID: 389441761}
   - {fileID: 2069308622}
@@ -11228,6 +12076,61 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 788240374060021212, guid: 6a826d1c4122970448258e68255e483f, type: 3}
   m_PrefabInstance: {fileID: 1510088699}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1524998911
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1524998912}
+  - component: {fileID: 1524998913}
+  m_Layer: 0
+  m_Name: DamagePoint_4
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1524998912
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1524998911}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2002570132}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1524998913
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1524998911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &1528211629
 GameObject:
   m_ObjectHideFlags: 0
@@ -11686,6 +12589,61 @@ MonoBehaviour:
   _radiusMultiplier: 1
   _radiusOverride: -1
   _updateInterval: 0.1
+--- !u!1 &1538162381
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1538162382}
+  - component: {fileID: 1538162383}
+  m_Layer: 0
+  m_Name: DamagePoint_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1538162382
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1538162381}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: -0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 137748515}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1538162383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1538162381}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1001 &1541711446
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12088,6 +13046,61 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 1
   m_ApplyActiveColorSpace: 1
+--- !u!1 &1599752555
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1599752556}
+  - component: {fileID: 1599752557}
+  m_Layer: 0
+  m_Name: DamagePoint_4
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1599752556
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1599752555}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.5, y: 0, z: 0.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 137748515}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1599752557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1599752555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &1607719610
 GameObject:
   m_ObjectHideFlags: 0
@@ -12130,6 +13143,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1170274531}
     m_Modifications:
+    - target: {fileID: -505481951103556575, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
+      propertyPath: OwnerShip
+      value: 
+      objectReference: {fileID: 8502438397938148729}
     - target: {fileID: -505481951103556575, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
       propertyPath: PlatformWeaponType
       value: 2
@@ -12903,6 +13920,61 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1692829429}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1695103576
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1695103577}
+  - component: {fileID: 1695103578}
+  m_Layer: 0
+  m_Name: DamagePoint_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1695103577
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1695103576}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.5, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 430220005}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1695103578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1695103576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1001 &1709957356
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13489,7 +14561,7 @@ GameObject:
   - component: {fileID: 1768210023}
   - component: {fileID: 1768210026}
   - component: {fileID: 1768210025}
-  - component: {fileID: 1768210024}
+  - component: {fileID: 1768210027}
   m_Layer: 0
   m_Name: CommandBridge
   m_TagString: Untagged
@@ -13516,27 +14588,6 @@ Transform:
   - {fileID: 1812860445}
   m_Father: {fileID: 4585582713564908444}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 45}
---- !u!65 &1768210024
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1768210022}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1768210025
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -13594,6 +14645,29 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1768210022}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1768210027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1768210022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1001 &1771090711
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13835,11 +14909,11 @@ Transform:
   m_GameObject: {fileID: 1797140774}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: 0.5, z: 0.5, w: 0.5}
-  m_LocalPosition: {x: -0.51, y: 0.255, z: 0}
-  m_LocalScale: {x: 0.2, y: 1, z: 1}
+  m_LocalPosition: {x: -10.2, y: 5.0999994, z: 0}
+  m_LocalScale: {x: 4, y: 50, z: 20}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 137748515}
+  m_Father: {fileID: 4585582713564908444}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 90}
 --- !u!64 &1797140776
 MeshCollider:
@@ -13972,6 +15046,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
       objectReference: {fileID: 0}
+    - target: {fileID: 9179357114393098506, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: OwnerShip
+      value: 
+      objectReference: {fileID: 8502438397938148729}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13993,7 +15071,6 @@ GameObject:
   - component: {fileID: 1812860445}
   - component: {fileID: 1812860448}
   - component: {fileID: 1812860447}
-  - component: {fileID: 1812860446}
   m_Layer: 0
   m_Name: LightStrip 3
   m_TagString: Untagged
@@ -14016,28 +15093,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1768210023}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!64 &1812860446
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1812860444}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &1812860447
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -14501,6 +15556,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1909108685}
   m_CullTransparentMesh: 1
+--- !u!1 &1930930848
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1930930849}
+  - component: {fileID: 1930930850}
+  m_Layer: 0
+  m_Name: DamagePoint_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1930930849
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1930930848}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 231653845}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1930930850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1930930848}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &1966803234
 GameObject:
   m_ObjectHideFlags: 0
@@ -14528,12 +15638,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1966803234}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -0.255, y: 0.51, z: 0}
-  m_LocalScale: {x: 0.2, y: 1, z: 1}
+  m_LocalRotation: {x: 0.7071068, y: -0.000000029802319, z: -0.000000029802319, w: 0.7071068}
+  m_LocalPosition: {x: -5.0999994, y: 10.2, z: 0}
+  m_LocalScale: {x: 4, y: 50, z: 20}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 137748515}
+  m_Father: {fileID: 4585582713564908444}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!64 &1966803236
 MeshCollider:
@@ -15132,7 +16242,6 @@ GameObject:
   - component: {fileID: 2002570132}
   - component: {fileID: 2002570135}
   - component: {fileID: 2002570134}
-  - component: {fileID: 2002570136}
   - component: {fileID: 2002570137}
   m_Layer: 0
   m_Name: BodyBlockVI
@@ -15153,7 +16262,11 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 45}
   m_LocalScale: {x: 12, y: 12, z: 8}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1149964295}
+  - {fileID: 2085780591}
+  - {fileID: 665049204}
+  - {fileID: 1524998912}
   m_Father: {fileID: 447733594}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &2002570134
@@ -15213,29 +16326,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2002570131}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &2002570136
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2002570131}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
-  OwnerShip: {fileID: 8502438397938148729}
-  IsShowHitpointBar: 0
-  HitPoints: 100
-  MaxHitPoints: 100
-  ArmorPoints: 10
-  MaxArmorPoints: 10
-  ShieldPoints: 10
-  MaxShieldPoints: 10
-  BoidManager: {fileID: 0}
-  VehicleFaction: 1
-  DamageMultiplier: 1
 --- !u!114 &2002570137
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15374,6 +16464,61 @@ Material:
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
+--- !u!1 &2015280835
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2015280836}
+  - component: {fileID: 2015280837}
+  m_Layer: 0
+  m_Name: DamagePoint_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2015280836
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2015280835}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 780965682}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2015280837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2015280835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &2016702230
 GameObject:
   m_ObjectHideFlags: 0
@@ -15514,6 +16659,61 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 788240374060021212, guid: 6a826d1c4122970448258e68255e483f, type: 3}
   m_PrefabInstance: {fileID: 2021566127}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2032012767
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2032012768}
+  - component: {fileID: 2032012769}
+  m_Layer: 0
+  m_Name: DamagePoint_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2032012768
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2032012767}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 430220005}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2032012769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2032012767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!21 &2035601580
 Material:
   serializedVersion: 8
@@ -16054,6 +17254,61 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 1
   m_ApplyActiveColorSpace: 1
+--- !u!1 &2085780590
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2085780591}
+  - component: {fileID: 2085780592}
+  m_Layer: 0
+  m_Name: DamagePoint_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2085780591
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2085780590}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.5, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2002570132}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2085780592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2085780590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63d432423fdc3764f93e8259cc06672b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VehicleModule
+  OwnerShip: {fileID: 8502438397938148729}
+  IsShowHitpointBar: 0
+  HitPoints: 100
+  MaxHitPoints: 100
+  ArmorPoints: 10
+  MaxArmorPoints: 10
+  ShieldPoints: 10
+  MaxShieldPoints: 10
+  BoidManager: {fileID: 0}
+  VehicleFaction: 1
+  DamageMultiplier: 1
 --- !u!1 &2102709341
 GameObject:
   m_ObjectHideFlags: 0
@@ -16222,118 +17477,6 @@ Transform:
   - {fileID: 856643380}
   m_Father: {fileID: 603892221}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2142978072
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2142978073}
-  - component: {fileID: 2142978076}
-  - component: {fileID: 2142978075}
-  - component: {fileID: 2142978074}
-  m_Layer: 0
-  m_Name: BodyBlockI
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &2142978073
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2142978072}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -43}
-  m_LocalScale: {x: 10, y: 10, z: 8}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1464978195}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &2142978074
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2142978072}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!23 &2142978075
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2142978072}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &2142978076
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2142978072}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!21 &2146643270
 Material:
   serializedVersion: 8
@@ -16859,6 +18002,10 @@ Transform:
   - {fileID: 447733594}
   - {fileID: 1298172864}
   - {fileID: 1464978195}
+  - {fileID: 1966803235}
+  - {fileID: 1797140775}
+  - {fileID: 745274147}
+  - {fileID: 602309860}
   - {fileID: 1447897542}
   - {fileID: 1768210023}
   m_Father: {fileID: 1607719611}
@@ -17086,6 +18233,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1170274531}
     m_Modifications:
+    - target: {fileID: -505481951103556575, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
+      propertyPath: OwnerShip
+      value: 
+      objectReference: {fileID: 8502438397938148729}
     - target: {fileID: -505481951103556575, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
       propertyPath: PlatformWeaponType
       value: 2

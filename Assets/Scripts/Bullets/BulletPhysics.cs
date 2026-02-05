@@ -169,14 +169,39 @@ public class BulletPhysics : MonoBehaviour
 
     private void DestroyBulletWithDamage(Vector3 impactPoint, List<VehicleBase> targets)
     {
+        // Group VehicleModules and WeaponPlatforms by their parent vehicle to prevent multiple damage from same parent
+        HashSet<VehicleBase> damagedParents = new HashSet<VehicleBase>();
+
         for (int i = 0; i < targets.Count; i++)
         {
             VehicleBase target = targets[i];
             if (target == null) continue;
 
-            VehicleBase ownerShip = target.OwnerShip != null 
-                ? target.OwnerShip.GetComponent<VehicleBase>() 
-                : target;
+            // Determine the actual vehicle to damage
+            VehicleBase vehicleToDamage = null;
+
+            if (target is VehicleModule vehicleModule)
+            {
+                // For VehicleModule, get its parent vehicle
+                vehicleToDamage = vehicleModule.OwnerShip?.GetComponent<VehicleBase>();
+            }
+            else if (target is WeaponPlatform weaponPlatform)
+            {
+                // For WeaponPlatform, get its parent vehicle
+                vehicleToDamage = weaponPlatform.OwnerShip?.GetComponent<VehicleBase>();
+            }
+            else
+            {
+                // For other vehicles, damage directly
+                vehicleToDamage = target;
+            }
+
+            // Only damage if we haven't already damaged this parent
+            if (vehicleToDamage != null && !damagedParents.Contains(vehicleToDamage))
+            {
+                vehicleToDamage.TakeDamage(Damage, DamageType);
+                damagedParents.Add(vehicleToDamage);
+            }
 
             // if (ownerShip != null && ownerShip.ShieldPoints > 0)
             // {
@@ -196,8 +221,6 @@ public class BulletPhysics : MonoBehaviour
             //             shieldEffect.GetHit(_hit);
             //     }
             // }
-
-            target.TakeDamage(Damage, DamageType);
         }
 
         if (ExplodeOnImpact && _explodeFXPrefab != null)
