@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5729205090524001833}
   - component: {fileID: 1398373797933201805}
   m_Layer: 0
-  m_Name: ExplosionVFX Spark
+  m_Name: ExplosionVFX Full
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,7 +45,7 @@ VisualEffect:
   m_InitialEventName: OnPlay
   m_InitialEventNameOverriden: 0
   m_StartSeed: 0
-  m_ResetSeedOnPlay: 1
+  m_ResetSeedOnPlay: 0
   m_AllowInstancing: 1
   m_ResourceVersion: 1
   m_PropertySheet:
@@ -57,16 +57,25 @@ VisualEffect:
       - m_Value: 10
         m_Name: FireEmitRadius
         m_Overridden: 1
-      - m_Value: 12
+      - m_Value: 15
         m_Name: SparkEmitRadius
+        m_Overridden: 1
+      - m_Value: 10
+        m_Name: FlyingParticleRadius
         m_Overridden: 1
     m_Vector2f:
       m_Array:
-      - m_Value: {x: 0.2, y: 0.5}
-        m_Name: SparkSize
-        m_Overridden: 1
       - m_Value: {x: 10, y: 20}
         m_Name: SparkBurstSpeed
+        m_Overridden: 1
+      - m_Value: {x: 1, y: 2}
+        m_Name: SparkSize
+        m_Overridden: 1
+      - m_Value: {x: 1, y: 3}
+        m_Name: BlastSparkLifetime
+        m_Overridden: 1
+      - m_Value: {x: -20, y: 20}
+        m_Name: FireBallSpeed
         m_Overridden: 1
     m_Vector3f:
       m_Array: []
@@ -76,12 +85,21 @@ VisualEffect:
       m_Array: []
     m_Int:
       m_Array:
-      - m_Value: 100
+      - m_Value: 15
         m_Name: SpartAmount
+        m_Overridden: 1
+      - m_Value: 30
+        m_Name: BlastSparkAmount
+        m_Overridden: 1
+      - m_Value: 30
+        m_Name: BlastSparkSpeed
+        m_Overridden: 1
+      - m_Value: 50
+        m_Name: FlyingParticlesAmount
         m_Overridden: 1
       - m_Value: 10
         m_Name: FireBallSizeMultiplier
-        m_Overridden: 0
+        m_Overridden: 1
     m_Matrix4x4f:
       m_Array: []
     m_AnimationCurve:
@@ -97,6 +115,21 @@ VisualEffect:
         m_Overridden: 1
       - m_Value: 1
         m_Name: EnableFireBurst
+        m_Overridden: 1
+      - m_Value: 0
+        m_Name: EnableFireBalls
+        m_Overridden: 0
+      - m_Value: 1
+        m_Name: EnableBlastSpark
+        m_Overridden: 1
+      - m_Value: 1
+        m_Name: EnableMainExplosion
+        m_Overridden: 1
+      - m_Value: 1
+        m_Name: EnableSparks
+        m_Overridden: 1
+      - m_Value: 1
+        m_Name: EnableFlyingParticles
         m_Overridden: 1
 --- !u!73398921 &1398373797933201805
 VFXRenderer:

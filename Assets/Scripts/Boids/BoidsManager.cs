@@ -350,10 +350,14 @@ public class BoidsManager : MonoBehaviour
 
         EnsureComputeResources(numBoids);
 
-        for (int i = 0; i < numBoids; i++)
+        int boidCountSnapshot = boids.Count;
+        int copyCount = Mathf.Min(numBoids, boidCountSnapshot);
+        for (int i = 0; i < copyCount; i++)
         {
-            _boidData[i].position = boids[i].position;
-            _boidData[i].direction = boids[i].forward;
+            Boid boid = boids[i];
+            if (boid == null) continue;
+            _boidData[i].position = boid.position;
+            _boidData[i].direction = boid.forward;
         }
 
         _boidBuffer.SetData(_boidData, 0, 0, numBoids);
