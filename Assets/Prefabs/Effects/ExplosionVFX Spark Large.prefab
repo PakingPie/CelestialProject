@@ -51,22 +51,25 @@ VisualEffect:
   m_PropertySheet:
     m_Float:
       m_Array:
-      - m_Value: 100
+      - m_Value: 120
         m_Name: ExplosionRadius
         m_Overridden: 1
       - m_Value: 10
         m_Name: FireEmitRadius
         m_Overridden: 1
-      - m_Value: 35
+      - m_Value: 60
         m_Name: SparkEmitRadius
         m_Overridden: 1
     m_Vector2f:
       m_Array:
-      - m_Value: {x: 20, y: 30}
+      - m_Value: {x: 10, y: 30}
         m_Name: SparkBurstSpeed
         m_Overridden: 1
       - m_Value: {x: 0.5, y: 1}
         m_Name: SparkSize
+        m_Overridden: 1
+      - m_Value: {x: -80, y: 80}
+        m_Name: FireBallSpeed
         m_Overridden: 1
     m_Vector3f:
       m_Array: []
@@ -75,7 +78,13 @@ VisualEffect:
     m_Uint:
       m_Array: []
     m_Int:
-      m_Array: []
+      m_Array:
+      - m_Value: 60
+        m_Name: SpartAmount
+        m_Overridden: 1
+      - m_Value: 20
+        m_Name: FireBallSizeMultiplier
+        m_Overridden: 1
     m_Matrix4x4f:
       m_Array: []
     m_AnimationCurve:
@@ -88,6 +97,12 @@ VisualEffect:
       m_Array:
       - m_Value: 1
         m_Name: EnableFireSparks
+        m_Overridden: 1
+      - m_Value: 0
+        m_Name: EnableFireBalls
+        m_Overridden: 1
+      - m_Value: 1
+        m_Name: EnableFireBurst
         m_Overridden: 1
 --- !u!73398921 &1398373797933201805
 VFXRenderer:

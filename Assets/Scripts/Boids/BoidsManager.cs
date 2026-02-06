@@ -57,6 +57,7 @@ public class BoidsManager : MonoBehaviour
     private ComputeBuffer _boidBuffer;
     private int _cachedBoidCount = 0;
     private bool _readbackPending = false;
+    private int _readbackBoidCount = 0; // Size of the buffer being read back
     private int _weaponUpdateCounter = 0;
     private int _cleanupCounter = 0;
     private int _combatSyncCounter = 0;
@@ -369,11 +370,20 @@ public class BoidsManager : MonoBehaviour
             if (!_readbackPending)
             {
                 _readbackPending = true;
+                _readbackBoidCount = numBoids; // Store size of buffer being read
                 AsyncGPUReadback.Request(_boidBuffer, request =>
                 {
                     _readbackPending = false;
                     if (request.hasError) return;
-                    request.GetData<BoidData>().CopyTo(_boidData);
+                    
+                    var gpuData = request.GetData<BoidData>();
+                    
+                    // Only copy up to the minimum of GPU buffer size and current _boidData size
+                    int copyCount = Mathf.Min(_readbackBoidCount, _boidData.Length);
+                    if (copyCount > 0)
+                    {
+                        System.Array.Copy(gpuData.ToArray(), 0, _boidData, 0, copyCount);
+                    }
                 });
             }
         }
