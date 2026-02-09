@@ -32,14 +32,17 @@ Shader "Custom/Atmosphere"
 
     SubShader
     {
+        Tags { "RenderPipeline"="UniversalPipeline" 
+            "Queue"="Transparent" 
+            "RenderType"="Transparent"
+        }
+
         Pass
         {
-            Tags { "RenderPipeline"="UniversalPipeline" 
-                "Queue"="Transparent" 
-                "RenderType"="Transparent"
-            }
-            Cull Off
-            ZTest LEqual
+            Name "AtmospherePass"
+
+            Cull Front
+            ZTest Always
             ZWrite Off
             Blend SrcAlpha One
 
@@ -84,7 +87,6 @@ Shader "Custom/Atmosphere"
             {
                 float4 positionOS : POSITION;
                 float2 uv : TEXCOORD0;
-                float3 normalOS : NORMAL;
             };
 
             struct Varyings
@@ -92,13 +94,6 @@ Shader "Custom/Atmosphere"
                 float4 positionHCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
                 float3 positionWS : TEXCOORD1;
-                float3 normalWS : TEXCOORD2;
-            };
-
-            struct FragmentOutput
-            {
-                float4 color : SV_Target;
-                float depth : SV_Depth;
             };
 
             Varyings vert(Attributes IN)
@@ -107,7 +102,6 @@ Shader "Custom/Atmosphere"
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
                 OUT.uv = IN.uv;
                 OUT.positionWS = TransformObjectToWorld(IN.positionOS.xyz);
-                OUT.normalWS = TransformObjectToWorldNormal(IN.normalOS);
                 return OUT;
             }
 
@@ -117,14 +111,18 @@ Shader "Custom/Atmosphere"
             
             float GetSceneDistance(float2 screenUV, float3 cameraPos, float3 viewDir)
             {
-                // Sample the depth buffer
                 float rawDepth = SampleSceneDepth(screenUV);
                 
-                // Convert to linear eye depth
-                float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
+                // Detect sky / far plane — return huge value so it never clamps the ray
+                #if UNITY_REVERSED_Z
+                    if (rawDepth < 0.0001)
+                        return 1e20;
+                #else
+                    if (rawDepth > 0.9999)
+                        return 1e20;
+                #endif
                 
-                // Convert eye depth to world distance along the ray
-                // Eye depth is the Z component in view space, we need distance along ray
+                float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
                 float3 viewDirVS = TransformWorldToViewDir(viewDir);
                 float rayDistance = linearDepth / -viewDirVS.z;
                 
@@ -132,7 +130,7 @@ Shader "Custom/Atmosphere"
             }
 
             // ============================================
-            // ATMOSPHERE FUNCTIONS (Original)
+            // ATMOSPHERE FUNCTIONS
             // ============================================
 
             float3 GetRayleighCoefficients()
@@ -176,7 +174,7 @@ Shader "Custom/Atmosphere"
                 float discriminant = b * b - c;
                 
                 if (discriminant < 0.0)
-                return float2(1e6, -1e6);
+                    return float2(1e20, -1e20);
                 
                 float sqrtDisc = sqrt(discriminant);
                 return float2(-b - sqrtDisc, -b + sqrtDisc);
@@ -237,12 +235,8 @@ Shader "Custom/Atmosphere"
                 
                 for (uint i = 0; i < _PrimarySteps; i++)
                 {
-                    // Height is measured from the BASE planet radius, not effective radius
                     float height = length(samplePos - planetCenter) - _PlanetRadius;
-                    
-                    // Clamp height to be non-negative (we're in atmosphere, not underground)
                     height = max(0.0, height);
-                    
                     
                     float densityRayleigh = DensityAtHeight(height, _RayleighScaleHeight);
                     float densityMie = DensityAtHeight(height, _MieScaleHeight);
@@ -262,8 +256,8 @@ Shader "Custom/Atmosphere"
                         float3 totalOpticalDepth = opticalDepthPA + opticalDepthAB;
                         
                         float3 extinction = betaRayleigh * totalOpticalDepth.x + 
-                        betaMie * totalOpticalDepth.y + 
-                        betaOzone * totalOpticalDepth.z;
+                            betaMie * totalOpticalDepth.y + 
+                            betaOzone * totalOpticalDepth.z;
                         
                         float3 transmittance = exp(-extinction);
                         
@@ -278,7 +272,7 @@ Shader "Custom/Atmosphere"
                 totalMie *= stepSize;
                 
                 float3 scattering = totalRayleigh * betaRayleigh * phaseRayleigh + 
-                totalMie * betaMie * phaseMie;
+                    totalMie * betaMie * phaseMie;
                 
                 return scattering;
             }
@@ -287,18 +281,7 @@ Shader "Custom/Atmosphere"
             // FRAGMENT SHADER
             // ============================================
 
-            float WorldToDepth(float3 worldPos)
-            {
-                float4 clipPos = TransformWorldToHClip(worldPos);
-                #if UNITY_REVERSED_Z
-                    return clipPos.z / clipPos.w;
-                #else
-                    return (clipPos.z / clipPos.w) * 0.5 + 0.5;
-                #endif
-            }
-
-
-            FragmentOutput frag(Varyings IN)
+            float4 frag(Varyings IN) : SV_Target
             {
                 float3 planetCenter = unity_ObjectToWorld._m03_m13_m23;
                 float3 cameraPos = _WorldSpaceCameraPos.xyz;
@@ -310,41 +293,41 @@ Shader "Custom/Atmosphere"
                     float3 sunDir = GetMainLight().direction;
                 #endif
 
-                // Get screen UV for depth sampling
                 float2 screenUV = IN.positionHCS.xy / _ScaledScreenParams.xy;
-                
-                // Get distance to scene geometry (the actual terrain surface!)
                 float sceneDistance = GetSceneDistance(screenUV, cameraPos, viewDir);
 
-                // Atmosphere outer boundary (includes max terrain height for safety)
+                // Analytical atmosphere outer boundary
                 float atmosphereOuterRadius = _PlanetRadius + _AtmosphereHeight;
                 float2 atmosphereIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, atmosphereOuterRadius);
                 
+                // No atmosphere intersection at all
                 if (atmosphereIntersect.x > atmosphereIntersect.y)
-                discard;
+                    discard;
                 
-                // Start of atmosphere ray
+                // Analytical planet surface intersection (inner solid sphere)
+                float2 planetIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius);
+                
+                // Determine ray segment through atmosphere
                 float tMin = max(0.0, atmosphereIntersect.x);
-                
-                // End of atmosphere ray - use the CLOSER of:
-                // 1. The atmosphere outer boundary (when looking at sky)
-                // 2. The actual terrain surface (from depth buffer)
                 float tMax = atmosphereIntersect.y;
                 
-                // Check if we hit actual geometry (terrain)
-                if (sceneDistance > 0 && sceneDistance < tMax)
+                // Clamp at planet surface when the hit is ahead of the camera
+                if (planetIntersect.x > 0.0 && planetIntersect.x < tMax)
+                {
+                    tMax = planetIntersect.x;
+                }
+                
+                // Clamp at scene depth buffer (rendered geometry such as terrain)
+                if (sceneDistance > 0.0 && sceneDistance < tMax)
                 {
                     tMax = sceneDistance;
                 }
                 
+                // Atmosphere fully behind geometry, or degenerate segment
                 if (tMin >= tMax)
-                discard;
+                    discard;
 
-                // Calculate the world position where ray ends
-                float3 endPos = cameraPos + viewDir * tMax;
-                
                 // Calculate atmosphere scattering
-                // IMPORTANT: Use base _PlanetRadius for height calculations, not effective radius
                 float3 scatter = CalculateScattering(cameraPos, viewDir, tMin, tMax, sunDir, planetCenter);
                 
                 #if defined(_SUN_MODE_USE_SUN_POSITION)
@@ -364,14 +347,12 @@ Shader "Custom/Atmosphere"
                 float distance = tMax - tMin;
                 float alpha = saturate(1.0 - exp(-distance / (_AtmosphereHeight * 0.3)));
 
-                FragmentOutput output = (FragmentOutput)0;
-                output.color = float4(scatter, alpha);
-                output.depth = WorldToDepth(endPos);
-                return output;
+                return float4(scatter, alpha);
             }
             ENDHLSL
         }
 
-        // ... keep your DepthOnly and DepthNormals passes unchanged
+        // DepthOnly and DepthNormals passes removed —
+        // the atmosphere must NOT write to the depth buffer.
     }
 }
