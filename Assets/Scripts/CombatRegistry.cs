@@ -1,9 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Unity.Profiling;
 using static GlobalHelper;
 
 public static class CombatRegistry
 {
+    private static readonly ProfilerMarker UpdateSpatialGridMarker = new ProfilerMarker("CombatRegistry.UpdateSpatialGrid");
+    private static readonly ProfilerMarker GetNearbyEnemiesMarker = new ProfilerMarker("CombatRegistry.GetNearbyEnemies");
     // Faction lists
     private static List<VehicleBase> _playerVehicles = new List<VehicleBase>(16);
     private static List<VehicleBase> _allyVehicles = new List<VehicleBase>(128);
@@ -18,6 +21,8 @@ public static class CombatRegistry
     // Spatial partitioning
     private static Dictionary<Vector2Int, List<VehicleBase>> _spatialGrid = new Dictionary<Vector2Int, List<VehicleBase>>(256);
     private static float _cellSize = 50f;
+    private static Dictionary<VehicleBase, Vector2Int> _vehicleCells = new Dictionary<VehicleBase, Vector2Int>(1024);
+    private static Stack<List<VehicleBase>> _cellListPool = new Stack<List<VehicleBase>>(128);
 
     // Reusable list for queries
     private static List<VehicleBase> _tempResults = new List<VehicleBase>(64);
@@ -34,7 +39,7 @@ public static class CombatRegistry
         _allyVehicles.Clear();
         _foeVehicles.Clear();
         _neutralVehicles.Clear();
-        _spatialGrid.Clear();
+        ClearSpatialGrid();
 
         _allMissiles.Clear();
         _playerMissiles.Clear();
@@ -72,6 +77,8 @@ public static class CombatRegistry
             _foeVehicles.Remove(vehicle);
         if ((faction & Faction.Neutral) != 0)
             _neutralVehicles.Remove(vehicle);
+
+        RemoveVehicleFromGrid(vehicle);
     }
 
     private static List<VehicleBase> GetListForFaction(Faction faction)
@@ -97,15 +104,16 @@ public static class CombatRegistry
 
     public static void UpdateSpatialGrid()
     {
-        _spatialGrid.Clear();
-
-        AddToGrid(_playerVehicles);
-        AddToGrid(_allyVehicles);
-        AddToGrid(_foeVehicles);
-        AddToGrid(_neutralVehicles);
+        using (UpdateSpatialGridMarker.Auto())
+        {
+            UpdateVehiclesInGrid(_playerVehicles);
+            UpdateVehiclesInGrid(_allyVehicles);
+            UpdateVehiclesInGrid(_foeVehicles);
+            UpdateVehiclesInGrid(_neutralVehicles);
+        }
     }
 
-    private static void AddToGrid(List<VehicleBase> vehicles)
+    private static void UpdateVehiclesInGrid(List<VehicleBase> vehicles)
     {
         if (vehicles == null) return;
 
@@ -115,18 +123,86 @@ public static class CombatRegistry
 
             if (vehicle == null)
             {
+                RemoveVehicleFromGrid(vehicle);
                 vehicles.RemoveAt(i);
                 continue;
             }
 
-            Vector2Int cell = GetCell(vehicle.transform.position);
-            if (!_spatialGrid.TryGetValue(cell, out var list))
-            {
-                list = new List<VehicleBase>(16);
-                _spatialGrid[cell] = list;
-            }
-            list.Add(vehicle);
+            UpdateVehicleCell(vehicle);
         }
+    }
+
+    private static void UpdateVehicleCell(VehicleBase vehicle)
+    {
+        Vector2Int newCell = GetCell(vehicle.transform.position);
+
+        if (_vehicleCells.TryGetValue(vehicle, out var oldCell))
+        {
+            if (oldCell == newCell) return;
+
+            if (_spatialGrid.TryGetValue(oldCell, out var oldList))
+            {
+                oldList.Remove(vehicle);
+                if (oldList.Count == 0)
+                    ReturnCellList(oldCell, oldList);
+            }
+
+            _vehicleCells[vehicle] = newCell;
+            GetOrCreateCellList(newCell).Add(vehicle);
+            return;
+        }
+
+        _vehicleCells[vehicle] = newCell;
+        GetOrCreateCellList(newCell).Add(vehicle);
+    }
+
+    private static List<VehicleBase> GetOrCreateCellList(Vector2Int cell)
+    {
+        if (!_spatialGrid.TryGetValue(cell, out var list))
+        {
+            list = _cellListPool.Count > 0 ? _cellListPool.Pop() : new List<VehicleBase>(16);
+            list.Clear();
+            _spatialGrid[cell] = list;
+        }
+
+        return list;
+    }
+
+    private static void ReturnCellList(Vector2Int cell, List<VehicleBase> list)
+    {
+        list.Clear();
+        _spatialGrid.Remove(cell);
+        _cellListPool.Push(list);
+    }
+
+    private static void RemoveVehicleFromGrid(VehicleBase vehicle)
+    {
+        if (ReferenceEquals(vehicle, null)) return;
+
+        if (_vehicleCells.TryGetValue(vehicle, out var oldCell))
+        {
+            if (_spatialGrid.TryGetValue(oldCell, out var list))
+            {
+                list.Remove(vehicle);
+                if (list.Count == 0)
+                    ReturnCellList(oldCell, list);
+            }
+
+            _vehicleCells.Remove(vehicle);
+        }
+    }
+
+    private static void ClearSpatialGrid()
+    {
+        foreach (var kvp in _spatialGrid)
+        {
+            kvp.Value.Clear();
+            _cellListPool.Push(kvp.Value);
+        }
+
+        _spatialGrid.Clear();
+        _vehicleCells.Clear();
+        _cellListPool.Clear();
     }
 
     private static Vector2Int GetCell(Vector3 position)
@@ -143,29 +219,32 @@ public static class CombatRegistry
 
     public static void GetNearbyEnemies(Vector3 position, float range, Faction targetFactions, List<VehicleBase> results, bool isTargetingMissile = false)
     {
-        results.Clear();
-
-        // Prefer spatial grid if it's initialized; fallback to list scan if grid is empty
-        if (_spatialGrid.Count > 0)
+        using (GetNearbyEnemiesMarker.Auto())
         {
-            FindEnemiesInRangeGrid(position, range, targetFactions, results, isTargetingMissile);
-            return;
+            results.Clear();
+
+            // Prefer spatial grid if it's initialized; fallback to list scan if grid is empty
+            if (_spatialGrid.Count > 0)
+            {
+                FindEnemiesInRangeGrid(position, range, targetFactions, results, isTargetingMissile);
+                return;
+            }
+
+            float rangeSqr = range * range;
+
+            // Check each target faction
+            if ((targetFactions & Faction.Foe) != 0)
+                AddNearbyFromList(_foeVehicles, position, rangeSqr, results, isTargetingMissile);
+
+            if ((targetFactions & Faction.Player) != 0)
+                AddNearbyFromList(_playerVehicles, position, rangeSqr, results, isTargetingMissile);
+
+            if ((targetFactions & Faction.Ally) != 0)
+                AddNearbyFromList(_allyVehicles, position, rangeSqr, results, isTargetingMissile);
+
+            if ((targetFactions & Faction.Neutral) != 0)
+                AddNearbyFromList(_neutralVehicles, position, rangeSqr, results, isTargetingMissile);
         }
-
-        float rangeSqr = range * range;
-
-        // Check each target faction
-        if ((targetFactions & Faction.Foe) != 0)
-            AddNearbyFromList(_foeVehicles, position, rangeSqr, results, isTargetingMissile);
-
-        if ((targetFactions & Faction.Player) != 0)
-            AddNearbyFromList(_playerVehicles, position, rangeSqr, results, isTargetingMissile);
-
-        if ((targetFactions & Faction.Ally) != 0)
-            AddNearbyFromList(_allyVehicles, position, rangeSqr, results, isTargetingMissile);
-
-        if ((targetFactions & Faction.Neutral) != 0)
-            AddNearbyFromList(_neutralVehicles, position, rangeSqr, results, isTargetingMissile);
     }
 
     private static void FindEnemiesInRangeGrid(Vector3 position, float range, Faction targetFactions, List<VehicleBase> results, bool isTargetingMissile)

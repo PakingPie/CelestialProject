@@ -3945,6 +3945,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Large Missile Platform Type 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7587510308653815884, guid: 767ff37151e616d4381c9f4602ba3380, type: 3}
+      propertyPath: OwnerShip
+      value: 
+      objectReference: {fileID: 8502438397938148729}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5005,6 +5009,13 @@ MonoBehaviour:
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 1af727335389b4d4fa581e766857809d, type: 2}
+  _targetUpdateInterval: 3
+  _targetUpdateJitter: 1
+  _maxTargetUpdateInterval: 12
+  _noTargetBackoffStep: 1
+  _targetReuseFrames: 2
+  _noTargetSearchRange: 400
+  _fullRangeCheckInterval: 10
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
@@ -7246,7 +7257,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &856643380
 Transform:
   m_ObjectHideFlags: 0
@@ -7269,7 +7280,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 856643379}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 300c8a9d9806cce4ea6a210416e51027, type: 3}
   m_Name: 
@@ -7289,7 +7300,7 @@ MonoBehaviour:
   autoStart: 1
   boidsPerWave: 5
   timeBetweenWaves: 3
-  maintainPopulation: 1
+  maintainPopulation: 0
   respawnDelay: 10
   maxTotalSpawns: 5
   attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
@@ -10789,7 +10800,7 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   - {fileID: 3109858766895225120, guid: d603c2ec335e1964387eb3ca57d0e5f3, type: 3}
-  spawnCount: 10
+  spawnCount: 30
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -1000, y: 1000}
   spawnMode: 0
@@ -14744,6 +14755,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Large Missile Platform Type 1_1
       objectReference: {fileID: 0}
+    - target: {fileID: 7587510308653815884, guid: 767ff37151e616d4381c9f4602ba3380, type: 3}
+      propertyPath: OwnerShip
+      value: 
+      objectReference: {fileID: 8502438397938148729}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17481,7 +17496,7 @@ Transform:
   m_GameObject: {fileID: 2117162494}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -4000}
+  m_LocalPosition: {x: 0, y: 0, z: -5000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

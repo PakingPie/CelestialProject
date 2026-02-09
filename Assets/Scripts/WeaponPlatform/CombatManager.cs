@@ -1,9 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Unity.Profiling;
 
 public class CombatManager : MonoBehaviour
 {
     public static CombatManager Instance { get; private set; }
+
+    private static readonly ProfilerMarker LateUpdateMarker = new ProfilerMarker("CombatManager.LateUpdate");
+    private static readonly ProfilerMarker UpdateTurretsMarker = new ProfilerMarker("CombatManager.UpdateTurrets");
     
     [Header("Spatial Partitioning")]
     [Tooltip("Size of each grid cell. Should be roughly equal to your typical weapon range.")]
@@ -50,34 +54,40 @@ public class CombatManager : MonoBehaviour
     
     void LateUpdate()
     {
-        // Update spatial grid once per frame
-        CombatRegistry.UpdateSpatialGrid();
-        
-        // Update turrets in round-robin
-        UpdateTurrets();
+        using (LateUpdateMarker.Auto())
+        {
+            // Update spatial grid once per frame
+            CombatRegistry.UpdateSpatialGrid();
+
+            // Update turrets in round-robin
+            UpdateTurrets();
+        }
     }
     
     private void UpdateTurrets()
     {
-        if (_allTurrets.Count == 0) return;
-        
-        int updatesThisFrame = Mathf.Min(_maxTurretUpdatesPerFrame, _allTurrets.Count);
-        
-        for (int i = 0; i < updatesThisFrame; i++)
+        using (UpdateTurretsMarker.Auto())
         {
-            if (_allTurrets.Count == 0) break;
-            
-            _turretIndex = _turretIndex % _allTurrets.Count;
-            WeaponBase turret = _allTurrets[_turretIndex];
-            
-            if (turret == null)
+            if (_allTurrets.Count == 0) return;
+
+            int updatesThisFrame = Mathf.Min(_maxTurretUpdatesPerFrame, _allTurrets.Count);
+
+            for (int i = 0; i < updatesThisFrame; i++)
             {
-                _allTurrets.RemoveAt(_turretIndex);
-                continue;
+                if (_allTurrets.Count == 0) break;
+
+                _turretIndex = _turretIndex % _allTurrets.Count;
+                WeaponBase turret = _allTurrets[_turretIndex];
+
+                if (turret == null)
+                {
+                    _allTurrets.RemoveAt(_turretIndex);
+                    continue;
+                }
+
+                turret.ManagedUpdateTarget();
+                _turretIndex++;
             }
-            
-            turret.ManagedUpdateTarget();
-            _turretIndex++;
         }
     }
     
