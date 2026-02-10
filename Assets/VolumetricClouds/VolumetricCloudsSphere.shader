@@ -1,4 +1,4 @@
-Shader "Custom/VolumetricCloudSphere"
+Shader "Custom/VolumetricCloudsSphere"
 {
     Properties
     {
