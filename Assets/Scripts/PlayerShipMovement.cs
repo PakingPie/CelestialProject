@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -89,6 +90,9 @@ public class PlayerShipMovement : MonoBehaviour
     [Range(0f, 1f)]
     public float velocityCoupling = 0.8f;
 
+    [Header("Engine Visuals")]
+    [Tooltip("List of engine objects that has a Visual Effect component attached for thrust visuals")]
+    public List<GameObject> EngineObjects;
 
     [Header("Debug")]
     [SerializeField] private Vector3 currentVelocity = Vector3.zero;
@@ -332,6 +336,24 @@ public class PlayerShipMovement : MonoBehaviour
 
         // Apply acceleration to velocity (F = ma, assuming m = 1)
         velocity += thrustAcceleration * deltaTime;
+        if(velocity.sqrMagnitude > 0.01f)
+        {
+            velocity = Vector3.ClampMagnitude(velocity, maxSpeedLimit * 2f); // Absolute max speed cap
+        }
+
+        // Update engine visuals based on throttle, the VFX has EngineParticleLifeTime(float) and EngineParticleSize(Vector2)
+        if (EngineObjects != null)
+        {
+            foreach (var engine in EngineObjects)
+            {
+                var vfx = engine.GetComponent<UnityEngine.VFX.VisualEffect>();
+                if (vfx != null)
+                {
+                    vfx.SetFloat("EngineParticleLifeTime", Mathf.Lerp(0.1f, 1f, smoothedThrottleInput));
+                    // vfx.SetVector2("EngineParticleSize", new Vector2(Mathf.Lerp(0.1f, 1f, smoothedThrottleInput), Mathf.Lerp(0.1f, 1f, smoothedThrottleInput)));
+                }
+            }
+        }
     }
 
     private void ApplyRotationalPhysics(float deltaTime)

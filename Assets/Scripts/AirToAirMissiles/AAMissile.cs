@@ -201,6 +201,7 @@ public class AAMissile : MonoBehaviour
             else
             {
                 target = null;
+                DestroyMissile(false);
             }
         }
     }
