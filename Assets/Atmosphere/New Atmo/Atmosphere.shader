@@ -32,10 +32,7 @@ Shader "Custom/Atmosphere"
 
     SubShader
     {
-        Tags { "RenderPipeline"="UniversalPipeline" 
-            "Queue"="Transparent" 
-            "RenderType"="Transparent"
-        }
+        Tags { "RenderPipeline"="UniversalPipeline" "Queue"="Transparent" "RenderType"="Transparent" }
 
         Pass
         {
@@ -113,18 +110,15 @@ Shader "Custom/Atmosphere"
             {
                 float rawDepth = SampleSceneDepth(screenUV);
                 
-                // Detect sky / far plane — return huge value so it never clamps the ray
-                #if UNITY_REVERSED_Z
-                    if (rawDepth < 0.0001)
-                        return 1e20;
-                #else
-                    if (rawDepth > 0.9999)
-                        return 1e20;
-                #endif
+                // Sky detection using Linear01Depth — distance-independent
+                // (far plane → 1.0, near plane → 0.0)
+                float linear01 = Linear01Depth(rawDepth, _ZBufferParams);
+                if (linear01 > 0.999)
+                return 1e20;
                 
                 float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
                 float3 viewDirVS = TransformWorldToViewDir(viewDir);
-                float rayDistance = linearDepth / -viewDirVS.z;
+                float rayDistance = linearDepth / max(-viewDirVS.z, 0.00001);
                 
                 return rayDistance;
             }
@@ -174,7 +168,7 @@ Shader "Custom/Atmosphere"
                 float discriminant = b * b - c;
                 
                 if (discriminant < 0.0)
-                    return float2(1e20, -1e20);
+                return float2(1e20, -1e20);
                 
                 float sqrtDisc = sqrt(discriminant);
                 return float2(-b - sqrtDisc, -b + sqrtDisc);
@@ -256,8 +250,8 @@ Shader "Custom/Atmosphere"
                         float3 totalOpticalDepth = opticalDepthPA + opticalDepthAB;
                         
                         float3 extinction = betaRayleigh * totalOpticalDepth.x + 
-                            betaMie * totalOpticalDepth.y + 
-                            betaOzone * totalOpticalDepth.z;
+                        betaMie * totalOpticalDepth.y + 
+                        betaOzone * totalOpticalDepth.z;
                         
                         float3 transmittance = exp(-extinction);
                         
@@ -272,7 +266,7 @@ Shader "Custom/Atmosphere"
                 totalMie *= stepSize;
                 
                 float3 scattering = totalRayleigh * betaRayleigh * phaseRayleigh + 
-                    totalMie * betaMie * phaseMie;
+                totalMie * betaMie * phaseMie;
                 
                 return scattering;
             }
@@ -302,7 +296,7 @@ Shader "Custom/Atmosphere"
                 
                 // No atmosphere intersection at all
                 if (atmosphereIntersect.x > atmosphereIntersect.y)
-                    discard;
+                discard;
                 
                 // Analytical planet surface intersection (inner solid sphere)
                 float2 planetIntersect = RaySphereIntersection(cameraPos, viewDir, planetCenter, _PlanetRadius);
@@ -325,7 +319,7 @@ Shader "Custom/Atmosphere"
                 
                 // Atmosphere fully behind geometry, or degenerate segment
                 if (tMin >= tMax)
-                    discard;
+                discard;
 
                 // Calculate atmosphere scattering
                 float3 scatter = CalculateScattering(cameraPos, viewDir, tMin, tMax, sunDir, planetCenter);
