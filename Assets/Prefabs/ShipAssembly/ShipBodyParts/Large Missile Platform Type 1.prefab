@@ -265,7 +265,7 @@ MonoBehaviour:
   ownShip: {fileID: 3755600221816092501}
   missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 2c5b5ac80c2cab44d8602ab49f57ef42, type: 3}
   missileCount: 0
-  fireDelay: 30
+  fireDelay: 60
   launchPoints:
   - {fileID: 6389724134460752715}
   - {fileID: 1700486824373932578}
@@ -281,7 +281,7 @@ MonoBehaviour:
   minDistance: 10
   maxDistance: 200
   FireOnFullyReload: 1
-  SalvoInterval: 2
+  SalvoInterval: 10
   ReloadAfterSalvo: 1
 --- !u!114 &2264111479896643509
 MonoBehaviour:
@@ -314,6 +314,13 @@ MonoBehaviour:
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 0}
+  _targetUpdateInterval: 3
+  _targetUpdateJitter: 1
+  _maxTargetUpdateInterval: 12
+  _noTargetBackoffStep: 1
+  _targetReuseFrames: 2
+  _noTargetSearchRange: 400
+  _fullRangeCheckInterval: 10
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
   MissileDetectionRange: 5000

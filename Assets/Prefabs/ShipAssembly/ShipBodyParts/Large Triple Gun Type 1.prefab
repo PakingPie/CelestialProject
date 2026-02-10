@@ -225,9 +225,16 @@ MonoBehaviour:
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 1af727335389b4d4fa581e766857809d, type: 2}
-  CanTargetMissiles: 0
+  _targetUpdateInterval: 3
+  _targetUpdateJitter: 1
+  _maxTargetUpdateInterval: 12
+  _noTargetBackoffStep: 1
+  _targetReuseFrames: 2
+  _noTargetSearchRange: 400
+  _fullRangeCheckInterval: 10
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 3000
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
