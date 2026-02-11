@@ -3,7 +3,7 @@ Shader "Custom/VolumetricCloudsSphere"
     Properties
     {
         [Header(Cloud Shape)]
-        _CloudDensity ("Cloud Density", Range(0, 50)) = 8.0
+        _CloudDensity ("Cloud Density", Range(0, 100)) = 8.0
         _CloudCoverage ("Cloud Coverage", Range(0, 1)) = 0.45
         _CloudScale ("Cloud Scale", Range(0.1, 50)) = 8.0
         _DetailScale ("Detail Scale", Range(1, 20)) = 6.0
@@ -66,6 +66,9 @@ Shader "Custom/VolumetricCloudsSphere"
         _BlueNoise ("Blue Noise", 2D) = "gray" {}
         _BlueNoiseTiling ("Blue Noise Tiling", Vector) = (1, 1, 0, 0)
         _BlueNoiseOffset ("Blue Noise Offset", Vector) = (0, 0, 0, 0)
+
+        [Header(Shadows)]
+        _ShadowDensityScale ("Shadow Density Scale", Range(0, 5)) = 1.5
     }
     
     SubShader
@@ -428,6 +431,206 @@ Shader "Custom/VolumetricCloudsSphere"
                 return float4(luminance * alpha, alpha);
             }
             
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags { "LightMode" = "ShadowCaster" }
+
+            Cull Back
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+
+            HLSLPROGRAM
+            #pragma vertex vertShadow
+            #pragma fragment fragShadow
+            #pragma target 4.5
+            #pragma multi_compile _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
+            // ============================================================
+            // CBUFFER must match the main pass layout for SRP Batcher
+            // ============================================================
+            CBUFFER_START(UnityPerMaterial)
+                float _CloudDensity;
+                float _CloudCoverage;
+                float _CloudScale;
+                float _DetailScale;
+                float _DetailStrength;
+                float _ErosionStrength;
+                float _Patchiness;
+                float _PatchScale;
+                float _Billowness;
+                float _InnerRadius;
+                float _OuterRadius;
+                float _CloudLayerDensity;
+                int   _MaxSteps;
+                float _StepSize;
+                int   _LightSteps;
+                float _LightAbsorption;
+                float _CloudAbsorption;
+                float _AmbientLight;
+                float _ScatteringForward;
+                float _ScatteringBack;
+                float _ScatteringBlend;
+                float _SilverLiningIntensity;
+                float _SilverLiningSpread;
+                float _PowderStrength;
+                float _MultiScatter;
+                float4 _CloudColorBright;
+                float4 _CloudColorDark;
+                float4 _AmbientColorTop;
+                float4 _AmbientColorBottom;
+                float4 _SunColor;
+                float _FireIntensity;
+                float4 _FireColorBright;
+                float4 _FireColorDark;
+                float _FireScale;
+                float _FireDetailScale;
+                float _FireCoverage;
+                float _FireHeightFalloff;
+                float _FireAnimSpeed;
+                float _FireDayFade;
+                float _WindSpeed;
+                float4 _WindDirection;
+                float _DetailWindMultiplier;
+                float4 _NoiseTiling;
+                float4 _NoiseOffset;
+                float4 _BlueNoiseTiling;
+                float4 _BlueNoiseOffset;
+                float _ShadowDensityScale;
+            CBUFFER_END
+
+            // Textures needed by SampleCloudDensity in the utility file
+            TEXTURE3D(_NoiseTexture);
+            SAMPLER(sampler_NoiseTexture);
+            TEXTURE2D(_BlueNoise);
+            SAMPLER(sampler_BlueNoise);
+            TEXTURE2D_X_FLOAT(_CameraDepthTexture);
+            SAMPLER(sampler_CameraDepthTexture);
+
+            #include "./VolumetricCloudsUtilities.hlsl"
+
+            #define SHADOW_SAMPLES 3
+
+            // ============================================================
+            // Structures
+            // ============================================================
+            struct ShadowAttributes
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS   : NORMAL;
+            };
+
+            struct ShadowVaryings
+            {
+                float4 positionHCS : SV_POSITION;
+                float3 positionOS  : TEXCOORD0;
+            };
+
+            // ============================================================
+            // Interleaved gradient noise — produces a well-distributed
+            // dither pattern that PCF soft shadows will smooth out.
+            // ============================================================
+            float InterleavedGradientNoise(float2 pixelCoord)
+            {
+                float3 magic = float3(0.06711056, 0.00583715, 52.9829189);
+                return frac(magic.z * frac(dot(pixelCoord, magic.xy)));
+            }
+
+            // ============================================================
+            // Vertex — standard URP shadow bias
+            // ============================================================
+            ShadowVaryings vertShadow(ShadowAttributes input)
+            {
+                ShadowVaryings output;
+
+                output.positionOS = input.positionOS.xyz;
+
+                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                float3 normalWS   = TransformObjectToWorldNormal(input.normalOS);
+
+                #if _CASTING_PUNCTUAL_LIGHT_SHADOW
+                    float3 lightDirWS = normalize(_MainLightPosition.xyz - positionWS);
+                #else
+                    float3 lightDirWS = GetMainLight(0).direction;
+                #endif
+
+                output.positionHCS = TransformWorldToHClip(
+                ApplyShadowBias(positionWS, normalWS, lightDirWS));
+
+                #if UNITY_REVERSED_Z
+                    output.positionHCS.z = min(output.positionHCS.z, UNITY_NEAR_CLIP_VALUE);
+                #else
+                    output.positionHCS.z = max(output.positionHCS.z, UNITY_NEAR_CLIP_VALUE);
+                #endif
+
+                return output;
+            }
+
+            // ============================================================
+            // Fragment
+            //
+            //  Front face = where light enters the cloud shell.
+            //  March inward through the shell, accumulate optical depth,
+            //  then dither-clip to approximate soft shadow opacity.
+            //
+            //  Only traces the near shell segment (outer → inner).
+            //  The far shell is on the opposite side of the planet and
+            //  doesn't shadow the surface below.
+            // ============================================================
+            float4 fragShadow(ShadowVaryings input) : SV_Target
+            {
+                // Snap to exact outer sphere surface (avoids mesh precision drift)
+                float3 posOS = normalize(input.positionOS) * _OuterRadius;
+
+                // Light travels from source into the shell: opposite of _LightDirection
+                float3 lightTravelOS = -normalize(TransformWorldToObjectDir(GetMainLight(0).direction));
+
+                // Where does this ray exit the shell?
+                float2 innerHit = RaySphereIntersect(
+                posOS, lightTravelOS, float3(0, 0, 0), _InnerRadius);
+                float2 outerHit = RaySphereIntersect(
+                posOS, lightTravelOS, float3(0, 0, 0), _OuterRadius);
+
+                // If ray hits inner sphere → march ends there (near shell only)
+                // If grazing (no inner hit) → march to outer sphere exit
+                float marchEnd = (innerHit.x > 0.001) ? innerHit.x : max(outerHit.y, 0.001);
+
+                // Accumulate optical depth through the shell
+                float stepSize    = marchEnd / float(SHADOW_SAMPLES);
+                float opticalDepth = 0.0;
+
+                [unroll]
+                for (int i = 0; i < SHADOW_SAMPLES; i++)
+                {
+                    float t = (float(i) + 0.5) * stepSize;
+                    float3 samplePos = posOS + lightTravelOS * t;
+
+                    // Cheap mode = skip detail noise (shadow maps can't resolve it anyway)
+                    float density = SampleCloudDensity(samplePos, true, 0.0);
+                    opticalDepth += density * stepSize;
+                }
+
+                // Convert to shadow opacity via Beer's law
+                float shadowOpacity = 1.0 - exp(-opticalDepth * _ShadowDensityScale);
+
+                // Dithered clip: PCF soft shadows smooth the binary pattern
+                // into a continuous gradient on the receiving surface
+                float dither = InterleavedGradientNoise(input.positionHCS.xy);
+                clip(shadowOpacity - dither);
+
+                return 0;
+            }
+
             ENDHLSL
         }
     }
