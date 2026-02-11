@@ -8,16 +8,18 @@ public class AtmosphericLightsManager : MonoBehaviour
     [Tooltip("The Renderer component on the atmosphere sphere")]
     public Renderer atmosphereRenderer;
 
+    [Tooltip("The Renderer component on the volumetric cloud sphere")]
+    public Renderer cloudRenderer;
+
     [Header("Collection")]
     [Tooltip("Only collect lights on these layers")]
     public LayerMask lightLayerMask = -1;
 
     [Range(1, 16)]
-    [Tooltip("Maximum lights sent to the shader (Phase 1 cap)")]
+    [Tooltip("Maximum lights sent to the shader")]
     public int maxLights = 16;
 
     [Header("Debug")]
-    [Tooltip("Shows collected light count in the inspector")]
     [SerializeField] private int _activeLightCount;
 
     // Must match the HLSL struct exactly — 4 × float4 = 64 bytes
@@ -33,7 +35,8 @@ public class AtmosphericLightsManager : MonoBehaviour
 
     private ComputeBuffer _lightBuffer;
     private ShaderLightData[] _lightDataArray;
-    private MaterialPropertyBlock _propertyBlock;
+    private MaterialPropertyBlock _atmoBlock;
+    private MaterialPropertyBlock _cloudBlock;
     private readonly List<(Light light, float score)> _candidates = new();
 
     private static readonly int ID_Buffer = Shader.PropertyToID("_AdditionalLights");
@@ -49,18 +52,61 @@ public class AtmosphericLightsManager : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (atmosphereRenderer == null) return;
+        bool hasAtmo  = atmosphereRenderer != null;
+        bool hasCloud = cloudRenderer != null;
+        if (!hasAtmo && !hasCloud) return;
+
         EnsureResources();
 
-        Material mat = atmosphereRenderer.sharedMaterial;
-        if (mat == null) return;
+        // ---- Determine culling volume (world space) ----
+        Vector3 planetCenter  = Vector3.zero;
+        float   planetRadius  = 0f;
+        float   cullingRadius = 0f;
 
-        float planetRadius     = mat.GetFloat("_PlanetRadius");
-        float atmosphereHeight = mat.GetFloat("_AtmosphereHeight");
-        float atmosphereRadius = planetRadius + atmosphereHeight;
-        Vector3 planetCenter   = atmosphereRenderer.transform.position;
+        // Atmosphere renderer: authoritative source for planet geometry
+        if (hasAtmo)
+        {
+            Material mat = atmosphereRenderer.sharedMaterial;
+            if (mat != null)
+            {
+                planetCenter  = atmosphereRenderer.transform.position;
+                planetRadius  = mat.GetFloat("_PlanetRadius");
+                cullingRadius = planetRadius + mat.GetFloat("_AtmosphereHeight");
+            }
+        }
 
-        CollectAndSort(planetCenter, planetRadius, atmosphereRadius);
+        // Cloud renderer: derive world-space bounds from object-space radii × scale
+        if (hasCloud)
+        {
+            Material cmat = cloudRenderer.sharedMaterial;
+            if (cmat != null)
+            {
+                float outerR   = cmat.GetFloat("_OuterRadius");
+                float innerR   = cmat.GetFloat("_InnerRadius");
+                Vector3 scale  = cloudRenderer.transform.lossyScale;
+                float maxScale = Mathf.Max(scale.x, Mathf.Max(scale.y, scale.z));
+
+                float cloudWorldOuter = outerR * maxScale;
+                float cloudWorldInner = innerR * maxScale;
+
+                if (!hasAtmo || cullingRadius < 0.001f)
+                {
+                    // No atmosphere — use cloud bounds for everything
+                    planetCenter  = cloudRenderer.transform.position;
+                    planetRadius  = cloudWorldInner;
+                    cullingRadius = cloudWorldOuter;
+                }
+                else
+                {
+                    // Expand culling to encompass clouds if they extend further
+                    cullingRadius = Mathf.Max(cullingRadius, cloudWorldOuter);
+                }
+            }
+        }
+
+        if (cullingRadius < 0.001f) return;
+
+        CollectAndSort(planetCenter, planetRadius, cullingRadius);
         PackBuffer();
         UploadToGPU();
     }
@@ -80,7 +126,8 @@ public class AtmosphericLightsManager : MonoBehaviour
             _lightDataArray = new ShaderLightData[count];
         }
 
-        _propertyBlock ??= new MaterialPropertyBlock();
+        _atmoBlock  ??= new MaterialPropertyBlock();
+        _cloudBlock ??= new MaterialPropertyBlock();
     }
 
     private void ReleaseResources()
@@ -96,7 +143,7 @@ public class AtmosphericLightsManager : MonoBehaviour
     // Light collection
     // ───────────────────────────────────────────────
 
-    private void CollectAndSort(Vector3 planetCenter, float planetRadius, float atmosphereRadius)
+    private void CollectAndSort(Vector3 planetCenter, float planetRadius, float cullingRadius)
     {
         _candidates.Clear();
 
@@ -108,10 +155,9 @@ public class AtmosphericLightsManager : MonoBehaviour
 
         foreach (Light light in allLights)
         {
-            if (!IsCandidate(light, planetCenter, atmosphereRadius))
+            if (!IsCandidate(light, planetCenter, cullingRadius))
                 continue;
 
-            // Score: approximate visible contribution
             float dist  = Mathf.Max(
                 Vector3.Distance(light.transform.position, planetCenter) - planetRadius, 1f);
             float score = light.intensity / (dist * dist + 1f);
@@ -119,26 +165,22 @@ public class AtmosphericLightsManager : MonoBehaviour
             _candidates.Add((light, score));
         }
 
-        // Highest contribution first
         _candidates.Sort((a, b) => b.score.CompareTo(a.score));
     }
 
-    private bool IsCandidate(Light light, Vector3 planetCenter, float atmosphereRadius)
+    private bool IsCandidate(Light light, Vector3 planetCenter, float cullingRadius)
     {
         if (light == null || !light.enabled || !light.gameObject.activeInHierarchy)
             return false;
 
-        // Skip directional and area lights
         if (light.type is LightType.Directional or LightType.Rectangle or LightType.Disc)
             return false;
 
-        // Layer mask check
         if ((lightLayerMask & (1 << light.gameObject.layer)) == 0)
             return false;
 
-        // Must overlap the atmosphere volume
         float distToCenter = Vector3.Distance(light.transform.position, planetCenter);
-        if (distToCenter - light.range > atmosphereRadius)
+        if (distToCenter - light.range > cullingRadius)
             return false;
 
         return true;
@@ -180,22 +222,32 @@ public class AtmosphericLightsManager : MonoBehaviour
             };
         }
 
-        // Zero unused slots
         for (int i = _activeLightCount; i < _lightDataArray.Length; i++)
             _lightDataArray[i] = default;
     }
 
     // ───────────────────────────────────────────────
-    // GPU upload
+    // GPU upload — send the same buffer to both renderers
     // ───────────────────────────────────────────────
 
     private void UploadToGPU()
     {
         _lightBuffer.SetData(_lightDataArray);
 
-        atmosphereRenderer.GetPropertyBlock(_propertyBlock);
-        _propertyBlock.SetBuffer(ID_Buffer, _lightBuffer);
-        _propertyBlock.SetInt(ID_Count, _activeLightCount);
-        atmosphereRenderer.SetPropertyBlock(_propertyBlock);
+        if (atmosphereRenderer != null)
+        {
+            atmosphereRenderer.GetPropertyBlock(_atmoBlock);
+            _atmoBlock.SetBuffer(ID_Buffer, _lightBuffer);
+            _atmoBlock.SetInt(ID_Count, _activeLightCount);
+            atmosphereRenderer.SetPropertyBlock(_atmoBlock);
+        }
+
+        if (cloudRenderer != null)
+        {
+            cloudRenderer.GetPropertyBlock(_cloudBlock);
+            _cloudBlock.SetBuffer(ID_Buffer, _lightBuffer);
+            _cloudBlock.SetInt(ID_Count, _activeLightCount);
+            cloudRenderer.SetPropertyBlock(_cloudBlock);
+        }
     }
 }

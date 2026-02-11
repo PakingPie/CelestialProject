@@ -34,6 +34,7 @@ Shader "Custom/VolumetricCloudsSphere"
         _SilverLiningSpread ("Silver Lining Spread", Range(1, 20)) = 6.0
         _PowderStrength ("Powder Effect", Range(0, 1)) = 0.4
         _MultiScatter ("Multi-Scattering", Range(0, 1)) = 0.5
+        _LocalLightIntensity ("Local Light Intensity", Float) = 1.0          // ▶ NEW
         
         [Header(Color)]
         _CloudColorBright ("Cloud Color Bright", Color) = (1, 0.98, 0.95, 1)
@@ -79,11 +80,9 @@ Shader "Custom/VolumetricCloudsSphere"
         {
             Name "VolumetricCloudPass"
             
-            // [FIX 5] Back-face only, no depth test, no depth write
             Cull Front
             ZTest Always
             ZWrite Off
-            // [FIX 3] Correct premultiplied-alpha blend (was SrcAlpha One)
             Blend One OneMinusSrcAlpha
             
             HLSLPROGRAM
@@ -135,7 +134,6 @@ Shader "Custom/VolumetricCloudsSphere"
                 float4 _AmbientColorBottom;
                 float4 _SunColor;
 
-                // Fire effect properties (currently unused in shader code, but defined for future implementation)
                 float _FireIntensity;
                 float4 _FireColorBright;
                 float4 _FireColorDark;
@@ -154,21 +152,138 @@ Shader "Custom/VolumetricCloudsSphere"
                 float4 _BlueNoiseTiling;
                 float4 _BlueNoiseOffset;
                 
+                float _ShadowDensityScale;      // ▶ NEW (moved here so both-pass CBUFFERs match)
+                float _LocalLightIntensity;      // ▶ NEW
+
                 TEXTURE3D(_NoiseTexture);
                 SAMPLER(sampler_NoiseTexture);
                 TEXTURE2D(_BlueNoise);
                 SAMPLER(sampler_BlueNoise);
                 
-                // [FIX 7] Depth buffer for scene occlusion
                 TEXTURE2D_X_FLOAT(_CameraDepthTexture);
                 SAMPLER(sampler_CameraDepthTexture);
 
             CBUFFER_END
 
             #include "./VolumetricCloudsUtilities.hlsl"
-            
+
+            // ▶ NEW — Additional light data (set by AtmosphericLightManager)
+            #define MAX_ADDITIONAL_LIGHTS 16
+            #define LOCAL_LIGHT_SHADOW_STEPS 2
+
+            struct AtmosphericLightData
+            {
+                float4 positionAndRange;      // xyz = world pos, w = range
+                float4 colorAndType;          // xyz = color*intensity, w = 0 point / 1 spot
+                float4 directionAndAngles;    // xyz = spot forward, w = cos(outerAngle/2)
+                float4 extraParams;           // x = cos(innerAngle/2), yzw = reserved
+            };
+
+            StructuredBuffer<AtmosphericLightData> _AdditionalLights;
+            int _AdditionalLightCount;
+
+            // Evaluate one local light at a single cloud sample.
+            // Returns pre-albedo direct lighting (same space as directLight in main loop).
+            float3 EvaluateLocalLightCloud(
+                AtmosphericLightData light,
+                float3 samplePosOS,
+                float3 samplePosWS,
+                float3 lightPosOS,
+                float3 rayDirWS,
+                float  density,
+                float  heightFraction)
+            {
+                float3 lightPosWS = light.positionAndRange.xyz;
+                float  lightRange = light.positionAndRange.w;
+
+                // ---- World-space distance attenuation ----
+                float3 toLightWS = lightPosWS - samplePosWS;
+                float  distSq    = dot(toLightWS, toLightWS);
+                float  rangeSq   = lightRange * lightRange;
+
+                if (distSq > rangeSq)
+                    return 0;
+
+                float  dist         = sqrt(distSq);
+                float3 toLightDirWS = toLightWS / max(dist, 0.0001);
+
+                // URP-style smooth falloff
+                float factor       = distSq / rangeSq;
+                float smoothFactor = saturate(1.0 - factor * factor);
+                float distAtt      = (smoothFactor * smoothFactor) / max(distSq, 1.0);
+
+                // ---- Spot cone ----
+                float spotAtt = 1.0;
+                if (light.colorAndType.w > 0.5)
+                {
+                    float cosAngle = dot(-toLightDirWS, light.directionAndAngles.xyz);
+                    float cosOuter = light.directionAndAngles.w;
+                    float cosInner = light.extraParams.x;
+                    spotAtt = saturate((cosAngle - cosOuter) / max(cosInner - cosOuter, 0.0001));
+                    spotAtt *= spotAtt;
+                }
+
+                // ---- Object-space direction & planet occlusion ----
+                float3 toLightOS    = lightPosOS - samplePosOS;
+                float  distOS       = length(toLightOS);
+                float3 toLightDirOS = toLightOS / max(distOS, 0.0001);
+
+                float2 innerHitL = RaySphereIntersect(
+                    samplePosOS, toLightDirOS, float3(0,0,0), _InnerRadius);
+                if (innerHitL.x > 0.0 && innerHitL.x < innerHitL.y && innerHitL.x < distOS)
+                    return 0;   // planet body blocks the light
+
+                // ---- Phase function (cloud dual-lobe) ----
+                float cosTheta = dot(rayDirWS, toLightDirWS);
+                float phase    = DualLobePhase(cosTheta);
+
+                // ---- Silver lining ----
+                float edgeFactor   = 1.0 - pow(saturate(density * 2.0), 0.5);
+                float silverLining = pow(saturate(cosTheta * 0.5 + 0.5), _SilverLiningSpread)
+                                   * _SilverLiningIntensity;
+
+                // ---- Self-shadow: 2-step light march through cloud shell ----
+                float2 outerHitL = RaySphereIntersect(
+                    samplePosOS, toLightDirOS, float3(0,0,0), _OuterRadius);
+                float marchEnd = max(outerHitL.y, 0.001);
+
+                if (innerHitL.x > 0.0 && innerHitL.x < innerHitL.y)
+                    marchEnd = min(marchEnd, innerHitL.x);
+                marchEnd = min(marchEnd, distOS);
+
+                float marchStep    = marchEnd / float(LOCAL_LIGHT_SHADOW_STEPS);
+                float opticalDepth = 0.0;
+
+                [unroll]
+                for (int s = 0; s < LOCAL_LIGHT_SHADOW_STEPS; s++)
+                {
+                    float  t     = (float(s) + 0.5) * marchStep;
+                    float3 lsPos = samplePosOS + toLightDirOS * t;
+                    float  r     = length(lsPos);
+                    if (r >= _InnerRadius && r <= _OuterRadius)
+                        opticalDepth += SampleCloudDensity(lsPos, true, 0.0) * marchStep;
+                }
+
+                float lightTransmittance = exp(-opticalDepth * _CloudAbsorption);
+
+                // ---- Powder effect ----
+                float powder = 1.0 - exp(-opticalDepth * 2.0);
+                powder = lerp(1.0, powder, _PowderStrength);
+
+                // ---- Combine ----
+                float3 lightColor = light.colorAndType.xyz;
+                float  totalAtt   = distAtt * spotAtt;
+
+                float3 result = lightColor * totalAtt * lightTransmittance * phase * powder;
+                result += lightColor * totalAtt * lightTransmittance * silverLining
+                        * edgeFactor * (0.5 + 0.5 * heightFraction);
+
+                return result;
+            }
+            // ▶ END NEW
+
             // ============================================================
-            // Structures (cleaned — removed unused interpolators)
+            // Structures
             // ============================================================
             struct Attributes
             {
@@ -184,7 +299,7 @@ Shader "Custom/VolumetricCloudsSphere"
             
             
             // ============================================================
-            // Vertex shader (slimmed — only outputs what fragment needs)
+            // Vertex shader
             // ============================================================
             Varyings vert(Attributes input)
             {
@@ -200,10 +315,6 @@ Shader "Custom/VolumetricCloudsSphere"
             
             // ============================================================
             // Fragment shader
-            // [FIX 2] Removed NoL post-multiply (was destroying volumetric lighting)
-            // [FIX 5] Removed SV_Depth output
-            // [FIX 6] Removed manual pow(1/2.2) gamma (URP handles this)
-            // [FIX 7] Added depth buffer occlusion
             // ============================================================
             float4 frag(Varyings input) : SV_Target
             {
@@ -219,25 +330,8 @@ Shader "Custom/VolumetricCloudsSphere"
                 
                 // =========================================================
                 // Build up to 2 march segments.
-                //
-                //   Outside, ray hits inner sphere:
-                //     Seg 0: outerHit.x  → innerHit.x   (near shell)
-                //     Seg 1: innerHit.y  → outerHit.y   (far shell)  ← WAS MISSING
-                //
-                //   Outside, grazing (no inner hit):
-                //     Seg 0: outerHit.x  → outerHit.y
-                //
-                //   Inside inner sphere:
-                //     Seg 0: innerHit.y  → outerHit.y
-                //
-                //   Inside shell, looking inward:
-                //     Seg 0: 0           → innerHit.x
-                //     Seg 1: innerHit.y  → outerHit.y   (far shell)
-                //
-                //   Inside shell, looking outward:
-                //     Seg 0: 0           → outerHit.y
                 // =========================================================
-                float4 segments = float4(0, 0, 0, 0); // (start0, end0, start1, end1)
+                float4 segments = float4(0, 0, 0, 0);
                 int numSegments = 0;
                 float cameraRadius = length(cameraPositionOS);
                 
@@ -249,9 +343,9 @@ Shader "Custom/VolumetricCloudsSphere"
                     segments.x = outerHit.x;
                     if (innerHit.x > 0.0)
                     {
-                        segments.y = innerHit.x;       // near shell ends at inner sphere
-                        segments.z = innerHit.y;       // far shell starts where ray exits inner sphere
-                        segments.w = outerHit.y;       // far shell ends at outer sphere exit
+                        segments.y = innerHit.x;
+                        segments.z = innerHit.y;
+                        segments.w = outerHit.y;
                         numSegments = 2;
                     }
                     else
@@ -288,11 +382,10 @@ Shader "Custom/VolumetricCloudsSphere"
                 float sceneDepthRaw = SAMPLE_TEXTURE2D_X(
                 _CameraDepthTexture, sampler_CameraDepthTexture, screenUV).r;
                 
-                // Check if there is actual scene geometry (skip far-plane / sky pixels)
                 float linearDepth01 = Linear01Depth(sceneDepthRaw, _ZBufferParams);
                 bool hasSceneGeometry = linearDepth01 < 0.99;
                 
-                float sceneDistOS = 1e20; // default: nothing blocking
+                float sceneDistOS = 1e20;
                 if (hasSceneGeometry)
                 {
                     float3 sceneWorldPos = ComputeWorldSpacePosition(
@@ -315,6 +408,18 @@ Shader "Custom/VolumetricCloudsSphere"
                 float silverLining = pow(saturate(cosTheta * 0.5 + 0.5), _SilverLiningSpread)
                 * _SilverLiningIntensity;
                 
+                // ▶ NEW — Pre-compute additional light data
+                uint localLightCount = min((uint)_AdditionalLightCount, (uint)MAX_ADDITIONAL_LIGHTS);
+                float3 localLightPosOS[MAX_ADDITIONAL_LIGHTS];
+                if (localLightCount > 0)
+                {
+                    [loop]
+                    for (uint ll = 0; ll < localLightCount; ll++)
+                        localLightPosOS[ll] = TransformWorldToObject(
+                            _AdditionalLights[ll].positionAndRange.xyz);
+                }
+                // ▶ END NEW
+                
                 // ---- Raymarch state (persists across both segments) ----
                 float transmittance = 1.0;
                 float3 luminance = float3(0, 0, 0);
@@ -329,8 +434,6 @@ Shader "Custom/VolumetricCloudsSphere"
                     float segStart = (seg == 0) ? segments.x : segments.z;
                     float segEnd   = (seg == 0) ? segments.y : segments.w;
                     
-                    // Depth occlusion: if scene geometry is in front of this segment,
-                    // this segment and everything beyond is hidden.
                     if (sceneDistOS > 0.0 && sceneDistOS <= segStart)
                     break;
                     if (sceneDistOS > 0.0)
@@ -371,8 +474,8 @@ Shader "Custom/VolumetricCloudsSphere"
                             float3 groundBounce = _AmbientColorBottom.rgb * 0.2 * (1.0 - heightFraction);
 
                             float NoL = dot(normalize(samplePos), lightDirOS);
-                            float dayFactor = smoothstep(-0.1, 0.3, NoL);     // soft terminator ramp
-                            float ambientScale = lerp(0.08, 1.0, dayFactor);   // night side keeps ~8% ambient
+                            float dayFactor = smoothstep(-0.1, 0.3, NoL);
+                            float ambientScale = lerp(0.08, 1.0, dayFactor);
 
                             float3 ambient = (ambientColor + groundBounce) * _AmbientLight * ambientScale;
                             
@@ -381,6 +484,27 @@ Shader "Custom/VolumetricCloudsSphere"
                             float edgeFactor = 1.0 - pow(saturate(density * 2.0), 0.5);
                             directLight += lightColor * lightEnergy.x * silverLining
                             * edgeFactor * (0.5 + 0.5 * heightFraction);
+
+                            // ▶ NEW — Additional local light contributions
+                            float3 additionalDirect = 0;
+                            if (localLightCount > 0)
+                            {
+                                float3 samplePosWS = TransformObjectToWorld(samplePos);
+                                [loop]
+                                for (uint l = 0; l < localLightCount; l++)
+                                {
+                                    additionalDirect += EvaluateLocalLightCloud(
+                                        _AdditionalLights[l],
+                                        samplePos,
+                                        samplePosWS,
+                                        localLightPosOS[l],
+                                        rayDirWS,
+                                        density,
+                                        heightFraction);
+                                }
+                                additionalDirect *= _LocalLightIntensity;
+                            }
+                            // ▶ END NEW
                             
                             float lightIntensity = dot(lightEnergy, float3(0.33, 0.33, 0.33));
                             float3 cloudAlbedo = lerp(
@@ -391,7 +515,8 @@ Shader "Custom/VolumetricCloudsSphere"
                             float stepDensity = density * segStepSize;
                             float stepTransmittance = exp(-stepDensity * _LightAbsorption);
                             
-                            float3 scatteringIntegral = (directLight + ambient) * cloudAlbedo;
+                            // ▶ MODIFIED — additionalDirect added to scattering integral
+                            float3 scatteringIntegral = (directLight + ambient + additionalDirect) * cloudAlbedo;
                             float3 inScattering = scatteringIntegral * (1.0 - stepTransmittance);
 
                             // ---- Fire emission ----
@@ -399,15 +524,11 @@ Shader "Custom/VolumetricCloudsSphere"
                                 {
                                     float3 fireEmission = SampleFireEmission(samplePos, heightFraction, density);
 
-                                    // Fire glow fades on sun-lit side (hard to see glow in daylight)
                                     float fireDayMask = lerp(1.0, 1.0 - dayFactor, _FireDayFade);
                                     fireEmission *= fireDayMask;
 
-                                    // Emission contribution: weighted by optical depth of this step
-                                    // and accumulated transmittance (same integration as scattering)
                                     inScattering += fireEmission * (1.0 - stepTransmittance);
 
-                                    // Fire tints cloud albedo toward warm hues where emission is strong
                                     float fireLum = dot(fireEmission, float3(0.299, 0.587, 0.114));
                                     float tintAmount = saturate(fireLum * 0.3);
                                     float3 warmTint = lerp(float3(1,1,1), normalize(fireEmission + 0.001), tintAmount);
@@ -507,6 +628,7 @@ Shader "Custom/VolumetricCloudsSphere"
                 float4 _BlueNoiseTiling;
                 float4 _BlueNoiseOffset;
                 float _ShadowDensityScale;
+                float _LocalLightIntensity;      // ▶ NEW (for CBUFFER matching)
             CBUFFER_END
 
             // Textures needed by SampleCloudDensity in the utility file
@@ -537,8 +659,7 @@ Shader "Custom/VolumetricCloudsSphere"
             };
 
             // ============================================================
-            // Interleaved gradient noise — produces a well-distributed
-            // dither pattern that PCF soft shadows will smooth out.
+            // Interleaved gradient noise
             // ============================================================
             float InterleavedGradientNoise(float2 pixelCoord)
             {
@@ -547,7 +668,7 @@ Shader "Custom/VolumetricCloudsSphere"
             }
 
             // ============================================================
-            // Vertex — standard URP shadow bias
+            // Vertex
             // ============================================================
             ShadowVaryings vertShadow(ShadowAttributes input)
             {
@@ -578,34 +699,20 @@ Shader "Custom/VolumetricCloudsSphere"
 
             // ============================================================
             // Fragment
-            //
-            //  Front face = where light enters the cloud shell.
-            //  March inward through the shell, accumulate optical depth,
-            //  then dither-clip to approximate soft shadow opacity.
-            //
-            //  Only traces the near shell segment (outer → inner).
-            //  The far shell is on the opposite side of the planet and
-            //  doesn't shadow the surface below.
             // ============================================================
             float4 fragShadow(ShadowVaryings input) : SV_Target
             {
-                // Snap to exact outer sphere surface (avoids mesh precision drift)
                 float3 posOS = normalize(input.positionOS) * _OuterRadius;
 
-                // Light travels from source into the shell: opposite of _LightDirection
                 float3 lightTravelOS = -normalize(TransformWorldToObjectDir(GetMainLight(0).direction));
 
-                // Where does this ray exit the shell?
                 float2 innerHit = RaySphereIntersect(
                 posOS, lightTravelOS, float3(0, 0, 0), _InnerRadius);
                 float2 outerHit = RaySphereIntersect(
                 posOS, lightTravelOS, float3(0, 0, 0), _OuterRadius);
 
-                // If ray hits inner sphere → march ends there (near shell only)
-                // If grazing (no inner hit) → march to outer sphere exit
                 float marchEnd = (innerHit.x > 0.001) ? innerHit.x : max(outerHit.y, 0.001);
 
-                // Accumulate optical depth through the shell
                 float stepSize    = marchEnd / float(SHADOW_SAMPLES);
                 float opticalDepth = 0.0;
 
@@ -615,16 +722,12 @@ Shader "Custom/VolumetricCloudsSphere"
                     float t = (float(i) + 0.5) * stepSize;
                     float3 samplePos = posOS + lightTravelOS * t;
 
-                    // Cheap mode = skip detail noise (shadow maps can't resolve it anyway)
                     float density = SampleCloudDensity(samplePos, true, 0.0);
                     opticalDepth += density * stepSize;
                 }
 
-                // Convert to shadow opacity via Beer's law
                 float shadowOpacity = 1.0 - exp(-opticalDepth * _ShadowDensityScale);
 
-                // Dithered clip: PCF soft shadows smooth the binary pattern
-                // into a continuous gradient on the receiving surface
                 float dither = InterleavedGradientNoise(input.positionHCS.xy);
                 clip(shadowOpacity - dither);
 
