@@ -441,6 +441,72 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 28075758}
   m_CullTransparentMesh: 1
+--- !u!1 &30324696
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 30324697}
+  - component: {fileID: 30324698}
+  m_Layer: 0
+  m_Name: Ally Boid Spawn Manager 1
+  m_TagString: Ally
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &30324697
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 30324696}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: 0, y: 500, z: 4000}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 633849870}
+  m_Father: {fileID: 914120769}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!114 &30324698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 30324696}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b24f5ff082e0e2146aad8028f26336fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoidsManager
+  settings: {fileID: 11400000, guid: 97a514ce400477348ac008ee9f0adfae, type: 2}
+  computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
+  target: {fileID: 0}
+  HeightRange: {x: -10000, y: 10000}
+  syncCombatState: 1
+  _targetManager: {fileID: 0}
+  UseAsyncReadback: 1
+  WeaponUpdateIntervalFrames: 2
+  CleanupIntervalFrames: 5
+  CombatSyncIntervalFrames: 2
+  _flockId: Ally Flock 1
+  _team: 3
+  _targetTags:
+  - Foe
+  _ignoreTags:
+  - Ally
+  - Player
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _detectionRadius: 10000
 --- !u!1 &35072413
 GameObject:
   m_ObjectHideFlags: 0
@@ -4523,7 +4589,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &338711367
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6977,6 +7043,72 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 631672585}
   m_CullTransparentMesh: 1
+--- !u!1 &633849869
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 633849870}
+  - component: {fileID: 633849871}
+  m_Layer: 0
+  m_Name: FighterSpawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &633849870
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 633849869}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 30324697}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &633849871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 633849869}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 300c8a9d9806cce4ea6a210416e51027, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Spawner
+  prefabs:
+  - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
+  - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
+  spawnCount: 20
+  color: {r: 0, g: 0, b: 0, a: 0}
+  HeightRange: {x: -10000, y: 10000}
+  spawnMode: 0
+  spawnRadius: 100
+  spawnPoints: []
+  spawnInterval: 5
+  spawnPointRandomness: 2
+  launchDirection: {x: 0, y: 0, z: 1}
+  launchSpeed: 50
+  autoStart: 1
+  boidsPerWave: 10
+  timeBetweenWaves: 10
+  maintainPopulation: 0
+  respawnDelay: 10
+  maxTotalSpawns: 0
+  attackProfile: {fileID: 11400000, guid: f051fd699fd80064284f145585fdc694, type: 2}
+  showSpawnRegion: 0
+  _isPaused: 0
 --- !u!1 &634216996
 GameObject:
   m_ObjectHideFlags: 0
@@ -8707,7 +8839,7 @@ GameObject:
   - component: {fileID: 764762349}
   - component: {fileID: 764762350}
   m_Layer: 0
-  m_Name: Enemy Boid Spawn Manager 1 (1)
+  m_Name: Enemy Boid Spawn Manager 1
   m_TagString: Ally
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8722,12 +8854,11 @@ Transform:
   m_GameObject: {fileID: 764762348}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1500, z: -7000}
+  m_LocalPosition: {x: 0, y: 1500, z: -4000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1045763961}
-  - {fileID: 903738097}
   m_Father: {fileID: 914120769}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &764762350
@@ -8742,7 +8873,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b24f5ff082e0e2146aad8028f26336fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidsManager
-  settings: {fileID: 11400000, guid: 983d9d1f7c702e1488fb76954bf52876, type: 2}
+  settings: {fileID: 11400000, guid: 49db7407d5f4dd24fb52d21c3fd0d29d, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 0}
   HeightRange: {x: -10000, y: 10000}
@@ -10477,7 +10608,7 @@ GameObject:
   - component: {fileID: 903738097}
   - component: {fileID: 903738098}
   m_Layer: 0
-  m_Name: Spawn 1_1
+  m_Name: FrigateSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10496,7 +10627,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 764762349}
+  m_Father: {fileID: 1001119329}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &903738098
 MonoBehaviour:
@@ -10512,7 +10643,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
-  spawnCount: 1
+  spawnCount: 4
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: 0, y: 10000}
   spawnMode: 0
@@ -10899,8 +11030,10 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 30324697}
   - {fileID: 1503629325}
   - {fileID: 764762349}
+  - {fileID: 1001119329}
   - {fileID: 2106256086}
   - {fileID: 35072417}
   - {fileID: 117011324}
@@ -11912,6 +12045,72 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 987159237}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1001119328
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1001119329}
+  - component: {fileID: 1001119330}
+  m_Layer: 0
+  m_Name: Enemy Boid Spawn Manager 2
+  m_TagString: Ally
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1001119329
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1001119328}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 1500, z: -4000}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 903738097}
+  m_Father: {fileID: 914120769}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1001119330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1001119328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b24f5ff082e0e2146aad8028f26336fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoidsManager
+  settings: {fileID: 11400000, guid: 983d9d1f7c702e1488fb76954bf52876, type: 2}
+  computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
+  target: {fileID: 0}
+  HeightRange: {x: -10000, y: 10000}
+  syncCombatState: 1
+  _targetManager: {fileID: 0}
+  UseAsyncReadback: 1
+  WeaponUpdateIntervalFrames: 2
+  CleanupIntervalFrames: 5
+  CombatSyncIntervalFrames: 2
+  _flockId: Enemy Flock 2
+  _team: 2
+  _targetTags:
+  - Ally
+  - Player
+  _ignoreTags:
+  - Foe
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _detectionRadius: 12000
 --- !u!1 &1010136049
 GameObject:
   m_ObjectHideFlags: 0
@@ -12443,7 +12642,7 @@ GameObject:
   - component: {fileID: 1045763961}
   - component: {fileID: 1045763962}
   m_Layer: 0
-  m_Name: Spawn 1
+  m_Name: FighterSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12482,7 +12681,7 @@ MonoBehaviour:
   spawnCount: 30
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
-  spawnMode: 1
+  spawnMode: 0
   spawnRadius: 500
   spawnPoints: []
   spawnInterval: 5
@@ -16636,12 +16835,12 @@ GameObject:
   - component: {fileID: 1503629325}
   - component: {fileID: 1503629324}
   m_Layer: 0
-  m_Name: Ally Boid Spawn Manager 1
+  m_Name: Ally Boid Spawn Manager 2
   m_TagString: Ally
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1503629324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16654,7 +16853,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b24f5ff082e0e2146aad8028f26336fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidsManager
-  settings: {fileID: 11400000, guid: 97a514ce400477348ac008ee9f0adfae, type: 2}
+  settings: {fileID: 11400000, guid: 538d4f25e1f3dd142aeadbea4384698a, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 0}
   HeightRange: {x: -10000, y: 10000}
@@ -16664,7 +16863,7 @@ MonoBehaviour:
   WeaponUpdateIntervalFrames: 2
   CleanupIntervalFrames: 5
   CombatSyncIntervalFrames: 2
-  _flockId: Ally Flock 1
+  _flockId: Ally Flock 2
   _team: 3
   _targetTags:
   - Foe
@@ -16684,7 +16883,7 @@ Transform:
   m_GameObject: {fileID: 1503629323}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 500, z: 4500}
+  m_LocalPosition: {x: 0, y: 500, z: 4000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -18036,7 +18235,7 @@ GameObject:
   - component: {fileID: 1652490597}
   - component: {fileID: 1652490598}
   m_Layer: 0
-  m_Name: Ally Spawn 1
+  m_Name: FrigateSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18070,12 +18269,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
-  - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
-  - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
-  spawnCount: 30
+  - {fileID: 1886091069592709415, guid: 73c2bc81616ac994da8f06f2495229d0, type: 3}
+  spawnCount: 2
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
-  spawnMode: 1
+  spawnMode: 0
   spawnRadius: 100
   spawnPoints: []
   spawnInterval: 5
@@ -18088,7 +18286,7 @@ MonoBehaviour:
   maintainPopulation: 0
   respawnDelay: 10
   maxTotalSpawns: 0
-  attackProfile: {fileID: 11400000, guid: f051fd699fd80064284f145585fdc694, type: 2}
+  attackProfile: {fileID: 11400000, guid: ca3472a5a3aaa674291bf15cfcbe5f82, type: 2}
   showSpawnRegion: 0
   _isPaused: 0
 --- !u!1 &1652746882
