@@ -7,6 +7,8 @@ Shader "Custom/Atmosphere"
         _LightIntensity("Light Intensity", Float) = 20
         _PlanetRadius("Planet Radius (km)", Float) = 6371
         _AtmosphereHeight("Atmosphere Height (km)", Float) = 100
+
+        [Toggle] _ADDITIONAL_LIGHTS("Enable Additional Lights", Float) = 0
         
         _RayleighScaleHeight("Rayleigh Scale Height (km)", Float) = 8
         _MieScaleHeight("Mie Scale Height (km)", Float) = 1.2
@@ -97,6 +99,8 @@ Shader "Custom/Atmosphere"
             #pragma multi_compile _ _SHADOWS_SOFT
 
             #pragma multi_compile _SUN_MODE_USE_SUN_POSITION _SUN_MODE_USE_DIRECTIONAL
+
+            #pragma multi_compile _ _ADDITIONAL_LIGHTS_ON
             
             struct Attributes
             {
@@ -130,7 +134,7 @@ Shader "Custom/Atmosphere"
                 
                 float linear01 = Linear01Depth(rawDepth, _ZBufferParams);
                 if (linear01 > 0.999)
-                    return 1e20;
+                return 1e20;
                 
                 float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
                 float3 viewDirVS = TransformWorldToViewDir(viewDir);
@@ -184,7 +188,7 @@ Shader "Custom/Atmosphere"
                 float discriminant = b * b - c;
                 
                 if (discriminant < 0.0)
-                    return float2(1e20, -1e20);
+                return float2(1e20, -1e20);
                 
                 float sqrtDisc = sqrt(discriminant);
                 return float2(-b - sqrtDisc, -b + sqrtDisc);
@@ -224,9 +228,9 @@ Shader "Custom/Atmosphere"
                 
                 return float3(opticalDepthRayleigh, opticalDepthMie, opticalDepthOzone) * stepLength;
             }
-
-            // ▶ NEW — Evaluate a single local light at one sample point
-            float3 EvaluateLocalLight(
+            #if defined(_ADDITIONAL_LIGHTS_ON)
+                // ▶ NEW — Evaluate a single local light at one sample point
+                float3 EvaluateLocalLight(
                 AtmosphericLightData light,
                 float3 samplePos,
                 float3 rayDir,
@@ -237,79 +241,80 @@ Shader "Custom/Atmosphere"
                 float3 betaMie,
                 float3 betaOzone,
                 float3 cameraTransmittance)
-            {
-                float3 lightPos   = light.positionAndRange.xyz;
-                float  lightRange = light.positionAndRange.w;
-
-                // Vector from sample to light
-                float3 toLight = lightPos - samplePos;
-                float  distSq  = dot(toLight, toLight);
-                float  rangeSq = lightRange * lightRange;
-
-                // Early out — sample outside light range
-                if (distSq > rangeSq)
-                    return 0;
-
-                float dist      = sqrt(distSq);
-                float3 toLightDir = toLight / max(dist, 0.0001);
-
-                // ---- Distance attenuation (URP-style smooth falloff) ----
-                float factor       = distSq / rangeSq;
-                float smoothFactor = saturate(1.0 - factor * factor);
-                float distAtt      = (smoothFactor * smoothFactor) / max(distSq, 1.0);
-
-                // ---- Spot cone attenuation ----
-                float spotAtt = 1.0;
-                if (light.colorAndType.w > 0.5) // spot light
                 {
-                    float3 spotDir  = light.directionAndAngles.xyz;
-                    float cosAngle  = dot(-toLightDir, spotDir);
-                    float cosOuter  = light.directionAndAngles.w;
-                    float cosInner  = light.extraParams.x;
-                    spotAtt = saturate((cosAngle - cosOuter) / max(cosInner - cosOuter, 0.0001));
-                    spotAtt *= spotAtt;
-                }
+                    float3 lightPos   = light.positionAndRange.xyz;
+                    float  lightRange = light.positionAndRange.w;
 
-                // ---- Planet occlusion ----
-                float2 planetHit = RaySphereIntersection(samplePos, toLightDir, planetCenter, _PlanetRadius);
-                if (planetHit.x > 0.0 && planetHit.x < dist)
+                    // Vector from sample to light
+                    float3 toLight = lightPos - samplePos;
+                    float  distSq  = dot(toLight, toLight);
+                    float  rangeSq = lightRange * lightRange;
+
+                    // Early out — sample outside light range
+                    if (distSq > rangeSq)
                     return 0;
 
-                // ---- Phase functions (sample → light vs view direction) ----
-                float cosTheta = dot(rayDir, toLightDir);
-                float phaseR   = PhaseRayleigh(cosTheta);
-                float phaseM   = PhaseMie(cosTheta, _G);
+                    float dist      = sqrt(distSq);
+                    float3 toLightDir = toLight / max(dist, 0.0001);
 
-                // ---- Approximate optical depth: light → sample (midpoint method) ----
-                float3 midPoint   = (lightPos + samplePos) * 0.5;
-                float  midHeight  = max(0.0, length(midPoint - planetCenter) - _PlanetRadius);
-                float  midDensR   = DensityAtHeight(midHeight, _RayleighScaleHeight);
-                float  midDensM   = DensityAtHeight(midHeight, _MieScaleHeight);
-                float  midDensO   = OzoneDensity(midHeight);
-                float3 approxExt  = betaRayleigh * midDensR * dist
-                                  + betaMie      * midDensM * dist
-                                  + betaOzone    * midDensO * dist;
-                float3 lightTransmittance = exp(-approxExt);
+                    // ---- Distance attenuation (URP-style smooth falloff) ----
+                    float factor       = distSq / rangeSq;
+                    float smoothFactor = saturate(1.0 - factor * factor);
+                    float distAtt      = (smoothFactor * smoothFactor) / max(distSq, 1.0);
 
-                // ---- Combine ----
-                float3 lightColor = light.colorAndType.xyz;
-                float  totalAtt   = distAtt * spotAtt;
+                    // ---- Spot cone attenuation ----
+                    float spotAtt = 1.0;
+                    if (light.colorAndType.w > 0.5) // spot light
+                    {
+                        float3 spotDir  = light.directionAndAngles.xyz;
+                        float cosAngle  = dot(-toLightDir, spotDir);
+                        float cosOuter  = light.directionAndAngles.w;
+                        float cosInner  = light.extraParams.x;
+                        spotAtt = saturate((cosAngle - cosOuter) / max(cosInner - cosOuter, 0.0001));
+                        spotAtt *= spotAtt;
+                    }
 
-                float3 scatter = lightColor * totalAtt
-                               * lightTransmittance
-                               * cameraTransmittance
-                               * (densityRayleigh * betaRayleigh * phaseR
-                                + densityMie      * betaMie      * phaseM);
+                    // ---- Planet occlusion ----
+                    float2 planetHit = RaySphereIntersection(samplePos, toLightDir, planetCenter, _PlanetRadius);
+                    if (planetHit.x > 0.0 && planetHit.x < dist)
+                    return 0;
 
-                return scatter;
-            }
-            // ▶ END NEW
+                    // ---- Phase functions (sample → light vs view direction) ----
+                    float cosTheta = dot(rayDir, toLightDir);
+                    float phaseR   = PhaseRayleigh(cosTheta);
+                    float phaseM   = PhaseMie(cosTheta, _G);
+
+                    // ---- Approximate optical depth: light → sample (midpoint method) ----
+                    float3 midPoint   = (lightPos + samplePos) * 0.5;
+                    float  midHeight  = max(0.0, length(midPoint - planetCenter) - _PlanetRadius);
+                    float  midDensR   = DensityAtHeight(midHeight, _RayleighScaleHeight);
+                    float  midDensM   = DensityAtHeight(midHeight, _MieScaleHeight);
+                    float  midDensO   = OzoneDensity(midHeight);
+                    float3 approxExt  = betaRayleigh * midDensR * dist
+                    + betaMie      * midDensM * dist
+                    + betaOzone    * midDensO * dist;
+                    float3 lightTransmittance = exp(-approxExt);
+
+                    // ---- Combine ----
+                    float3 lightColor = light.colorAndType.xyz;
+                    float  totalAtt   = distAtt * spotAtt;
+
+                    float3 scatter = lightColor * totalAtt
+                    * lightTransmittance
+                    * cameraTransmittance
+                    * (densityRayleigh * betaRayleigh * phaseR
+                    + densityMie      * betaMie      * phaseM);
+
+                    return scatter;
+                }
+                // ▶ END NEW
+            #endif
 
             // ▶ MODIFIED — now outputs sun and additional scattering separately
             void CalculateScattering(
-                float3 rayOrigin, float3 rayDir, float tMin, float tMax,
-                float3 lightDir, float3 planetCenter,
-                out float3 sunScatter, out float3 additionalScatter)
+            float3 rayOrigin, float3 rayDir, float tMin, float tMax,
+            float3 lightDir, float3 planetCenter,
+            out float3 sunScatter, out float3 additionalScatter)
             {
                 float3 betaRayleigh = GetRayleighCoefficients();
                 float3 betaMie     = GetMieCoefficients();
@@ -327,10 +332,10 @@ Shader "Custom/Atmosphere"
                 float cosTheta     = dot(rayDir, lightDir);
                 float phaseRayleigh = PhaseRayleigh(cosTheta);
                 float phaseMie      = PhaseMie(cosTheta, _G);
-                
-                // ▶ NEW — precompute light count clamped to compile-time max
-                uint localLightCount = min((uint)_AdditionalLightCount, MAX_ADDITIONAL_LIGHTS);
-                
+                #if defined(_ADDITIONAL_LIGHTS_ON)
+                    // ▶ NEW — precompute light count clamped to compile-time max
+                    uint localLightCount = min((uint)_AdditionalLightCount, MAX_ADDITIONAL_LIGHTS);
+                #endif
                 for (uint i = 0; i < _PrimarySteps; i++)
                 {
                     float height = length(samplePos - planetCenter) - _PlanetRadius;
@@ -344,48 +349,49 @@ Shader "Custom/Atmosphere"
                     
                     // ▶ NEW — camera-to-sample transmittance (reused by additional lights)
                     float3 cameraExtinction = betaRayleigh * opticalDepthPA.x
-                                            + betaMie      * opticalDepthPA.y
-                                            + betaOzone    * opticalDepthPA.z;
+                    + betaMie      * opticalDepthPA.y
+                    + betaOzone    * opticalDepthPA.z;
                     float3 cameraTransmittance = exp(-cameraExtinction);
                     // ▶ END NEW
                     
                     // ---- Sun contribution (unchanged) ----
                     float2 lightIntersect = RaySphereIntersection(
-                        samplePos, lightDir, planetCenter, _PlanetRadius + _AtmosphereHeight);
+                    samplePos, lightDir, planetCenter, _PlanetRadius + _AtmosphereHeight);
                     
                     if (lightIntersect.y > 0)
                     {
                         float3 sampleNormal = normalize(samplePos - planetCenter);
                         float dayFactor = smoothstep(
-                            _TerminatorStart, _TerminatorEnd, dot(sampleNormal, lightDir));
+                        _TerminatorStart, _TerminatorEnd, dot(sampleNormal, lightDir));
                         
                         float3 opticalDepthAB = OpticalDepth(
-                            samplePos, samplePos + lightDir * lightIntersect.y,
-                            planetCenter, _LightSteps);
+                        samplePos, samplePos + lightDir * lightIntersect.y,
+                        planetCenter, _LightSteps);
                         
                         float3 totalOpticalDepth = opticalDepthPA + opticalDepthAB;
                         
                         float3 extinction = betaRayleigh * totalOpticalDepth.x
-                                          + betaMie      * totalOpticalDepth.y
-                                          + betaOzone    * totalOpticalDepth.z;
+                        + betaMie      * totalOpticalDepth.y
+                        + betaOzone    * totalOpticalDepth.z;
                         
                         float3 transmittance = exp(-extinction);
                         
                         totalRayleigh += transmittance * densityRayleigh * dayFactor;
                         totalMie      += transmittance * densityMie      * dayFactor;
                     }
-                    
-                    // ▶ NEW — additional local light contributions
-                    [loop]
-                    for (uint l = 0; l < localLightCount; l++)
-                    {
-                        additionalScatter += EvaluateLocalLight(
+                    #if defined(_ADDITIONAL_LIGHTS_ON)
+                        // ▶ NEW — additional local light contributions
+                        [loop]
+                        for (uint l = 0; l < localLightCount; l++)
+                        {
+                            additionalScatter += EvaluateLocalLight(
                             _AdditionalLights[l],
                             samplePos, rayDir, planetCenter,
                             densityRayleigh, densityMie,
                             betaRayleigh, betaMie, betaOzone,
                             cameraTransmittance) * stepSize;
-                    }
+                        }
+                    #endif
                     // ▶ END NEW
                     
                     samplePos += rayDir * stepSize;
@@ -395,7 +401,7 @@ Shader "Custom/Atmosphere"
                 totalMie      *= stepSize;
                 
                 sunScatter = totalRayleigh * betaRayleigh * phaseRayleigh
-                           + totalMie      * betaMie      * phaseMie;
+                + totalMie      * betaMie      * phaseMie;
             }
 
             // ============================================
@@ -419,48 +425,50 @@ Shader "Custom/Atmosphere"
 
                 float atmosphereOuterRadius = _PlanetRadius + _AtmosphereHeight;
                 float2 atmosphereIntersect  = RaySphereIntersection(
-                    cameraPos, viewDir, planetCenter, atmosphereOuterRadius);
+                cameraPos, viewDir, planetCenter, atmosphereOuterRadius);
                 
                 if (atmosphereIntersect.x > atmosphereIntersect.y)
-                    discard;
+                discard;
                 
                 float2 planetIntersect = RaySphereIntersection(
-                    cameraPos, viewDir, planetCenter, _PlanetRadius);
+                cameraPos, viewDir, planetCenter, _PlanetRadius);
                 
                 float tMin = max(0.0, atmosphereIntersect.x);
                 float tMax = atmosphereIntersect.y;
                 
                 if (planetIntersect.x > 0.0 && planetIntersect.x < tMax)
-                    tMax = planetIntersect.x;
+                tMax = planetIntersect.x;
                 
                 if (sceneDistance > 0.0 && sceneDistance < tMax)
-                    tMax = sceneDistance;
+                tMax = sceneDistance;
                 
                 if (tMin >= tMax)
-                    discard;
+                discard;
 
                 // ▶ MODIFIED — receive separated outputs
                 float3 sunScatter, additionalScatter;
                 CalculateScattering(
-                    cameraPos, viewDir, tMin, tMax, sunDir, planetCenter,
-                    sunScatter, additionalScatter);
+                cameraPos, viewDir, tMin, tMax, sunDir, planetCenter,
+                sunScatter, additionalScatter);
                 
                 // Apply sun intensity
                 #if defined(_SUN_MODE_USE_SUN_POSITION)
                     sunScatter *= _LightIntensity;
                 #else
                     sunScatter *= GetMainLight().color.rgb
-                                * GetMainLight().shadowAttenuation
-                                * _LightIntensity;
+                    * GetMainLight().shadowAttenuation
+                    * _LightIntensity;
                 #endif
-                
-                // Apply local light intensity                      // ▶ NEW
-                additionalScatter *= _LocalLightIntensity;          // ▶ NEW
-                
-                // Combine                                          // ▶ NEW
-                float3 scatter = sunScatter + additionalScatter;    // ▶ NEW
-                // ▶ END MODIFIED
-                
+                #if defined(_ADDITIONAL_LIGHTS_ON)
+                    // Apply local light intensity                      // ▶ NEW
+                    additionalScatter *= _LocalLightIntensity;          // ▶ NEW
+                    
+                    // Combine                                          // ▶ NEW
+                    float3 scatter = sunScatter + additionalScatter;    // ▶ NEW
+                    // ▶ END MODIFIED
+                #else
+                    float3 scatter = sunScatter;                       // ▶ NEW
+                #endif
                 scatter *= _Exposure;
                 
                 // Filmic tonemapping
