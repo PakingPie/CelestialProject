@@ -190,6 +190,13 @@ MonoBehaviour:
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 0}
+  _targetUpdateInterval: 3
+  _targetUpdateJitter: 1
+  _maxTargetUpdateInterval: 12
+  _noTargetBackoffStep: 1
+  _targetReuseFrames: 2
+  _noTargetSearchRange: 400
+  _fullRangeCheckInterval: 10
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
@@ -200,7 +207,7 @@ MonoBehaviour:
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
-  _fireDelay: 5
+  _fireDelay: 0.5
   Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -221,8 +228,8 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 4024419132641768552, guid: 8ff11a9e105596d41bc4222ec2ef3fd5, type: 3}
   FireInFixed: 0
   IsFiring: 1
-  MaxHeat: 100
-  HeatPerShot: 10
+  MaxHeat: 200
+  HeatPerShot: 20
   HeatDissipationRate: 20
   CooldownTime: 5
   UseAmmo: 0
