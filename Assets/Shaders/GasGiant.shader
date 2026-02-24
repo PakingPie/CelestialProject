@@ -29,6 +29,10 @@ Shader "Custom/GasGiant"
             Name "ForwardLit"
             Tags { "LightMode" = "UniversalForward" }
 
+            Cull Back
+            ZWrite On
+            ZTest LEqual
+
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
