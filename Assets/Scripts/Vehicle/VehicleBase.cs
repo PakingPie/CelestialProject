@@ -219,7 +219,7 @@ public abstract class VehicleBase : MonoBehaviour
             hpDamage = Mathf.RoundToInt(remainingDamage * multiplier);
         }
 
-        Debug.Log($"Explosive damage processed: HP Damage = {hpDamage}, Remaining Damage = {remainingDamage}");
+        // Debug.Log($"Explosive damage processed: HP Damage = {hpDamage}, Remaining Damage = {remainingDamage}");
 
         return hpDamage;
     }
