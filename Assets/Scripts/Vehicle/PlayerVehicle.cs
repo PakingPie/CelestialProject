@@ -99,7 +99,9 @@ public class PlayerVehicle : VehicleBase
 
         _shieldEffectMaterial = new Material(EnergyShieldShader);
         _shieldEffectMaterial.SetFloat("_Strength", 1.0f);
-        ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial = _shieldEffectMaterial;
+
+        if (ShieldEffect != null)
+            ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial = _shieldEffectMaterial;
 
         // GetComponent<ShieldHitEffect>().ShieldGO = ShieldEffect;
     }
@@ -128,7 +130,7 @@ public class PlayerVehicle : VehicleBase
         }
     }
 
-    public override void RestoreHitPoints() => RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hullPointsRegenTimer, 0.1f, ref _HullPointMaterial, "_CurrentHitPoints");    
+    public override void RestoreHitPoints() => RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hullPointsRegenTimer, 0.1f, ref _HullPointMaterial, "_CurrentHitPoints");
     public override void RestoreArmor() => RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer, 0.1f, ref _armorBarMaterial, "_CurrentHitPoints");
     public override void RestoreShield() => RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer, 0.1f, ref _shieldBarMaterial, "_CurrentHitPoints", true);
 

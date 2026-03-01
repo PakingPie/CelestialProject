@@ -25,13 +25,14 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _ADDITIONAL_LIGHTS_ON
   - _SUN_MODE_USE_DIRECTIONAL
   m_InvalidKeywords:
   - _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
@@ -41,23 +42,25 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _AtmosphereHeight: 500
+    - _ADDITIONAL_LIGHTS: 1
+    - _AtmosphereHeight: 1200
     - _Exposure: 1
     - _G: 0.2
     - _LightIntensity: 1
-    - _LightSteps: 2
+    - _LightSteps: 3
+    - _LocalLightIntensity: 100
     - _MieMultiplier: 1
-    - _MieScaleHeight: 1
+    - _MieScaleHeight: 5
     - _MieScatteringCoeff: 1
     - _OzoneAbsorptionCoeff: 1
     - _OzoneLayerCenter: 1
     - _OzoneLayerWidth: 1
     - _OzoneMultiplier: 1
-    - _PlanetRadius: 4900
-    - _PrimarySteps: 16
+    - _PlanetRadius: 3900
+    - _PrimarySteps: 128
     - _RayleighMultiplier: 1
-    - _RayleighScaleHeight: 30
-    - _RayleighScatteringCoeff: 5
+    - _RayleighScaleHeight: 80
+    - _RayleighScatteringCoeff: 1
     - _SUN_MODE: 1
     - _TerminatorEnd: 0.1
     - _TerminatorStart: -0.3
@@ -66,7 +69,7 @@ Material:
     - _MieBeta: {r: 1, g: 1, b: 1, a: 0}
     - _OzoneAbsorption: {r: 1, g: 1, b: 1, a: 0}
     - _RayleighBeta: {r: 1, g: 1, b: 1, a: 0}
-    - _SunPosition: {r: 15000, g: 0, b: -3000, a: 0}
+    - _SunPosition: {r: 0, g: 0, b: 0, a: 0}
     - _WaveLength: {r: 700, g: 530, b: 440, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

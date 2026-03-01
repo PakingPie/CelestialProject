@@ -1,7 +1,10 @@
 // BoidsManager.cs - UPDATED with full dynamic support
 using UnityEngine;
+using UnityEngine.Rendering;
 using System.Collections.Generic;
+#if UNITY_EDITOR
 using UnityEditor.EditorTools;
+#endif
 
 public class BoidsManager : MonoBehaviour
 {
@@ -21,6 +24,16 @@ public class BoidsManager : MonoBehaviour
     [Header("Target Management")]
     [SerializeField] private BoidFlockTargetManager _targetManager;
 
+    [Header("Performance")]
+    [Tooltip("Use async GPU readback to avoid CPU stall. Uses previous frame data if not ready.")]
+    public bool UseAsyncReadback = true;
+    [Tooltip("Only update weapons every N frames.")]
+    [Min(1)] public int WeaponUpdateIntervalFrames = 2;
+    [Tooltip("Only cleanup destroyed boids every N frames.")]
+    [Min(1)] public int CleanupIntervalFrames = 5;
+    [Tooltip("Only evaluate combat sync every N frames.")]
+    [Min(1)] public int CombatSyncIntervalFrames = 2;
+
     [Header("Flock Identity")]
     [SerializeField] private string _flockId = "Flock_01";
     [SerializeField] private GlobalHelper.Team _team = GlobalHelper.Team.Player;
@@ -38,6 +51,16 @@ public class BoidsManager : MonoBehaviour
     private bool _wasAnyInCombat = false;
 
     private List<BoidSpawner> _spawners = new List<BoidSpawner>();
+
+    // Compute resources
+    private BoidData[] _boidData;
+    private ComputeBuffer _boidBuffer;
+    private int _cachedBoidCount = 0;
+    private bool _readbackPending = false;
+    private int _readbackBoidCount = 0; // Size of the buffer being read back
+    private int _weaponUpdateCounter = 0;
+    private int _cleanupCounter = 0;
+    private int _combatSyncCounter = 0;
 
     // Track when formation needs reassignment
     private bool _formationDirty = false;
@@ -93,6 +116,12 @@ public class BoidsManager : MonoBehaviour
                 spawner.OnBoidSpawned -= OnBoidSpawned;
                 spawner.OnSpawningComplete -= OnSpawnerComplete;
             }
+        }
+
+        if (_boidBuffer != null)
+        {
+            _boidBuffer.Release();
+            _boidBuffer = null;
         }
     }
 
@@ -277,66 +306,104 @@ public class BoidsManager : MonoBehaviour
             }
         }
 
-        int removedCount = CleanupDestroyedBoids();
+        _cleanupCounter++;
+        if (_cleanupCounter >= CleanupIntervalFrames)
+        {
+            _cleanupCounter = 0;
+            CleanupDestroyedBoids();
+        }
 
         int numBoids = boids.Count;
         if (numBoids <= 0)
             return;
 
-        // Check combat state once
-        bool anyInCombat = false;
-        foreach (var boid in boids)
+        _combatSyncCounter++;
+        if (_combatSyncCounter >= CombatSyncIntervalFrames)
         {
-            if (boid != null && boid.IsInCombat)
-            {
-                anyInCombat = true;
-                break;
-            }
-        }
-
-        if (syncCombatState && anyInCombat && !_wasAnyInCombat)
-        {
+            _combatSyncCounter = 0;
+            // Check combat state once
+            bool anyInCombat = false;
             foreach (var boid in boids)
             {
-                if (boid != null)
-                    boid.EnterCombat();
+                if (boid != null && boid.IsInCombat)
+                {
+                    anyInCombat = true;
+                    break;
+                }
             }
+
+            if (syncCombatState && anyInCombat && !_wasAnyInCombat)
+            {
+                foreach (var boid in boids)
+                {
+                    if (boid != null)
+                        boid.EnterCombat();
+                }
+            }
+
+            if (_wasAnyInCombat && !anyInCombat)
+            {
+                AssignFormationPositions();
+            }
+            _wasAnyInCombat = anyInCombat;
         }
 
-        if (_wasAnyInCombat && !anyInCombat)
+        EnsureComputeResources(numBoids);
+
+        int boidCountSnapshot = boids.Count;
+        int copyCount = Mathf.Min(numBoids, boidCountSnapshot);
+        for (int i = 0; i < copyCount; i++)
         {
-            AssignFormationPositions();
-        }
-        _wasAnyInCombat = anyInCombat;
-
-        var boidData = new BoidData[numBoids];
-        for (int i = 0; i < numBoids; i++)
-        {
-            boidData[i].position = boids[i].position;
-            boidData[i].direction = boids[i].forward;
+            Boid boid = boids[i];
+            if (boid == null) continue;
+            _boidData[i].position = boid.position;
+            _boidData[i].direction = boid.forward;
         }
 
-        var boidBuffer = new ComputeBuffer(numBoids, BoidData.Size);
-        boidBuffer.SetData(boidData);
+        _boidBuffer.SetData(_boidData, 0, 0, numBoids);
 
-        computeShader.SetBuffer(0, "boids", boidBuffer);
+        computeShader.SetBuffer(0, "boids", _boidBuffer);
         computeShader.SetInt("numBoids", numBoids);
         computeShader.SetFloat("viewRadius", settings.perceptionRadius);
         computeShader.SetVector("heightRange", HeightRange);
         int threadGroups = Mathf.CeilToInt(numBoids / (float)threadGroupSize);
         computeShader.Dispatch(0, threadGroups, 1, 1);
 
-        boidBuffer.GetData(boidData);
+        if (UseAsyncReadback)
+        {
+            if (!_readbackPending)
+            {
+                _readbackPending = true;
+                _readbackBoidCount = numBoids; // Store size of buffer being read
+                AsyncGPUReadback.Request(_boidBuffer, request =>
+                {
+                    _readbackPending = false;
+                    if (request.hasError) return;
+                    
+                    var gpuData = request.GetData<BoidData>();
+                    
+                    // Only copy up to the minimum of GPU buffer size and current _boidData size
+                    int copyCount = Mathf.Min(_readbackBoidCount, _boidData.Length);
+                    if (copyCount > 0)
+                    {
+                        System.Array.Copy(gpuData.ToArray(), 0, _boidData, 0, copyCount);
+                    }
+                });
+            }
+        }
+        else
+        {
+            _boidBuffer.GetData(_boidData, 0, 0, numBoids);
+        }
 
         for (int i = 0; i < numBoids; i++)
         {
-            // Check bounds in case boids were removed during update
             if (i >= boids.Count || boids[i] == null) continue;
 
-            boids[i].avgFlockHeading = boidData[i].flockHeading;
-            boids[i].avgAvoidanceHeading = boidData[i].seperationHeading;
-            boids[i].flockmatesCenter = boidData[i].flockCenter;
-            boids[i].numPerceivedFlockmates = boidData[i].numFlockmates;
+            boids[i].avgFlockHeading = _boidData[i].flockHeading;
+            boids[i].avgAvoidanceHeading = _boidData[i].seperationHeading;
+            boids[i].flockmatesCenter = _boidData[i].flockCenter;
+            boids[i].numPerceivedFlockmates = _boidData[i].numFlockmates;
 
             boids[i].UpdateBoid();
         }
@@ -353,9 +420,29 @@ public class BoidsManager : MonoBehaviour
             }
         }
 
-        UpdateBoidWeapons();
+        _weaponUpdateCounter++;
+        if (_weaponUpdateCounter >= WeaponUpdateIntervalFrames)
+        {
+            _weaponUpdateCounter = 0;
+            UpdateBoidWeapons();
+        }
+    }
 
-        boidBuffer.Release();
+    private void EnsureComputeResources(int numBoids)
+    {
+        if (_boidData == null || _cachedBoidCount != numBoids)
+        {
+            _boidData = new BoidData[numBoids];
+            _cachedBoidCount = numBoids;
+
+            if (_boidBuffer != null)
+            {
+                _boidBuffer.Release();
+                _boidBuffer = null;
+            }
+
+            _boidBuffer = new ComputeBuffer(numBoids, BoidData.Size);
+        }
     }
 
     /// <summary>
@@ -544,6 +631,7 @@ public class BoidsManager : MonoBehaviour
         public static int Size => sizeof(float) * 3 * 5 + sizeof(int);
     }
 
+#if UNITY_EDITOR
     void OnDrawGizmos()
     {
         if (boids == null) return;
@@ -569,9 +657,8 @@ public class BoidsManager : MonoBehaviour
             Gizmos.color = (i == 0) ? Color.yellow : Color.cyan;
             Gizmos.DrawWireSphere(boids[i].position, 8f);
 
-#if UNITY_EDITOR
             UnityEditor.Handles.Label(boids[i].position + Vector3.up * 25f, $"#{i}");
-#endif
         }
     }
+#endif
 }
