@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f79a97a8f3d566438e5fbb617fd1c0f, type: 3}
+  m_Name: Default Boid Settings
+  m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
+  minSpeed: 5
+  maxSpeed: 20
+  perceptionRadius: 2.5
+  avoidanceRadius: 1
+  maxSteerForce: 8
+  alignWeight: 2
+  cohesionWeight: 1
+  separateWeight: 2.5
+  targetWeight: 2
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 128
+  boundsRadius: 0.27
+  avoidCollisionWeight: 20
+  collisionAvoidDistance: 200
+  useFormation: 1
+  formationType: 0
+  formationSpacing: 100
+  formationTightness: 50
+  formationMatchSpeed: 20
+  formationDeadZone: 10
+  formationUrgencyRange: 100
+  combatCohesionMultiplier: 0.2
+  combatSeparationMultiplier: 2
+  combatAlignmentMultiplier: 0.5
+  returnToFormationDelay: 3
+  allySeparationRadius: 20
+  allySeparationWeight: 3
+  enemyAvoidanceRadius: 50
+  enemyAvoidanceWeight: 5

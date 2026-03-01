@@ -61,11 +61,11 @@ Shader "Unlit/MyVolumetricLighting"
             // Gets the fog density at the given world height.
             float GetFogDensity(float posWSy)
             {
-                float t = saturate((posWSy - _BaseHeight) / (_MaximumHeight - _BaseHeight));
-                t = 1.0 - t;
-                t = lerp(t, 0.0, posWSy < _GroundHeight);
+                // float t = saturate((posWSy - _BaseHeight) / (_MaximumHeight - _BaseHeight));
+                // t = 1.0 - t;
+                // t = lerp(t, 0.0, posWSy < _GroundHeight);
 
-                return _Density * t;
+                return _Density;// * t;
             }
 
             // Gets the main light color at one raymarch step.
@@ -223,7 +223,26 @@ Shader "Unlit/MyVolumetricLighting"
 
                 CalculateRayMarchingParams(input.texcoord, ro, rd, initialOffsetToNearPlane, offsetLength, rdPhase);
 
+                // Fix: Handle skybox and clamp to max fog distance
+                float rawDepth = SampleDownsampledSceneDepth(input.texcoord);
+                #if UNITY_REVERSED_Z
+                    bool isSkybox = rawDepth <= 0.0001;
+                #else
+                    bool isSkybox = rawDepth >= 0.9999;
+                #endif
+
+                if (isSkybox)
+                {
+                    offsetLength = _Distance;
+                }
+                else
+                {
+                    offsetLength = min(offsetLength, _Distance);
+                }
+
                 offsetLength -= initialOffsetToNearPlane;
+                offsetLength = max(0.0, offsetLength); // Ensure non-negative
+                
                 float3 roNearPlane = ro + rd * initialOffsetToNearPlane;
                 // calculate the step length and jitter
                 float stepLength = (_Distance - initialOffsetToNearPlane) / (float)_MaxSteps;

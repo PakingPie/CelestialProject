@@ -48,18 +48,30 @@ public static class CombatRegistry
     {
         if (vehicle == null) return;
 
-        List<VehicleBase> list = GetListForFaction(faction);
-        if (list != null && !list.Contains(vehicle))
-            list.Add(vehicle);
+        // Register to all matching faction lists (supports flags enum combinations)
+        if ((faction & Faction.Player) != 0 && !_playerVehicles.Contains(vehicle))
+            _playerVehicles.Add(vehicle);
+        if ((faction & Faction.Ally) != 0 && !_allyVehicles.Contains(vehicle))
+            _allyVehicles.Add(vehicle);
+        if ((faction & Faction.Foe) != 0 && !_foeVehicles.Contains(vehicle))
+            _foeVehicles.Add(vehicle);
+        if ((faction & Faction.Neutral) != 0 && !_neutralVehicles.Contains(vehicle))
+            _neutralVehicles.Add(vehicle);
     }
 
     public static void Unregister(VehicleBase vehicle, Faction faction)
     {
         if (vehicle == null) return;
 
-        List<VehicleBase> list = GetListForFaction(faction);
-        if (list != null)
-            list.Remove(vehicle);
+        // Unregister from all matching faction lists (supports flags enum combinations)
+        if ((faction & Faction.Player) != 0)
+            _playerVehicles.Remove(vehicle);
+        if ((faction & Faction.Ally) != 0)
+            _allyVehicles.Remove(vehicle);
+        if ((faction & Faction.Foe) != 0)
+            _foeVehicles.Remove(vehicle);
+        if ((faction & Faction.Neutral) != 0)
+            _neutralVehicles.Remove(vehicle);
     }
 
     private static List<VehicleBase> GetListForFaction(Faction faction)
@@ -157,15 +169,16 @@ public static class CombatRegistry
         for (int i = vehicles.Count - 1; i >= 0; i--)
         {
             VehicleBase vehicle = vehicles[i];
-            if(!isTargetingMissile && vehicle.tag == "Missile")
-                continue;
 
-            // Remove destroyed vehicles
+            // Remove destroyed vehicles - must check BEFORE accessing any properties
             if (vehicle == null)
             {
                 vehicles.RemoveAt(i);
                 continue;
             }
+
+            if (!isTargetingMissile && vehicle.CompareTag("Missile"))
+                continue;
 
             float distSqr = (vehicle.transform.position - position).sqrMagnitude;
             if (distSqr <= rangeSqr)

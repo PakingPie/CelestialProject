@@ -3,9 +3,25 @@ using System.Collections.Generic;
 
 public class AAHardpoint : AALauncher
 {
+    [Header("Hardpoint Settings")]
+    [Tooltip("If true, missiles can only be fired when all hardpoints are fully reloaded. Once firing starts, all missiles will be fired before waiting for reload.")]
+    public bool FireOnFullyReload = false;
+    [Tooltip("Time between each missile in a salvo when FireOnFullyReload is enabled")]
+    public float SalvoInterval = 0.2f;
+    [Tooltip("If true, all hardpoints wait until the salvo is complete before starting to reload. If false, each hardpoint reloads immediately after firing.")]
+    public bool ReloadAfterSalvo = false;
+
     Queue<HardpointStation> stations;
     int initialMisCount = 1;
     int spawnedMissiles = 0;
+    
+    // Salvo tracking - when true, we're in the middle of firing a salvo
+    private bool _isFiringSalvo = false;
+    
+    /// <summary>
+    /// Returns true if all hardpoints have missiles loaded
+    /// </summary>
+    public bool IsFullyReloaded => spawnedMissiles >= initialMisCount;
 
 
     /// <summary>
@@ -22,21 +38,25 @@ public class AAHardpoint : AALauncher
 
     private void Start()
     {
-        initialMisCount = missileCount;
+        missileCount = launchPoints.Count;
+        initialMisCount = launchPoints.Count;
         InitializeStations();
     }
 
     private void Update()
     {
-        // Station updates handle reloading. Don't run the reload timers if all the missiles
-        // have been spawned. Account for the full set of missiles that is spawned on Start.
-        if (spawnedMissiles < initialMisCount)
+        // If ReloadAfterSalvo is enabled, don't allow reloading while salvo is in progress
+        bool canReload = !ReloadAfterSalvo || !_isFiringSalvo;
+        
+        // Always update ALL stations so that cooldown timers continue counting down.
+        // Each station internally checks if it needs to reload (loadedMissile == null).
+        foreach (HardpointStation sta in stations)
         {
-            foreach (HardpointStation sta in stations)
+            // Station update returns true when a new missile was created.
+            if (sta.Update(Time.deltaTime, canReload))
             {
-                // Station update returns true when a new missile was created.
-                if (sta.Update(Time.deltaTime))
-                    spawnedMissiles++;
+                missileCount++;
+                spawnedMissiles++;
             }
         }
     }
@@ -47,7 +67,13 @@ public class AAHardpoint : AALauncher
     /// <param name="target">If no target is given, the missile will fire without guidance.</param>
     public override void Launch(Transform target)
     {
-        Launch(target, Vector3.zero);
+        // Get owner ship velocity for missiles with drop delay
+        Vector3 inheritedVelocity = Vector3.zero;
+        if (ownShip != null && missilePrefabToLaunch != null && missilePrefabToLaunch.dropDelay > 0f)
+        {
+            inheritedVelocity = GetOwnerVelocity();
+        }
+        Launch(target, inheritedVelocity);
     }
 
     /// <summary>
@@ -58,6 +84,17 @@ public class AAHardpoint : AALauncher
     /// use case would be passing in the velocity of the launching platform.</param>
     public override void Launch(Transform target, Vector3 velocity)
     {
+        // If FireOnFullyReload is enabled, check salvo logic
+        if (FireOnFullyReload)
+        {
+            // If we're not in a salvo, only allow starting one when fully reloaded
+            if (!_isFiringSalvo && !IsFullyReloaded)
+                return;
+            
+            // Start or continue the salvo
+            _isFiringSalvo = true;
+        }
+        
         // Peek instead of dequeue so that failed launch commands don't cycle the stations.
         HardpointStation launchingStation = stations.Peek();
 
@@ -76,6 +113,12 @@ public class AAHardpoint : AALauncher
 
                 missileCount--;
                 spawnedMissiles--;
+                
+                // End salvo when all missiles are fired
+                if (FireOnFullyReload && spawnedMissiles <= 0)
+                {
+                    _isFiringSalvo = false;
+                }
             }
         }
     }
@@ -147,12 +190,13 @@ public class AAHardpoint : AALauncher
         /// Automatically reloads missiles based on a cooldown.
         /// </summary>
         /// <param name="deltaTime">Time between frames. Usually Time.DeltaTime.</param>
+        /// <param name="canReload">If false, cooldown timer won't count down (used for ReloadAfterSalvo mode).</param>
         /// <returns>True when a missile was spawned on this frame.</returns>        
-        public bool Update(float deltaTime)
+        public bool Update(float deltaTime, bool canReload = true)
         {
             bool spawnedNewMissle = false;
 
-            if (loadedMissile == null)
+            if (loadedMissile == null && canReload)
             {
                 cooldown -= deltaTime;
 
@@ -176,6 +220,16 @@ public class AAHardpoint : AALauncher
 
             if (loadedMissile != null)
             {
+                // Stop following hardpoint before launch
+                var follower = loadedMissile.GetComponent<FollowTransform>();
+                if (follower != null)
+                    follower.StopFollowing();
+                
+                // Enable MissileVehicle so missile can be targeted/damaged after launch
+                var missileVehicle = loadedMissile.GetComponent<MissileVehicle>();
+                if (missileVehicle != null)
+                    missileVehicle.enabled = true;
+                
                 loadedMissile.Launch(target, inheritedVelocity);
                 loadedMissile = null;
                 cooldown = reloadTime;
@@ -200,24 +254,39 @@ public class AAHardpoint : AALauncher
         /// <summary>
         /// Spawns a missile on a station.
         /// </summary>
-        /// <param name="newParent">Point where the missile will be attached to.</param>
+        /// <param name="hardpoint">Point where the missile will follow (not parented to avoid scale inheritance).</param>
         /// <returns></returns>
-        private AAMissile CreateMissile(Transform newParent)
+        private AAMissile CreateMissile(Transform hardpoint)
         {
-            AAMissile mis = Instantiate(prefab, newParent);
+            // Instantiate without parent to avoid inheriting scaled parent hierarchy
+            AAMissile mis = Instantiate(prefab, hardpoint.position, hardpoint.rotation);
             mis.ownShip = ownShip;
 
-            // Attach the missile to the hardpoint by its attach point if possible.
+            // Disable MissileVehicle so missile can't be targeted/damaged before launch
+            var missileVehicle = mis.GetComponent<MissileVehicle>();
+            if (missileVehicle != null)
+                missileVehicle.enabled = false;
+
+            // Calculate local offsets based on attach point
+            Vector3 positionOffset = Vector3.zero;
+            Quaternion rotationOffset = Quaternion.identity;
+            
             if (mis.attachPoint != null)
             {
-                mis.transform.localPosition = -mis.attachPoint.localPosition;
-                mis.transform.localEulerAngles = -mis.attachPoint.localEulerAngles;
+                positionOffset = -mis.attachPoint.localPosition;
+                rotationOffset = Quaternion.Euler(-mis.attachPoint.localEulerAngles);
             }
-            else
-            {
-                mis.transform.localPosition = Vector3.zero;
-                mis.transform.localEulerAngles = Vector3.zero;
-            }
+
+            // Use FollowTransform to track hardpoint without parenting
+            FollowTransform follower = mis.GetComponent<FollowTransform>();
+            if (follower == null)
+                follower = mis.gameObject.AddComponent<FollowTransform>();
+            
+            follower.SetTarget(hardpoint, positionOffset, rotationOffset);
+            
+            // Apply initial position/rotation
+            mis.transform.position = hardpoint.TransformPoint(positionOffset);
+            mis.transform.rotation = hardpoint.rotation * rotationOffset;
 
             return mis;
         }

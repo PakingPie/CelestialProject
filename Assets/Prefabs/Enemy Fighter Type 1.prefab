@@ -13,13 +13,13 @@ GameObject:
   - component: {fileID: 2368025303835637834}
   - component: {fileID: 3278756523826577245}
   - component: {fileID: 2325155534543124959}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Shield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3449610485239219872
 Transform:
   m_ObjectHideFlags: 0
@@ -401,7 +401,8 @@ MonoBehaviour:
   FireTarget: 3
   GuidanceType: 1
   ActiveRange: {x: 100, y: 3000}
-  UpdateRate: 30
+  UseTargetDistribution: 1
+  AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
@@ -413,8 +414,8 @@ MonoBehaviour:
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
-  _fireDelay: 4
-  Deviation: 1
+  _fireDelay: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -428,9 +429,13 @@ MonoBehaviour:
   RecoilRecoverSpeed: 1
   RecoilingBarrels: []
   BulletPrefab: {fileID: -3295528032157664246, guid: 1da1aec8bbe4d5e43b6ec4dc10548db0, type: 3}
-  MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
+  MuzzleFlashPrefab: {fileID: 4024419132641768552, guid: 8ff11a9e105596d41bc4222ec2ef3fd5, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 2
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -585,12 +590,13 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 3
   GuidanceType: 1
-  ActiveRange: {x: 50, y: 3000}
-  UpdateRate: 60
+  ActiveRange: {x: 50, y: 1500}
+  UseTargetDistribution: 1
+  AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 2000
+  MissileDetectionRange: 1000
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -602,9 +608,7 @@ MonoBehaviour:
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.2
   FireInterval: 12
-  TurretRotateSpeed: 5
-  LaserDamageCap: 20
-  LaserDPS: 10
+  LaserDPS: 2
   IsFiring: 0
   LaserOrigin: {fileID: 1605155439695663349}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
@@ -1259,12 +1263,13 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 3
   GuidanceType: 1
-  ActiveRange: {x: 50, y: 3000}
-  UpdateRate: 60
+  ActiveRange: {x: 50, y: 1500}
+  UseTargetDistribution: 1
+  AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 2000
+  MissileDetectionRange: 1000
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -1276,9 +1281,7 @@ MonoBehaviour:
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.2
   FireInterval: 12
-  TurretRotateSpeed: 5
-  LaserDamageCap: 20
-  LaserDPS: 10
+  LaserDPS: 2
   IsFiring: 0
   LaserOrigin: {fileID: 5673041138898698918}
   LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
@@ -1539,6 +1542,7 @@ Transform:
   - {fileID: 281398150085568086}
   - {fileID: 5505796750340273071}
   - {fileID: 4222254645149134206}
+  - {fileID: 1815981438850888034}
   m_Father: {fileID: 1510646433887854243}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3202195845806784473
@@ -1715,7 +1719,8 @@ MonoBehaviour:
   FireTarget: 3
   GuidanceType: 1
   ActiveRange: {x: 100, y: 3000}
-  UpdateRate: 30
+  UseTargetDistribution: 1
+  AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 9788c86114a1dd84ca2799a03a2a4aad, type: 2}
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
@@ -1727,8 +1732,8 @@ MonoBehaviour:
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
-  _fireDelay: 4
-  Deviation: 1
+  _fireDelay: 1
+  Deviation: 0.5
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
   GimbalOnlyWhenInRange: 0
@@ -1742,9 +1747,13 @@ MonoBehaviour:
   RecoilRecoverSpeed: 1
   RecoilingBarrels: []
   BulletPrefab: {fileID: -3295528032157664246, guid: 1da1aec8bbe4d5e43b6ec4dc10548db0, type: 3}
-  MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
+  MuzzleFlashPrefab: {fileID: 4024419132641768552, guid: 8ff11a9e105596d41bc4222ec2ef3fd5, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 2
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -1792,7 +1801,6 @@ GameObject:
   - component: {fileID: 1510646433887854243}
   - component: {fileID: 3109858766895225120}
   - component: {fileID: -2094783752960322070}
-  - component: {fileID: 8601252320548999007}
   m_Layer: 9
   m_Name: Enemy Fighter Type 1
   m_TagString: Foe
@@ -1842,10 +1850,11 @@ MonoBehaviour:
   flockmatesCenter: {x: 0, y: 0, z: 0}
   numPerceivedFlockmates: 0
   HeightRange: {x: -2500, y: 2500}
+  _EnableDebugLogs: 0
+  _EnableDebugGizmos: 0
   IsInCombat: 0
   FormationIndex: 0
   FormationLeader: {fileID: 0}
-  _EnableDebugGizmos: 0
 --- !u!114 &-2094783752960322070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1868,7 +1877,7 @@ MonoBehaviour:
   MaxShieldPoints: 200
   BoidManager: {fileID: 0}
   VehicleFaction: 4
-  Type: 0
+  Type: 1
   HitpointBarCanvas: {fileID: 6894111711972518283}
   HealthBar: {fileID: 4407329836811907037}
   ArmorBar: {fileID: 656281697264504808}
@@ -1876,7 +1885,9 @@ MonoBehaviour:
   HealthBarShader: {fileID: -6465566751694194690, guid: 4a53868445a75a246b83a1f930cbdccd, type: 3}
   EnergyShieldShader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
   ShieldEffect: {fileID: 124679239445400308}
-  ExplodeEffect: {fileID: 7698972359503818749, guid: dc871d3822e9f3649a40eba6bb930974, type: 3}
+  ExplodeEffect: {fileID: 5729205090524001833, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+  DamagedSmokeEffect: {fileID: 3807321059287357948, guid: 1c15e5f784293f443887091bb2b75dc2, type: 3}
+  DamagedPoint: {fileID: 1815981438850888034}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 40
   ArmorRegenerationRate: 1
@@ -1885,125 +1896,6 @@ MonoBehaviour:
   ShieldRegenerationDelay: 20
   EnableIndication: 1
   EnableModuleHits: 0
---- !u!96 &8601252320548999007
-TrailRenderer:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4103674997823826176}
-  m_Enabled: 1
-  m_CastShadows: 0
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 0
-  m_LightProbeUsage: 0
-  m_ReflectionProbeUsage: 0
-  m_RayTracingMode: 0
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 63deadf3909f1f7499635517fba7ab57, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_Time: 4
-  m_PreviewTimeScale: 1
-  m_Parameters:
-    serializedVersion: 3
-    widthMultiplier: 2
-    widthCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 1
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    colorGradient:
-      serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 1, b: 1, a: 1}
-      key2: {r: 0, g: 0, b: 0, a: 0}
-      key3: {r: 0, g: 0, b: 0, a: 0}
-      key4: {r: 0, g: 0, b: 0, a: 0}
-      key5: {r: 0, g: 0, b: 0, a: 0}
-      key6: {r: 0, g: 0, b: 0, a: 0}
-      key7: {r: 0, g: 0, b: 0, a: 0}
-      ctime0: 0
-      ctime1: 65535
-      ctime2: 0
-      ctime3: 0
-      ctime4: 0
-      ctime5: 0
-      ctime6: 0
-      ctime7: 0
-      atime0: 0
-      atime1: 65535
-      atime2: 0
-      atime3: 0
-      atime4: 0
-      atime5: 0
-      atime6: 0
-      atime7: 0
-      m_Mode: 0
-      m_ColorSpace: 0
-      m_NumColorKeys: 2
-      m_NumAlphaKeys: 2
-    numCornerVertices: 0
-    numCapVertices: 0
-    alignment: 0
-    textureMode: 0
-    textureScale: {x: 1, y: 1}
-    shadowBias: 0.5
-    generateLightingData: 0
-  m_MinVertexDistance: 1
-  m_Autodestruct: 0
-  m_Emitting: 1
-  m_ApplyActiveColorSpace: 1
 --- !u!1 &4262406418400434559
 GameObject:
   m_ObjectHideFlags: 0
@@ -2699,6 +2591,236 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &6797101902712719091
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1815981438850888034}
+  m_Layer: 9
+  m_Name: DamagePoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1815981438850888034
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6797101902712719091}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8272699120213676504}
+  - {fileID: 636615238525688630}
+  m_Father: {fileID: 5755628403890371861}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6825010574525605626
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8272699120213676504}
+  - component: {fileID: 1054381673143588947}
+  - component: {fileID: 1977059705920451831}
+  m_Layer: 0
+  m_Name: FlameWithSmokeVFX Damage Flame(Clone)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &8272699120213676504
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6825010574525605626}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.00999999}
+  m_LocalScale: {x: 8, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1815981438850888034}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!2083052967 &1054381673143588947
+VisualEffect:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6825010574525605626}
+  m_Enabled: 1
+  m_Asset: {fileID: 8926484042661614526, guid: e92eff469faa62040a9d1be0f81ebb6c, type: 3}
+  m_InitialEventName: OnPlay
+  m_InitialEventNameOverriden: 0
+  m_StartSeed: 0
+  m_ResetSeedOnPlay: 1
+  m_AllowInstancing: 1
+  m_ResourceVersion: 1
+  m_PropertySheet:
+    m_Float:
+      m_Array:
+      - m_Value: 0.5
+        m_Name: FlameLifeTime
+        m_Overridden: 1
+    m_Vector2f:
+      m_Array:
+      - m_Value: {x: 3, y: 4}
+        m_Name: SmokeLifeTime
+        m_Overridden: 1
+      - m_Value: {x: 5, y: 6}
+        m_Name: SmokeSize
+        m_Overridden: 1
+      - m_Value: {x: 2, y: 3}
+        m_Name: FlameSize
+        m_Overridden: 1
+    m_Vector3f:
+      m_Array: []
+    m_Vector4f:
+      m_Array: []
+    m_Uint:
+      m_Array: []
+    m_Int:
+      m_Array: []
+    m_Matrix4x4f:
+      m_Array: []
+    m_AnimationCurve:
+      m_Array: []
+    m_Gradient:
+      m_Array:
+      - m_Value:
+          serializedVersion: 2
+          key0: {r: 4, g: 0.8, b: 0.4, a: 1}
+          key1: {r: 0.6, g: 0.1, b: 0.05, a: 0}
+          key2: {r: 0.23773581, g: 0.049691502, b: 0, a: 0}
+          key3: {r: 0, g: 0, b: 0, a: 0}
+          key4: {r: 0, g: 0, b: 0, a: 0}
+          key5: {r: 0, g: 0, b: 0, a: 0}
+          key6: {r: 0, g: 0, b: 0, a: 0}
+          key7: {r: 0, g: 0, b: 0, a: 0}
+          ctime0: 0
+          ctime1: 3277
+          ctime2: 13107
+          ctime3: 65535
+          ctime4: 65535
+          ctime5: 0
+          ctime6: 0
+          ctime7: 0
+          atime0: 0
+          atime1: 65535
+          atime2: 0
+          atime3: 0
+          atime4: 0
+          atime5: 0
+          atime6: 0
+          atime7: 0
+          m_Mode: 0
+          m_ColorSpace: 1
+          m_NumColorKeys: 4
+          m_NumAlphaKeys: 2
+        m_Name: FlameColorGradient
+        m_Overridden: 1
+      - m_Value:
+          serializedVersion: 2
+          key0: {r: 0.2754717, g: 0.2754717, b: 0.2754717, a: 1}
+          key1: {r: 0, g: 0, b: 0, a: 0.3137255}
+          key2: {r: 0, g: 0, b: 0, a: 0}
+          key3: {r: 0, g: 0, b: 0, a: 0}
+          key4: {r: 0, g: 0, b: 0, a: 0}
+          key5: {r: 0, g: 0, b: 0, a: 0}
+          key6: {r: 0, g: 0, b: 0, a: 0}
+          key7: {r: 0, g: 0, b: 0, a: 0}
+          ctime0: 0
+          ctime1: 65535
+          ctime2: 0
+          ctime3: 0
+          ctime4: 0
+          ctime5: 0
+          ctime6: 0
+          ctime7: 0
+          atime0: 0
+          atime1: 6554
+          atime2: 65535
+          atime3: 0
+          atime4: 0
+          atime5: 0
+          atime6: 0
+          atime7: 0
+          m_Mode: 0
+          m_ColorSpace: 1
+          m_NumColorKeys: 2
+          m_NumAlphaKeys: 3
+        m_Name: SmokeColorGradient
+        m_Overridden: 1
+    m_NamedObject:
+      m_Array: []
+    m_Bool:
+      m_Array:
+      - m_Value: 1
+        m_Name: EnableFlame
+        m_Overridden: 1
+--- !u!73398921 &1977059705920451831
+VFXRenderer:
+  serializedVersion: 1
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6825010574525605626}
+  m_Enabled: 0
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 0
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
 --- !u!1 &6826598757164937096
 GameObject:
   m_ObjectHideFlags: 0
@@ -2818,7 +2940,7 @@ RectTransform:
   m_GameObject: {fileID: 6894111711972518283}
   m_LocalRotation: {x: -0.03971605, y: 0.7393297, z: 0.043777116, w: 0.67074424}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
+  m_LocalScale: {x: 0.099999994, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 3110045092184062921}
@@ -2826,7 +2948,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 8}
   m_SizeDelta: {x: 100, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &5795151401370849225
@@ -3137,6 +3259,203 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &8034966065892503429
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 636615238525688630}
+  - component: {fileID: 6842404432827432392}
+  - component: {fileID: 1836642565828513180}
+  m_Layer: 0
+  m_Name: FlameWithSmokeVFX Damage Flame(Clone)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &636615238525688630
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8034966065892503429}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1815981438850888034}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!2083052967 &6842404432827432392
+VisualEffect:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8034966065892503429}
+  m_Enabled: 1
+  m_Asset: {fileID: 8926484042661614526, guid: e92eff469faa62040a9d1be0f81ebb6c, type: 3}
+  m_InitialEventName: OnPlay
+  m_InitialEventNameOverriden: 0
+  m_StartSeed: 0
+  m_ResetSeedOnPlay: 1
+  m_AllowInstancing: 1
+  m_ResourceVersion: 1
+  m_PropertySheet:
+    m_Float:
+      m_Array:
+      - m_Value: 0.5
+        m_Name: FlameLifeTime
+        m_Overridden: 1
+    m_Vector2f:
+      m_Array:
+      - m_Value: {x: 3, y: 4}
+        m_Name: SmokeLifeTime
+        m_Overridden: 1
+      - m_Value: {x: 5, y: 6}
+        m_Name: SmokeSize
+        m_Overridden: 1
+      - m_Value: {x: 2, y: 3}
+        m_Name: FlameSize
+        m_Overridden: 1
+    m_Vector3f:
+      m_Array: []
+    m_Vector4f:
+      m_Array: []
+    m_Uint:
+      m_Array: []
+    m_Int:
+      m_Array: []
+    m_Matrix4x4f:
+      m_Array: []
+    m_AnimationCurve:
+      m_Array: []
+    m_Gradient:
+      m_Array:
+      - m_Value:
+          serializedVersion: 2
+          key0: {r: 4, g: 0.8, b: 0.4, a: 1}
+          key1: {r: 0.6, g: 0.1, b: 0.05, a: 0}
+          key2: {r: 0.23773581, g: 0.049691502, b: 0, a: 0}
+          key3: {r: 0, g: 0, b: 0, a: 0}
+          key4: {r: 0, g: 0, b: 0, a: 0}
+          key5: {r: 0, g: 0, b: 0, a: 0}
+          key6: {r: 0, g: 0, b: 0, a: 0}
+          key7: {r: 0, g: 0, b: 0, a: 0}
+          ctime0: 0
+          ctime1: 3277
+          ctime2: 13107
+          ctime3: 65535
+          ctime4: 65535
+          ctime5: 0
+          ctime6: 0
+          ctime7: 0
+          atime0: 0
+          atime1: 65535
+          atime2: 0
+          atime3: 0
+          atime4: 0
+          atime5: 0
+          atime6: 0
+          atime7: 0
+          m_Mode: 0
+          m_ColorSpace: 1
+          m_NumColorKeys: 4
+          m_NumAlphaKeys: 2
+        m_Name: FlameColorGradient
+        m_Overridden: 1
+      - m_Value:
+          serializedVersion: 2
+          key0: {r: 0.2754717, g: 0.2754717, b: 0.2754717, a: 1}
+          key1: {r: 0, g: 0, b: 0, a: 0.3137255}
+          key2: {r: 0, g: 0, b: 0, a: 0}
+          key3: {r: 0, g: 0, b: 0, a: 0}
+          key4: {r: 0, g: 0, b: 0, a: 0}
+          key5: {r: 0, g: 0, b: 0, a: 0}
+          key6: {r: 0, g: 0, b: 0, a: 0}
+          key7: {r: 0, g: 0, b: 0, a: 0}
+          ctime0: 0
+          ctime1: 65535
+          ctime2: 0
+          ctime3: 0
+          ctime4: 0
+          ctime5: 0
+          ctime6: 0
+          ctime7: 0
+          atime0: 0
+          atime1: 6554
+          atime2: 65535
+          atime3: 0
+          atime4: 0
+          atime5: 0
+          atime6: 0
+          atime7: 0
+          m_Mode: 0
+          m_ColorSpace: 1
+          m_NumColorKeys: 2
+          m_NumAlphaKeys: 3
+        m_Name: SmokeColorGradient
+        m_Overridden: 1
+    m_NamedObject:
+      m_Array: []
+    m_Bool:
+      m_Array:
+      - m_Value: 1
+        m_Name: EnableFlame
+        m_Overridden: 1
+--- !u!73398921 &1836642565828513180
+VFXRenderer:
+  serializedVersion: 1
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8034966065892503429}
+  m_Enabled: 0
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 0
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
 --- !u!1 &8646432863376355272
 GameObject:
   m_ObjectHideFlags: 0

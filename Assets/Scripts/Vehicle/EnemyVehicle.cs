@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.VFX;
 using System.Collections;
 using System.Collections.Generic;
 using static GlobalHelper;
@@ -16,7 +17,9 @@ public class EnemyVehicle : VehicleBase
     public Shader HealthBarShader;
     public Shader EnergyShieldShader;
     public GameObject ShieldEffect;
-    public ParticleSystem ExplodeEffect;
+    public VisualEffect ExplodeEffect;
+    public VisualEffect DamagedSmokeEffect;
+    public Transform DamagedPoint;
     [Header("Regeneration")]
     public int HitPointsRegenerationRate = 1;
     public float HitPointsRegenerationDelay = 40f;
@@ -39,6 +42,8 @@ public class EnemyVehicle : VehicleBase
     private Vector3 _velocity;
     public Vector3 Velocity => _velocity;
     private EnemyPredictionManager _predictionManager;
+    private VisualEffect _damagedSmokeInstance;
+    private bool _smokeEffectInitialized = false;
 
     void OnEnable()
     {
@@ -108,6 +113,16 @@ public class EnemyVehicle : VehicleBase
             ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial = new Material(EnergyShieldShader);
             ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", 1.0f);
         }
+
+        if (!_smokeEffectInitialized && DamagedSmokeEffect != null && DamagedPoint != null)
+        {
+            _damagedSmokeInstance = Instantiate(DamagedSmokeEffect, DamagedPoint);
+            _damagedSmokeInstance.transform.localPosition = Vector3.zero;
+            _damagedSmokeInstance.transform.localEulerAngles = Vector3.zero;
+            _damagedSmokeInstance.Stop();
+            _damagedSmokeInstance.gameObject.SetActive(false);
+            _smokeEffectInitialized = true;
+        }
     }
 
     void Update()
@@ -139,13 +154,49 @@ public class EnemyVehicle : VehicleBase
         {
             EnableHitpointBar(false);
         }
+
+        if (HitPoints < MaxHitPoints / 2)
+        {
+            if (_damagedSmokeInstance != null && !_damagedSmokeInstance.gameObject.activeSelf)
+            {
+                _damagedSmokeInstance.gameObject.SetActive(true);
+                _damagedSmokeInstance.transform.position = DamagedPoint.position;
+                _damagedSmokeInstance.Play();
+            }
+        }
+        else
+        {
+            if (_damagedSmokeInstance != null && _damagedSmokeInstance.gameObject.activeSelf)
+            {
+                _damagedSmokeInstance.Stop();
+                _damagedSmokeInstance.gameObject.SetActive(false);
+            }
+        }
     }
 
-    public override void RestoreHitPoints() => RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer, 0.1f, HealthBar.GetComponent<Image>().material, "_CurrentHitPoints");
-    public override void RestoreArmor() => RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer, 0.1f, ArmorBar.GetComponent<Image>().material, "_CurrentHitPoints");
-    public override void RestoreShield() => RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer, 0.1f, ShieldBar.GetComponent<Image>().material, "_CurrentHitPoints", true);
+    public override void RestoreHitPoints()
+    {
+        if (HealthBar != null)
+            RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer, 0.1f, HealthBar.GetComponent<Image>().material, "_CurrentHitPoints");
+        else
+            RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer);
+    }
+    public override void RestoreArmor()
+    {
+        if (ArmorBar != null)
+            RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer, 0.1f, ArmorBar.GetComponent<Image>().material, "_CurrentHitPoints");
+        else
+            RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer);
 
-    private void RegenerateAttributtes(ref int currentAmount, ref int maxAmount, ref int regenerationRate, ref float regenTimer, float delay, Material barMat, string matKeyword, bool isShield = false)
+    }
+    public override void RestoreShield()
+    {
+        if (ShieldBar != null)
+            RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer, 0.1f, ShieldBar.GetComponent<Image>().material, "_CurrentHitPoints", true);
+        else
+            RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer);
+    }
+    private void RegenerateAttributtes(ref int currentAmount, ref int maxAmount, ref int regenerationRate, ref float regenTimer, float delay, Material barMat = null, string matKeyword = "", bool isShield = false)
     {
         regenTimer += Time.deltaTime;
         if (regenTimer >= delay && currentAmount < maxAmount)
@@ -155,6 +206,23 @@ public class EnemyVehicle : VehicleBase
                 currentAmount = maxAmount;
 
             barMat.SetInt(matKeyword, currentAmount);
+            if (isShield)
+            {
+                ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", currentAmount / (float)maxAmount);
+            }
+            regenTimer = 0f;
+        }
+    }
+
+    private void RegenerateAttributtes(ref int currentAmount, ref int maxAmount, ref int regenerationRate, ref float regenTimer, float delay = 0.1f, bool isShield = false)
+    {
+        regenTimer += Time.deltaTime;
+        if (regenTimer >= delay && currentAmount < maxAmount)
+        {
+            currentAmount += regenerationRate;
+            if (currentAmount > maxAmount)
+                currentAmount = maxAmount;
+
             if (isShield)
             {
                 ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", currentAmount / (float)maxAmount);
@@ -221,22 +289,44 @@ public class EnemyVehicle : VehicleBase
             PawnCountManager.UpdateAllyCountAction?.Invoke();
         }
 
-        var boid = GetComponent<Boid>();
+        // Keep enemy vehicle moving
+        // var boid = GetComponent<Boid>();
 
-        if (boid != null && BoidManager != null)
-        {
-            BoidManager.RemoveBoid(boid);
-        }
+        // if (boid != null && BoidManager != null)
+        // {
+        //     BoidManager.RemoveBoid(boid);
+        // }
 
         if (ExplodeEffect != null)
         {
-            Instantiate(ExplodeEffect, transform.position, transform.rotation);
+                VisualEffect explode = VFXPool.Instance.Get(ExplodeEffect, transform.position, transform.rotation);
+                if (explode != null)
+                {
+                    VFXPooledInstance pooled = explode.GetComponent<VFXPooledInstance>();
+                    if (pooled == null)
+                    {
+                        pooled = explode.gameObject.AddComponent<VFXPooledInstance>();
+                        pooled.Initialize(ExplodeEffect);
+                    }
+                    else
+                        pooled.spawnTime = Time.time;
+                }
         }
-        Destroy(gameObject, 0.1f);
+        // Disable all weapons but keeps visual, then destroy after short delay
+        var weapons = GetComponentsInChildren<WeaponBase>();
+        foreach (var weapon in weapons)
+        {
+            weapon.enabled = false;
+        }
+        // Set Faction to Neutral to avoid further interactions
+        VehicleFaction = Faction.Neutral;
+
+        Destroy(gameObject);
     }
 
     public void EnableHitpointBar(bool enable)
     {
-        HitpointBarCanvas.SetActive(enable);
+        if (HitpointBarCanvas)
+            HitpointBarCanvas.SetActive(enable);
     }
 }

@@ -19,7 +19,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3449610485239219872
 Transform:
   m_ObjectHideFlags: 0
@@ -652,16 +652,20 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 50, y: 2000}
   UpdateRate: 30
+  UseTargetDistribution: 1
+  AvoidOverTargeting: 1
+  PriorityConfig: {fileID: 0}
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
   Effectiveness: 1
   IsFunctional: 1
-  ShowGizmos: 1
+  IsManualTargeting: 0
+  ManualTargetDuration: 0
+  EnableDebug: 1
+  ShowGunAngles: 0
   UseManagedUpdates: 1
   _fireDelay: 1.2
-  MuzzleVelocity: 200
-  SelfDestructionTime: 10
   Deviation: 2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -680,6 +684,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0
@@ -778,6 +786,8 @@ MonoBehaviour:
   flockmatesCenter: {x: 0, y: 0, z: 0}
   numPerceivedFlockmates: 0
   HeightRange: {x: -1000, y: 5000}
+  _EnableDebugLogs: 0
+  _EnableDebugGizmos: 0
   IsInCombat: 0
   FormationIndex: 0
   FormationLeader: {fileID: 0}
@@ -794,6 +804,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
   OwnerShip: {fileID: 4103674997823826176}
+  IsShowHitpointBar: 0
   HitPoints: 50
   MaxHitPoints: 50
   ArmorPoints: 100
@@ -803,6 +814,7 @@ MonoBehaviour:
   BoidManager: {fileID: 0}
   VehicleFaction: 4
   Type: 0
+  HitpointBarCanvas: {fileID: 6894111711972518283}
   HealthBar: {fileID: 4407329836811907037}
   ArmorBar: {fileID: 656281697264504808}
   ShieldBar: {fileID: 5030111709581805343}
@@ -810,6 +822,10 @@ MonoBehaviour:
   EnergyShieldShader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
   ShieldEffect: {fileID: 124679239445400308}
   ExplodeEffect: {fileID: 7698972359503818749, guid: dc871d3822e9f3649a40eba6bb930974, type: 3}
+  HitPointsRegenerationRate: 1
+  HitPointsRegenerationDelay: 40
+  ArmorRegenerationRate: 1
+  ArmorRegenerationDelay: 40
   ShieldRegenerationRate: 2
   ShieldRegenerationDelay: 2
   EnableIndication: 1
@@ -1279,16 +1295,20 @@ MonoBehaviour:
   GuidanceType: 1
   ActiveRange: {x: 50, y: 2000}
   UpdateRate: 30
+  UseTargetDistribution: 1
+  AvoidOverTargeting: 1
+  PriorityConfig: {fileID: 0}
   CanTargetMissiles: 0
   PrioritizeMissiles: 0
   MissileDetectionRange: 200
   Effectiveness: 1
   IsFunctional: 1
-  ShowGizmos: 1
+  IsManualTargeting: 0
+  ManualTargetDuration: 0
+  EnableDebug: 1
+  ShowGunAngles: 0
   UseManagedUpdates: 1
   _fireDelay: 1.2
-  MuzzleVelocity: 200
-  SelfDestructionTime: 10
   Deviation: 2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -1307,6 +1327,10 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: 20011adb44557d04888fdfaa9c956362, type: 3}
   FireInFixed: 1
   IsFiring: 0
+  MaxHeat: 100
+  HeatPerShot: 10
+  HeatDissipationRate: 20
+  CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
   IsManualMode: 0

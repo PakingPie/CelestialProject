@@ -83,6 +83,28 @@ public abstract class AALauncher : MonoBehaviour
     }
 
     /// <summary>
+    /// Gets the velocity of the owner ship for inherited velocity on missile launch.
+    /// Checks for EnemyVehicle or PlayerShipMovement components.
+    /// </summary>
+    protected Vector3 GetOwnerVelocity()
+    {
+        if (ownShip == null)
+            return Vector3.zero;
+
+        // Try EnemyVehicle first (most common for AI ships)
+        var enemyVehicle = ownShip.GetComponentInParent<EnemyVehicle>();
+        if (enemyVehicle != null)
+            return enemyVehicle.Velocity;
+
+        // Try PlayerShipMovement for player ship
+        var playerMovement = ownShip.GetComponentInParent<PlayerShipMovement>();
+        if (playerMovement != null)
+            return playerMovement.Velocity;
+
+        return Vector3.zero;
+    }
+
+    /// <summary>
     /// Launches a spawned missile at the given target.
     /// </summary>
     /// <param name="target">If no target is given, the missile will fire without guidance.</param>
