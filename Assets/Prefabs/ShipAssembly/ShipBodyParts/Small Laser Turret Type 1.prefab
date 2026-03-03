@@ -65,8 +65,16 @@ MonoBehaviour:
   FireTarget: 12
   GuidanceType: 1
   ActiveRange: {x: 10, y: 1500}
-  UpdateRate: 60
+  UseTargetDistribution: 1
+  AvoidOverTargeting: 1
   PriorityConfig: {fileID: 0}
+  _targetUpdateInterval: 3
+  _targetUpdateJitter: 1
+  _maxTargetUpdateInterval: 12
+  _noTargetBackoffStep: 1
+  _targetReuseFrames: 2
+  _noTargetSearchRange: 400
+  _fullRangeCheckInterval: 10
   CanTargetMissiles: 1
   PrioritizeMissiles: 0
   MissileDetectionRange: 1500
@@ -80,7 +88,7 @@ MonoBehaviour:
   LaserLineRenderer: {fileID: 2570990964021263345}
   LaserEffectDuration: 2
   MinimumLaserDamageInterval: 0.5
-  FireInterval: 2
+  FireInterval: 5
   LaserDPS: 10
   IsFiring: 0
   LaserOrigin: {fileID: 4072340531860966386}
