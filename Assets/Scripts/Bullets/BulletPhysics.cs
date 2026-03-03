@@ -68,6 +68,9 @@ public class BulletPhysics : MonoBehaviour
         _explosionRadiusSqr = ExplosionRadius * ExplosionRadius;
     }
 
+    private void OnEnable()  { BlackHoleGravity.RegisterBullet(this); }
+    private void OnDisable() { BlackHoleGravity.UnregisterBullet(this); }
+
     public void Initialize(Vector3 shooterVelocity)
     {
         _inheritedVelocity = shooterVelocity * velocityInheritance;
@@ -340,6 +343,20 @@ public class BulletPhysics : MonoBehaviour
         _velocity = Vector3.zero;
         _inheritedVelocity = Vector3.zero;
         _initialized = false;
+    }
+
+    /// <summary>Adds an external velocity impulse (e.g. from black hole gravity). Modifies the bullet's velocity directly.</summary>
+    public void AddExternalVelocity(Vector3 deltaV) { _velocity += deltaV; }
+
+    /// <summary>Silently consumes this bullet (event horizon). Returns it to pool without spawning any VFX.</summary>
+    public void ConsumeBullet()
+    {
+        CleanUpTrails();
+        ResetBullet(); // also calls UnregisterBullet
+        if (BulletPool.Instance != null)
+            BulletPool.Instance.Return(gameObject);
+        else
+            Destroy(gameObject);
     }
 
     private void CleanUpTrails()
