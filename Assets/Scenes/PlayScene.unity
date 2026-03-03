@@ -11370,7 +11370,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1456225715
 Transform:
   m_ObjectHideFlags: 0
@@ -11515,13 +11515,14 @@ GameObject:
   - component: {fileID: 1483714740}
   - component: {fileID: 1483714739}
   - component: {fileID: 1483714738}
+  - component: {fileID: 1483714742}
   m_Layer: 0
   m_Name: BlackHole
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!135 &1483714738
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -11609,12 +11610,30 @@ Transform:
   m_GameObject: {fileID: 1483714737}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1446}
+  m_LocalPosition: {x: 0, y: 0, z: -2500}
   m_LocalScale: {x: 1000, y: 1000, z: 1000}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1483714742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1483714737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4915fc9c3d4c0d749aeb50cec95dd564, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BlackHoleGravity
+  InfluenceRadius: 1000
+  GravitationalStrength: 10000
+  EventHorizonRadius: 60
+  MinAcceleration: 60
+  DebugMode: 0
+  DebugLogInterval: 2
 --- !u!1 &1486282239
 GameObject:
   m_ObjectHideFlags: 0
