@@ -279,7 +279,7 @@ public class AAMissile : MonoBehaviour
                 else if (vehicle is WeaponPlatform weaponPlatform)
                 {
                     // For WeaponPlatform, get its parent vehicle
-                    VehicleBase parentVehicle = weaponPlatform.OwnerShip?.GetComponent<VehicleBase>();
+                    VehicleBase parentVehicle = weaponPlatform.OwnerShip != null ? weaponPlatform.OwnerShip.GetComponent<VehicleBase>() : null;
                     if (parentVehicle != null && !damagedParents.Contains(parentVehicle))
                     {
                         parentVehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);

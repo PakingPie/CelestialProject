@@ -87,10 +87,15 @@ public class WeaponPlatform : VehicleBase
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
     {
-        if (OwnerShip == null) return false;
-        var ownerVehicle = OwnerShip.GetComponent<VehicleBase>();
-        if (ownerVehicle == null) return false;
-        ownerVehicle.TakeDamage(damage, ammoType);
+        if (OwnerShip != null)
+        {
+            var ownerVehicle = OwnerShip.GetComponent<VehicleBase>();
+            if (ownerVehicle != null)
+            {
+                ownerVehicle.TakeDamage(damage, ammoType);
+            }
+        }
+
 
         // Simple damage calculation; can be expanded based on ammoType and armor/shield
         switch (ammoType)

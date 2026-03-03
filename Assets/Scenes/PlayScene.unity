@@ -8559,6 +8559,8 @@ MonoBehaviour:
   _leadDistanceMultiplier: 0.5
   _minVelocityToShowLead: 5
   _referenceGun: {fileID: 0}
+  _accelerationSmoothingAlpha: 0.3
+  _minAccelerationMagnitude: 2
   _lineMaterial: {fileID: 2100000, guid: 9b7888b2bd0e7a94ca705c211b746a74, type: 2}
   _lineWidth: 1
   _scaleLineWidth: 0
@@ -11522,7 +11524,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!135 &1483714738
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -16570,7 +16572,7 @@ Transform:
   m_GameObject: {fileID: 2117162494}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -3000}
+  m_LocalPosition: {x: 0, y: 0, z: -4000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
