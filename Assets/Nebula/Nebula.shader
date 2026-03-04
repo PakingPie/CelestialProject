@@ -169,7 +169,7 @@ Shader "Custom/Nebula"
             // https://www.shadertoy.com/view/3l23Rh
             float fbm(float3 p)
             {
-                const int   octaves  = 12;
+                const int   octaves  = 6;
                 const float fbmScale = 1.95;
 
                 // Rotation by PI/12 around Z, scaled — prevents octave alignment.
@@ -332,46 +332,53 @@ Shader "Custom/Nebula"
                 if (!getCloudIntersection(org, dir, distToStart, totalDistance))
                     return colour;
 
-                float stepS = totalDistance / float(stepsPrimary);
-                distToStart += stepS * offset; // blue-noise dither
+                float stepS       = totalDistance / float(stepsPrimary);
+                float stepSCoarse = stepS * 4.0; // skip empty space 4× faster
+                distToStart      += stepS * offset; // blue-noise dither
 
-                float  dist = distToStart;
-                float3 p    = org + dist * dir;
+                float  dist    = distToStart;
+                float  maxDist = distToStart + totalDistance;
+                float  curStep = stepSCoarse;
+                float3 p       = org + dist * dir;
 
                 float mu            = dot(dir, sunDirection);
                 float phaseFunction = lerp(HenyeyGreenstein(-0.3, mu),
                                            HenyeyGreenstein( 0.3, mu), 0.7);
                 float3 sunLight     = _MainLightColor.rgb * _Power;
 
+                // Budget: stepsPrimary * 2.
+                // Back-up steps don't advance dist, so fine steps never exceed stepsPrimary.
+                // No 'continue' used — avoids burning the loop counter on back-up iterations.
                 [loop]
-                for (int i = 0; i < stepsPrimary; i++)
+                for (int i = 0; i < stepsPrimary * 2; i++)
                 {
+                    if (dist > maxDist) break;
+
                     float density = clouds(p);
 
-                    // ── Spherical density fade ──
-                    // Taper density to zero toward the volume boundary so the cube
-                    // silhouette dissolves into an organic cloud shape.
-                    // length(p) is in noise space: face center = CLOUD_EXTENT (10),
-                    // corner = CLOUD_EXTENT * sqrt(3) ≈ 17.3.
-                    // Normalising by CLOUD_EXTENT makes the radii intuitive (0–1).
-                    // ── Axis stretch: scale p non-uniformly before computing radius ──
-                    // This makes the base envelope an ellipsoid rather than a sphere,
-                    // breaking the round silhouette at a fundamental level.
-                    // The noise direction lookup also uses stretchedP so lobe patterns
-                    // align with the ellipsoid axes rather than a sphere.
+                    // ── Ellipsoidal shape fade ──
                     float3 stretchedP    = p * max(_AxisStretch.xyz, 0.01);
                     float  normalizedDist = length(stretchedP) / CLOUD_EXTENT;
-                    float  fadeNoise     = fbm(normalize(stretchedP) * 2.5) - 0.5; // remap 0..1 → -0.5..0.5
+                    float  fadeNoise     = fbm(normalize(stretchedP) * 2.5) - 0.5;
                     float  perturbedDist = normalizedDist - fadeNoise * _FadeNoiseStrength;
-                    float shapeFade = 1.0 - smoothstep(_FadeInnerRadius, _FadeOuterRadius, perturbedDist);
+                    float  shapeFade     = 1.0 - smoothstep(_FadeInnerRadius, _FadeOuterRadius, perturbedDist);
                     density *= shapeFade;
 
-                    if (density > 0.0)
+                    if (density > 0.0 && curStep > stepS * 1.1)
                     {
+                        // Hit density on a coarse step: back up to start of this interval,
+                        // switch to fine. Dist is NOT advanced — next iteration re-samples
+                        // this same point at fine resolution.
+                        dist    = max(dist - curStep, distToStart);
+                        p       = org + dir * dist;
+                        curStep = stepS;
+                    }
+                    else if (density > 0.0)
+                    {
+                        // ── Fine step hit: integrate ──
                         float3 sampleSigmaS = sigmaS * density;
                         float3 sampleSigmaE = sigmaE * density;
 
-                        // Ambient: stars scattered inside the nebula
                         #if defined(_STARS_ON)
                         float3 ambient =
                             1.0 * getStars(p)                +
@@ -383,32 +390,37 @@ Shader "Custom/Nebula"
                         float3 ambient = float3(0, 0, 0);
                         #endif
 
-                        // Combined illumination at this sample
                         float3 luminance = ambient
                             + sunLight * phaseFunction * lightRay(p, mu, sunDirection, stepsLight);
-
                         luminance *= sampleSigmaS;
 
-                        // Beer-Lambert transmittance over this step
                         float3 transmittance = exp(-sampleSigmaE * stepS);
 
-                        // Energy-conserving integration (Frostbite 5.6)
                         colour += totalTransmittance
                                * (luminance - luminance * transmittance)
                                / max(sampleSigmaE, 1e-6);
 
                         totalTransmittance *= transmittance;
 
-                        // Early exit: no light gets through anymore
                         if (length(totalTransmittance) <= 0.001)
                         {
                             totalTransmittance = 0;
                             return colour;
                         }
-                    }
 
-                    dist += stepS;
-                    p     = org + dir * dist;
+                        dist += curStep;
+                        p     = org + dir * dist;
+                    }
+                    else
+                    {
+                        // Empty space: advance.
+                        // Only use coarse step if still in coarse phase (curStep wasn't
+                        // switched to fine yet). Once fine, stay fine — reverting to coarse
+                        // after a back-up causes oscillation between the last empty and first
+                        // dense positions, burning the iteration budget with no integration.
+                        dist += curStep;
+                        p     = org + dir * dist;
+                    }
                 }
 
                 return colour;
