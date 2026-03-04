@@ -7,7 +7,8 @@ Shader "Custom/Nebula"
     Properties
     {
         [Header(Lighting)]
-        _Power ("Light Power", Float) = 200.0
+        _Power       ("Light Power",   Float)  = 200.0
+        [HDR] _NebulaColor ("Nebula Color Tint", Color) = (1, 1, 1, 1)
 
         [Header(Shape Fade breaks cube silhouette)]
         _FadeInnerRadius   ("Fade Inner Radius",    Range(0, 1)) = 0.55
@@ -22,7 +23,8 @@ Shader "Custom/Nebula"
         _StepsLight   ("Light Ray Steps",   Int) = 8
 
         [Header(Stars)]
-        [Toggle(_STARS_ON)] _StarsOn ("Enable Stars", Float) = 1
+        [Toggle(_STARS_ON)] _StarsOn       ("Enable Stars",     Float)        = 1
+        _StarBrightness                    ("Star Brightness",  Range(0, 0.5)) = 0.05
 
         [Header(Dithering assign 1024x1024 blue noise)]
         _BlueNoise   ("Blue Noise Texture",  2D)          = "white" {}
@@ -76,11 +78,13 @@ Shader "Custom/Nebula"
             CBUFFER_START(UnityPerMaterial)
                 float4 _BlueNoise_ST;
                 float4 _AxisStretch;
+                float4 _NebulaColor;
                 float  _Power;
                 float  _DitherSpeed;
                 float  _FadeInnerRadius;
                 float  _FadeOuterRadius;
                 float  _FadeNoiseStrength;
+                float  _StarBrightness;
                 int    _StepsPrimary;
                 int    _StepsLight;
             CBUFFER_END
@@ -253,7 +257,7 @@ Shader "Custom/Nebula"
                 bestRand = clamp(0.5 + 0.5 * bestRand, 0.0, 1.0);
                 float3 rand2 = clamp(0.5 + 0.5 * hash(bestCell + float3(3.12, 104.9, -9.5)), 0.0, 1.0);
 
-                return float3(0.05, 0.05, 0.05)
+                return float3(_StarBrightness, _StarBrightness, _StarBrightness)
                      * bestRand.z
                      * step(0.45, rand2.z)
                      * lerp(float3(1, 1, 1), getColour(bestRand.y), 0.3)
@@ -459,6 +463,9 @@ Shader "Custom/Nebula"
                 float3 col = mainRay(org, dir, sunDirection,
                                      totalTransmittance, offset,
                                      _StepsPrimary, _StepsLight);
+
+                // ── Nebula color tint (applied before tonemapping so HDR values work) ──
+                col *= _NebulaColor.rgb;
 
                 // ── Tonemap + gamma ──
                 col = ACESFilm(col);
