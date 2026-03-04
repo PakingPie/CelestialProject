@@ -9,6 +9,14 @@ Shader "Custom/Nebula"
         [Header(Lighting)]
         _Power ("Light Power", Float) = 200.0
 
+        [Header(Shape Fade breaks cube silhouette)]
+        _FadeInnerRadius   ("Fade Inner Radius",    Range(0, 1)) = 0.55
+        _FadeOuterRadius   ("Fade Outer Radius",    Range(0, 1)) = 0.95
+        _FadeNoiseStrength ("Fade Noise Strength",  Range(0, 1)) = 0.35
+        // Stretch the nebula shape along each world axis.
+        // (1,1,1) = sphere. Uneven values = ellipsoid / irregular blob.
+        _AxisStretch       ("Axis Stretch (X Y Z)", Vector)      = (1.0, 0.6, 1.4, 0)
+
         [Header(Quality lower steps for better performance)]
         _StepsPrimary ("Primary Ray Steps", Int) = 32
         _StepsLight   ("Light Ray Steps",   Int) = 8
@@ -67,8 +75,12 @@ Shader "Custom/Nebula"
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _BlueNoise_ST;
+                float4 _AxisStretch;
                 float  _Power;
                 float  _DitherSpeed;
+                float  _FadeInnerRadius;
+                float  _FadeOuterRadius;
+                float  _FadeNoiseStrength;
                 int    _StepsPrimary;
                 int    _StepsLight;
             CBUFFER_END
@@ -331,6 +343,24 @@ Shader "Custom/Nebula"
                 for (int i = 0; i < stepsPrimary; i++)
                 {
                     float density = clouds(p);
+
+                    // ── Spherical density fade ──
+                    // Taper density to zero toward the volume boundary so the cube
+                    // silhouette dissolves into an organic cloud shape.
+                    // length(p) is in noise space: face center = CLOUD_EXTENT (10),
+                    // corner = CLOUD_EXTENT * sqrt(3) ≈ 17.3.
+                    // Normalising by CLOUD_EXTENT makes the radii intuitive (0–1).
+                    // ── Axis stretch: scale p non-uniformly before computing radius ──
+                    // This makes the base envelope an ellipsoid rather than a sphere,
+                    // breaking the round silhouette at a fundamental level.
+                    // The noise direction lookup also uses stretchedP so lobe patterns
+                    // align with the ellipsoid axes rather than a sphere.
+                    float3 stretchedP    = p * max(_AxisStretch.xyz, 0.01);
+                    float  normalizedDist = length(stretchedP) / CLOUD_EXTENT;
+                    float  fadeNoise     = fbm(normalize(stretchedP) * 2.5) - 0.5; // remap 0..1 → -0.5..0.5
+                    float  perturbedDist = normalizedDist - fadeNoise * _FadeNoiseStrength;
+                    float shapeFade = 1.0 - smoothstep(_FadeInnerRadius, _FadeOuterRadius, perturbedDist);
+                    density *= shapeFade;
 
                     if (density > 0.0)
                     {
