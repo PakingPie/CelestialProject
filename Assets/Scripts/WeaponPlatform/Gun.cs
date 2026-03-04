@@ -61,6 +61,14 @@ public class Gun : WeaponBase
     public bool UseAmmo = false;
     public int MaxAmmo = 10000;
 
+    [Header("Lead Prediction")]
+    [Tooltip("When enabled, uses smoothed target acceleration to improve lead accuracy for thrusting targets.")]
+    [SerializeField] private bool _useAccelerationPrediction = false;
+    [Tooltip("How quickly the smoothed acceleration tracks raw acceleration. Lower = smoother but slower to react.")]
+    [SerializeField] private float _accelerationSmoothingAlpha = 0.3f;
+    [Tooltip("Minimum acceleration magnitude (m/s²) required before the acceleration path is used.")]
+    [SerializeField] private float _minAccelerationMagnitude = 2f;
+
     [Header("Manual Control")]
     [Tooltip("When true, gun is in manual firing mode controlled by player")]
     public bool IsManualMode = false;
@@ -72,6 +80,8 @@ public class Gun : WeaponBase
     // private bool _hasLastFramePos = false;
     // private const float TargetVelocitySmoothSpeed = 8f;
 
+    private TrackedTarget _trackedTargetData;
+    private Transform _lastTargeted;
     private bool _isManualFiring = false;
     private Vector3 _manualAimPosition = Vector3.zero;
     private bool _isSequentialBurstActive = false;
@@ -163,6 +173,8 @@ public class Gun : WeaponBase
         {
             UpdateInheritedVelocity();
         }
+
+        UpdateTargetAcceleration();
         // Handle manual vs automatic mode
         if (IsManualMode)
         {
@@ -224,15 +236,30 @@ public class Gun : WeaponBase
                         ? FirePoints[_firePointIndex % FirePoints.Count]
                         : transform;
 
-                    Vector3 interceptPoint = LeadCalculator.CalculateInterceptPoint(
-                        firePoint.position,
-                        shipVelocity,
-                        BulletPrefab.Speed,
-                        Targeted.position,
-                        targetVelocity,
-                        BulletPrefab.velocityInheritance,  // Account for inheritance
-                        5f
-                    );
+                    Vector3 acceleration = (_useAccelerationPrediction && _trackedTargetData != null)
+                        ? _trackedTargetData.SmoothedAcceleration
+                        : Vector3.zero;
+
+                    Vector3 interceptPoint = (_useAccelerationPrediction && acceleration.magnitude >= _minAccelerationMagnitude)
+                        ? LeadCalculator.CalculateInterceptPointWithAcceleration(
+                            firePoint.position,
+                            shipVelocity,
+                            BulletPrefab.Speed,
+                            Targeted.position,
+                            targetVelocity,
+                            acceleration,
+                            BulletPrefab.velocityInheritance,
+                            BulletPrefab.LifeTime
+                        )
+                        : LeadCalculator.CalculateInterceptPoint(
+                            firePoint.position,
+                            shipVelocity,
+                            BulletPrefab.Speed,
+                            Targeted.position,
+                            targetVelocity,
+                            BulletPrefab.velocityInheritance,  // Account for inheritance
+                            BulletPrefab.LifeTime
+                        );
 
                     if (interceptPoint != Vector3.zero)
                     {
@@ -248,7 +275,7 @@ public class Gun : WeaponBase
                             BulletPrefab.Speed,
                             shipVelocity,                      // Add
                             BulletPrefab.velocityInheritance,  // Add
-                            5f
+                            BulletPrefab.LifeTime
                         );
                         GimbalTarget = aimPosition;
                     }
@@ -591,6 +618,19 @@ public class Gun : WeaponBase
     private void UpdateInheritedVelocity()
     {
         InheritedVelocity = LeadCalculator.GetTargetVelocity(transform);
+    }
+
+    // Maintains a TrackedTarget for the current Targeted transform to estimate acceleration
+    private void UpdateTargetAcceleration()
+    {
+        if (Targeted != _lastTargeted)
+        {
+            _lastTargeted = Targeted;
+            _trackedTargetData = Targeted != null
+                ? new TrackedTarget(Targeted, IndicatorType.Enemy, () => LeadCalculator.GetTargetVelocity(Targeted))
+                : null;
+        }
+        _trackedTargetData?.UpdateAcceleration(Time.deltaTime, _accelerationSmoothingAlpha);
     }
 
     // TODO: Need to check change ammo while firing

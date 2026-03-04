@@ -62,6 +62,44 @@ public static class LeadCalculator
     }
 
     /// <summary>
+    /// Calculates the intercept point accounting for constant target acceleration using iterative refinement.
+    /// More accurate than CalculateInterceptPoint for thrusting targets at longer ranges.
+    /// Falls back gracefully if no valid solution converges.
+    /// </summary>
+    public static Vector3 CalculateInterceptPointWithAcceleration(
+    Vector3 shooterPos,
+    Vector3 shooterVelocity,
+    float projectileSpeed,
+    Vector3 targetPos,
+    Vector3 targetVelocity,
+    Vector3 targetAcceleration,
+    float velocityInheritance = 1f,
+    float maxPredictionTime = 5f,
+    int iterations = 4)
+    {
+        Vector3 effectiveShooterVel = shooterVelocity * velocityInheritance;
+
+        // Seed with a simple distance-based time estimate
+        float t = Mathf.Min(Vector3.Distance(targetPos, shooterPos) / projectileSpeed, maxPredictionTime);
+
+        // Iterative refinement: each pass updates t using the target's accelerated predicted position
+        for (int i = 0; i < iterations; i++)
+        {
+            Vector3 predictedTargetPos = targetPos + targetVelocity * t + 0.5f * targetAcceleration * (t * t);
+            Vector3 relativeVec = predictedTargetPos - shooterPos - effectiveShooterVel * t;
+            float newT = relativeVec.magnitude / projectileSpeed;
+            newT = Mathf.Clamp(newT, 0f, maxPredictionTime);
+            if (Mathf.Abs(newT - t) < 0.001f) break;
+            t = newT;
+        }
+
+        if (t <= 0f) return Vector3.zero;
+
+        Vector3 finalPredictedPos = targetPos + targetVelocity * t + 0.5f * targetAcceleration * (t * t);
+        return finalPredictedPos - effectiveShooterVel * t;
+    }
+
+    /// <summary>
     /// Simple linear prediction fallback when intercept calculation fails.
     /// </summary>
     public static Vector3 CalculateSimpleLead(
