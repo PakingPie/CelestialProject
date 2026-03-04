@@ -6,8 +6,8 @@ Shader "Custom/MyBlackHole_2"
         _NoiseTex ("Noise texture", 2D) = "white" {}
         _TexTiling ("Noise Texture Tiling", Vector) = (1, 1, 0, 0)
         _DiscTex ("Disc texture", 2D) = "white" {}
-        _DiscRadius ("Disc radius (ST units)", float) = 3.2
-        _DiscWidth ("Disc width (ST units)", float) = 5.3
+        _DiscRadius ("Disc inner radius (ST units)", float) = 1.0
+        _DiscWidth ("Disc width (ST units)", float) = 5.0
         _DiscSpeed ("Disc rotation speed", float) = .05
         _Steps ("Amount of steps", int) = 200
         _SSRadius ("Schwarzschild radius (ST units)", float) = 0.3
@@ -161,22 +161,24 @@ Shader "Custom/MyBlackHole_2"
             // pos is in ST local space (black hole at origin). All constants identical to ShaderToy.
             void GasDisc(float stStepSize, inout float3 color, inout float alpha, float3 pos)
             {
+                // _DiscRadius = inner edge (closest to black hole), disc extends outward by _DiscWidth
                 float discWidth = _DiscWidth;
-                float discInner = _DiscRadius - _DiscWidth * 0.5;
-                float discOuter = _DiscRadius + _DiscWidth * 0.5;
-                if (discInner < 0) discInner = 0;
+                float discInner = max(0.0, _DiscRadius);
+                float discOuter = discInner + discWidth;
                 
                 float3 discNormal = normalize(float3(0.0, 1.0, 0.0));
-                float discThickness = 0.1;
+                // Minimum thickness so outer disc edge always has some vertical extent
+                float discThickness = 0.25;
 
                 float distFromCenter = length(pos);
                 float distFromDisc = dot(discNormal, pos);
                 
-                float radialGradient = 1.0 - saturate((distFromCenter - discInner) / discWidth * .5);
+                float radialGradient = 1.0 - saturate((distFromCenter - discInner) / discWidth);
 
                 float coverage = pcurve(radialGradient, 4.0, 0.9);
 
-                discThickness *= radialGradient;
+                // lerp keeps a minimum thickness of 0.05 at the outer disc edge
+                discThickness *= lerp(0.2, 1.0, radialGradient);
                 coverage *= saturate(1.0 - abs(distFromDisc) / discThickness);
 
                 float3 dustColorLit = _MainColor;
@@ -232,7 +234,13 @@ Shader "Custom/MyBlackHole_2"
                 
                 radialCoords.y += _Time.y * speed * 0.5;
                 
-                dustColor *= pow(SAMPLE_TEXTURE2D_X(_DiscTex, sampler_DiscTex, _TexTiling * radialCoords.yx * float2(0.15, 0.27)).rgb, 2.0) * 4.0;
+                float3 discTex = SAMPLE_TEXTURE2D_X(_DiscTex, sampler_DiscTex, _TexTiling * radialCoords.yx * float2(0.15, 0.27)).rgb;
+                float texLuminance = dot(discTex, float3(0.299, 0.587, 0.114));
+                // Modulate coverage (opacity) by texture luminance so dark texture regions
+                // actually reduce density — this makes the pattern visible regardless of brightness
+                coverage *= saturate(texLuminance * 2.5);
+                // Tint dustColor with the texture for color variation
+                dustColor *= discTex * 1000.0;
 
                 // Match ShaderToy's normalizer exactly (was incorrectly 2400.0)
                 coverage = saturate(coverage * 1200.0 / float(_Steps));
