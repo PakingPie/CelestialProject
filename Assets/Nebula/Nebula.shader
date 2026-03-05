@@ -12,8 +12,11 @@ Shader "Custom/Nebula"
 
         [Header(Shape Fade breaks cube silhouette)]
         _FadeInnerRadius   ("Fade Inner Radius",    Range(0, 1)) = 0.55
-        _FadeOuterRadius   ("Fade Outer Radius",    Range(0, 1)) = 0.95
-        _FadeNoiseStrength ("Fade Noise Strength",  Range(0, 1)) = 0.35
+        _FadeOuterRadius    ("Fade Outer Radius",      Range(0, 1))   = 0.95
+        _FadeNoiseStrength  ("Fade Noise Strength",   Range(0, 2))   = 0.50
+        _FadeBoxMargin     ("Edge Box Margin",        Range(0, 0.5)) = 0.20
+        _ShapeNoiseScale    ("Shape Noise Scale",     Range(0.1, 5)) = 1.5
+        _ShapeTendrilStrength ("Tendril Strength",   Range(0, 1))   = 0.45
         // Stretch the nebula shape along each world axis.
         // (1,1,1) = sphere. Uneven values = ellipsoid / irregular blob.
         _AxisStretch       ("Axis Stretch (X Y Z)", Vector)      = (1.0, 0.6, 1.4, 0)
@@ -24,6 +27,7 @@ Shader "Custom/Nebula"
 
         [Header(Stars)]
         [Toggle(_STARS_ON)] _StarsOn       ("Enable Stars",     Float)        = 1
+        _StarDensity                       ("Star Density",     Range(0, 1))   = 0.55
         _StarBrightness                    ("Star Brightness",  Range(0, 0.5)) = 0.05
 
         [Header(Dithering assign 1024x1024 blue noise)]
@@ -84,6 +88,10 @@ Shader "Custom/Nebula"
                 float  _FadeInnerRadius;
                 float  _FadeOuterRadius;
                 float  _FadeNoiseStrength;
+                float  _FadeBoxMargin;
+                float  _ShapeNoiseScale;
+                float  _ShapeTendrilStrength;
+                float  _StarDensity;
                 float  _StarBrightness;
                 int    _StepsPrimary;
                 int    _StepsLight;
@@ -169,7 +177,7 @@ Shader "Custom/Nebula"
             // https://www.shadertoy.com/view/3l23Rh
             float fbm(float3 p)
             {
-                const int   octaves  = 6;
+                const int   octaves  = 12;
                 const float fbmScale = 1.95;
 
                 // Rotation by PI/12 around Z, scaled — prevents octave alignment.
@@ -259,7 +267,7 @@ Shader "Custom/Nebula"
 
                 return float3(_StarBrightness, _StarBrightness, _StarBrightness)
                      * bestRand.z
-                     * step(0.45, rand2.z)
+                     * step(1.0 - saturate(_StarDensity), rand2.z)
                      * lerp(float3(1, 1, 1), getColour(bestRand.y), 0.3)
                      * smoothstep(0.5, 0.0, bestDist)
                      * getGlow(bestDist, 0.25, 2.0);
@@ -357,12 +365,26 @@ Shader "Custom/Nebula"
                     float density = clouds(p);
 
                     // ── Ellipsoidal shape fade ──
-                    float3 stretchedP    = p * max(_AxisStretch.xyz, 0.01);
+                    float3 stretchedP     = p * max(_AxisStretch.xyz, 0.01);
                     float  normalizedDist = length(stretchedP) / CLOUD_EXTENT;
-                    float  fadeNoise     = fbm(normalize(stretchedP) * 2.5) - 0.5;
-                    float  perturbedDist = normalizedDist - fadeNoise * _FadeNoiseStrength;
-                    float  shapeFade     = 1.0 - smoothstep(_FadeInnerRadius, _FadeOuterRadius, perturbedDist);
-                    density *= shapeFade;
+                    float3 normDir        = normalize(stretchedP);
+                    // Fine-scale boundary wobble
+                    float  fadeNoiseFine   = fbm(normDir * _ShapeNoiseScale) - 0.5;
+                    // Coarse-scale lobe noise — low frequency creates large asymmetric protrusions
+                    float  fadeNoiseCoarse = fbm(normDir * (_ShapeNoiseScale * 0.3) + float3(5.2, 1.3, 7.8)) - 0.5;
+                    float  fadeNoise       = fadeNoiseFine + fadeNoiseCoarse * _ShapeTendrilStrength;
+                    float  perturbedDist  = normalizedDist - fadeNoise * _FadeNoiseStrength;
+                    float  shapeFade      = 1.0 - smoothstep(_FadeInnerRadius, _FadeOuterRadius, perturbedDist);
+                    // Soften tail: squaring shapeFade gives a gentler gradient near the outer edge
+                    density *= shapeFade * shapeFade;
+
+                    // ── Box-face proximity guard ──
+                    // Unconditionally zero density within _FadeBoxMargin of any AABB face.
+                    // This prevents the cube boundary from showing as a hard cutoff when
+                    // AxisStretch or strong noise keeps density alive up to the face.
+                    float3 faceProx = (CLOUD_EXTENT - abs(p)) / CLOUD_EXTENT;
+                    float  boxFade  = smoothstep(0.0, _FadeBoxMargin, min(faceProx.x, min(faceProx.y, faceProx.z)));
+                    density *= boxFade;
 
                     if (density > 0.0 && curStep > stepS * 1.1)
                     {
