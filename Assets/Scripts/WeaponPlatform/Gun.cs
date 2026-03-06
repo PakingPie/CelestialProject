@@ -69,13 +69,10 @@ public class Gun : WeaponBase
     [Tooltip("Minimum acceleration magnitude (m/s²) required before the acceleration path is used.")]
     [SerializeField] private float _minAccelerationMagnitude = 2f;
 
-    [Header("Gravity Compensation")]
-    [Tooltip("When enabled, pre-compensates the aim point for bullet deflection caused by the assigned GravitySource.\n"
-           + "Requires GuidanceType = Lead and a GravitySource to be assigned.\n"
-           + "The gun will numerically simulate the bullet arc and shift the aim so the curved path still hits the target.")]
-    [SerializeField] private bool _compensateForBHGravity = false;
-    [Tooltip("The BlackHoleGravity component whose field will be compensated for. Drag the black hole GameObject here.")]
-    public BlackHoleGravity GravitySource;
+        [Header("Gravity Compensation")]
+        [Tooltip("When enabled, pre-compensates the aim point for bullet deflection caused by active BlackHoleGravity sources in the scene.\n"
+            + "No manual gravity source reference is required. Requires GuidanceType = Lead.")]
+        [SerializeField] private bool _compensateForBHGravity = false;
 
     [Header("Manual Control")]
     [Tooltip("When true, gun is in manual firing mode controlled by player")]
@@ -248,14 +245,13 @@ public class Gun : WeaponBase
                         ? _trackedTargetData.SmoothedAcceleration
                         : Vector3.zero;
 
-                    Vector3 interceptPoint = (_compensateForBHGravity && GravitySource != null)
+                    Vector3 interceptPoint = (_compensateForBHGravity && BlackHoleGravity.ActiveGravitySources.Count > 0)
                         ? LeadCalculator.CalculateGravityCompensatedIntercept(
                             firePoint.position,
                             shipVelocity,
                             BulletPrefab.Speed,
                             Targeted.position,
                             targetVelocity,
-                            GravitySource,
                             BulletPrefab.velocityInheritance,
                             BulletPrefab.LifeTime
                         )

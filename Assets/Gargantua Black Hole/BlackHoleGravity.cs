@@ -35,10 +35,15 @@ public class BlackHoleGravity : MonoBehaviour
 
     // ---------------------------------------------------------------------------
     // Static registration — projectiles self-register so no FindObjectsOfType needed.
+    // Gravity sources self-register too so weapons can compensate against all active
+    // fields in the scene without manual references.
     // ---------------------------------------------------------------------------
 
-    private static readonly List<AAMissile>    _activeMissiles = new List<AAMissile>(32);
-    private static readonly List<BulletPhysics> _activeBullets  = new List<BulletPhysics>(64);
+    private static readonly List<BlackHoleGravity> _activeGravitySources = new List<BlackHoleGravity>(8);
+    private static readonly List<AAMissile>        _activeMissiles       = new List<AAMissile>(32);
+    private static readonly List<BulletPhysics>    _activeBullets        = new List<BulletPhysics>(64);
+
+    public static IReadOnlyList<BlackHoleGravity> ActiveGravitySources => _activeGravitySources;
 
     public static void RegisterMissile(AAMissile missile)
     {
@@ -74,6 +79,17 @@ public class BlackHoleGravity : MonoBehaviour
     private float _debugBulletAccelSum;
     private float _debugMissileDistSum;
     private float _debugMissileAccelSum;
+
+    private void OnEnable()
+    {
+        if (!_activeGravitySources.Contains(this))
+            _activeGravitySources.Add(this);
+    }
+
+    private void OnDisable()
+    {
+        _activeGravitySources.Remove(this);
+    }
 
     private void Awake()
     {
