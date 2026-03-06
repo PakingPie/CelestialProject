@@ -118,6 +118,84 @@ public static class LeadCalculator
     }
 
     /// <summary>
+    /// Calculates an aim point that compensates for bullet deflection caused by a black hole's gravity.
+    /// Uses iterative correction: simulate the bullet's curved path, measure the deflection, and
+    /// shift the aim point so the arc lands on the target's predicted position.
+    /// Falls back to standard linear intercept if blackHole is null.
+    /// </summary>
+    public static Vector3 CalculateGravityCompensatedIntercept(
+    Vector3 shooterPos,
+    Vector3 shooterVelocity,
+    float projectileSpeed,
+    Vector3 targetPos,
+    Vector3 targetVelocity,
+    BlackHoleGravity blackHole,
+    float velocityInheritance = 1f,
+    float maxPredictionTime = 5f,
+    int iterations = 6,
+    float simTimeStep = 0.05f)
+    {
+        if (blackHole == null)
+            return CalculateInterceptPoint(shooterPos, shooterVelocity, projectileSpeed,
+                targetPos, targetVelocity, velocityInheritance, maxPredictionTime);
+
+        Vector3 bhPos       = blackHole.transform.position;
+        float   G           = blackHole.GravitationalStrength;
+        float   influenceSqr = blackHole.InfluenceRadius * blackHole.InfluenceRadius;
+        float   minAccel    = blackHole.MinAcceleration;
+        Vector3 effectiveShooterVel = shooterVelocity * velocityInheritance;
+
+        // Seed with standard linear intercept
+        Vector3 aimPoint = CalculateInterceptPoint(shooterPos, shooterVelocity, projectileSpeed,
+            targetPos, targetVelocity, velocityInheritance, maxPredictionTime);
+        if (aimPoint == Vector3.zero)
+            aimPoint = CalculateSimpleLead(shooterPos, targetPos, targetVelocity, projectileSpeed,
+                shooterVelocity, velocityInheritance, maxPredictionTime);
+        if (aimPoint == Vector3.zero)
+            return Vector3.zero;
+
+        for (int iter = 0; iter < iterations; iter++)
+        {
+            float dist = Vector3.Distance(shooterPos, aimPoint);
+            float flightTime = Mathf.Min(dist / Mathf.Max(projectileSpeed, 0.01f), maxPredictionTime);
+            if (flightTime <= 0f) break;
+
+            // Initial bullet velocity toward current aim point
+            Vector3 fireDir   = (aimPoint - shooterPos).normalized;
+            Vector3 bulletVel = fireDir * projectileSpeed + effectiveShooterVel;
+
+            // Numerically integrate the bullet path under gravity
+            Vector3 simPos = shooterPos;
+            Vector3 simVel = bulletVel;
+            float   elapsed = 0f;
+            while (elapsed < flightTime)
+            {
+                float   dt          = Mathf.Min(simTimeStep, flightTime - elapsed);
+                Vector3 toBlackHole = bhPos - simPos;
+                float   distSqr     = toBlackHole.sqrMagnitude;
+                if (distSqr < influenceSqr)
+                {
+                    float accel = Mathf.Max(G / distSqr, minAccel);
+                    simVel += toBlackHole.normalized * (accel * dt);
+                }
+                simPos  += simVel * dt;
+                elapsed += dt;
+            }
+
+            // Target predicted position at this flight time
+            Vector3 targetPredicted = targetPos + targetVelocity * flightTime;
+
+            // Deflection: where gravity pushed the bullet vs. where we aimed.
+            // Compensate: new aim = targetPredicted - deflection, so after the same
+            // deflection the bullet arrives at targetPredicted.
+            Vector3 deflection = simPos - aimPoint;
+            aimPoint = targetPredicted - deflection;
+        }
+
+        return aimPoint;
+    }
+
+    /// <summary>
     /// Gets velocity from a target, trying multiple common components.
     /// </summary>
     public static Vector3 GetTargetVelocity(Transform target)
