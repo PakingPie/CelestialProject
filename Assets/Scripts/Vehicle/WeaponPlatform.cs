@@ -122,7 +122,7 @@ public class WeaponPlatform : VehicleBase
         }
 
         HitPoints = Math.Clamp(HitPoints - damage, 0, MaxHitPoints);
-        Debug.Log($"WeaponPlatform took {damage} damage, remaining HP: {HitPoints}");
+        // Debug.Log($"WeaponPlatform took {damage} damage, remaining HP: {HitPoints}");
 
         if (damage > HitPoints / 2)
         {
