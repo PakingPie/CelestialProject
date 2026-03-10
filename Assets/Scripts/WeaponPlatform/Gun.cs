@@ -143,7 +143,7 @@ public class Gun : WeaponBase
         }
     }
 
-    private void Awake()
+    protected override void Awake()
     {
         base.Awake();
         if (FirePoints.Count == 0)
@@ -656,7 +656,7 @@ public class Gun : WeaponBase
     }
 
 #if UNITY_EDITOR
-    private void OnDrawGizmos()
+    public new void OnDrawGizmos()
     {
         base.OnDrawGizmos();
         

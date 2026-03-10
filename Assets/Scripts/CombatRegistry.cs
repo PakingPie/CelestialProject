@@ -7,6 +7,12 @@ public static class CombatRegistry
 {
     private static readonly ProfilerMarker UpdateSpatialGridMarker = new ProfilerMarker("CombatRegistry.UpdateSpatialGrid");
     private static readonly ProfilerMarker GetNearbyEnemiesMarker = new ProfilerMarker("CombatRegistry.GetNearbyEnemies");
+    private static readonly ProfilerMarker GetNearbyEnemiesGridMarker = new ProfilerMarker("CombatRegistry.GetNearbyEnemies.Grid");
+    private static readonly ProfilerMarker GetNearbyEnemiesListMarker = new ProfilerMarker("CombatRegistry.GetNearbyEnemies.List");
+    private static readonly ProfilerMarker FindNearestEnemyGridMarker = new ProfilerMarker("CombatRegistry.FindNearestEnemy.Grid");
+    private static readonly ProfilerMarker FindNearestEnemyListMarker = new ProfilerMarker("CombatRegistry.FindNearestEnemy.List");
+    private static readonly ProfilerMarker FindEnemiesInRangeGridMarker = new ProfilerMarker("CombatRegistry.FindEnemiesInRange.Grid");
+    private static readonly ProfilerMarker FindEnemiesInRangeListMarker = new ProfilerMarker("CombatRegistry.FindEnemiesInRange.List");
     // Faction lists
     private static List<VehicleBase> _playerVehicles = new List<VehicleBase>(16);
     private static List<VehicleBase> _allyVehicles = new List<VehicleBase>(128);
@@ -134,7 +140,7 @@ public static class CombatRegistry
 
     private static void UpdateVehicleCell(VehicleBase vehicle)
     {
-        Vector2Int newCell = GetCell(vehicle.transform.position);
+        Vector2Int newCell = GetCell(vehicle.CachedTransform.position);
 
         if (_vehicleCells.TryGetValue(vehicle, out var oldCell))
         {
@@ -223,28 +229,75 @@ public static class CombatRegistry
         {
             results.Clear();
 
-            // Prefer spatial grid if it's initialized; fallback to list scan if grid is empty
-            if (_spatialGrid.Count > 0)
+            if (ShouldUseGridQuery(range, targetFactions))
             {
-                FindEnemiesInRangeGrid(position, range, targetFactions, results, isTargetingMissile);
+                using (GetNearbyEnemiesGridMarker.Auto())
+                {
+                    FindEnemiesInRangeGrid(position, range, targetFactions, results, isTargetingMissile);
+                }
                 return;
             }
 
-            float rangeSqr = range * range;
-
-            // Check each target faction
-            if ((targetFactions & Faction.Foe) != 0)
-                AddNearbyFromList(_foeVehicles, position, rangeSqr, results, isTargetingMissile);
-
-            if ((targetFactions & Faction.Player) != 0)
-                AddNearbyFromList(_playerVehicles, position, rangeSqr, results, isTargetingMissile);
-
-            if ((targetFactions & Faction.Ally) != 0)
-                AddNearbyFromList(_allyVehicles, position, rangeSqr, results, isTargetingMissile);
-
-            if ((targetFactions & Faction.Neutral) != 0)
-                AddNearbyFromList(_neutralVehicles, position, rangeSqr, results, isTargetingMissile);
+            using (GetNearbyEnemiesListMarker.Auto())
+            {
+                float rangeSqr = range * range;
+                AddNearbyFromFactions(position, rangeSqr, targetFactions, results, isTargetingMissile);
+            }
         }
+    }
+
+    private static bool ShouldUseGridQuery(float range, Faction targetFactions)
+    {
+        if (_spatialGrid.Count == 0 || _cellSize <= 0f)
+            return false;
+
+        int targetVehicleCount = GetTargetVehicleCount(targetFactions);
+        if (targetVehicleCount == 0)
+            return false;
+
+        int cellRange = Mathf.CeilToInt(range / _cellSize);
+        long cellsPerAxis = (cellRange * 2L) + 1L;
+        long totalCellsToScan = cellsPerAxis * cellsPerAxis;
+
+        if (totalCellsToScan <= 9)
+            return true;
+
+        long occupiedCellCount = _spatialGrid.Count;
+        return totalCellsToScan <= occupiedCellCount * 2L || totalCellsToScan <= targetVehicleCount * 2L;
+    }
+
+    private static int GetTargetVehicleCount(Faction targetFactions)
+    {
+        int count = 0;
+
+        if ((targetFactions & Faction.Foe) != 0)
+            count += _foeVehicles.Count;
+
+        if ((targetFactions & Faction.Player) != 0)
+            count += _playerVehicles.Count;
+
+        if ((targetFactions & Faction.Ally) != 0)
+            count += _allyVehicles.Count;
+
+        if ((targetFactions & Faction.Neutral) != 0)
+            count += _neutralVehicles.Count;
+
+        return count;
+    }
+
+    private static void AddNearbyFromFactions(Vector3 position, float rangeSqr, Faction targetFactions, List<VehicleBase> results, bool isTargetingMissile)
+    {
+        if ((targetFactions & Faction.Foe) != 0)
+            AddNearbyFromList(_foeVehicles, position, rangeSqr, results, isTargetingMissile);
+
+        if ((targetFactions & Faction.Player) != 0)
+            AddNearbyFromList(_playerVehicles, position, rangeSqr, results, isTargetingMissile);
+
+        if ((targetFactions & Faction.Ally) != 0)
+            AddNearbyFromList(_allyVehicles, position, rangeSqr, results, isTargetingMissile);
+
+        if ((targetFactions & Faction.Neutral) != 0)
+            AddNearbyFromList(_neutralVehicles, position, rangeSqr, results, isTargetingMissile);
     }
 
     private static void FindEnemiesInRangeGrid(Vector3 position, float range, Faction targetFactions, List<VehicleBase> results, bool isTargetingMissile)
@@ -266,17 +319,16 @@ public static class CombatRegistry
                 {
                     VehicleBase vehicle = vehicles[i];
 
-                    if (vehicle == null) continue;
-
-                    if (!isTargetingMissile && vehicle.CompareTag("Missile"))
+                    if (vehicle == null)
                         continue;
 
-                    // Check faction
-                    Faction vehicleFaction = GetVehicleFaction(vehicle);
-                    if ((targetFactions & vehicleFaction) == 0)
+                    if (!isTargetingMissile && vehicle.VehicleType == VehicleType.Missile)
                         continue;
 
-                    float distSqr = (vehicle.transform.position - position).sqrMagnitude;
+                    if ((targetFactions & GetVehicleFaction(vehicle)) == 0)
+                        continue;
+
+                    float distSqr = (vehicle.CachedTransform.position - position).sqrMagnitude;
                     if (distSqr <= rangeSqr)
                         results.Add(vehicle);
                 }
@@ -292,19 +344,61 @@ public static class CombatRegistry
         {
             VehicleBase vehicle = vehicles[i];
 
-            // Remove destroyed vehicles - must check BEFORE accessing any properties
             if (vehicle == null)
             {
                 vehicles.RemoveAt(i);
                 continue;
             }
 
-            if (!isTargetingMissile && vehicle.CompareTag("Missile"))
+            if (!isTargetingMissile && vehicle.VehicleType == VehicleType.Missile)
                 continue;
 
-            float distSqr = (vehicle.transform.position - position).sqrMagnitude;
+            float distSqr = (vehicle.CachedTransform.position - position).sqrMagnitude;
             if (distSqr <= rangeSqr)
                 results.Add(vehicle);
+        }
+    }
+
+    private static VehicleBase FindNearestFromFactions(Vector3 position, float rangeSqr, Faction targetFactions)
+    {
+        float nearestDistSqr = float.MaxValue;
+        VehicleBase nearest = null;
+
+        if ((targetFactions & Faction.Foe) != 0)
+            FindNearestInVehicleList(_foeVehicles, position, rangeSqr, ref nearest, ref nearestDistSqr);
+
+        if ((targetFactions & Faction.Player) != 0)
+            FindNearestInVehicleList(_playerVehicles, position, rangeSqr, ref nearest, ref nearestDistSqr);
+
+        if ((targetFactions & Faction.Ally) != 0)
+            FindNearestInVehicleList(_allyVehicles, position, rangeSqr, ref nearest, ref nearestDistSqr);
+
+        if ((targetFactions & Faction.Neutral) != 0)
+            FindNearestInVehicleList(_neutralVehicles, position, rangeSqr, ref nearest, ref nearestDistSqr);
+
+        return nearest;
+    }
+
+    private static void FindNearestInVehicleList(List<VehicleBase> vehicles, Vector3 position, float rangeSqr, ref VehicleBase nearest, ref float nearestDistSqr)
+    {
+        if (vehicles == null) return;
+
+        for (int i = vehicles.Count - 1; i >= 0; i--)
+        {
+            VehicleBase vehicle = vehicles[i];
+
+            if (vehicle == null)
+            {
+                vehicles.RemoveAt(i);
+                continue;
+            }
+
+            float distSqr = (vehicle.CachedTransform.position - position).sqrMagnitude;
+            if (distSqr <= rangeSqr && distSqr < nearestDistSqr)
+            {
+                nearestDistSqr = distSqr;
+                nearest = vehicle;
+            }
         }
     }
 
@@ -313,45 +407,54 @@ public static class CombatRegistry
     /// </summary>
     public static VehicleBase FindNearestEnemy(Vector3 position, float range, Faction targetFactions)
     {
-        Vector2Int centerCell = GetCell(position);
-        int cellRange = Mathf.CeilToInt(range / _cellSize);
-
         float rangeSqr = range * range;
-        float nearestDistSqr = float.MaxValue;
-        VehicleBase nearest = null;
 
-        // Check surrounding cells
-        for (int x = -cellRange; x <= cellRange; x++)
+        if (!ShouldUseGridQuery(range, targetFactions))
         {
-            for (int z = -cellRange; z <= cellRange; z++)
+            using (FindNearestEnemyListMarker.Auto())
             {
-                Vector2Int cell = new Vector2Int(centerCell.x + x, centerCell.y + z);
-
-                if (!_spatialGrid.TryGetValue(cell, out var vehicles))
-                    continue;
-
-                for (int i = 0; i < vehicles.Count; i++)
-                {
-                    VehicleBase vehicle = vehicles[i];
-
-                    if (vehicle == null) continue;
-
-                    // Check faction
-                    Faction vehicleFaction = GetVehicleFaction(vehicle);
-                    if ((targetFactions & vehicleFaction) == 0)
-                        continue;
-
-                    float distSqr = (vehicle.transform.position - position).sqrMagnitude;
-                    if (distSqr <= rangeSqr && distSqr < nearestDistSqr)
-                    {
-                        nearestDistSqr = distSqr;
-                        nearest = vehicle;
-                    }
-                }
+                return FindNearestFromFactions(position, rangeSqr, targetFactions);
             }
         }
 
-        return nearest;
+        using (FindNearestEnemyGridMarker.Auto())
+        {
+            Vector2Int centerCell = GetCell(position);
+            int cellRange = Mathf.CeilToInt(range / _cellSize);
+            float nearestDistSqr = float.MaxValue;
+            VehicleBase nearest = null;
+
+            for (int x = -cellRange; x <= cellRange; x++)
+            {
+                for (int z = -cellRange; z <= cellRange; z++)
+                {
+                    Vector2Int cell = new Vector2Int(centerCell.x + x, centerCell.y + z);
+
+                    if (!_spatialGrid.TryGetValue(cell, out var vehicles))
+                        continue;
+
+                    for (int i = 0; i < vehicles.Count; i++)
+                    {
+                        VehicleBase vehicle = vehicles[i];
+
+                        if (vehicle == null)
+                            continue;
+
+                        if ((targetFactions & GetVehicleFaction(vehicle)) == 0)
+                            continue;
+
+                        float distSqr = (vehicle.CachedTransform.position - position).sqrMagnitude;
+                        if (distSqr <= rangeSqr && distSqr < nearestDistSqr)
+                        {
+                            nearestDistSqr = distSqr;
+                            nearest = vehicle;
+                        }
+                    }
+                }
+            }
+
+            return nearest;
+        }
     }
 
     /// <summary>
@@ -361,33 +464,46 @@ public static class CombatRegistry
     {
         results.Clear();
 
-        Vector2Int centerCell = GetCell(position);
-        int cellRange = Mathf.CeilToInt(range / _cellSize);
         float rangeSqr = range * range;
 
-        for (int x = -cellRange; x <= cellRange; x++)
+        if (!ShouldUseGridQuery(range, targetFactions))
         {
-            for (int z = -cellRange; z <= cellRange; z++)
+            using (FindEnemiesInRangeListMarker.Auto())
             {
-                Vector2Int cell = new Vector2Int(centerCell.x + x, centerCell.y + z);
+                AddNearbyFromFactions(position, rangeSqr, targetFactions, results, true);
+            }
 
-                if (!_spatialGrid.TryGetValue(cell, out var vehicles))
-                    continue;
+            return;
+        }
 
-                for (int i = 0; i < vehicles.Count; i++)
+        using (FindEnemiesInRangeGridMarker.Auto())
+        {
+            Vector2Int centerCell = GetCell(position);
+            int cellRange = Mathf.CeilToInt(range / _cellSize);
+
+            for (int x = -cellRange; x <= cellRange; x++)
+            {
+                for (int z = -cellRange; z <= cellRange; z++)
                 {
-                    VehicleBase vehicle = vehicles[i];
+                    Vector2Int cell = new Vector2Int(centerCell.x + x, centerCell.y + z);
 
-                    if (vehicle == null) continue;
-
-                    // Check faction
-                    Faction vehicleFaction = GetVehicleFaction(vehicle);
-                    if ((targetFactions & vehicleFaction) == 0)
+                    if (!_spatialGrid.TryGetValue(cell, out var vehicles))
                         continue;
 
-                    float distSqr = (vehicle.transform.position - position).sqrMagnitude;
-                    if (distSqr <= rangeSqr)
-                        results.Add(vehicle);
+                    for (int i = 0; i < vehicles.Count; i++)
+                    {
+                        VehicleBase vehicle = vehicles[i];
+
+                        if (vehicle == null)
+                            continue;
+
+                        if ((targetFactions & GetVehicleFaction(vehicle)) == 0)
+                            continue;
+
+                        float distSqr = (vehicle.CachedTransform.position - position).sqrMagnitude;
+                        if (distSqr <= rangeSqr)
+                            results.Add(vehicle);
+                    }
                 }
             }
         }
@@ -395,15 +511,7 @@ public static class CombatRegistry
 
     private static Faction GetVehicleFaction(VehicleBase vehicle)
     {
-        // Option 1: If FactionType is in VehicleBase
         return vehicle.FactionType;
-
-        // Option 2: If FactionType is in subclasses
-        // if (vehicle is EnemyVehicle enemy)
-        //     return enemy.FactionType;
-        // if (vehicle is PlayerVehicle player)
-        //     return player.FactionType;
-        // return Faction.None;
     }
     #endregion
 
