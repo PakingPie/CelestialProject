@@ -479,270 +479,289 @@ public class Boid : MonoBehaviour
         UpdateTarget();
         UpdateCombatState();
 
-        // Handle despawn movement
-        if (_isDespawning)
+        if (TryHandleDespawnMovement())
+            return;
+
+        if (TryHandleHoldPosition())
+            return;
+
+        UpdatePostCombatTimer();
+        UpdateSmoothedFlockData();
+
+        Vector3 acceleration = CalculatePrimaryAcceleration();
+        ApplyFlockingAcceleration(ref acceleration);
+        ApplyLocalAvoidance(ref acceleration);
+        ApplyMovement(acceleration);
+
+        UpdateRegistryPosition();
+    }
+
+    private bool TryHandleDespawnMovement()
+    {
+        if (!_isDespawning)
+            return false;
+
+        if (Vector3.Distance(position, _spawnPosition) < 50f)
         {
-            float distToSpawn = Vector3.Distance(position, _spawnPosition);
-            if (distToSpawn < 50f) // Arrival threshold
-            {
-                _onDespawnArrived?.Invoke();
-                return;
-            }
-
-            // Override normal behavior - move toward spawn
-            Vector3 toSpawn = _spawnPosition - position;
-            Vector3 local_acceleration = SteerTowards(toSpawn) * _settings.targetWeight * 2f;
-
-            // Still do obstacle avoidance
-            Vector3 local_obstacleAvoidance = CalculateObstacleAvoidance();
-            if (local_obstacleAvoidance.sqrMagnitude > 0.01f)
-            {
-                local_acceleration += SteerTowards(local_obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
-            }
-
-            _velocity += local_acceleration * Time.deltaTime;
-            float local_speed = _velocity.magnitude;
-            if (local_speed > 0.001f)
-            {
-                Vector3 dir = _velocity / local_speed;
-                float targetSpeed = Mathf.Clamp(local_speed, _settings.minSpeed, _settings.maxSpeed);
-                _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, targetSpeed, Time.deltaTime * SpeedSmoothSpeed);
-                _velocity = dir * _smoothedSpeed;
-
-                Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
-                newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
-
-                Quaternion targetRotation = Quaternion.LookRotation(dir);
-                Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
-
-                _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
-                position = newPos;
-                forward = smoothedRotation * Vector3.forward;
-            }
-
-            UpdateRegistryPosition();
-            return; // Skip normal behavior
+            _onDespawnArrived?.Invoke();
+            return true;
         }
 
-        // Handle hold position
-        if (_holdingPosition && _moveTarget.HasValue)
-        {
-            Vector3 toHoldPos = _moveTarget.Value - position;
-            float distToHold = toHoldPos.magnitude;
-
-            Vector3 local_acceleration = Vector3.zero;
-
-            if (distToHold > 20f)
-            {
-                // Move back toward hold position
-                local_acceleration = SteerTowards(toHoldPos) * _settings.targetWeight;
-            }
-            else
-            {
-                // At hold position - apply braking
-                if (_velocity.sqrMagnitude > 1f)
-                {
-                    local_acceleration = -_velocity.normalized * _settings.maxSteerForce * 2f;
-                }
-            }
-
-            // Still do obstacle avoidance while holding
-            Vector3 local_obstacleAvoidance = CalculateObstacleAvoidance();
-            if (local_obstacleAvoidance.sqrMagnitude > 0.01f)
-            {
-                local_acceleration += SteerTowards(local_obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
-            }
-
-            // Still do boid separation while holding
-            Vector3 local_boidSeparation = CalculateBoidSeparation();
-            if (local_boidSeparation.sqrMagnitude > 0.01f)
-            {
-                local_acceleration += SteerTowards(local_boidSeparation) * _settings.separateWeight * 0.5f;
-            }
-
-            _velocity += local_acceleration * Time.deltaTime;
-
-            // Apply strong speed damping when holding
-            float targetSpeed = distToHold > 20f ? _settings.maxSpeed * 0.5f : _settings.minSpeed * 0.5f;
-            float local_speed = _velocity.magnitude;
-
-            if (local_speed > 0.001f)
-            {
-                Vector3 dir = _velocity / local_speed;
-                _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, Mathf.Min(local_speed, targetSpeed), Time.deltaTime * SpeedSmoothSpeed * 2f);
-                _velocity = dir * _smoothedSpeed;
-
-                Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
-                newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
-
-                // Face the direction we were facing when hold was issued, or current forward
-                Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, Quaternion.LookRotation(forward), Time.deltaTime * RotationSmoothSpeed * 0.5f);
-
-                _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
-                position = newPos;
-            }
-
-            UpdateRegistryPosition();
-            return; // Skip normal behavior
-        }
-
-        if (!IsInCombat && _postCombatTimer < PostCombatSteadyTime)
-        {
-            _postCombatTimer += Time.deltaTime;
-        }
-
-        _smoothedFlockHeading = Vector3.Lerp(_smoothedFlockHeading, avgFlockHeading, Time.deltaTime * FlockDataSmoothSpeed);
-        _smoothedFlockCenter = Vector3.Lerp(_smoothedFlockCenter, flockmatesCenter, Time.deltaTime * FlockDataSmoothSpeed);
-
-        Vector3 acceleration = Vector3.zero;
-
-        // Formation behavior when not in combat
-        if (_settings.useFormation && !IsInCombat && FormationIndex == 0)
-        {
-            // Leader: move toward assigned target, or hold heading after combat, or wander
-            if (_target != null)
-            {
-                Vector3 targetPos = _target.position;
-                _smoothedTargetPosition = Vector3.Lerp(_smoothedTargetPosition, targetPos, Time.deltaTime * TargetSmoothSpeed);
-                Vector3 offsetToTarget = _smoothedTargetPosition - position;
-
-                if (offsetToTarget.sqrMagnitude > 25f)
-                {
-                    acceleration += SteerTowards(offsetToTarget) * _settings.targetWeight;
-                }
-            }
-            else if (_postCombatTimer < PostCombatSteadyTime)
-            {
-                // Just exited combat - maintain last heading to let formation reform
-                acceleration += SteerTowards(_lastCombatHeading) * _settings.targetWeight * 0.5f;
-            }
-            else
-            {
-                // No target and formation has had time to reform - wander randomly
-                acceleration += GetWanderForce() * _settings.targetWeight;
-            }
-        }
-        else if (_settings.useFormation && !IsInCombat && FormationLeader != null && FormationIndex > 0)
-        {
-            acceleration += CalculateFormationAcceleration();
-        }
-        else if (IsInCombat && AttackBehavior != null && AttackBehavior.Profile != null && _target != null)
-        {
-            Vector3 movementDir = AttackBehavior.GetDesiredMovementDirection(_target.position, _target.forward);
-            acceleration += SteerTowards(movementDir) * _settings.targetWeight * 1.5f;
-
-            // Apply speed multiplier from attack behavior
-            float speedMult = AttackBehavior.SpeedMultiplier;
-            _velocity *= Mathf.Lerp(1f, speedMult, Time.deltaTime * 3f);
-        }
-        else
-        {
-            // Default: move toward target or wander
-            if (_target != null)
-            {
-                Vector3 targetPos = _target.position;
-                _smoothedTargetPosition = Vector3.Lerp(_smoothedTargetPosition, targetPos, Time.deltaTime * TargetSmoothSpeed);
-                Vector3 offsetToTarget = _smoothedTargetPosition - position;
-                acceleration += SteerTowards(offsetToTarget) * _settings.targetWeight;
-            }
-            else
-            {
-                acceleration += GetWanderForce() * _settings.targetWeight;
-            }
-        }
-
-        // Flocking behavior
-        if (numPerceivedFlockmates > 0)
-        {
-            Vector3 centerOfMass = _smoothedFlockCenter / numPerceivedFlockmates;
-            Vector3 offsetToCenter = centerOfMass - position;
-
-            float alignMult = IsInCombat ? _settings.combatAlignmentMultiplier : 1f;
-            float cohesionMult = IsInCombat ? _settings.combatCohesionMultiplier : 1f;
-            float separateMult = IsInCombat ? _settings.combatSeparationMultiplier : 1f;
-
-            // Formation mode: drastically reduce flocking
-            if (_settings.useFormation && !IsInCombat && FormationLeader != null && FormationIndex > 0)
-            {
-                alignMult *= 0.1f;
-                cohesionMult *= 0.05f;
-                separateMult *= 0.3f;  // Keep some separation to avoid collisions
-            }
-
-            // Leader should also reduce cohesion to not get pulled back
-            if (_settings.useFormation && !IsInCombat && FormationIndex == 0)
-            {
-                cohesionMult *= 0.1f;
-            }
-
-            acceleration += SteerTowards(_smoothedFlockHeading) * _settings.alignWeight * alignMult;
-            acceleration += SteerTowards(offsetToCenter) * _settings.cohesionWeight * cohesionMult;
-        }
-
-        Vector3 boidSeparation = CalculateBoidSeparation();
-        if (boidSeparation.sqrMagnitude > 0.01f)
-        {
-            acceleration += SteerTowards(boidSeparation) * _settings.separateWeight;
-        }
-
-        // Collision avoidance
+        Vector3 acceleration = SteerTowards(_spawnPosition - position) * _settings.targetWeight * 2f;
         Vector3 obstacleAvoidance = CalculateObstacleAvoidance();
         if (obstacleAvoidance.sqrMagnitude > 0.01f)
         {
             acceleration += SteerTowards(obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
         }
 
-        // Smooth acceleration
-        acceleration = Vector3.Lerp(_previousAcceleration, acceleration, Time.deltaTime * AccelerationSmoothSpeed);
-        _previousAcceleration = acceleration;
-
-        // Apply velocity
         _velocity += acceleration * Time.deltaTime;
 
         float speed = _velocity.magnitude;
         if (speed > 0.001f)
         {
-            Vector3 dir = _velocity / speed;
-
+            Vector3 direction = _velocity / speed;
             float targetSpeed = Mathf.Clamp(speed, _settings.minSpeed, _settings.maxSpeed);
             _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, targetSpeed, Time.deltaTime * SpeedSmoothSpeed);
-            _velocity = dir * _smoothedSpeed;
+            _velocity = direction * _smoothedSpeed;
 
             Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
             newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
 
-            // Rotation: use custom facing for broadside ships
-            Quaternion targetRotation;
-
-            if (IsInCombat && AttackBehavior != null && AttackBehavior.RequiresCustomFacing() && _target != null)
-            {
-                Vector3 desiredFacing = AttackBehavior.GetDesiredFacingDirection(_target.position);
-                _combatFacingDirection = Vector3.Slerp(_combatFacingDirection, desiredFacing, Time.deltaTime * CombatRotationSpeed);
-
-                if (_combatFacingDirection.sqrMagnitude > 0.01f)
-                {
-                    targetRotation = Quaternion.LookRotation(_combatFacingDirection);
-                }
-                else
-                {
-                    targetRotation = Quaternion.LookRotation(dir);
-                }
-            }
-            else
-            {
-                targetRotation = Quaternion.LookRotation(dir);
-                _combatFacingDirection = dir;
-            }
-
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
             Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
 
             _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
-
             position = newPos;
             forward = smoothedRotation * Vector3.forward;
         }
 
         UpdateRegistryPosition();
+        return true;
+    }
+
+    private bool TryHandleHoldPosition()
+    {
+        if (!_holdingPosition || !_moveTarget.HasValue)
+            return false;
+
+        Vector3 toHoldPos = _moveTarget.Value - position;
+        float distanceToHold = toHoldPos.magnitude;
+        Vector3 acceleration = Vector3.zero;
+
+        if (distanceToHold > 20f)
+        {
+            acceleration = SteerTowards(toHoldPos) * _settings.targetWeight;
+        }
+        else if (_velocity.sqrMagnitude > 1f)
+        {
+            acceleration = -_velocity.normalized * _settings.maxSteerForce * 2f;
+        }
+
+        Vector3 obstacleAvoidance = CalculateObstacleAvoidance();
+        if (obstacleAvoidance.sqrMagnitude > 0.01f)
+        {
+            acceleration += SteerTowards(obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
+        }
+
+        Vector3 boidSeparation = CalculateBoidSeparation();
+        if (boidSeparation.sqrMagnitude > 0.01f)
+        {
+            acceleration += SteerTowards(boidSeparation) * _settings.separateWeight * 0.5f;
+        }
+
+        _velocity += acceleration * Time.deltaTime;
+
+        float targetSpeed = distanceToHold > 20f ? _settings.maxSpeed * 0.5f : _settings.minSpeed * 0.5f;
+        float speed = _velocity.magnitude;
+
+        if (speed > 0.001f)
+        {
+            Vector3 direction = _velocity / speed;
+            _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, Mathf.Min(speed, targetSpeed), Time.deltaTime * SpeedSmoothSpeed * 2f);
+            _velocity = direction * _smoothedSpeed;
+
+            Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
+            newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+
+            Quaternion targetRotation = Quaternion.LookRotation(forward);
+            Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed * 0.5f);
+
+            _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
+            position = newPos;
+        }
+
+        UpdateRegistryPosition();
+        return true;
+    }
+
+    private void UpdatePostCombatTimer()
+    {
+        if (!IsInCombat && _postCombatTimer < PostCombatSteadyTime)
+        {
+            _postCombatTimer += Time.deltaTime;
+        }
+    }
+
+    private void UpdateSmoothedFlockData()
+    {
+        _smoothedFlockHeading = Vector3.Lerp(_smoothedFlockHeading, avgFlockHeading, Time.deltaTime * FlockDataSmoothSpeed);
+        _smoothedFlockCenter = Vector3.Lerp(_smoothedFlockCenter, flockmatesCenter, Time.deltaTime * FlockDataSmoothSpeed);
+    }
+
+    private Vector3 CalculatePrimaryAcceleration()
+    {
+        if (_settings.useFormation && !IsInCombat)
+        {
+            if (FormationIndex == 0)
+                return CalculateLeaderAcceleration();
+
+            if (FormationLeader != null && FormationIndex > 0)
+                return CalculateFormationAcceleration();
+        }
+
+        if (IsInCombat && AttackBehavior != null && AttackBehavior.Profile != null && _target != null)
+        {
+            Vector3 movementDir = AttackBehavior.GetDesiredMovementDirection(_target.position, _target.forward);
+            float speedMult = AttackBehavior.SpeedMultiplier;
+            _velocity *= Mathf.Lerp(1f, speedMult, Time.deltaTime * 3f);
+            return SteerTowards(movementDir) * _settings.targetWeight * 1.5f;
+        }
+
+        return CalculateTravelAcceleration();
+    }
+
+    private Vector3 CalculateLeaderAcceleration()
+    {
+        if (_target != null)
+        {
+            Vector3 chaseAcceleration = GetTargetChaseAcceleration();
+            if (chaseAcceleration != Vector3.zero)
+                return chaseAcceleration;
+        }
+
+        if (_postCombatTimer < PostCombatSteadyTime)
+        {
+            return SteerTowards(_lastCombatHeading) * _settings.targetWeight * 0.5f;
+        }
+
+        return GetWanderForce() * _settings.targetWeight;
+    }
+
+    private Vector3 CalculateTravelAcceleration()
+    {
+        if (_target != null)
+        {
+            Vector3 targetPos = _target.position;
+            _smoothedTargetPosition = Vector3.Lerp(_smoothedTargetPosition, targetPos, Time.deltaTime * TargetSmoothSpeed);
+            return SteerTowards(_smoothedTargetPosition - position) * _settings.targetWeight;
+        }
+
+        return GetWanderForce() * _settings.targetWeight;
+    }
+
+    private Vector3 GetTargetChaseAcceleration()
+    {
+        Vector3 targetPos = _target.position;
+        _smoothedTargetPosition = Vector3.Lerp(_smoothedTargetPosition, targetPos, Time.deltaTime * TargetSmoothSpeed);
+        Vector3 offsetToTarget = _smoothedTargetPosition - position;
+
+        if (offsetToTarget.sqrMagnitude <= 25f)
+            return Vector3.zero;
+
+        return SteerTowards(offsetToTarget) * _settings.targetWeight;
+    }
+
+    private void ApplyFlockingAcceleration(ref Vector3 acceleration)
+    {
+        if (numPerceivedFlockmates <= 0)
+            return;
+
+        Vector3 centerOfMass = _smoothedFlockCenter / numPerceivedFlockmates;
+        Vector3 offsetToCenter = centerOfMass - position;
+
+        float alignMult = IsInCombat ? _settings.combatAlignmentMultiplier : 1f;
+        float cohesionMult = IsInCombat ? _settings.combatCohesionMultiplier : 1f;
+
+        if (_settings.useFormation && !IsInCombat && FormationLeader != null && FormationIndex > 0)
+        {
+            alignMult *= 0.1f;
+            cohesionMult *= 0.05f;
+        }
+
+        if (_settings.useFormation && !IsInCombat && FormationIndex == 0)
+        {
+            cohesionMult *= 0.1f;
+        }
+
+        acceleration += SteerTowards(_smoothedFlockHeading) * _settings.alignWeight * alignMult;
+        acceleration += SteerTowards(offsetToCenter) * _settings.cohesionWeight * cohesionMult;
+    }
+
+    private void ApplyLocalAvoidance(ref Vector3 acceleration)
+    {
+        Vector3 boidSeparation = CalculateBoidSeparation();
+        if (boidSeparation.sqrMagnitude > 0.01f)
+        {
+            acceleration += SteerTowards(boidSeparation) * _settings.separateWeight;
+        }
+
+        Vector3 obstacleAvoidance = CalculateObstacleAvoidance();
+        if (obstacleAvoidance.sqrMagnitude > 0.01f)
+        {
+            acceleration += SteerTowards(obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
+        }
+    }
+
+    private void ApplyMovement(Vector3 acceleration)
+    {
+        acceleration = Vector3.Lerp(_previousAcceleration, acceleration, Time.deltaTime * AccelerationSmoothSpeed);
+        _previousAcceleration = acceleration;
+
+        _velocity += acceleration * Time.deltaTime;
+
+        float speed = _velocity.magnitude;
+        if (speed <= 0.001f)
+            return;
+
+        Vector3 direction = _velocity / speed;
+        float targetSpeed = GetDesiredCruiseSpeed(speed);
+        _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, targetSpeed, Time.deltaTime * SpeedSmoothSpeed);
+        _velocity = direction * _smoothedSpeed;
+
+        Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
+        newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+
+        Quaternion targetRotation = GetMovementRotation(direction);
+        Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
+
+        _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
+        position = newPos;
+        forward = smoothedRotation * Vector3.forward;
+    }
+
+    private float GetDesiredCruiseSpeed(float currentSpeed)
+    {
+        if (_targetSpeed >= 0f)
+            return Mathf.Clamp(_targetSpeed, 0f, _settings.maxSpeed);
+
+        return Mathf.Clamp(currentSpeed, _settings.minSpeed, _settings.maxSpeed);
+    }
+
+    private Quaternion GetMovementRotation(Vector3 direction)
+    {
+        if (IsInCombat && AttackBehavior != null && AttackBehavior.RequiresCustomFacing() && _target != null)
+        {
+            Vector3 desiredFacing = AttackBehavior.GetDesiredFacingDirection(_target.position);
+            _combatFacingDirection = Vector3.Slerp(_combatFacingDirection, desiredFacing, Time.deltaTime * CombatRotationSpeed);
+
+            if (_combatFacingDirection.sqrMagnitude > 0.01f)
+            {
+                return Quaternion.LookRotation(_combatFacingDirection);
+            }
+        }
+
+        _combatFacingDirection = direction;
+        return Quaternion.LookRotation(direction);
     }
 
     private Vector3 CalculateFormationAcceleration()
@@ -1004,36 +1023,6 @@ public class Boid : MonoBehaviour
     public void ClearPriorityTarget()
     {
         _priorityTarget = null;
-    }
-
-    // Modify your existing speed calculation in UpdateBoid() or GetSpeed():
-    private float GetEffectiveSpeed()
-    {
-        if (_targetSpeed >= 0f)
-            return _targetSpeed;
-
-        // Your existing speed logic
-        return _settings.maxSpeed;
-    }
-
-    // Modify your steering calculation to account for move target:
-    private Vector3 GetMoveTargetSteering()
-    {
-        if (_moveTarget.HasValue)
-        {
-            Vector3 toTarget = _moveTarget.Value - position;
-            float distance = toTarget.magnitude;
-
-            if (distance < 10f && _holdingPosition)
-            {
-                // Arrived at hold position - apply braking
-                return -_velocity.normalized * _settings.maxSpeed;
-            }
-
-            return toTarget.normalized;
-        }
-
-        return Vector3.zero;
     }
 
     void OnDrawGizmos()

@@ -47,9 +47,7 @@ public class BoidCommandController : MonoBehaviour
             return;
         }
 
-        // Update debug display
-        _currentCommandType = _currentCommand.Type;
-        _currentTarget = _currentCommand.Target;
+        UpdateCommandDebugState();
 
         // Execute current command
         ExecuteCommand();
@@ -66,6 +64,59 @@ public class BoidCommandController : MonoBehaviour
                 GameObject.Destroy(boid.gameObject);
             }
         }
+    }
+
+    private void UpdateCommandDebugState()
+    {
+        _currentCommandType = _currentCommand?.Type ?? BoidCommandType.None;
+        _currentTarget = _currentCommand?.Target;
+    }
+
+    private void ForEachBoid(Action<Boid> action)
+    {
+        var boids = _boidsManager.Boids;
+        for (int i = 0; i < boids.Count; i++)
+        {
+            Boid boid = boids[i];
+            if (boid != null)
+            {
+                action(boid);
+            }
+        }
+    }
+
+    private void ClearBoidOverrides(bool clearPriorityTarget)
+    {
+        ForEachBoid(boid =>
+        {
+            boid.ClearTargetSpeed();
+            boid.ClearMoveTarget();
+
+            if (clearPriorityTarget)
+            {
+                boid.ClearPriorityTarget();
+            }
+        });
+    }
+
+    private void ClearTargetManagerOverrides()
+    {
+        var targetManager = _boidsManager.TargetManager;
+        if (targetManager == null)
+            return;
+
+        targetManager.ClearPriorityTarget();
+        targetManager.ClearDefenseMode();
+    }
+
+    private bool TryGetCommandTarget(out Transform target)
+    {
+        target = _currentCommand?.Target;
+        if (target != null)
+            return true;
+
+        ClearCommand();
+        return false;
     }
 
     private void ExecuteCommand()
@@ -114,92 +165,63 @@ public class BoidCommandController : MonoBehaviour
 
     private void ExecuteFollowTarget()
     {
-        if (_currentCommand.Target == null)
-        {
-            ClearCommand();
+        if (!TryGetCommandTarget(out Transform target))
             return;
-        }
 
-        // Set the flock's target to the follow target
-        _boidsManager.SetTarget(_currentCommand.Target);
+        _boidsManager.SetTarget(target);
 
-        // Enable formation mode for organized following
         if (!_boidsManager.settings.useFormation)
         {
             _boidsManager.SetUseFormation(true);
         }
 
-        // Optionally match target speed
         if (_matchTargetSpeed)
         {
-            var targetRigidbody = _currentCommand.Target.GetComponent<Rigidbody>();
+            var targetRigidbody = target.GetComponent<Rigidbody>();
             if (targetRigidbody != null)
             {
                 float targetSpeed = targetRigidbody.linearVelocity.magnitude;
                 float adjustedSpeed = Mathf.Min(targetSpeed * 1.1f, _maxFollowSpeed);
 
-                // Apply speed adjustment to boids
-                foreach (var boid in _boidsManager.Boids)
-                {
-                    if (boid != null)
-                    {
-                        boid.SetTargetSpeed(adjustedSpeed);
-                    }
-                }
+                ForEachBoid(boid => boid.SetTargetSpeed(adjustedSpeed));
             }
         }
     }
 
     private void ExecuteAttackTarget()
     {
-        if (_currentCommand.Target == null)
-        {
-            ClearCommand();
+        if (!TryGetCommandTarget(out Transform target))
             return;
-        }
 
-        // Set as priority target for the flock
         var targetManager = _boidsManager.TargetManager;
         if (targetManager != null)
         {
-            targetManager.SetPriorityTarget(_currentCommand.Target);
+            targetManager.SetPriorityTarget(target);
         }
 
-        // Break formation for attack
         _boidsManager.SetUseFormation(false);
 
-        // Enter combat mode
-        foreach (var boid in _boidsManager.Boids)
-        {
-            if (boid != null)
-            {
-                boid.EnterCombat();
-                boid.SetPriorityTarget(_currentCommand.Target);
-            }
-        }
+        ForEachBoid(boid => boid.EnterCombat());
     }
 
     private void ExecuteMoveToPosition()
     {
-        // Create a temporary target at the position or update existing
-        // This could use a pooled transform or a dedicated waypoint system
+        Vector3 destination = _currentCommand.Position;
+        float arrivalRadius = _currentCommand.Radius;
 
-        foreach (var boid in _boidsManager.Boids)
+        ForEachBoid(boid =>
         {
-            if (boid == null) continue;
+            float distToTarget = Vector3.Distance(boid.position, destination);
 
-            float distToTarget = Vector3.Distance(boid.position, _currentCommand.Position);
-
-            if (distToTarget < _currentCommand.Radius)
+            if (distToTarget < arrivalRadius)
             {
-                // Arrived - could switch to patrol or hold
                 boid.SetTargetSpeed(0f);
             }
             else
             {
-                boid.SetMoveTarget(_currentCommand.Position);
+                boid.SetMoveTarget(destination);
             }
-        }
+        });
     }
 
     private void ExecuteReturnToBase()
@@ -213,15 +235,16 @@ public class BoidCommandController : MonoBehaviour
 
         _boidsManager.SetUseFormation(false);
 
-        foreach (var boid in _boidsManager.Boids)
+        ForEachBoid(boid =>
         {
-            if (boid == null || boid.IsDespawning) continue;
+            if (boid.IsDespawning)
+                return;
 
             _returnToBasePendingCount++;
 
             Boid capturedBoid = boid;
             boid.BeginDespawn(() => OnBoidReturnedToBase(capturedBoid));
-        }
+        });
 
         if (_returnToBasePendingCount == 0)
         {
@@ -253,13 +276,13 @@ public class BoidCommandController : MonoBehaviour
         _returnToBasePendingCount = 0;
 
         // Cancel despawn on any boids still flying back
-        foreach (var boid in _boidsManager.Boids)
+        ForEachBoid(boid =>
         {
-            if (boid != null && boid.IsDespawning)
+            if (boid.IsDespawning)
             {
                 boid.CancelDespawn();
             }
-        }
+        });
 
         _boidsManager.ResumeSpawning();
     }
@@ -288,21 +311,16 @@ public class BoidCommandController : MonoBehaviour
     }
     private void ExecuteDefend()
     {
-        if (_currentCommand.Target == null)
-        {
-            ClearCommand();
+        if (!TryGetCommandTarget(out Transform target))
             return;
-        }
 
-        // Stay near the defended target
-        _boidsManager.SetTarget(_currentCommand.Target);
+        _boidsManager.SetTarget(target);
         _boidsManager.SetUseFormation(true);
 
-        // But engage enemies that get too close
         var targetManager = _boidsManager.TargetManager;
         if (targetManager != null)
         {
-            targetManager.SetDefenseMode(_currentCommand.Target, _currentCommand.Radius);
+            targetManager.SetDefenseMode(target, _currentCommand.Radius);
         }
     }
 
@@ -310,44 +328,25 @@ public class BoidCommandController : MonoBehaviour
     {
         _boidsManager.SetUseFormation(true);
         _boidsManager.ForceFormationMode();
-
-        // Tighten formation spacing temporarily
-        // Could modify formation settings here
     }
 
     private void ExecuteBreakFormation()
     {
         _boidsManager.SetUseFormation(false);
 
-        // Clear defense mode so boids can attack any detected enemy
-        var targetManager = _boidsManager.TargetManager;
         _boidsManager.SetTarget(null);
-        if (targetManager != null)
-        {
-            targetManager.ClearDefenseMode();
-        }
+        ClearTargetManagerOverrides();
 
-        // Enter combat mode to enable aggressive behavior
-        foreach (var boid in _boidsManager.Boids)
-        {
-            if (boid != null)
-            {
-                boid.ClearPriorityTarget(); // Let target manager assign
-                boid.EnterCombat();
-            }
-        }
+        ForEachBoid(boid => boid.EnterCombat());
     }
 
     private void ExecuteHold()
     {
-        foreach (var boid in _boidsManager.Boids)
+        ForEachBoid(boid =>
         {
-            if (boid != null)
-            {
-                boid.SetTargetSpeed(0f);
-                boid.HoldPosition();
-            }
-        }
+            boid.SetTargetSpeed(0f);
+            boid.HoldPosition();
+        });
     }
 
     public bool IsReturningToBase => _isReturningToBase;
@@ -358,7 +357,22 @@ public class BoidCommandController : MonoBehaviour
 
     public void IssueCommand(BoidCommand command)
     {
+        if (command == null)
+        {
+            ClearCommand();
+            return;
+        }
+
+        if (_isReturningToBase && command.Type != BoidCommandType.ReturnToBase)
+        {
+            CancelReturnToBase();
+        }
+
+        ClearBoidOverrides(clearPriorityTarget: true);
+        ClearTargetManagerOverrides();
+
         _currentCommand = command;
+        UpdateCommandDebugState();
         OnCommandChanged?.Invoke(command);
 
         Debug.Log($"[{_boidsManager.name}] Command issued: {command.Type}");
@@ -431,27 +445,12 @@ public class BoidCommandController : MonoBehaviour
     public void ClearCommand()
     {
         _currentCommand = null;
-        _currentCommandType = BoidCommandType.None;
-        _currentTarget = null;
-        _isReturningToBase = false;  // Add this
+        _isReturningToBase = false;
+        _returnToBasePendingCount = 0;
+        UpdateCommandDebugState();
 
-        // Reset to default behavior
-        foreach (var boid in _boidsManager.Boids)
-        {
-            if (boid != null)
-            {
-                boid.ClearTargetSpeed();
-                boid.ClearMoveTarget();
-            }
-        }
-
-        // Reset target manager state
-        var targetManager = _boidsManager.TargetManager;
-        if (targetManager != null)
-        {
-            targetManager.ClearPriorityTarget();
-            targetManager.ClearDefenseMode();
-        }
+        ClearBoidOverrides(clearPriorityTarget: true);
+        ClearTargetManagerOverrides();
 
         OnCommandChanged?.Invoke(null);
     }
