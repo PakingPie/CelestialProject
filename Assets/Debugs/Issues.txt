@@ -1,3 +1,7 @@
-BoidManager.Update() has cost spike
-BulletPhysics cost too high
-CombatManager LateUpdate has spike in cpu usage
+Design the exact properties and where they belong in the current scripts.
+Implement a first pass of combat cohesion and leash behavior.
+Rework target assignment so squads stop spreading across too many enemies.
+
+I implement these properties and wire in a first-pass combat cohesion and leash system.
+I only implement the movement-side part first, and leave target spread for the next pass.
+I implement both movement-side leash and target-side spread limits together as one cohesive change.

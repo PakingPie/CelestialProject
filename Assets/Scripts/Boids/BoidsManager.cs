@@ -80,6 +80,7 @@ public class BoidsManager : MonoBehaviour
         }
 
         _targetManager.Initialize(_flockId, _team, _detectionRadius, _targetTags, _ignoreTags);
+        _targetManager.SetCommandAnchor(target);
 
         boids = new List<Boid>();
         _boidWeapons = new List<WeaponBase>();
@@ -607,6 +608,10 @@ public class BoidsManager : MonoBehaviour
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
+        if (_targetManager != null)
+        {
+            _targetManager.SetCommandAnchor(newTarget);
+        }
         foreach (var boid in boids)
         {
             boid.SetFallbackTarget(newTarget);

@@ -1,0 +1,22 @@
+Design a squad-level blackboard for my Unity starship boid system.
+
+Context:
+- The current system has BoidsManager as squad orchestrator.
+- BoidFlockTargetManager handles squad target detection and target allocation.
+- Boid handles steering and movement execution.
+- BoidCommandController handles squad orders.
+- I want to introduce a squad-level behavior tree without replacing the existing movement layer.
+
+Task:
+- Propose a squad blackboard schema.
+- Separate persistent state, sensed state, derived state, and command state.
+- Explain which system should own and update each field.
+- Recommend update cadence for each field.
+- Identify which fields should be read-only to the behavior tree.
+- Identify which fields should be written by the behavior tree.
+
+Output format:
+- Blackboard categories
+- Field list with type, owner, update source, and purpose
+- Notes about concurrency / stale data risks
+- Recommended first minimal version

@@ -2,6 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum CombatAnchorMode
+{
+    None,
+    Leader,
+    FlockCenter,
+    CommandAnchor
+}
+
 [CreateAssetMenu]
 public class BoidSettings : ScriptableObject
 {
@@ -42,6 +50,16 @@ public class BoidSettings : ScriptableObject
     public float combatSeparationMultiplier = 2f;
     public float combatAlignmentMultiplier = 0.5f;
     public float returnToFormationDelay = 3f;
+
+    [Header("Combat Cohesion")]
+    public CombatAnchorMode combatAnchorMode = CombatAnchorMode.Leader;
+    public float combatAnchorWeight = 1.25f;
+    public float combatAnchorSlackRadius = 150f;
+    public float combatLeashRadius = 400f;
+    public float combatLeashWeight = 3f;
+    [Range(0f, 1f)] public float combatSlotRetention = 0.35f;
+    public float combatRegroupHysteresis = 75f;
+    public float combatTargetPursuitWeight = 1.5f;
 }
 
 public enum FormationType

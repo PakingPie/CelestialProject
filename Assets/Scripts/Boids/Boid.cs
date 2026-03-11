@@ -52,6 +52,7 @@ public class Boid : MonoBehaviour
     [HideInInspector] public int FormationIndex = 0;
     [HideInInspector] public Boid FormationLeader = null;
     private float _combatTimer = 0f;
+    private bool _combatLeashEngaged = false;
 
     // Smoothing parameters
     private const float CollisionSmoothSpeed = 8f;
@@ -251,6 +252,7 @@ public class Boid : MonoBehaviour
 
         IsInCombat = true;
         _combatTimer = 0f;
+        _combatLeashEngaged = false;
     }
 
     public void UpdateCombatState()
@@ -283,6 +285,7 @@ public class Boid : MonoBehaviour
         if (_combatTimer >= _settings.returnToFormationDelay)
         {
             IsInCombat = false;
+            _combatLeashEngaged = false;
             _postCombatTimer = 0f;
             _lastCombatHeading = forward;
 
@@ -621,13 +624,102 @@ public class Boid : MonoBehaviour
 
         if (IsInCombat && AttackBehavior != null && AttackBehavior.Profile != null && _target != null)
         {
-            Vector3 movementDir = AttackBehavior.GetDesiredMovementDirection(_target.position, _target.forward);
-            float speedMult = AttackBehavior.SpeedMultiplier;
-            _velocity *= Mathf.Lerp(1f, speedMult, Time.deltaTime * 3f);
-            return SteerTowards(movementDir) * _settings.targetWeight * 1.5f;
+            return CalculateCombatAcceleration();
         }
 
         return CalculateTravelAcceleration();
+    }
+
+    private Vector3 CalculateCombatAcceleration()
+    {
+        float discipline = GetCombatDisciplineMultiplier();
+        Vector3 acceleration = Vector3.zero;
+
+        if (_target != null)
+        {
+            Vector3 movementDir = AttackBehavior.GetDesiredMovementDirection(_target.position, _target.forward);
+            float speedMult = AttackBehavior.SpeedMultiplier;
+            _velocity *= Mathf.Lerp(1f, speedMult, Time.deltaTime * 3f);
+            acceleration += SteerTowards(movementDir) * _settings.combatTargetPursuitWeight * discipline;
+        }
+        else
+        {
+            acceleration += CalculateTravelAcceleration();
+        }
+
+        ApplyCombatAnchorAcceleration(ref acceleration, discipline);
+        return acceleration;
+    }
+
+    private float GetCombatDisciplineMultiplier()
+    {
+        if (AttackBehavior != null && AttackBehavior.Profile != null)
+            return Mathf.Max(0f, AttackBehavior.Profile.squadDisciplineMultiplier);
+
+        return 1f;
+    }
+
+    private void ApplyCombatAnchorAcceleration(ref Vector3 acceleration, float discipline)
+    {
+        if (_targetManager == null)
+            return;
+
+        if (!_targetManager.TryGetCombatAnchorPosition(this, _settings.combatAnchorMode, out Vector3 anchorPosition))
+            return;
+
+        float slackRadius = Mathf.Max(0f, _settings.combatAnchorSlackRadius);
+        float leashRadius = Mathf.Max(slackRadius, _settings.combatLeashRadius);
+        float hysteresis = Mathf.Max(0f, _settings.combatRegroupHysteresis);
+        float distanceToAnchor = Vector3.Distance(position, anchorPosition);
+
+        if (_combatLeashEngaged)
+        {
+            float releaseRadius = Mathf.Max(slackRadius, leashRadius - hysteresis);
+            if (distanceToAnchor <= releaseRadius)
+            {
+                _combatLeashEngaged = false;
+            }
+        }
+        else if (distanceToAnchor > leashRadius)
+        {
+            _combatLeashEngaged = true;
+        }
+
+        if (_combatLeashEngaged)
+        {
+            acceleration += SteerTowards(anchorPosition - position) * _settings.combatLeashWeight * discipline;
+            return;
+        }
+
+        if (distanceToAnchor > slackRadius)
+        {
+            float normalizedDistance = leashRadius > slackRadius
+                ? Mathf.InverseLerp(slackRadius, leashRadius, distanceToAnchor)
+                : 1f;
+
+            float anchorWeight = Mathf.Lerp(0f, _settings.combatAnchorWeight, normalizedDistance) * discipline;
+            acceleration += SteerTowards(anchorPosition - position) * anchorWeight;
+        }
+
+        ApplyCombatSlotRetention(ref acceleration, discipline);
+    }
+
+    private void ApplyCombatSlotRetention(ref Vector3 acceleration, float discipline)
+    {
+        if (FormationLeader == null || FormationIndex <= 0)
+            return;
+
+        float slotRetention = Mathf.Clamp01(_settings.combatSlotRetention) * discipline;
+        if (slotRetention <= 0f)
+            return;
+
+        Vector3 slotTarget = FormationLeader.position + FormationLeader._cachedTransform.TransformDirection(GetFormationOffset());
+        Vector3 toSlot = slotTarget - position;
+
+        if (toSlot.sqrMagnitude <= _settings.formationDeadZone * _settings.formationDeadZone)
+            return;
+
+        acceleration += SteerTowards(toSlot) * slotRetention;
     }
 
     private Vector3 CalculateLeaderAcceleration()

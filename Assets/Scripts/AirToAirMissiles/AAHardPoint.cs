@@ -262,6 +262,10 @@ public class AAHardpoint : AALauncher
             AAMissile mis = Instantiate(prefab, hardpoint.position, hardpoint.rotation);
             mis.ownShip = ownShip;
 
+            AAMissileEffects missileEffects = mis.GetComponent<AAMissileEffects>();
+            if (missileEffects != null)
+                missileEffects.PrepareForMount();
+
             // Disable MissileVehicle so missile can't be targeted/damaged before launch
             var missileVehicle = mis.GetComponent<MissileVehicle>();
             if (missileVehicle != null)

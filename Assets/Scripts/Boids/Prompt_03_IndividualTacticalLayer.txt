@@ -1,0 +1,21 @@
+Design an individual boid tactical layer for my Unity starship squadron system.
+
+Context:
+- Squad-level intent will come from a squad tactical brain.
+- Boid.cs should remain the movement / steering executor.
+- I do not want each ship to run an unnecessarily deep behavior tree.
+- The current system uses BoidAttackBehavior and BoidAttackProfile for combat doctrine.
+
+Task:
+- Compare a lightweight state machine versus a shallow behavior tree for individual boid combat control.
+- Recommend the better option for this project and explain why.
+- Define the minimal set of tactical states or leaf actions needed for version 1.
+- Explain how this layer should hand off to steering code rather than replacing it.
+- Explain how to avoid duplicated decision ownership between squad and individual layers.
+
+Output format:
+- Recommendation
+- Tactical states or leaf actions
+- Inputs and outputs
+- Transition rules or conditions
+- Risks and debugging advice

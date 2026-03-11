@@ -4,6 +4,8 @@ using UnityEngine.VFX;
 [RequireComponent(typeof(AAMissile))]
 public class AAMissileEffects : MonoBehaviour
 {
+    private const string FlamePropertyName = "EnableFlame";
+
     new Transform transform;
     [Tooltip("Enable or disable all missile effects.")]
     public bool EnableEffects = true;
@@ -48,6 +50,7 @@ public class AAMissileEffects : MonoBehaviour
     AARemoveEffect effectRemover;
 
     bool motorHasActivated = false;
+    bool effectsInitialized = false;
 
     private void Awake()
     {
@@ -82,10 +85,27 @@ public class AAMissileEffects : MonoBehaviour
             loopSource.outputAudioMixerGroup = mixerGroup ?? null;
             loopSource.Stop();
         }
+
+        EnsureEffectsInitialized();
+        ResetMountedEffects();
     }
 
     private void Start()
     {
+        EnsureEffectsInitialized();
+    }
+
+    public void PrepareForMount()
+    {
+        EnsureEffectsInitialized();
+        ResetMountedEffects();
+    }
+
+    private void EnsureEffectsInitialized()
+    {
+        if (effectsInitialized)
+            return;
+
         // First make sure that an effect was assigned at all.
         if (trailPrefab != null || visualEffectPrefab != null)
         {
@@ -128,6 +148,47 @@ public class AAMissileEffects : MonoBehaviour
                     effectRemover = visualEffect.gameObject.AddComponent<AARemoveEffect>();
             }
         }
+
+        effectsInitialized = true;
+    }
+
+    private void ResetMountedEffects()
+    {
+        motorHasActivated = false;
+
+        if (fireSource != null)
+            fireSource.Stop();
+        if (loopSource != null)
+            loopSource.Stop();
+
+        if (trail != null)
+        {
+            trail.transform.SetParent(trailFxPoint, false);
+            trail.transform.localPosition = Vector3.zero;
+            trail.transform.localEulerAngles = Vector3.zero;
+            trail.Clear();
+            trail.enabled = false;
+        }
+
+        if (visualEffect != null)
+        {
+            visualEffect.transform.SetParent(trailFxPoint, false);
+            visualEffect.transform.localPosition = Vector3.zero;
+            visualEffect.transform.localEulerAngles = Vector3.zero;
+
+            if (effectRemover != null)
+                effectRemover.readyToDestroy = false;
+
+            SetFlameEnabled(false);
+            visualEffect.Reinit();
+            visualEffect.Stop();
+        }
+    }
+
+    private void SetFlameEnabled(bool enabled)
+    {
+        if (visualEffect != null && visualEffect.HasBool(FlamePropertyName))
+            visualEffect.SetBool(FlamePropertyName, enabled);
     }
 
     private void Update()
@@ -147,7 +208,11 @@ public class AAMissileEffects : MonoBehaviour
             if (trail != null)
                 trail.enabled = true;
             else if (visualEffect != null)
-                visualEffect.Play();            
+            {
+                SetFlameEnabled(true);
+                visualEffect.Reinit();
+                visualEffect.Play();
+            }
             else
                 Debug.LogWarning("No TrailRenderer or Visual Effect Graph prefabs assigned for missile trail FX on " + transform.name + ".");
         }
@@ -213,7 +278,7 @@ public class AAMissileEffects : MonoBehaviour
         if (visualEffect != null)
         {
             // Disable the flame and stop new particle emission
-            visualEffect.SetBool("EnableFlame", false);
+            SetFlameEnabled(false);
             visualEffect.Stop();
             
             // If the effect is active, unparent it so it persists after missile is destroyed
