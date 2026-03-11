@@ -50,6 +50,7 @@ public class AAMissileEffects : MonoBehaviour
     AARemoveEffect effectRemover;
 
     bool motorHasActivated = false;
+    bool motorHasDeactivated = false;
     bool effectsInitialized = false;
 
     private void Awake()
@@ -155,6 +156,7 @@ public class AAMissileEffects : MonoBehaviour
     private void ResetMountedEffects()
     {
         motorHasActivated = false;
+        motorHasDeactivated = false;
 
         if (fireSource != null)
             fireSource.Stop();
@@ -221,6 +223,13 @@ public class AAMissileEffects : MonoBehaviour
         if (!trailAlwaysOn && motorHasActivated && !missile.MotorActive)
         {
             DetachTrail();
+        }
+
+        // When trail is always on but motor has stopped, disable the flame on the VFX.
+        if (trailAlwaysOn && motorHasActivated && !motorHasDeactivated && !missile.MotorActive)
+        {
+            motorHasDeactivated = true;
+            SetFlameEnabled(false);
         }
     }
 
