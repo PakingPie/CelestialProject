@@ -94,15 +94,40 @@ public static class GlobalHelper
         public IndicatorType Type { get; private set; }
         public System.Func<Vector3> GetVelocity { get; private set; }
 
+        private Vector3 _lastVelocity;
+        private Vector3 _smoothedAcceleration;
+        private bool _hasLastVelocity;
+
         public bool IsValid => Transform != null;
         public Vector3 Position => Transform != null ? Transform.position : Vector3.zero;
         public Vector3 Velocity => GetVelocity != null ? GetVelocity() : Vector3.zero;
+        public Vector3 SmoothedAcceleration => _smoothedAcceleration;
 
         public TrackedTarget(Transform transform, IndicatorType type, System.Func<Vector3> velocityGetter)
         {
             Transform = transform;
             Type = type;
             GetVelocity = velocityGetter;
+        }
+
+        /// <summary>
+        /// Call every update tick to maintain a smoothed acceleration estimate.
+        /// </summary>
+        public void UpdateAcceleration(float deltaTime, float smoothingAlpha = 0.3f)
+        {
+            if (deltaTime <= 0f) return;
+
+            Vector3 currentVelocity = Velocity;
+            if (_hasLastVelocity)
+            {
+                Vector3 rawAcceleration = (currentVelocity - _lastVelocity) / deltaTime;
+                _smoothedAcceleration = Vector3.Lerp(_smoothedAcceleration, rawAcceleration, smoothingAlpha);
+            }
+            else
+            {
+                _hasLastVelocity = true;
+            }
+            _lastVelocity = currentVelocity;
         }
     }
 

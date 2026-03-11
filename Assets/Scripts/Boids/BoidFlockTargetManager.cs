@@ -1,20 +1,37 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
+using UnityEngine.Serialization;
 using static GlobalHelper;
 
 public class BoidFlockTargetManager : MonoBehaviour
 {
+    private struct BoidAssignmentCandidate
+    {
+        public Boid Boid;
+        public float DistanceToNearestTarget;
+
+        public BoidAssignmentCandidate(Boid boid, float distanceToNearestTarget)
+        {
+            Boid = boid;
+            DistanceToNearestTarget = distanceToNearestTarget;
+        }
+    }
+
     [Header("Detection")]
     [SerializeField] private float _detectionRadius = 5000f;
     [SerializeField] private float _detectionInterval = 0.2f;
     [SerializeField] private List<string> _targetTags = new List<string>();
     [SerializeField] private List<string> _ignoreTags = new List<string>();
 
-    [Header("Target Assignment")]
-    [SerializeField] private int _maxTargets = 10;
+    [Header("Target Distribution")]
+    [FormerlySerializedAs("_maxTargets")]
+    [SerializeField] private int _maxConcurrentCombatTargets = 2;
     [SerializeField] private int _maxBoidsPerTarget = 3;
     [SerializeField] private float _reassignInterval = 1f;
+    [SerializeField] private float _targetAssignmentStickiness = 0.35f;
+    [SerializeField] private float _focusFireBias = 0.75f;
+    [SerializeField] private float _distancePenaltyWeight = 0.5f;
+    [SerializeField] private bool _preserveAssignmentsUntilInvalid = true;
 
     [Header("Threat Evaluation")]
     [SerializeField] private float _distanceWeight = 1f;
@@ -28,6 +45,7 @@ public class BoidFlockTargetManager : MonoBehaviour
 
     [Header("Command State")]
     [SerializeField] private Transform _priorityTarget;
+    [SerializeField] private Transform _commandAnchor;
     [SerializeField] private Transform _defendTarget;
     [SerializeField] private float _defendRadius;
     [SerializeField] private bool _isDefenseMode;
@@ -37,17 +55,23 @@ public class BoidFlockTargetManager : MonoBehaviour
     public string FlockId => _flockId;
     public GlobalHelper.Team Team => _team;
     public Transform PriorityTarget => _priorityTarget;
+    public Transform CommandAnchor => _commandAnchor;
     public bool IsDefenseMode => _isDefenseMode;
 
     private Dictionary<Transform, BoidTargetInfo> _knownTargets = new Dictionary<Transform, BoidTargetInfo>();
     private Dictionary<Boid, BoidTargetInfo> _boidAssignments = new Dictionary<Boid, BoidTargetInfo>();
     private List<Boid> _managedBoids = new List<Boid>();
+    private HashSet<Boid> _managedBoidSet = new HashSet<Boid>();
 
     private float _lastDetectionTime;
     private float _lastAssignmentTime;
-    private Transform _flockCenter;
 
     private List<VehicleBase> _nearbyEnemies = new List<VehicleBase>(64);
+    private HashSet<Transform> _currentTargets = new HashSet<Transform>();
+    private List<Transform> _staleTargets = new List<Transform>(32);
+    private List<Boid> _keysToRemove = new List<Boid>(16);
+    private List<BoidTargetInfo> _candidateTargets = new List<BoidTargetInfo>(16);
+    private List<BoidAssignmentCandidate> _assignmentCandidates = new List<BoidAssignmentCandidate>(64);
 
     public IReadOnlyDictionary<Boid, BoidTargetInfo> BoidAssignments => _boidAssignments;
 
@@ -63,6 +87,7 @@ public class BoidFlockTargetManager : MonoBehaviour
         _detectionRadius = detectionRadius;
         _targetTags = targetTags ?? new List<string>();
         _ignoreTags = ignoreTags ?? new List<string>();
+        _commandAnchor = null;
     }
 
     public Faction GetFaction()
@@ -90,7 +115,7 @@ public class BoidFlockTargetManager : MonoBehaviour
         }
 
         Boid boid = target.GetComponent<Boid>();
-        if (boid != null && _managedBoids.Contains(boid)) return false;
+        if (IsManagedBoid(boid)) return false;
 
         foreach (var tag in _targetTags)
         {
@@ -119,14 +144,19 @@ public class BoidFlockTargetManager : MonoBehaviour
 
     void Awake()
     {
-        _flockCenter = transform;
+    }
+
+    private bool IsManagedBoid(Boid boid)
+    {
+        return boid != null && _managedBoidSet.Contains(boid);
     }
 
     public void RegisterBoid(Boid boid)
     {
-        if (!_managedBoids.Contains(boid))
+        if (!_managedBoidSet.Contains(boid))
         {
             _managedBoids.Add(boid);
+            _managedBoidSet.Add(boid);
             _boidAssignments[boid] = null;
         }
     }
@@ -134,6 +164,7 @@ public class BoidFlockTargetManager : MonoBehaviour
     public void UnregisterBoid(Boid boid)
     {
         _managedBoids.Remove(boid);
+        _managedBoidSet.Remove(boid);
 
         if (_boidAssignments.TryGetValue(boid, out var targetInfo) && targetInfo != null)
         {
@@ -200,48 +231,59 @@ public class BoidFlockTargetManager : MonoBehaviour
         {
             if (_managedBoids[i] == null)
             {
+                _managedBoidSet.Remove(_managedBoids[i]);
                 _managedBoids.RemoveAt(i);
             }
         }
 
-        var keysToRemove = new List<Boid>();
+        _keysToRemove.Clear();
         foreach (var kvp in _boidAssignments)
         {
             if (kvp.Key == null)
-                keysToRemove.Add(kvp.Key);
+                _keysToRemove.Add(kvp.Key);
         }
-        foreach (var key in keysToRemove)
+        for (int i = 0; i < _keysToRemove.Count; i++)
         {
+            Boid key = _keysToRemove[i];
+            _managedBoidSet.Remove(key);
             _boidAssignments.Remove(key);
         }
     }
 
-    private void DetectTargets()
+    private Vector3 CalculateFlockCenter()
     {
         Vector3 center = Vector3.zero;
         int validCount = 0;
-        foreach (var boid in _managedBoids)
+
+        for (int i = 0; i < _managedBoids.Count; i++)
         {
-            if (boid != null)
-            {
-                center += boid.position;
-                validCount++;
-            }
-        }
-        if (validCount > 0)
-        {
-            center /= validCount;
-        }
-        else
-        {
-            center = transform.position;
+            Boid boid = _managedBoids[i];
+            if (boid == null)
+                continue;
+
+            center += boid.position;
+            validCount++;
         }
 
+        if (validCount > 0)
+            return center / validCount;
+
+        return transform.position;
+    }
+
+    public Vector3 GetFlockCenterPosition()
+    {
+        return CalculateFlockCenter();
+    }
+
+    private void DetectTargets()
+    {
+        Vector3 center = CalculateFlockCenter();
         GlobalHelper.Faction targetFactions = GetTargetFactions();
 
         CombatRegistry.GetNearbyEnemies(center, _detectionRadius, targetFactions, _nearbyEnemies);
 
-        HashSet<Transform> currentTargets = new HashSet<Transform>();
+        _currentTargets.Clear();
 
         for (int i = 0; i < _nearbyEnemies.Count; i++)
         {
@@ -253,39 +295,56 @@ public class BoidFlockTargetManager : MonoBehaviour
             if (IsIgnored(target)) continue;
 
             Boid boid = target.GetComponent<Boid>();
-            if (boid != null && _managedBoids.Contains(boid)) continue;
+            if (IsManagedBoid(boid)) continue;
 
-            currentTargets.Add(target);
-
-            if (!_knownTargets.ContainsKey(target))
-            {
-                _knownTargets[target] = new BoidTargetInfo
-                {
-                    Target = target,
-                    AssignedBoidCount = 0
-                };
-            }
-
-            var info = _knownTargets[target];
-            info.LastSeenTime = Time.time;
-
-            Vector3 newPos = target.position;
-            if (info.LastKnownPosition != Vector3.zero)
-            {
-                info.EstimatedVelocity = (newPos - info.LastKnownPosition) / _detectionInterval;
-            }
-            info.LastKnownPosition = newPos;
-            info.Distance = Vector3.Distance(center, newPos);
-            info.ThreatLevel = CalculateThreatLevel(info, center);
+            _currentTargets.Add(target);
+            UpdateKnownTarget(target, center);
         }
 
-        var staleTargets = _knownTargets.Keys
-            .Where(t => t == null || !currentTargets.Contains(t) && Time.time - _knownTargets[t].LastSeenTime > 5f)
-            .ToList();
+        RemoveStaleTargets();
+    }
 
-        foreach (var stale in staleTargets)
+    private void UpdateKnownTarget(Transform target, Vector3 flockCenter)
+    {
+        if (!_knownTargets.TryGetValue(target, out var info))
         {
-            _knownTargets.Remove(stale);
+            info = new BoidTargetInfo
+            {
+                Target = target,
+                AssignedBoidCount = 0
+            };
+            _knownTargets[target] = info;
+        }
+
+        info.LastSeenTime = Time.time;
+
+        Vector3 newPos = target.position;
+        if (info.LastKnownPosition != Vector3.zero)
+        {
+            info.EstimatedVelocity = (newPos - info.LastKnownPosition) / _detectionInterval;
+        }
+
+        info.LastKnownPosition = newPos;
+        info.Distance = Vector3.Distance(flockCenter, newPos);
+        info.ThreatLevel = CalculateThreatLevel(info, flockCenter);
+    }
+
+    private void RemoveStaleTargets()
+    {
+        _staleTargets.Clear();
+
+        foreach (var kvp in _knownTargets)
+        {
+            Transform target = kvp.Key;
+            if (target == null || (!_currentTargets.Contains(target) && Time.time - kvp.Value.LastSeenTime > 5f))
+            {
+                _staleTargets.Add(target);
+            }
+        }
+
+        for (int i = 0; i < _staleTargets.Count; i++)
+        {
+            _knownTargets.Remove(_staleTargets[i]);
         }
     }
 
@@ -309,8 +368,9 @@ public class BoidFlockTargetManager : MonoBehaviour
         {
             if (weapon.Targeted != null)
             {
-                foreach (var boid in _managedBoids)
+                for (int i = 0; i < _managedBoids.Count; i++)
                 {
+                    Boid boid = _managedBoids[i];
                     if (boid != null && weapon.Targeted == boid.transform)
                     {
                         threat += _targetingUsWeight;
@@ -332,57 +392,39 @@ public class BoidFlockTargetManager : MonoBehaviour
 
     private void AssignTargets()
     {
-        var sortedTargets = _knownTargets.Values
-            .Where(t => t.IsValid)
-            .OrderByDescending(t => t.ThreatLevel)
-            .Take(_maxTargets)
-            .ToList();
+        BuildCandidateTargets();
 
-        if (sortedTargets.Count == 0)
+        if (_candidateTargets.Count == 0)
         {
-            foreach (var boid in _managedBoids)
-            {
-                if (_boidAssignments.TryGetValue(boid, out var oldInfo) && oldInfo != null)
-                {
-                    oldInfo.AssignedBoidCount--;
-                }
-                _boidAssignments[boid] = null;
-            }
+            ClearAssignments();
             return;
         }
 
-        foreach (var target in sortedTargets)
+        for (int i = 0; i < _candidateTargets.Count; i++)
         {
-            target.AssignedBoidCount = 0;
+            _candidateTargets[i].AssignedBoidCount = 0;
         }
 
-        var boidsNeedingAssignment = _managedBoids
-            .Where(b => b != null)
-            .Select(b => new
-            {
-                Boid = b,
-                NearestTarget = sortedTargets.OrderBy(t => Vector3.Distance(b.position, t.LastKnownPosition)).FirstOrDefault()
-            })
-            .OrderBy(x => x.NearestTarget != null ? Vector3.Distance(x.Boid.position, x.NearestTarget.LastKnownPosition) : float.MaxValue)
-            .ToList();
+        BuildAssignmentCandidates();
 
-        foreach (var item in boidsNeedingAssignment)
+        for (int i = 0; i < _assignmentCandidates.Count; i++)
         {
-            Boid boid = item.Boid;
+            Boid boid = _assignmentCandidates[i].Boid;
+            if (boid == null)
+                continue;
+
+            if (_preserveAssignmentsUntilInvalid && TryKeepExistingAssignment(boid))
+                continue;
+
             BoidTargetInfo bestTarget = null;
             float bestScore = float.MinValue;
 
-            foreach (var target in sortedTargets)
+            for (int targetIndex = 0; targetIndex < _candidateTargets.Count; targetIndex++)
             {
+                BoidTargetInfo target = _candidateTargets[targetIndex];
                 if (target.AssignedBoidCount >= _maxBoidsPerTarget) continue;
 
-                float distance = Vector3.Distance(boid.position, target.LastKnownPosition);
-                float score = target.ThreatLevel - (distance / _detectionRadius) * 0.5f;
-
-                if (_boidAssignments.TryGetValue(boid, out var currentTarget) && currentTarget == target)
-                {
-                    score += 0.3f;
-                }
+                float score = ScoreTarget(boid, target);
 
                 if (score > bestScore)
                 {
@@ -391,16 +433,114 @@ public class BoidFlockTargetManager : MonoBehaviour
                 }
             }
 
-            if (_boidAssignments.TryGetValue(boid, out var oldInfo) && oldInfo != null)
-            {
-                oldInfo.AssignedBoidCount--;
-            }
-
             _boidAssignments[boid] = bestTarget;
             if (bestTarget != null)
             {
                 bestTarget.AssignedBoidCount++;
             }
+        }
+    }
+
+    private void BuildCandidateTargets()
+    {
+        _candidateTargets.Clear();
+
+        foreach (var target in _knownTargets.Values)
+        {
+            if (target != null && target.IsValid)
+            {
+                _candidateTargets.Add(target);
+            }
+        }
+
+        _candidateTargets.Sort((left, right) => right.ThreatLevel.CompareTo(left.ThreatLevel));
+
+        if (_candidateTargets.Count > _maxConcurrentCombatTargets)
+        {
+            _candidateTargets.RemoveRange(_maxConcurrentCombatTargets, _candidateTargets.Count - _maxConcurrentCombatTargets);
+        }
+    }
+
+    private void BuildAssignmentCandidates()
+    {
+        _assignmentCandidates.Clear();
+
+        for (int i = 0; i < _managedBoids.Count; i++)
+        {
+            Boid boid = _managedBoids[i];
+            if (boid == null)
+                continue;
+
+            _assignmentCandidates.Add(new BoidAssignmentCandidate(boid, GetNearestTargetDistance(boid)));
+        }
+
+        _assignmentCandidates.Sort((left, right) => left.DistanceToNearestTarget.CompareTo(right.DistanceToNearestTarget));
+    }
+
+    private float GetNearestTargetDistance(Boid boid)
+    {
+        float nearestDistance = float.MaxValue;
+
+        for (int i = 0; i < _candidateTargets.Count; i++)
+        {
+            float distance = Vector3.Distance(boid.position, _candidateTargets[i].LastKnownPosition);
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+            }
+        }
+
+        return nearestDistance;
+    }
+
+    private float ScoreTarget(Boid boid, BoidTargetInfo target)
+    {
+        float distance = Vector3.Distance(boid.position, target.LastKnownPosition);
+        float score = target.ThreatLevel - (distance / _detectionRadius) * _distancePenaltyWeight;
+
+        if (target.AssignedBoidCount > 0)
+        {
+            score += target.AssignedBoidCount * _focusFireBias;
+        }
+
+        if (_boidAssignments.TryGetValue(boid, out var currentTarget) && currentTarget == target)
+        {
+            score += _targetAssignmentStickiness;
+        }
+
+        return score;
+    }
+
+    private bool TryKeepExistingAssignment(Boid boid)
+    {
+        if (!_boidAssignments.TryGetValue(boid, out var currentTarget) || currentTarget == null || !currentTarget.IsValid)
+            return false;
+
+        if (!_candidateTargets.Contains(currentTarget))
+            return false;
+
+        if (currentTarget.AssignedBoidCount >= _maxBoidsPerTarget)
+            return false;
+
+        currentTarget.AssignedBoidCount++;
+        _boidAssignments[boid] = currentTarget;
+        return true;
+    }
+
+    private void ClearAssignments()
+    {
+        for (int i = 0; i < _managedBoids.Count; i++)
+        {
+            Boid boid = _managedBoids[i];
+            if (boid == null)
+                continue;
+
+            if (_boidAssignments.TryGetValue(boid, out var oldInfo) && oldInfo != null)
+            {
+                oldInfo.AssignedBoidCount--;
+            }
+
+            _boidAssignments[boid] = null;
         }
     }
 
@@ -438,6 +578,41 @@ public class BoidFlockTargetManager : MonoBehaviour
         float timeToTarget = distance / projectileSpeed;
 
         return info.LastKnownPosition + info.EstimatedVelocity * timeToTarget;
+    }
+
+    public void SetCommandAnchor(Transform anchor)
+    {
+        _commandAnchor = anchor;
+    }
+
+    public bool TryGetCombatAnchorPosition(Boid boid, CombatAnchorMode anchorMode, out Vector3 anchorPosition)
+    {
+        switch (anchorMode)
+        {
+            case CombatAnchorMode.Leader:
+                if (boid != null && boid.FormationLeader != null)
+                {
+                    anchorPosition = boid.FormationLeader.position;
+                    return true;
+                }
+                break;
+
+            case CombatAnchorMode.FlockCenter:
+                anchorPosition = GetFlockCenterPosition();
+                return true;
+
+            case CombatAnchorMode.CommandAnchor:
+                Transform anchor = _isDefenseMode && _defendTarget != null ? _defendTarget : _commandAnchor;
+                if (anchor != null)
+                {
+                    anchorPosition = anchor.position;
+                    return true;
+                }
+                break;
+        }
+
+        anchorPosition = Vector3.zero;
+        return false;
     }
 
     private Transform GetVehicleRoot(Transform colliderTransform)

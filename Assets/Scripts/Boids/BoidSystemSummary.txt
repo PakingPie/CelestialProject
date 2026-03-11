@@ -1,0 +1,152 @@
+Boid System Summary
+===================
+
+What this system is
+-------------------
+This is not just a generic flocking demo. In this project, the Boid system is a squadron combat framework for groups of starfighters or small ships.
+
+At a high level it does four jobs:
+1. Spawns and registers boid units into a flock.
+2. Computes flock movement, formation behavior, separation, avoidance, and combat motion.
+3. Detects and distributes combat targets across the squad.
+4. Applies high-level squad commands such as follow, attack, defend, hold, form up, break formation, return to base, and spawn.
+
+Main structure
+--------------
+The system is split into a few clear layers:
+
+1. Squadron orchestration
+   - BoidsManager.cs
+   - This is the main controller for one flock/squadron.
+   - It owns the boid list, target manager reference, compute shader usage, formation assignment, cleanup cadence, and weapon update cadence.
+   - It initializes boids, registers them into the flock, pushes shared settings, and keeps formation/combat state coordinated.
+
+2. Individual unit behavior
+   - Boid.cs
+   - This is the per-ship runtime brain.
+   - It handles movement integration, speed, steering, flock response, obstacle avoidance, combat state, command overrides, and final transform updates.
+   - Each boid can follow formation logic, free-fly in combat, chase assigned targets, or obey direct command overrides.
+
+3. Squad target detection and assignment
+   - BoidFlockTargetManager.cs
+   - This script scans for nearby enemies, scores threats, tracks known targets, and assigns targets to boids.
+   - It also handles priority target and defense mode state for the whole squad.
+   - This is the squad-level combat coordination layer, not the movement layer.
+
+4. Combat style / maneuver doctrine
+   - BoidAttackBehavior.cs
+   - BoidAttackProfile.cs
+   - These define how an individual boid moves around a target once it is in combat.
+   - Supported attack modes are Charge, MaintainDistance, HitAndRun, and Orbit.
+   - The profile controls things like preferred combat distances, retreat thresholds, orbit speed, and speed multipliers.
+
+5. Command layer
+   - BoidCommandController.cs
+   - BoidCommandType.cs
+   - SquadronCommandInput.cs
+   - This is the player or AI order interface for the flock.
+   - It translates a high-level order into boid and target-manager state changes.
+   - It is the main entry point for commanding the squad and should stay that way to avoid overlapping control paths.
+
+6. Settings and data definitions
+   - BoidSettings.cs
+   - BoidTargetInfo.cs
+   - BoidDirections.cs
+   - These store tuning data, shared target metadata, and precomputed direction helpers.
+
+7. Spawning and registries
+   - BoidSpawner.cs
+   - BoidRegistry.cs
+   - ObstacleRegistry.cs
+   - ObstacleEntity.cs
+   - These support runtime spawning, spatial registration, and obstacle awareness.
+
+8. Performance support
+   - BoidCompute.compute
+   - The manager can use a compute shader plus GPU readback to accelerate flock-neighbor calculations.
+   - This helps the system scale better than doing all local-neighbor math on the CPU every frame.
+
+Runtime flow
+------------
+The typical runtime flow for one flock looks like this:
+
+1. A BoidsManager starts up.
+2. It creates or finds a BoidFlockTargetManager.
+3. It gathers boids from child spawners or runtime additions.
+4. Each Boid is initialized with shared BoidSettings and a fallback target.
+5. The manager assigns formation positions and periodically updates flock data.
+6. The target manager periodically detects enemies and reassigns combat targets.
+7. Each Boid updates its own target choice using priority target, squad assignment, or fallback target.
+8. Each Boid computes movement from a blend of:
+   - formation goal
+   - flock alignment/cohesion/separation
+   - obstacle avoidance
+   - combat maneuver logic from BoidAttackBehavior
+   - squad combat anchor/leash rules
+   - direct command overrides when present
+9. The manager periodically updates weapons and cleans up destroyed boids.
+
+How command and combat interact
+-------------------------------
+There are two important control levels in this system:
+
+1. Squad-level control
+   - Managed by BoidCommandController and BoidFlockTargetManager.
+   - Examples: attack this target, defend this area, follow this leader, form up, break formation.
+
+2. Individual movement control
+   - Managed by Boid.cs and BoidAttackBehavior.cs.
+   - This decides how each boid actually flies once the squad-level intent is known.
+
+This split is important. The command layer should decide intent. The boid layer should decide motion. The target manager should decide enemy distribution. Keeping those responsibilities separate makes the system easier to extend.
+
+Why this system is useful for this project
+------------------------------------------
+For a starship game, this structure gives you more than simple flocking:
+
+- Ships can travel in formation when not fighting.
+- They can break into combat behavior without becoming fully independent chaos.
+- The squad can share target decisions instead of every ship making unrelated choices.
+- Different attack profiles can make factions or ship roles feel different.
+- The command layer allows the squad to behave like a controllable tactical unit.
+
+Current design interpretation
+-----------------------------
+The overall design is best understood as a layered squadron AI system:
+
+- BoidsManager = squad orchestrator
+- Boid = per-ship executor
+- BoidFlockTargetManager = squad target coordinator
+- BoidAttackBehavior = combat maneuver doctrine
+- BoidCommandController = squad order interface
+
+That means this is not only about local flock rules such as separation and alignment. Those are just one part of a larger tactical AI stack.
+
+Key extension points
+--------------------
+If you want to extend the system in the future, the safest places are:
+
+- Add new squad commands in BoidCommandController.cs and BoidCommandType.cs.
+- Add new maneuver styles in BoidAttackBehavior.cs and BoidAttackProfile.cs.
+- Add new squad target rules in BoidFlockTargetManager.cs.
+- Add new formation or movement constraints in BoidSettings.cs and Boid.cs.
+- Add new spawn or lifecycle behavior in BoidSpawner.cs and BoidsManager.cs.
+
+Important caution
+-----------------
+Try not to put the same decision in multiple layers.
+
+Examples of problems to avoid:
+- both the command layer and boid layer forcing different targets
+- both the target manager and boid layer trying to own target reassignment
+- both formation logic and combat logic trying to fully control steering at the same time
+
+The system works best when:
+- commands define intent
+- target manager defines squad-level enemy allocation
+- boid attack behavior defines local combat motion
+- boid movement combines that intent into final steering
+
+Short version
+-------------
+This Boid system is a squadron combat AI framework for starships. It combines spawning, flock motion, formation control, obstacle avoidance, target detection, target distribution, attack styles, and high-level squad commands into one layered architecture. The manager coordinates the squad, the target manager coordinates combat targets, the boid script flies each ship, and the command layer tells the whole group what to do.

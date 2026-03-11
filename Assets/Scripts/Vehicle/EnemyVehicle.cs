@@ -312,6 +312,8 @@ public class EnemyVehicle : VehicleBase
                         pooled.spawnTime = Time.time;
                 }
         }
+
+        DetachDamagedSmokeOnDeath();
         // Disable all weapons but keeps visual, then destroy after short delay
         var weapons = GetComponentsInChildren<WeaponBase>();
         foreach (var weapon in weapons)
@@ -322,6 +324,28 @@ public class EnemyVehicle : VehicleBase
         VehicleFaction = Faction.Neutral;
 
         Destroy(gameObject);
+    }
+
+    private void DetachDamagedSmokeOnDeath()
+    {
+        if (_damagedSmokeInstance == null || !_damagedSmokeInstance.gameObject.activeSelf)
+        {
+            return;
+        }
+
+        _damagedSmokeInstance.transform.parent = null;
+        if (_damagedSmokeInstance.HasBool("EnableSmoke"))
+        {
+            _damagedSmokeInstance.SetBool("EnableSmoke", false);
+        }
+        _damagedSmokeInstance.Stop();
+
+        AARemoveEffect remove = _damagedSmokeInstance.GetComponent<AARemoveEffect>();
+        if (remove == null)
+        {
+            remove = _damagedSmokeInstance.gameObject.AddComponent<AARemoveEffect>();
+        }
+        remove.readyToDestroy = true;
     }
 
     public void EnableHitpointBar(bool enable)

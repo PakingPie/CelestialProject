@@ -1,11 +1,15 @@
 using UnityEngine;
 using static GlobalHelper;
 using System.Collections.Generic;
+using Unity.Profiling;
 #if UNITY_EDITOR
 using UnityEditor.EditorTools;
 #endif
 public class WeaponBase : MonoBehaviour
 {
+    private static readonly ProfilerMarker ManagedUpdateTargetMarker = new ProfilerMarker("WeaponBase.ManagedUpdateTarget");
+    private static readonly ProfilerMarker SelectTargetByPriorityMarker = new ProfilerMarker("WeaponBase.SelectTargetByPriority");
+    private static readonly ProfilerMarker SelectNearestTargetMarker = new ProfilerMarker("WeaponBase.SelectNearestTarget");
     [Header("Turret")]
     [Tooltip("Transform of the turret's azimuthal rotations.")]
     public Transform TurretBase = null;
@@ -52,6 +56,22 @@ public class WeaponBase : MonoBehaviour
     [Tooltip("Optional: Configure target priority by vehicle type")]
     public TargetPriorityConfig PriorityConfig;
 
+    [Header("Targeting Performance")]
+    [Tooltip("How many frames to wait between target searches (>= 1).")]
+    [SerializeField] private int _targetUpdateInterval = 3;
+    [Tooltip("Random frame jitter to spread work across frames.")]
+    [SerializeField] private int _targetUpdateJitter = 1;
+    [Tooltip("Maximum frames to wait between searches when no targets are found.")]
+    [SerializeField] private int _maxTargetUpdateInterval = 12;
+    [Tooltip("How many frames to add per consecutive no-target search.")]
+    [SerializeField] private int _noTargetBackoffStep = 1;
+    [Tooltip("Reuse current target for this many frames before re-querying.")]
+    [SerializeField] private int _targetReuseFrames = 2;
+    [Tooltip("Reduced search range when no targets are found (clamped to ActiveRange.y).")]
+    [SerializeField] private float _noTargetSearchRange = 400f;
+    [Tooltip("Every N no-target searches, do a full-range scan to avoid missing distant enemies.")]
+    [SerializeField] private int _fullRangeCheckInterval = 10;
+
     // Add these protected fields near the other cached values:
     protected float _currentTargetScore = 0f;
 
@@ -87,6 +107,10 @@ public class WeaponBase : MonoBehaviour
     private bool _isBaseAtRest = false;
     private bool _isBarrelAtRest = false;
     private float _manualTargetTime = 0f;
+    private int _nextTargetUpdateFrame = 0;
+    private int _nextTargetRequeryFrame = 0;
+    private int _noTargetStreak = 0;
+    private int _currentTargetInterval = 0;
 
 
     public float AngleToTarget { get { return IsIdle ? 999f : _angleToTarget; } set { _angleToTarget = value; } }
@@ -131,6 +155,13 @@ public class WeaponBase : MonoBehaviour
     {
         if (UseManagedUpdates)
             CombatManager.Instance?.RegisterTurret(this);
+
+        int interval = Mathf.Max(1, _targetUpdateInterval);
+        _currentTargetInterval = interval;
+        _noTargetStreak = 0;
+        int jitter = _targetUpdateJitter > 0 ? Random.Range(0, _targetUpdateJitter + 1) : 0;
+        _nextTargetUpdateFrame = Time.frameCount + interval + jitter;
+        _nextTargetRequeryFrame = Time.frameCount + Mathf.Max(1, _targetReuseFrames);
     }
 
     protected virtual void OnDisable()
@@ -150,65 +181,104 @@ public class WeaponBase : MonoBehaviour
     /// </summary>
     public virtual void ManagedUpdateTarget()
     {
-        // Handle manual targeting mode
-        if (IsManualTargeting)
+        using (ManagedUpdateTargetMarker.Auto())
         {
-            // Check if manual target is still valid
-            if (Targeted == null)
+            // Handle manual targeting mode
+            if (IsManualTargeting)
             {
-                // Target was destroyed, revert to auto
-                ClearManualTarget();
+                // Check if manual target is still valid
+                if (Targeted == null)
+                {
+                    // Target was destroyed, revert to auto
+                    ClearManualTarget();
+                }
+                else if (ManualTargetDuration > 0f && Time.time - _manualTargetTime > ManualTargetDuration)
+                {
+                    // Manual target duration expired
+                    ClearManualTarget();
+                }
+                else
+                {
+                    // Keep manual target, skip automatic selection
+                    return;
+                }
             }
-            else if (ManualTargetDuration > 0f && Time.time - _manualTargetTime > ManualTargetDuration)
+
+            if (Targeted != null && Time.frameCount < _nextTargetRequeryFrame)
             {
-                // Manual target duration expired
-                ClearManualTarget();
+                Vector3 toTarget = Targeted.position - _cachedTransform.position;
+                float distSqr = toTarget.sqrMagnitude;
+                if (distSqr <= _maxRangeSqr && distSqr >= _minRangeSqr)
+                    return;
+            }
+
+            int baseInterval = Mathf.Max(1, _targetUpdateInterval);
+            int maxInterval = Mathf.Max(baseInterval, _maxTargetUpdateInterval);
+            int interval = _currentTargetInterval > 0 ? _currentTargetInterval : baseInterval;
+            if (interval > maxInterval) interval = maxInterval;
+            if (Time.frameCount < _nextTargetUpdateFrame)
+            {
+                return;
+            }
+
+            int jitter = _targetUpdateJitter > 0 ? Random.Range(0, _targetUpdateJitter + 1) : 0;
+            _nextTargetUpdateFrame = Time.frameCount + interval + jitter;
+
+            Vector3 myPosition = _cachedTransform.position;
+
+            float searchRange = ActiveRange.y;
+            if (_noTargetStreak > 0)
+            {
+                bool doFullRange = _fullRangeCheckInterval > 0 && (_noTargetStreak % _fullRangeCheckInterval == 0);
+                if (!doFullRange)
+                    searchRange = Mathf.Min(searchRange, _noTargetSearchRange);
+            }
+
+            // Populate nearby enemies list
+            CombatRegistry.GetNearbyEnemies(myPosition, searchRange, FireTarget, _nearbyEnemies, CanTargetMissiles);
+
+            if (_nearbyEnemies.Count == 0)
+            {
+                Targeted = null;
+                IsAimed = false;
+                _noTargetStreak++;
+                _currentTargetInterval = Mathf.Min(maxInterval, baseInterval + _noTargetStreak * _noTargetBackoffStep);
+                return;
+            }
+
+            _noTargetStreak = 0;
+            _currentTargetInterval = baseInterval;
+
+            // Use priority-based or distance-based selection
+            if (PriorityConfig != null)
+            {
+                SelectTargetByPriority(myPosition);
             }
             else
             {
-                // Keep manual target, skip automatic selection
-                return;
+                SelectNearestTarget(myPosition);
             }
-        }
 
-        Vector3 myPosition = _cachedTransform.position;
-
-        // Populate nearby enemies list
-        CombatRegistry.GetNearbyEnemies(myPosition, ActiveRange.y, FireTarget, _nearbyEnemies, CanTargetMissiles);
-
-        if (_nearbyEnemies.Count == 0)
-        {
-            Targeted = null;
-            IsAimed = false;
-            return;
-        }
-
-        // Use priority-based or distance-based selection
-        if (PriorityConfig != null)
-        {
-            SelectTargetByPriority(myPosition);
-        }
-        else
-        {
-            SelectNearestTarget(myPosition);
-        }
-
-        if (Targeted == null)
-        {
-            IsAimed = false;
-        }
-        else
-        {
-            Boid boid = GetComponentInParent<Boid>();
-            if (boid != null)
+            if (Targeted == null)
             {
-                boid.EnterCombat();
+                IsAimed = false;
+            }
+            else
+            {
+                _nextTargetRequeryFrame = Time.frameCount + Mathf.Max(1, _targetReuseFrames);
+                Boid boid = GetComponentInParent<Boid>();
+                if (boid != null)
+                {
+                    boid.EnterCombat();
+                }
             }
         }
     }
 
     protected virtual void SelectTargetByPriority(Vector3 myPosition)
     {
+        using (SelectTargetByPriorityMarker.Auto())
+        {
         if (PriorityConfig == null)
         {
             // Fall back to distance-based selection
@@ -244,11 +314,12 @@ public class WeaponBase : MonoBehaviour
             Transform enemyTransform = enemy.transform;
             Vector3 enemyPos = enemyTransform.position;
             float distanceSqr = (enemyPos - myPosition).sqrMagnitude;
-            float distance = Mathf.Sqrt(distanceSqr);
 
             // Check min range
             if (distanceSqr < _minRangeSqr)
                 continue;
+
+            float distance = Mathf.Sqrt(distanceSqr);
 
             // Check priority config range limits
             var priorityEntry = PriorityConfig.GetPriorityEntry(enemyType);
@@ -304,6 +375,7 @@ public class WeaponBase : MonoBehaviour
             Targeted = null;
             _currentTargetScore = 0f;
         }
+        }
     }
 
     protected float CalculateTargetScore(VehicleBase enemy, float distance, VehicleBase currentTarget)
@@ -343,6 +415,8 @@ public class WeaponBase : MonoBehaviour
 
     protected void SelectNearestTarget(Vector3 myPosition)
     {
+        using (SelectNearestTargetMarker.Auto())
+        {
         float shortestDistanceSqr = Mathf.Infinity;
         Transform nearestEnemy = null;
 
@@ -388,6 +462,7 @@ public class WeaponBase : MonoBehaviour
         }
 
         Targeted = nearestEnemy;
+        }
     }
     public void RotateBaseToFaceTarget(Vector3 targetPosition)
     {

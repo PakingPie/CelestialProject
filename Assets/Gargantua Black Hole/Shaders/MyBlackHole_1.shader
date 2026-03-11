@@ -1,26 +1,24 @@
-Shader "Custom/MyBlackHole_1"
+Shader "Custom/MyBlackHole_Backup"
 {
     Properties
     {
+        [HDR]_MainColor ("Main Color", Color) = (1,1,1,1)
+        _NoiseTex ("Noise texture", 2D) = "white" {}
+        _TexTiling ("Noise Texture Tiling", Vector) = (1, 1, 0, 0)
         _DiscTex ("Disc texture", 2D) = "white" {}
-        _DiscWidth ("Width of the accretion disc", float) = 0.1
-        _DiscInnerRadius ("Object relative disc inner radius", Range(0,1)) = 0.25
-        _DiscOuterRadius ("Object relative outer disc radius", Range(0,1)) = 1
-        _DiscSpeed ("Disc rotation speed", float) = 2
-        [HDR]_DiscColor ("Disc main color", Color) = (1,0,0,1)
-        _DopplerBeamingFactor ("Doppler beaming effect factor", float) = 66
-        _HueRadius ("Hue shift start radius", Range(0,1)) = 0.75
-        _HueShiftFactor ("Hue shifting factor", float) = -0.03
-        _Steps ("Amount of steps", int) = 256
-        _StepSize ("Step size", Range(0.001, 1)) = 0.1
-        _SSRadius ("Object relative Schwarzschild radius", Range(0,1)) = 0.2
-        _GConst ("Gravitational constant", float) = 0.15
-        _TexTiling ("Texture tiling", Vector) = (4, 1, 0, 0)
+        _DiscRadius ("Disc radius (ST units)", float) = 3.2
+        _DiscWidth ("Disc width (ST units)", float) = 5.3
+        _DiscSpeed ("Disc rotation speed", float) = .05
+        _Steps ("Amount of steps", int) = 200
+        _SSRadius ("Schwarzschild radius (ST units)", float) = 0.3
+        _WarpAmount ("Light warp amount", float) = 5.0
     }
     SubShader
     {
         Tags { "RenderType" = "Transparent" "RenderPipeline" = "UniversalRenderPipeline" "Queue" = "Transparent" }
         Cull Front
+        ZWrite Off
+        Blend One OneMinusDstAlpha
         Pass
         {
             HLSLPROGRAM
@@ -28,29 +26,23 @@ Shader "Custom/MyBlackHole_1"
             #pragma fragment frag
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"       
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"  
 
-            static const float maxFloat = 3.402823466e+38;
-            float3 samplePos = float3(maxFloat, 0, 0);
+            Texture2D _NoiseTex;
+            SAMPLER(sampler_NoiseTex);
 
             Texture2D _DiscTex;
-
             SAMPLER(sampler_DiscTex);
 
             CBUFFER_START(UnityPerMaterial)
-                float _DiscWidth;
-                float _DiscOuterRadius;
-                float _DiscInnerRadius;
-                float _DiscSpeed;
-                float4 _DiscColor;
-                float _DopplerBeamingFactor;
-                float _HueRadius;
-                float _HueShiftFactor;
-                int _Steps;
-                float _StepSize;
-                float _SSRadius;
-                float _GConst;
                 float2 _TexTiling;
+                float4 _MainColor;
+                float _DiscRadius;
+                float _DiscWidth;
+                float _DiscSpeed;
+                int _Steps;
+                float _SSRadius;
+                float _WarpAmount;
             CBUFFER_END
 
             struct Attributes
@@ -62,21 +54,19 @@ Shader "Custom/MyBlackHole_1"
             {
                 float4 positionCS		: SV_POSITION;
                 float3 positionWS		: TEXCOORD0;
-                float3 centerPosOS		: TEXCOORD1;
+                float3 centerOS		: TEXCOORD1;
                 float3 objectScale		: TEXCOORD2;
             };
-
-            v2f vert(Attributes IN)
+            
+            v2f vert(Attributes i)
             {
                 v2f o = (v2f)0;
 
-                VertexPositionInputs vertexInput = GetVertexPositionInputs(IN.vertex.xyz);
-
-                o.positionCS = vertexInput.positionCS;
-                o.positionWS = vertexInput.positionWS;
+                o.positionCS = TransformObjectToHClip(i.vertex.xyz);
+                o.positionWS = TransformObjectToWorld(i.vertex.xyz);
 
                 // Object information, based upon Unity's shadergraph library functions
-                o.centerPosOS = UNITY_MATRIX_M._m03_m13_m23;
+                o.centerOS = UNITY_MATRIX_M._m03_m13_m23;
                 o.objectScale = float3(length(float3(UNITY_MATRIX_M[0].x, UNITY_MATRIX_M[1].x, UNITY_MATRIX_M[2].x)),
                 length(float3(UNITY_MATRIX_M[0].y, UNITY_MATRIX_M[1].y, UNITY_MATRIX_M[2].y)),
                 length(float3(UNITY_MATRIX_M[0].z, UNITY_MATRIX_M[1].z, UNITY_MATRIX_M[2].z)));
@@ -84,106 +74,244 @@ Shader "Custom/MyBlackHole_1"
                 return o;
             }
 
-            #include "./MyBlackHoleUtilities.hlsl"
-
-            float4 frag (v2f i) : SV_Target
+            float noise( in float3 x )
             {
-                // Initial ray information
+                float3 p = floor(x);
+                float3 f = frac(x);
+                f = f * f * (3.0 - 2.0 * f);
+                float2 uv = (p.xy + float2(37.0, 17.0) * p.z) + f.xy;
+                float2 rg = SAMPLE_TEXTURE2D_X_LOD( _NoiseTex, sampler_NoiseTex, (uv + 0.5) / 256, 0).yx;
+                return -1.0 + 2 * lerp( rg.x, rg.y, f.z );
+            }
+
+            float rand(float2 coord)
+            {
+                return saturate(frac(sin(dot(coord, float2(12.9898, 78.223))) * 43758.5453));
+            }
+
+            float sdTorus(float3 p, float2 t)
+            {
+                float2 q = float2(length(p.xz) - t.x, p.y);
+                return length(q)-t.y;
+            }
+
+            float pcurve( float x, float a, float b )
+            {
+                float k = pow(a + b, a + b) / (pow(a, a) * pow(b, b));
+                return k * pow(x, a) * pow(1.0 - x, b);
+            }
+
+            float2 intersectSphere(float3 rayOrigin, float3 rayDir, float3 center, float radius)
+            {
+
+                float3 offset = rayOrigin - center;
+                const float a = 1;
+                float b = 2 * dot(offset, rayDir);
+                float c = dot(offset, offset) - radius * radius;
+
+                float discriminant = b * b - 4 * a * c;
+                // No intersections: discriminant < 0
+                // 1 intersection: discriminant == 0
+                // 2 intersections: discriminant > 0
+                if (discriminant > 0)
+                {
+                    float s = sqrt(discriminant);
+                    float dstToSphereNear = max(0, (-b - s) / (2 * a));
+                    float dstToSphereFar = (-b + s) / (2 * a);
+
+                    if (dstToSphereFar >= 0)
+                    {
+                        return float2(dstToSphereNear, dstToSphereFar - dstToSphereNear);
+                    }
+                }
+                // Ray did not intersect sphere
+                return float2(3.402823466e+38, 0);
+            }
+
+            float remap(float v, float minOld, float maxOld, float minNew, float maxNew)
+            {
+                return minNew + (v - minOld) * (maxNew - minNew) / (maxOld - minOld);
+            }
+
+            // pos is in ST local space (black hole at origin). Constants are identical to ShaderToy.
+            void Haze(inout float3 color, float3 pos, float alpha)
+            {
+                float2 t = float2(1.0, 0.01);
+
+                float torusDist = length(sdTorus(pos + float3(0.0, -0.05, 0.0), t));
+
+                float bloomDisc = 1.0 / (pow(torusDist, 2.0) + 0.001);
+                float3 col = _MainColor;
+                bloomDisc *= length(pos) < 0.5 ? 0.0 : 1.0;
+
+                color += col * bloomDisc * (2.9 / float(_Steps)) * (1.0 - alpha * 1.0);
+            }
+
+            // eyevec and currentRayPos are in ST local space (black hole at origin).
+            void WarpSpace(inout float3 eyevec, inout float3 currentRayPos)
+            {
+                float singularityDist = length(currentRayPos);
+                float warpFactor = 1.0 / (pow(singularityDist, 2.0) + 0.000001);
+
+                float3 singularityVector = normalize(-currentRayPos);
+
+                eyevec = normalize(eyevec + singularityVector * warpFactor * _WarpAmount / float(_Steps));
+            }
+
+            // pos is in ST local space (black hole at origin). All constants identical to ShaderToy.
+            void GasDisc(float stStepSize, inout float3 color, inout float alpha, float3 pos)
+            {
+                float discWidth = _DiscWidth;
+                float discInner = _DiscRadius - _DiscWidth * 0.5;
+                float discOuter = _DiscRadius + _DiscWidth * 0.5;
+                if (discInner < 0) discInner = 0;
+                
+                float3 discNormal = normalize(float3(0.0, 1.0, 0.0));
+                float discThickness = 0.1;
+
+                float distFromCenter = length(pos);
+                float distFromDisc = dot(discNormal, pos);
+                
+                float radialGradient = 1.0 - saturate((distFromCenter - discInner) / discWidth * .5);
+
+                float coverage = pcurve(radialGradient, 4.0, 0.9);
+
+                discThickness *= radialGradient;
+                coverage *= saturate(1.0 - abs(distFromDisc) / discThickness);
+
+                float3 dustColorLit = _MainColor;
+
+                float dustGlow = 1.0 / (pow(1.0 - radialGradient, 2.0) * 290.0 + 0.002);
+                float3 dustColor = dustColorLit * dustGlow * 8.2;
+
+                coverage = saturate(coverage * 0.7);
+
+                // Fixed: fade from discInner, matching ShaderToy (was incorrectly discOuter)
+                float fade = pow((abs(distFromCenter - discInner) + 0.4), 4.0) * 0.04 * 1;
+                float bloomFactor = 1.0 / (pow(distFromDisc, 2.0) * 40.0 + fade + 0.00002);
+                float3 b = dustColorLit * pow(bloomFactor, 1.5);
+                
+                b *= lerp(float3(1.7, 1.1, 1.0), float3(0.5, 0.6, 1.0), pow(radialGradient, 2.0));
+                b *= lerp(float3(1.7, 0.5, 0.1), 1.0, pow(radialGradient, 0.5));
+
+                dustColor = lerp(dustColor, b * 150.0, saturate(1.0 - coverage * 1.0));
+                coverage = saturate(coverage + bloomFactor * bloomFactor * 0.1);
+                
+                if (coverage < stStepSize)
+                {
+                    return;   
+                }
+                
+                float3 radialCoords;
+                radialCoords.x = distFromCenter * 1.5 + 0.55;
+                radialCoords.y = atan2(-pos.x, -pos.z) * 1.5;
+                radialCoords.z = distFromDisc * 1.5;
+
+                radialCoords *= 0.95;
+                
+                float speed = _DiscSpeed;
+                
+                float noise1 = 1.0;
+                float3 rc = radialCoords + 0.0;             rc.y += _Time.y * speed;
+                noise1 *= noise(rc * 3.0) * 0.5 + 0.5;      rc.y -= _Time.y * speed;
+                noise1 *= noise(rc * 6.0) * 0.5 + 0.5;      rc.y += _Time.y * speed;
+                noise1 *= noise(rc * 12.0) * 0.5 + 0.5;     rc.y -= _Time.y * speed;
+                noise1 *= noise(rc * 24.0) * 0.5 + 0.5;     rc.y += _Time.y * speed;
+
+                float noise2 = 2.0;
+                rc = radialCoords + 30.0;
+                noise2 *= noise(rc * 3.0) * 0.5 + 0.5;      rc.y += _Time.y * speed;
+                noise2 *= noise(rc * 6.0) * 0.5 + 0.5;      rc.y -= _Time.y * speed;
+                noise2 *= noise(rc * 12.0) * 0.5 + 0.5;     rc.y += _Time.y * speed;
+                noise2 *= noise(rc * 24.0) * 0.5 + 0.5;     rc.y -= _Time.y * speed;
+                noise2 *= noise(rc * 48.0) * 0.5 + 0.5;     rc.y += _Time.y * speed;
+                noise2 *= noise(rc * 92.0) * 0.5 + 0.5;     rc.y -= _Time.y * speed;
+
+                dustColor *= noise1 * 0.998 + 0.002;
+                coverage *= noise2;
+                
+                radialCoords.y += _Time.y * speed * 0.5;
+                
+                dustColor *= pow(SAMPLE_TEXTURE2D_X(_DiscTex, sampler_DiscTex, _TexTiling * radialCoords.yx * float2(0.15, 0.27)).rgb, 2.0) * 4.0;
+
+                // Match ShaderToy's normalizer exactly (was incorrectly 2400.0)
+                coverage = saturate(coverage * 1200.0 / float(_Steps));
+                dustColor = max(0, dustColor);
+
+                coverage *= pcurve(radialGradient, 4.0, 0.9);
+
+                color = (1.0 - alpha) * dustColor * coverage + color;
+
+                alpha = (1.0 - alpha) * coverage + alpha;
+            }
+
+
+            float4 frag(v2f i) : SV_Target
+            {
                 float3 rayOrigin = _WorldSpaceCameraPos;
                 float3 rayDir = normalize(i.positionWS - _WorldSpaceCameraPos);
-                float3 center = i.centerPosOS;
+                float3 center = i.centerOS;
+                float2 screenUV = i.positionCS.xy / _ScreenParams.xy;
 
                 float sphereRadius = 0.5 * min(min(i.objectScale.x, i.objectScale.y), i.objectScale.z);
                 float2 outerSphereIntersection = intersectSphere(rayOrigin, rayDir, center, sphereRadius);
 
-                // Disc information, direction is objects rotation
-                float3 discDir = normalize(mul(unity_ObjectToWorld, float4(0,1,0,0)).xyz);
-                float3 p1 = i.centerPosOS - 0.5 * _DiscWidth * discDir;
-                float3 p2 = i.centerPosOS + 0.5 * _DiscWidth * discDir;
-                float discRadius = sphereRadius * _DiscOuterRadius;
-                float innerRadius = sphereRadius * _DiscInnerRadius;
+                float dither = rand(screenUV) * 2.0;
 
-                // Raymarching information
-                float transmittance = 0;
+                // --- Normalized ST local space ---
+                // Map world space so the bounding sphere = radius ST_REF in local space.
+                // This makes every internal constant (disc radius/width/thickness, warp factor,
+                // coverage normalizer) identical to the ShaderToy source at any object scale.
+                // ST_REF = 7.5  →  far = 2 * ST_REF = 15.0, exactly matching ShaderToy's far.
+                const float ST_REF = 7.5;
+                float worldToLocal = ST_REF / sphereRadius; // 1 ST unit = sphereRadius/7.5 world units
+
+                // Step size: same ratio as ShaderToy (far / ITERATIONS = 15 / 200 = 0.075 ST/step)
+                float stStepSize = (ST_REF * 2.0) / float(_Steps);
+
+                // Camera in ST local space (black hole at origin)
+                float3 stCamPos = (rayOrigin - center) * worldToLocal;
+
+                // Start ray at the sphere surface so all _Steps are spent inside the volume
+                float stSphereNear = max(0.0, outerSphereIntersection.x) * worldToLocal;
+                float3 stRayPos = stCamPos + rayDir * (stSphereNear + dither * stStepSize);
+
                 float blackHoleMask = 0;
-                float3 samplePos = float3(maxFloat, 0, 0);
-                float3 currentRayPos = rayOrigin + rayDir * outerSphereIntersection.x;
-                float3 currentRayDir = rayDir;
+                float alpha = 0.0;
+                float3 color = float3(0.0, 0.0, 0.0);
+                float3 stRayDir = rayDir;
 
-                // Ray intersects with the outer sphere
-                if(outerSphereIntersection.x < maxFloat)
+                UNITY_LOOP
+                for (int index = 0; index < _Steps; index++)
                 {
-                    for (int i = 0; i < _Steps; i++)
+                    // Event horizon: use current bent ray direction, not original straight ray
+                    float blackHoleDistance = intersectSphere(stRayPos, stRayDir, float3(0,0,0), _SSRadius).x;
+                    if (blackHoleDistance <= stStepSize)
                     {
-                        float3 dirToCentre = center - currentRayPos;
-                        float dstToCentre = length(dirToCentre);
-                        dirToCentre /= dstToCentre;
-
-                        if(dstToCentre > sphereRadius + _StepSize)
-                        {
-                            break;
-                        }
-
-                        float force = _GConst/(dstToCentre*dstToCentre);
-                        currentRayDir = normalize(currentRayDir + dirToCentre * force * _StepSize);
-
-                        // Move ray forward
-                        currentRayPos += currentRayDir * _StepSize;
-
-                        float blackHoleDistance = intersectSphere(currentRayPos, currentRayDir, center, _SSRadius * sphereRadius);
-                        if(blackHoleDistance <= _StepSize)
-                        {
-                            blackHoleMask = 1;
-                            break;
-                        }
-
-                        // Check for disc intersection nearby
-                        float discDst = intersectDisc(currentRayPos, currentRayDir, p1, p2, discDir, discRadius, innerRadius);
-                        if(transmittance < 1 && discDst < _StepSize)
-                        {
-                            transmittance = 1;
-                            samplePos = currentRayPos + currentRayDir * discDst;
-                        }
+                        blackHoleMask = 1;
+                        break;
                     }
+                    WarpSpace(stRayDir, stRayPos);
+                    stRayPos += stRayDir * stStepSize;
+                    GasDisc(stStepSize, color, alpha, stRayPos);
+                    Haze(color, stRayPos, alpha);
                 }
 
-                float2 uv = float2(0,0);
-                float3 planarDiscPos = float3(0,0,0);
-                if(samplePos.x < maxFloat)
-                {
-                    planarDiscPos = samplePos - dot(samplePos - i.centerPosOS, discDir) * discDir - i.centerPosOS;
-                    uv = discUV(planarDiscPos, discDir, i.centerPosOS, discRadius);
-
-                    // Speed increase as close to center
-                    uv.y += _Time.x * _DiscSpeed;// * (1 - length(planarDiscPos - i.centerPosOS) / discRadius);
-                }
-
-                float3 discCol = discColor(_DiscColor.rgb, planarDiscPos, discDir, _WorldSpaceCameraPos, uv.x, discRadius);
-
-
-                float4 texCol = SAMPLE_TEXTURE2D(_DiscTex, sampler_DiscTex, uv * _TexTiling);
-
-                float2 screenUV = i.positionCS.xy / _ScreenParams.xy;
-                // Ray direction projection
-                float3 distortedRayDir = normalize(currentRayPos - rayOrigin);
-                float4 rayCameraSpace = mul(unity_WorldToCamera, float4(distortedRayDir,0));
+                // Convert ST endpoint back to world space for background UV projection
+                float3 currentWorldPos = center + stRayPos / worldToLocal;
+                float3 distortedRayDir = normalize(currentWorldPos - rayOrigin);
+                float4 rayCameraSpace = mul(unity_WorldToCamera, float4(distortedRayDir, 0));
                 float4 rayUVProjection = mul(unity_CameraProjection, float4(rayCameraSpace));
-                float2 distortedScreenUV = rayUVProjection.xy + 1 * 0.5;
+                float2 distortedScreenUV = rayUVProjection.xy + 1.0 * 0.5;
 
                 // Screen and object edge transitions
                 float edgeFadex = smoothstep(0, 0.25, 1 - abs(remap(screenUV.x, 0, 1, -1, 1)));
                 float edgeFadey = smoothstep(0, 0.25, 1 - abs(remap(screenUV.y, 0, 1, -1, 1)));
                 float t = saturate(remap(outerSphereIntersection.y, sphereRadius, 2 * sphereRadius, 0, 1)) * edgeFadex * edgeFadey;
                 distortedScreenUV = lerp(screenUV, distortedScreenUV, t);
+                float3 backgroundCol = SampleSceneColor(distortedScreenUV) * (1 - blackHoleMask);
 
-
-                float3 backgroundCol = SampleSceneColor(distortedScreenUV) *  (1 - blackHoleMask);
-
-                transmittance *= texCol.r * _DiscColor.a;
-
-                float4 col = float4(0, 0, 0, 1);
-                col.rgb = lerp(backgroundCol, discCol, transmittance);
-                return col;
+                return float4(saturate(lerp(backgroundCol, color, alpha)), 1);
             }
             ENDHLSL
         }

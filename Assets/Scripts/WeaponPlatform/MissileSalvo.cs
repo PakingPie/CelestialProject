@@ -1,10 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using Unity.Profiling;
 
 
 public class MissileSalvo : WeaponBase
 {
+    private static readonly ProfilerMarker RefreshAvailableTargetsMarker = new ProfilerMarker("MissileSalvo.RefreshAvailableTargets");
     [Header("Missile Fire Settings")]
     [Tooltip("The target to fire at.")]
     public float FireInterval = 10.0f;
@@ -134,32 +136,40 @@ public class MissileSalvo : WeaponBase
     /// </summary>
     private void RefreshAvailableTargets()
     {
-        _availableTargets.Clear();
-
-        // Get nearby enemies
-        CombatRegistry.GetNearbyEnemies(transform.position, ActiveRange.y, FireTarget, _nearbyEnemies, CanTargetMissiles);
-
-        float seekerCone = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone;
-
-        foreach (var enemy in _nearbyEnemies)
+        using (RefreshAvailableTargetsMarker.Auto())
         {
-            if (enemy == null) continue;
+            _availableTargets.Clear();
 
-            Transform enemyTransform = enemy.transform;
+            // Get nearby enemies
+            CombatRegistry.GetNearbyEnemies(transform.position, ActiveRange.y, FireTarget, _nearbyEnemies, CanTargetMissiles);
 
-            // Check seeker cone
-            Vector2 angles = CalcuateRelativeAngles(enemyTransform);
-            if (Mathf.Abs(angles.x) > seekerCone / 2f || Mathf.Abs(angles.y) > seekerCone / 2f)
-                continue;
+            float seekerCone = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone;
+            float maxRangeSqr = ActiveRange.y * ActiveRange.y;
+            float minRangeSqr = ActiveRange.x * ActiveRange.x;
+            Vector3 myPosition = transform.position;
 
-            // Check distance
-            float distance = Vector3.Distance(transform.position, enemyTransform.position);
-            if (distance > ActiveRange.y || distance < ActiveRange.x)
-                continue;
+            foreach (var enemy in _nearbyEnemies)
+            {
+                if (enemy == null) continue;
 
-            _availableTargets.Add(enemyTransform);
+                Transform enemyTransform = enemy.transform;
+
+                // Check distance first to avoid expensive angle math
+                float distanceSqr = (enemyTransform.position - myPosition).sqrMagnitude;
+                if (distanceSqr > maxRangeSqr || distanceSqr < minRangeSqr)
+                    continue;
+
+                // Check seeker cone
+                Vector2 angles = CalcuateRelativeAngles(enemyTransform);
+                if (Mathf.Abs(angles.x) > seekerCone / 2f || Mathf.Abs(angles.y) > seekerCone / 2f)
+                    continue;
+
+                _availableTargets.Add(enemyTransform);
+            }
         }
     }
+    
+#if UNITY_EDITOR
     public void OnDrawGizmos()
     {
         base.OnDrawGizmos();
@@ -196,12 +206,11 @@ public class MissileSalvo : WeaponBase
             Gizmos.color = Color.blue;
             Gizmos.DrawRay(transform.position, transform.forward * 15f);
 
-#if UNITY_EDITOR
             UnityEditor.Handles.Label(Targeted.position + Vector3.up * 2f,
                 $"Azimuth: {relativeAngles.x:F1}°  Elev: {relativeAngles.y:F1}°\n" +
                 $"Seeker Cone: {seekerCone}°  In Cone: {withinCone}\n");
-#endif
         }
     }
+#endif
 }
 

@@ -1,0 +1,20 @@
+Create an incremental migration strategy for moving my Unity starship boid system from attack-profile-driven combat behavior to a hybrid behavior-tree architecture.
+
+Context:
+- I already have BoidsManager, Boid, BoidFlockTargetManager, BoidCommandController, BoidAttackBehavior, and BoidAttackProfile.
+- I want to avoid a risky big-bang rewrite.
+- I want to preserve current movement quality and squad cohesion while improving decision-making flexibility.
+
+Task:
+- Propose a staged migration plan.
+- Define what should be built first, what should remain as fallback, and what should be removed last.
+- Identify validation checkpoints for each stage.
+- Call out the highest-risk integration points.
+- Recommend how to measure whether the new architecture is actually better than the current one.
+
+Output format:
+- Migration stages
+- Deliverables per stage
+- Validation checklist per stage
+- Rollback / fallback strategy
+- Success metrics

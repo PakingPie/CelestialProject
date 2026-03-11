@@ -107,12 +107,18 @@ public class AAMissile : MonoBehaviour
     private Vector3 targetPosLastFrame;
     private Quaternion guidedRotation;
 
+    // Applied by external forces (e.g. black hole gravity). Accumulates as a velocity (m/s).
+    private Vector3 _externalVelocity = Vector3.zero;
+
     // Used to prevent lead markers from getting huge when missiles are very slow.
     private const float MINIMUM_GUIDE_SPEED = 1.0f;
     // private EnemyPredictionManager _predictionManager;
 
     public bool MissileLaunched { get { return isLaunched; } }
     public bool MotorActive { get { return motorActive; } }
+
+    /// <summary>Adds an external velocity impulse (e.g. from black hole gravity). Accumulates each frame.</summary>
+    public void AddExternalVelocity(Vector3 deltaV) { _externalVelocity += deltaV; }
 
     private void Awake()
     {
@@ -201,6 +207,7 @@ public class AAMissile : MonoBehaviour
             else
             {
                 target = null;
+                DestroyMissile(false);
             }
         }
     }
@@ -254,9 +261,40 @@ public class AAMissile : MonoBehaviour
             List<VehicleBase> nearbyTargets = new List<VehicleBase>(16);
             CombatRegistry.GetNearbyEnemies(transform.position, ExplodeRadius, targetFactions, nearbyTargets, true);
 
+            // Group VehicleModules and WeaponPlatforms by their parent vehicle to prevent multiple damage from same parent
+            HashSet<VehicleBase> damagedParents = new HashSet<VehicleBase>();
+
             foreach (VehicleBase vehicle in nearbyTargets)
             {
-                vehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                if (vehicle is VehicleModule vehicleModule)
+                {
+                    // For VehicleModule, get its parent vehicle
+                    VehicleBase parentVehicle = vehicleModule.OwnerShip?.GetComponent<VehicleBase>();
+                    if (parentVehicle != null && !damagedParents.Contains(parentVehicle))
+                    {
+                        parentVehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                        damagedParents.Add(parentVehicle);
+                    }
+                }
+                else if (vehicle is WeaponPlatform weaponPlatform)
+                {
+                    // For WeaponPlatform, get its parent vehicle
+                    VehicleBase parentVehicle = weaponPlatform.OwnerShip != null ? weaponPlatform.OwnerShip.GetComponent<VehicleBase>() : null;
+                    if (parentVehicle != null && !damagedParents.Contains(parentVehicle))
+                    {
+                        parentVehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                        damagedParents.Add(parentVehicle);
+                    }
+                }
+                else
+                {
+                    // For other vehicles, damage directly if not already damaged
+                    if (!damagedParents.Contains(vehicle))
+                    {
+                        vehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                        damagedParents.Add(vehicle);
+                    }
+                }
             }
         }
         else if (target != null)
@@ -398,7 +436,7 @@ public class AAMissile : MonoBehaviour
                 // update its velocity instead. This allows for rigidbody.velocity to be used accurately.
                 // E.g., distance emitters for particle systems to work correctly.
                 // if (movementUpdateCycle == UpdateType.Update)
-                transform.Translate(transform.forward * missileSpeed * Time.deltaTime, Space.World);
+                transform.Translate((transform.forward * missileSpeed + _externalVelocity) * Time.deltaTime, Space.World);
                 // else if (movementUpdateCycle == UpdateType.FixedUpdate)
                 //     rigidbody.linearVelocity = transform.forward * missileSpeed;
             }
@@ -494,13 +532,17 @@ public class AAMissile : MonoBehaviour
 
         activateTime = Time.time;
         missileSpeed = initialSpeed;
+        _externalVelocity = Vector3.zero;
 
         if (target != null)
             targetPosLastFrame = target.transform.position;
+
+        BlackHoleGravity.RegisterMissile(this);
     }
 
     public void DestroyMissile(bool impact)
     {
+        BlackHoleGravity.UnregisterMissile(this);
         Destroy(gameObject);
 
         if (missileEffect.playExplosionOnSelfDestruct)

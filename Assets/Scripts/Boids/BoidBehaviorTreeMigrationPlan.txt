@@ -1,0 +1,193 @@
+Behavior Tree Migration Plan For The Boid System
+===============================================
+
+Goal
+----
+Replace the current attack-profile-driven decision layer with a behavior-tree-driven tactical layer without throwing away the parts of the current boid system that already work well.
+
+Core recommendation
+-------------------
+Do not replace the whole boid system with behavior trees.
+
+Keep these systems:
+- BoidsManager as squad orchestrator
+- BoidFlockTargetManager as squad target detection and allocation service
+- Boid as the movement and steering executor
+- formation, cohesion, separation, avoidance, leash, and movement integration as continuous steering code
+
+Replace or extend these systems:
+- BoidAttackBehavior becomes a tactical execution layer driven by behavior-tree decisions
+- squad command and combat intent become behavior-tree decisions instead of profile-only branching
+
+Target architecture
+-------------------
+Use a layered architecture with three levels:
+
+1. Squad tactical brain
+- Scope: one flock / one squadron
+- Responsibility: decide macro intent
+- Recommended style: behavior tree or hybrid behavior tree + utility selection
+- Example decisions:
+  - travel
+  - follow target
+  - form up
+  - attack objective
+  - defend anchor
+  - regroup
+  - retreat
+
+2. Individual tactical layer
+- Scope: one boid / one ship
+- Responsibility: decide local combat phase
+- Recommended style: lightweight state machine or shallow behavior tree
+- Example decisions:
+  - approach
+  - hold range
+  - charge
+  - strafe
+  - break away
+  - evade
+  - rejoin squad
+
+3. Steering executor
+- Scope: one boid / one ship
+- Responsibility: produce final movement and rotation
+- Keep this as code, not tree logic
+- Inputs should include:
+  - target direction
+  - desired range band
+  - formation slot
+  - command anchor
+  - combat leash state
+  - local avoidance
+  - separation / cohesion
+
+Phase plan
+----------
+Phase 1. Stabilize current architecture boundaries
+- Confirm that commands set squad intent only.
+- Confirm that target assignment stays in BoidFlockTargetManager.
+- Confirm that Boid stays responsible for movement execution only.
+- Remove any remaining overlapping decision paths before adding behavior trees.
+
+Phase 2. Introduce blackboards
+- Add a squad blackboard.
+- Add a boid blackboard.
+- The squad blackboard should track:
+  - current command
+  - current tactical mode
+  - command anchor
+  - defend anchor
+  - priority target
+  - known hostile group info
+  - focus fire state
+  - regroup state
+  - permitted combat spread
+- The boid blackboard should track:
+  - assigned target
+  - target distance / angle
+  - current tactical phase
+  - local threat
+  - formation slot info
+  - weapon readiness
+  - squad-anchor distance
+  - obstruction / collision state
+
+Phase 3. Add shared services
+- Keep expensive or shared logic outside the tree.
+- Expose these as services the tree can read:
+  - squad target detection
+  - target scoring
+  - target assignment
+  - threat assessment
+  - formation status
+  - leash status
+  - nearby obstacle / collision status
+
+Phase 4. Build the squad tactical brain
+- Create the squad-level decision tree first.
+- Suggested top-level branches:
+  - NoThreat
+  - TravelOrFollow
+  - FormUp
+  - AttackObjective
+  - DefendAnchor
+  - Regroup
+  - Retreat
+- This tree should output squad intent, not raw movement vectors.
+
+Phase 5. Build the individual tactical layer
+- Replace direct attack-profile mode switching with tactical action selection.
+- Keep the first version small.
+- Suggested individual actions:
+  - ApproachTarget
+  - HoldRange
+  - ChargeTarget
+  - BreakAway
+  - RejoinFormation
+  - EvadeThreat
+- The tactical layer should write desired intent into the boid movement executor.
+
+Phase 6. Convert attack profiles into tuning assets
+- Keep BoidAttackProfile assets.
+- Change their role from "owner of behavior choice" to "tuning data for tactical actions".
+- Example profile values to keep:
+  - desired range band
+  - aggression
+  - re-engage delay
+  - breakaway distance
+  - discipline multiplier
+  - strafe preference
+  - focus-fire preference
+
+Phase 7. Add interruption and abort rules
+- This is critical for combat responsiveness.
+- Required interrupts include:
+  - target destroyed
+  - command changed
+  - squad too dispersed
+  - defend target threatened
+  - high incoming threat
+  - no valid target
+  - weapon not in usable state
+
+Phase 8. Migrate incrementally
+- First drive only squad-level intent from the new tree.
+- Then drive one or two individual tactical actions from the new layer.
+- Keep the old attack behavior as fallback until the new path is stable.
+- Remove profile-driven branching only after parity is proven.
+
+Recommended control split
+-------------------------
+Best fit for this project:
+
+- Squadron control: behavior tree or hybrid behavior tree + utility AI
+- Individual control: lightweight tactical state machine or shallow behavior tree
+- Movement execution: existing steering-based Boid movement code
+
+This gives you stronger macro behavior without making every ship run a deep, expensive, hard-to-debug tree.
+
+What to avoid
+-------------
+- Do not let both squad and boid logic assign targets independently.
+- Do not move flock steering math into behavior-tree leaves.
+- Do not let commands, target manager, and boid attack logic all own the same decision.
+- Do not remove the existing working movement layer too early.
+
+Success criteria
+----------------
+The migration is successful when:
+- squad decisions are easier to extend than the current profile-only model
+- boids stay cohesive in combat
+- target allocation remains centralized and predictable
+- movement quality does not regress
+- adding a new tactic becomes a data + node task instead of a large refactor
+
+Suggested order of future discussions
+-------------------------------------
+1. Define the squad blackboard schema.
+2. Define the squad tactical tree.
+3. Define the individual tactical states or shallow tree.
+4. Decide the role of BoidAttackProfile in the new system.
+5. Decide custom BT framework vs third-party framework.
+6. Plan the migration path with fallback compatibility.

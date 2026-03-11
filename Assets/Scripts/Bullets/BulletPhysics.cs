@@ -33,6 +33,12 @@ public class BulletPhysics : MonoBehaviour
     [Header("Explosions")]
     public bool ExplodeOnImpact = false;
 
+    [Header("Performance")]
+    [Tooltip("Use CombatRegistry spatial grid for faster queries.")]
+    public bool UseSpatialGrid = true;
+    [Tooltip("Only check for hits every N frames. 1 = every frame.")]
+    [Min(1)] public int HitCheckIntervalFrames = 2;
+
     public Transform TargetObject;
 
     // Cached
@@ -47,10 +53,13 @@ public class BulletPhysics : MonoBehaviour
     private Vector3 _inheritedVelocity;
     private bool _initialized = false;
     private Vector3 _previousPosition;
+    private int _hitCheckCounter = 0;
 
     // Reusable lists
     private static List<VehicleBase> _nearbyTargets = new List<VehicleBase>(64);
     private static List<VehicleBase> _targetsInExplosion = new List<VehicleBase>(16);
+    private static List<VehicleBase> _nearbyNeutrals = new List<VehicleBase>(32);
+    private static HashSet<VehicleBase> _damagedParents = new HashSet<VehicleBase>(64);
 
     void Awake()
     {
@@ -58,6 +67,9 @@ public class BulletPhysics : MonoBehaviour
         _fuseDistSqr = FuseDetonationDistance * FuseDetonationDistance;
         _explosionRadiusSqr = ExplosionRadius * ExplosionRadius;
     }
+
+    private void OnEnable()  { BlackHoleGravity.RegisterBullet(this); }
+    private void OnDisable() { BlackHoleGravity.UnregisterBullet(this); }
 
     public void Initialize(Vector3 shooterVelocity)
     {
@@ -111,27 +123,42 @@ public class BulletPhysics : MonoBehaviour
         }
 
         // Check for hits
-        CheckHits();
+        if (HitCheckIntervalFrames < 1) HitCheckIntervalFrames = 1;
+        _hitCheckCounter++;
+        if (_hitCheckCounter >= HitCheckIntervalFrames)
+        {
+            _hitCheckCounter = 0;
+            CheckHits();
+        }
     }
 
     private void CheckHits()
     {
+        if (ExplosionRadius <= 0 || FuseDetonationDistance <= 0)
+            return;
+
         Vector3 myPosition = _cachedTransform.position;
 
         // Get targets based on FireTarget faction
-        CombatRegistry.GetNearbyEnemies(myPosition, ExplosionRadius, FireTarget, _nearbyTargets, true);
+        if (UseSpatialGrid)
+            CombatRegistry.FindEnemiesInRange(myPosition, ExplosionRadius, FireTarget, _nearbyTargets);
+        else
+            CombatRegistry.GetNearbyEnemies(myPosition, ExplosionRadius, FireTarget, _nearbyTargets, true);
 
         // Also check neutrals if we can damage asteroids
         if (CanDamageAsteroids)
         {
-            List<VehicleBase> nearbyNeutrals = new List<VehicleBase>(32);
-            CombatRegistry.GetNearbyEnemies(myPosition, ExplosionRadius, Faction.Neutral, nearbyNeutrals, true);
-            _nearbyTargets.AddRange(nearbyNeutrals);
+            if (UseSpatialGrid)
+                CombatRegistry.FindEnemiesInRange(myPosition, ExplosionRadius, Faction.Neutral, _nearbyNeutrals);
+            else
+                CombatRegistry.GetNearbyEnemies(myPosition, ExplosionRadius, Faction.Neutral, _nearbyNeutrals, true);
+
+            if (_nearbyNeutrals.Count > 0)
+                _nearbyTargets.AddRange(_nearbyNeutrals);
         }
 
         // Find closest target within fuse distance
-        VehicleBase closestTarget = null;
-        float closestDistSqr = float.MaxValue;
+        bool fuseTriggered = false;
 
         for (int i = 0; i < _nearbyTargets.Count; i++)
         {
@@ -139,15 +166,15 @@ public class BulletPhysics : MonoBehaviour
             if (target == null) continue;
 
             float distSqr = (target.CachedTransform.position - myPosition).sqrMagnitude;
-            if (distSqr < closestDistSqr)
+            if (distSqr <= _fuseDistSqr)
             {
-                closestDistSqr = distSqr;
-                closestTarget = target;
+                fuseTriggered = true;
+                break;
             }
         }
 
         // Check if closest target is within fuse distance
-        if (closestTarget != null && closestDistSqr <= _fuseDistSqr)
+        if (fuseTriggered)
         {
             // Collect all targets in explosion radius
             _targetsInExplosion.Clear();
@@ -169,14 +196,39 @@ public class BulletPhysics : MonoBehaviour
 
     private void DestroyBulletWithDamage(Vector3 impactPoint, List<VehicleBase> targets)
     {
+        // Group VehicleModules and WeaponPlatforms by their parent vehicle to prevent multiple damage from same parent
+        _damagedParents.Clear();
+
         for (int i = 0; i < targets.Count; i++)
         {
             VehicleBase target = targets[i];
             if (target == null) continue;
 
-            VehicleBase ownerShip = target.OwnerShip != null 
-                ? target.OwnerShip.GetComponent<VehicleBase>() 
-                : target;
+            // Determine the actual vehicle to damage
+            VehicleBase vehicleToDamage = null;
+
+            if (target is VehicleModule vehicleModule)
+            {
+                // For VehicleModule, get its parent vehicle
+                vehicleToDamage = vehicleModule.OwnerShip != null ? vehicleModule.OwnerShip.GetComponent<VehicleBase>() : null;
+            }
+            // else if (target is WeaponPlatform weaponPlatform)
+            // {
+            //     // For WeaponPlatform, get its parent vehicle
+            //     vehicleToDamage = weaponPlatform.OwnerShip != null ? weaponPlatform.OwnerShip.GetComponent<VehicleBase>() : null;
+            // }
+            else
+            {
+                // For other vehicles, damage directly
+                vehicleToDamage = target;
+            }
+
+            // Only damage if we haven't already damaged this parent
+            if (vehicleToDamage != null && !_damagedParents.Contains(vehicleToDamage))
+            {
+                vehicleToDamage.TakeDamage(Damage, DamageType);
+                _damagedParents.Add(vehicleToDamage);
+            }
 
             // if (ownerShip != null && ownerShip.ShieldPoints > 0)
             // {
@@ -196,8 +248,6 @@ public class BulletPhysics : MonoBehaviour
             //             shieldEffect.GetHit(_hit);
             //     }
             // }
-
-            target.TakeDamage(Damage, DamageType);
         }
 
         if (ExplodeOnImpact && _explodeFXPrefab != null)
@@ -293,6 +343,20 @@ public class BulletPhysics : MonoBehaviour
         _velocity = Vector3.zero;
         _inheritedVelocity = Vector3.zero;
         _initialized = false;
+    }
+
+    /// <summary>Adds an external velocity impulse (e.g. from black hole gravity). Modifies the bullet's velocity directly.</summary>
+    public void AddExternalVelocity(Vector3 deltaV) { _velocity += deltaV; }
+
+    /// <summary>Silently consumes this bullet (event horizon). Returns it to pool without spawning any VFX.</summary>
+    public void ConsumeBullet()
+    {
+        CleanUpTrails();
+        ResetBullet(); // also calls UnregisterBullet
+        if (BulletPool.Instance != null)
+            BulletPool.Instance.Return(gameObject);
+        else
+            Destroy(gameObject);
     }
 
     private void CleanUpTrails()

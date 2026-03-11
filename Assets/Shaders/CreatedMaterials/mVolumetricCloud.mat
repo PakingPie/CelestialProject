@@ -29,11 +29,11 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3001
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
-  m_LockedProperties: 
+  m_LockedProperties: _FireHeightFalloff
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -47,33 +47,43 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AmbientLight: 1
-    - _Billowness: 0.5
-    - _CloudAbsorption: 3
-    - _CloudCoverage: 0.45
-    - _CloudDensity: 50
-    - _CloudLayerDensity: 3
-    - _CloudScale: 1
-    - _DetailScale: 5
+    - _AmbientLight: 1.5
+    - _Billowness: 1
+    - _CloudAbsorption: 5
+    - _CloudCoverage: 0.35
+    - _CloudDensity: 20
+    - _CloudLayerDensity: 5
+    - _CloudScale: 0.2
+    - _DetailScale: 1
     - _DetailStrength: 0.5
     - _DetailWindMultiplier: 1.5
-    - _ErosionStrength: 0.5
-    - _InnerRadius: 0.42
-    - _LightAbsorption: 4
-    - _LightSteps: 3
-    - _MaxSteps: 64
+    - _ErosionStrength: 0.75
+    - _FireAnimSpeed: 0
+    - _FireCoverage: 0.5
+    - _FireDayFade: 0.7
+    - _FireDetailScale: 2.3
+    - _FireEnabled: 0
+    - _FireHeightFalloff: 1.5
+    - _FireIntensity: 2.61
+    - _FireScale: 5
+    - _InnerRadius: 0.4
+    - _LightAbsorption: 5
+    - _LightSteps: 4
+    - _LocalLightIntensity: 10000
+    - _MaxSteps: 128
     - _MultiScatter: 0.5
-    - _OuterRadius: 1
-    - _PatchScale: 4
-    - _Patchiness: 1
+    - _OuterRadius: 0.48
+    - _PatchScale: 2
+    - _Patchiness: 0.05
     - _PowderStrength: 1
-    - _ScatteringBack: 0.25
-    - _ScatteringBlend: 0.7
-    - _ScatteringForward: 0.85
-    - _SilverLiningIntensity: 1.2
-    - _SilverLiningSpread: 6
-    - _StepSize: 0.0017
-    - _WindSpeed: 0.001
+    - _ScatteringBack: 0.5
+    - _ScatteringBlend: 0.5
+    - _ScatteringForward: 0.5
+    - _ShadowDensityScale: 3
+    - _SilverLiningIntensity: 2
+    - _SilverLiningSpread: 20
+    - _StepSize: 0.001
+    - _WindSpeed: 0.01
     m_Colors:
     - _AmbientColorBottom: {r: 0.39999998, g: 0.41999996, b: 0.5, a: 1}
     - _AmbientColorTop: {r: 0.6, g: 0.75, b: 1, a: 1}
@@ -81,6 +91,8 @@ Material:
     - _BlueNoiseTiling: {r: 1, g: 1, b: 1, a: 0}
     - _CloudColorBright: {r: 1, g: 0.97999996, b: 0.95, a: 1}
     - _CloudColorDark: {r: 0.54999995, g: 0.58, b: 0.65, a: 1}
+    - _FireColorBright: {r: 1, g: 0.5468963, b: 0, a: 1}
+    - _FireColorDark: {r: 0.7, g: 0.09999997, b: 0.02, a: 1}
     - _NoiseOffset: {r: 0, g: 0, b: 0, a: 0}
     - _NoiseTiling: {r: 1, g: 1, b: 1, a: 0}
     - _SunColor: {r: 1, g: 0.95, b: 0.85, a: 1}

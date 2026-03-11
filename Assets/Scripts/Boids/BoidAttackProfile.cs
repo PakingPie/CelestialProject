@@ -55,4 +55,8 @@ public class BoidAttackProfile : ScriptableObject
     public float facingStrictness = 0.8f;
     [Tooltip("Allow reversing to maintain distance (for ships that can)")]
     public bool allowReverseThrust = false;
+
+    [Header("Squad Discipline")]
+    [Tooltip("Multiplier for how strongly this profile obeys squad cohesion and leash rules.")]
+    public float squadDisciplineMultiplier = 1f;
 }

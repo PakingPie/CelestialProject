@@ -90,15 +90,13 @@ public class WeaponPlatform : VehicleBase
         if (OwnerShip != null)
         {
             var ownerVehicle = OwnerShip.GetComponent<VehicleBase>();
-            if (ownerVehicle is EnemyVehicle enemyVehicle)
+            if (ownerVehicle != null)
             {
-                enemyVehicle.TakeDamageFromSource(damage, ammoType, GetInstanceID());
-            }
-            else if (ownerVehicle is PlayerVehicle playerVehicle)
-            {
-                playerVehicle.TakeDamageFromSource(damage, ammoType, GetInstanceID());
+                ownerVehicle.TakeDamage(damage, ammoType);
             }
         }
+
+
         // Simple damage calculation; can be expanded based on ammoType and armor/shield
         switch (ammoType)
         {
@@ -124,7 +122,7 @@ public class WeaponPlatform : VehicleBase
         }
 
         HitPoints = Math.Clamp(HitPoints - damage, 0, MaxHitPoints);
-        // Debug.Log($"EnemyVehicle took {damage} damage, remaining HP: {HitPoints}");
+        // Debug.Log($"WeaponPlatform took {damage} damage, remaining HP: {HitPoints}");
 
         if (damage > HitPoints / 2)
         {

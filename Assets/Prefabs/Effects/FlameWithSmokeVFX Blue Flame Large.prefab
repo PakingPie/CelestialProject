@@ -51,7 +51,7 @@ VisualEffect:
   m_PropertySheet:
     m_Float:
       m_Array:
-      - m_Value: 1
+      - m_Value: 1.2
         m_Name: FlameLifeTime
         m_Overridden: 1
     m_Vector2f:
@@ -59,14 +59,17 @@ VisualEffect:
       - m_Value: {x: 8, y: 10}
         m_Name: SmokeLifeTime
         m_Overridden: 1
-      - m_Value: {x: 15, y: 20}
+      - m_Value: {x: 20, y: 30}
         m_Name: SmokeSize
         m_Overridden: 1
-      - m_Value: {x: 5, y: 6}
+      - m_Value: {x: 15, y: 20}
         m_Name: FlameSize
         m_Overridden: 1
     m_Vector3f:
-      m_Array: []
+      m_Array:
+      - m_Value: {x: 2, y: 2, z: 60}
+        m_Name: SmokeJitterDirection
+        m_Overridden: 1
     m_Vector4f:
       m_Array: []
     m_Uint:
@@ -81,16 +84,48 @@ VisualEffect:
       m_Array:
       - m_Value:
           serializedVersion: 2
-          key0: {r: 0.20943397, g: 0.6142039, b: 1, a: 1}
-          key1: {r: 0.20943397, g: 0.6062671, b: 1, a: 0}
+          key0: {r: 84.639435, g: 334.25064, b: 954.44525, a: 0}
+          key1: {r: 33.550648, g: 137.58203, b: 225.08679, a: 0.019607844}
+          key2: {r: 224.08748, g: 164.59583, b: 30.019268, a: 0}
+          key3: {r: 4.1714897, g: 1.1712148, b: 0.40140742, a: 0}
+          key4: {r: 0, g: 0, b: 0, a: 0}
+          key5: {r: 0, g: 0, b: 0, a: 0}
+          key6: {r: 0, g: 0, b: 0, a: 0}
+          key7: {r: 0, g: 0, b: 0, a: 0}
+          ctime0: 0
+          ctime1: 9830
+          ctime2: 22937
+          ctime3: 65535
+          ctime4: 0
+          ctime5: 0
+          ctime6: 0
+          ctime7: 0
+          atime0: 0
+          atime1: 5243
+          atime2: 65535
+          atime3: 0
+          atime4: 0
+          atime5: 0
+          atime6: 0
+          atime7: 0
+          m_Mode: 0
+          m_ColorSpace: 1
+          m_NumColorKeys: 4
+          m_NumAlphaKeys: 3
+        m_Name: FlameColorGradient
+        m_Overridden: 1
+      - m_Value:
+          serializedVersion: 2
+          key0: {r: 12.135848, g: 4.1147385, b: 1.0761973, a: 1}
+          key1: {r: 1, g: 1, b: 1, a: 0.3137255}
           key2: {r: 1, g: 1, b: 1, a: 0}
           key3: {r: 0, g: 0, b: 0, a: 0}
           key4: {r: 0, g: 0, b: 0, a: 0}
           key5: {r: 0, g: 0, b: 0, a: 0}
           key6: {r: 0, g: 0, b: 0, a: 0}
           key7: {r: 0, g: 0, b: 0, a: 0}
-          ctime0: 1311
-          ctime1: 17793
+          ctime0: 0
+          ctime1: 6554
           ctime2: 65535
           ctime3: 0
           ctime4: 0
@@ -98,8 +133,8 @@ VisualEffect:
           ctime6: 0
           ctime7: 0
           atime0: 0
-          atime1: 65535
-          atime2: 0
+          atime1: 6554
+          atime2: 65535
           atime3: 0
           atime4: 0
           atime5: 0
@@ -108,8 +143,8 @@ VisualEffect:
           m_Mode: 0
           m_ColorSpace: 1
           m_NumColorKeys: 3
-          m_NumAlphaKeys: 2
-        m_Name: FlameColorGradient
+          m_NumAlphaKeys: 3
+        m_Name: SmokeColorGradient
         m_Overridden: 1
     m_NamedObject:
       m_Array: []

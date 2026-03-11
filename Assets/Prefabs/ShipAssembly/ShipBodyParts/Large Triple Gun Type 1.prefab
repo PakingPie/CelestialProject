@@ -225,9 +225,16 @@ MonoBehaviour:
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 11400000, guid: 1af727335389b4d4fa581e766857809d, type: 2}
-  CanTargetMissiles: 0
+  _targetUpdateInterval: 3
+  _targetUpdateJitter: 1
+  _maxTargetUpdateInterval: 12
+  _noTargetBackoffStep: 1
+  _targetReuseFrames: 2
+  _noTargetSearchRange: 400
+  _fullRangeCheckInterval: 10
+  CanTargetMissiles: 1
   PrioritizeMissiles: 0
-  MissileDetectionRange: 200
+  MissileDetectionRange: 3000
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -235,7 +242,7 @@ MonoBehaviour:
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
-  _fireDelay: 12
+  _fireDelay: 36
   Deviation: 0.8
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -264,6 +271,9 @@ MonoBehaviour:
   CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
+  _useAccelerationPrediction: 1
+  _accelerationSmoothingAlpha: 0.3
+  _minAccelerationMagnitude: 2
   IsManualMode: 0
 --- !u!114 &1762088876850728300
 MonoBehaviour:
