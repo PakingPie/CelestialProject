@@ -39,6 +39,8 @@ public class BoidAttackBehavior : MonoBehaviour
         _orbitAngle = Random.Range(0f, Mathf.PI * 2f);
     }
 
+    private bool UseHybridProfileSemantics => Boid == null || Boid.Manager == null || Boid.Manager.UseHybridProfileSemantics;
+
     public void SetProfile(BoidAttackProfile profile)
     {
         _profile = profile;
@@ -114,10 +116,11 @@ public class BoidAttackBehavior : MonoBehaviour
 
     private Vector3 GetChargeMovement(float distance, Vector3 toTargetDir)
     {
+        float hardAvoidDistance = UseHybridProfileSemantics ? _profile.HardAvoidDistance : _profile.minDistance;
         _currentSpeedMultiplier = _profile.approachSpeedMultiplier;
         
         // Always close distance, but respect minimum
-        if (distance < _profile.minDistance)
+        if (distance < hardAvoidDistance)
         {
             // Too close - back off slightly
             _currentSpeedMultiplier = _profile.retreatSpeedMultiplier;
@@ -129,15 +132,19 @@ public class BoidAttackBehavior : MonoBehaviour
 
     private Vector3 GetMaintainDistanceMovement(float distance, Vector3 toTargetDir)
     {
-        float distanceError = distance - _profile.engagementDistance;
+        float desiredRangeCenter = UseHybridProfileSemantics ? _profile.DesiredRangeCenter : _profile.engagementDistance;
+        float hardAvoidDistance = UseHybridProfileSemantics ? _profile.HardAvoidDistance : _profile.minDistance;
+        float desiredRangeMax = UseHybridProfileSemantics ? _profile.DesiredRangeMax : Mathf.Max(_profile.minDistance, _profile.maxDistance);
+        float strafeWeight = Mathf.Lerp(0.4f, 0.85f, UseHybridProfileSemantics ? _profile.StrafeBias : 0.5f);
+        float distanceError = distance - desiredRangeCenter;
         
-        if (distance < _profile.minDistance)
+        if (distance < hardAvoidDistance)
         {
             // Too close - retreat urgently
             _currentSpeedMultiplier = _profile.retreatSpeedMultiplier;
             return -toTargetDir;
         }
-        else if (distance > _profile.maxDistance)
+        else if (distance > desiredRangeMax)
         {
             // Too far - approach
             _currentSpeedMultiplier = _profile.approachSpeedMultiplier;
@@ -148,19 +155,22 @@ public class BoidAttackBehavior : MonoBehaviour
             // In range - make small adjustments
             _currentSpeedMultiplier = _profile.engageSpeedMultiplier;
             
-            float adjustment = Mathf.Clamp(distanceError / _profile.engagementDistance, -0.5f, 0.5f);
+            float adjustment = Mathf.Clamp(distanceError / Mathf.Max(desiredRangeCenter, 1f), -0.5f, 0.5f);
             
             // Mostly tangential movement with slight distance correction
             Vector3 tangent = Vector3.Cross(Vector3.up, toTargetDir).normalized;
             if (_committedSide == 0)
                 _committedSide = Random.value > 0.5f ? 1 : -1;
             
-            return tangent * _committedSide * 0.7f + toTargetDir * adjustment;
+            return tangent * _committedSide * strafeWeight + toTargetDir * adjustment;
         }
     }
 
     private Vector3 GetHitAndRunMovement(float distance, Vector3 toTargetDir)
     {
+        float desiredRangeCenter = UseHybridProfileSemantics ? _profile.DesiredRangeCenter : _profile.engagementDistance;
+        float breakawayDistance = UseHybridProfileSemantics ? _profile.BreakawayDistance : _profile.retreatDistance;
+        float reengageDelay = UseHybridProfileSemantics ? _profile.ReengageDelay : _profile.regroupTime;
         _phaseTimer += Time.deltaTime;
 
         switch (_hitAndRunPhase)
@@ -169,7 +179,7 @@ public class BoidAttackBehavior : MonoBehaviour
                 _currentSpeedMultiplier = _profile.approachSpeedMultiplier;
                 
                 // Transition to Engaging when in range
-                if (distance <= _profile.engagementDistance)
+                if (distance <= desiredRangeCenter)
                 {
                     _hitAndRunPhase = HitAndRunPhase.Engaging;
                     _phaseTimer = 0f;
@@ -188,8 +198,8 @@ public class BoidAttackBehavior : MonoBehaviour
                 }
                 
                 // Maintain engagement distance while engaging
-                float distError = distance - _profile.engagementDistance;
-                float correction = Mathf.Clamp(distError / _profile.engagementDistance, -0.5f, 0.5f);
+                float distError = distance - desiredRangeCenter;
+                float correction = Mathf.Clamp(distError / Mathf.Max(desiredRangeCenter, 1f), -0.5f, 0.5f);
                 
                 Vector3 tangent = Vector3.Cross(Vector3.up, toTargetDir).normalized;
                 if (_committedSide == 0)
@@ -201,7 +211,7 @@ public class BoidAttackBehavior : MonoBehaviour
                 _currentSpeedMultiplier = _profile.retreatSpeedMultiplier;
                 
                 // Transition to Regrouping when far enough
-                if (distance >= _profile.retreatDistance)
+                if (distance >= breakawayDistance)
                 {
                     _hitAndRunPhase = HitAndRunPhase.Regrouping;
                     _phaseTimer = 0f;
@@ -212,7 +222,7 @@ public class BoidAttackBehavior : MonoBehaviour
                 _currentSpeedMultiplier = _profile.engageSpeedMultiplier * 0.5f;
                 
                 // Maintain retreat distance briefly, then re-engage
-                if (_phaseTimer >= _profile.regroupTime)
+                if (_phaseTimer >= reengageDelay)
                 {
                     _hitAndRunPhase = HitAndRunPhase.Approaching;
                     _phaseTimer = 0f;
@@ -221,7 +231,7 @@ public class BoidAttackBehavior : MonoBehaviour
                 
                 // Drift tangentially while regrouping
                 Vector3 regroupTangent = Vector3.Cross(Vector3.up, toTargetDir).normalized;
-                float regroupCorrection = Mathf.Clamp((distance - _profile.retreatDistance) / _profile.retreatDistance, -0.3f, 0.3f);
+                float regroupCorrection = Mathf.Clamp((distance - breakawayDistance) / Mathf.Max(breakawayDistance, 1f), -0.3f, 0.3f);
                 return regroupTangent * (_committedSide != 0 ? _committedSide : 1) * 0.8f + toTargetDir * regroupCorrection;
 
             default:
@@ -231,31 +241,34 @@ public class BoidAttackBehavior : MonoBehaviour
 
     private Vector3 GetOrbitMovement(Vector3 targetPosition, float distance, Vector3 toTargetDir)
     {
+        float desiredRangeCenter = UseHybridProfileSemantics ? _profile.DesiredRangeCenter : _profile.engagementDistance;
+        float hardAvoidDistance = UseHybridProfileSemantics ? _profile.HardAvoidDistance : _profile.minDistance;
+        float desiredRangeMax = UseHybridProfileSemantics ? _profile.DesiredRangeMax : Mathf.Max(_profile.minDistance, _profile.maxDistance);
         _currentSpeedMultiplier = _profile.engageSpeedMultiplier;
         
         float direction = _profile.preferClockwise ? 1f : -1f;
-        Vector3 tangent = Vector3.Cross(Vector3.up, toTargetDir).normalized * direction;
+        Vector3 tangent = Vector3.Cross(Vector3.up, toTargetDir).normalized * direction * Mathf.Lerp(0.8f, 1.3f, UseHybridProfileSemantics ? _profile.StrafeBias : 0.5f);
 
         // Update orbit angle
         _orbitAngle += _profile.orbitSpeed * Time.deltaTime * direction;
 
         // Maintain engagement distance while orbiting
-        float distanceError = distance - _profile.engagementDistance;
+        float distanceError = distance - desiredRangeCenter;
         float radialStrength;
         
-        if (distance < _profile.minDistance)
+        if (distance < hardAvoidDistance)
         {
             radialStrength = -1f;
             _currentSpeedMultiplier = _profile.retreatSpeedMultiplier;
         }
-        else if (distance > _profile.maxDistance)
+        else if (distance > desiredRangeMax)
         {
             radialStrength = 1f;
             _currentSpeedMultiplier = _profile.approachSpeedMultiplier;
         }
         else
         {
-            radialStrength = Mathf.Clamp(distanceError / _profile.engagementDistance, -0.5f, 0.5f);
+            radialStrength = Mathf.Clamp(distanceError / Mathf.Max(desiredRangeCenter, 1f), -0.5f, 0.5f);
         }
 
         return (tangent + toTargetDir * radialStrength).normalized;
@@ -283,12 +296,15 @@ public class BoidAttackBehavior : MonoBehaviour
         Vector3 tangent = Vector3.Cross(Vector3.up, toTargetDir).normalized * _committedSide;
         
         // Blend tangential movement based on distance
-        float tangentWeight = 0.5f;
+        float tangentWeight = Mathf.Lerp(0.35f, 0.8f, UseHybridProfileSemantics ? _profile.StrafeBias : 0.5f);
         
-        if (distance > _profile.minDistance && distance < _profile.maxDistance)
+        float hardAvoidDistance = UseHybridProfileSemantics ? _profile.HardAvoidDistance : _profile.minDistance;
+        float desiredRangeMax = UseHybridProfileSemantics ? _profile.DesiredRangeMax : Mathf.Max(_profile.minDistance, _profile.maxDistance);
+
+        if (distance > hardAvoidDistance && distance < desiredRangeMax)
         {
             // In good range - prioritize tangential movement for broadside
-            tangentWeight = 0.7f;
+            tangentWeight = Mathf.Lerp(tangentWeight, 0.9f, UseHybridProfileSemantics ? _profile.StrafeBias : 0.5f);
         }
 
         return Vector3.Lerp(baseMovement, tangent, tangentWeight);
@@ -344,19 +360,24 @@ public class BoidAttackBehavior : MonoBehaviour
         if (_profile == null || Boid == null) return;
 
         // Draw engagement ranges
+        float desiredRangeCenter = UseHybridProfileSemantics ? _profile.DesiredRangeCenter : _profile.engagementDistance;
+        float hardAvoidDistance = UseHybridProfileSemantics ? _profile.HardAvoidDistance : _profile.minDistance;
+        float desiredRangeMax = UseHybridProfileSemantics ? _profile.DesiredRangeMax : Mathf.Max(_profile.minDistance, _profile.maxDistance);
+        float breakawayDistance = UseHybridProfileSemantics ? _profile.BreakawayDistance : _profile.retreatDistance;
+
         Gizmos.color = Color.green;
-        DrawCircle(Boid.position, _profile.engagementDistance, 32);
+        DrawCircle(Boid.position, desiredRangeCenter, 32);
         
         Gizmos.color = Color.red;
-        DrawCircle(Boid.position, _profile.minDistance, 24);
+        DrawCircle(Boid.position, hardAvoidDistance, 24);
         
         Gizmos.color = Color.yellow;
-        DrawCircle(Boid.position, _profile.maxDistance, 32);
+        DrawCircle(Boid.position, desiredRangeMax, 32);
 
         if (_profile.attackMode == AttackMode.HitAndRun)
         {
             Gizmos.color = Color.cyan;
-            DrawCircle(Boid.position, _profile.retreatDistance, 24);
+            DrawCircle(Boid.position, breakawayDistance, 24);
             
             // Show current phase
             Vector3 labelPos = Boid.position + Vector3.up * 30f;

@@ -1,0 +1,495 @@
+Concrete Squad Tactical Tree Specification
+=========================================
+
+Purpose
+-------
+This document turns Prompt 02 into a concrete squad-level tactical tree design for the current starship boid system.
+
+This tree is intended to sit above:
+- BoidsManager
+- BoidFlockTargetManager
+- BoidCommandController
+
+It should decide squad intent, not raw movement vectors.
+
+
+Design intent
+-------------
+The squad tactical tree should answer questions like:
+- Are we traveling or fighting?
+- Should we hold formation or allow combat spread?
+- Which target should the squad focus on?
+- When should we regroup?
+- When should we retreat?
+
+It should not:
+- assign targets directly per boid
+- compute flock steering
+- replace obstacle avoidance
+- directly micromanage local ship steering every frame
+
+
+High-level structure
+--------------------
+Recommended top-level tree shape:
+
+Root Selector
+1. HardCommandOverride
+2. SafetyCritical
+3. CombatTactical
+4. TravelAndFormation
+5. IdleFallback
+
+This order matters.
+- Command overrides take precedence.
+- Safety conditions such as retreat or forced regroup come next.
+- Combat tactical logic runs only if no stronger override exists.
+- Travel and form-up logic handles non-combat movement.
+
+
+Top-level tree overview
+-----------------------
+Root Selector
+
+1. HardCommandOverride Selector
+- ReturnToBaseSequence
+- HoldSequence
+- DefendSequence
+- AttackCommandSequence
+- FollowCommandSequence
+- MoveToPositionSequence
+- FormUpCommandSequence
+- BreakFormationCommandSequence
+
+2. SafetyCritical Selector
+- ForcedRetreatSequence
+- EmergencyRegroupSequence
+
+3. CombatTactical Selector
+- DefendAnchorAutonomousSequence
+- FocusFireOpportunitySequence
+- GeneralAttackSequence
+- RepositionForCombatSequence
+
+4. TravelAndFormation Selector
+- TravelToAnchorSequence
+- MaintainEscortSequence
+- PassiveFormUpSequence
+
+5. IdleFallback Action
+- Set tactical mode to Idle
+
+
+Detailed branch design
+----------------------
+
+1. HardCommandOverride
+----------------------
+This branch handles explicit commands from BoidCommandController.
+
+Rule:
+- If an external command is active, the tactical tree should not invent a different macro behavior.
+- It may still refine how to execute that command, but it should not contradict it.
+
+1.1 ReturnToBaseSequence
+Conditions:
+- activeCommandType == ReturnToBase
+
+Actions:
+- tacticalMode = ReturnToBase
+- desiredFormationUsage = false
+- desiredAnchorMode = CommandAnchor or None
+- retreatRequested = true
+- regroupRequested = false
+- desiredFocusTarget = null
+
+Expected integration:
+- BoidCommandController remains the executor for actual despawn / RTB flow.
+- The tree just makes the squad intent explicit and blocks other combat branches.
+
+Abort rule:
+- Abort immediately if command is cleared.
+
+1.2 HoldSequence
+Conditions:
+- activeCommandType == Hold
+
+Actions:
+- tacticalMode = Hold
+- desiredFormationUsage = false
+- regroupRequested = false
+- desiredFocusTarget = null unless hostiles breach a later-defined emergency rule
+
+Notes:
+- Hold should suppress normal travel and attack intent.
+- In version 1, treat Hold as a hard override.
+
+1.3 DefendSequence
+Conditions:
+- activeCommandType == Defend
+
+Actions:
+- tacticalMode = Defend
+- desiredFormationUsage = true
+- desiredAnchorMode = CommandAnchor
+- desiredFocusTarget = primaryKnownThreat inside defend radius, otherwise null
+- desiredCombatSpread = Tight or Medium
+- regroupRequested = false unless cohesion collapses badly
+
+Expected integration:
+- currentCommandAnchor and defendAnchor should align with the defended target.
+- BoidFlockTargetManager defense mode remains the actual targeting constraint.
+
+1.4 AttackCommandSequence
+Conditions:
+- activeCommandType == AttackTarget
+
+Actions:
+- tacticalMode = Attack
+- desiredFormationUsage = false or soft-formation depending on future implementation
+- desiredAnchorMode = CommandAnchor
+- desiredFocusTarget = activeCommandTarget
+- desiredCombatSpread = Medium by default
+- desiredAggression = high
+
+Expected integration:
+- Priority target should be pushed through the target manager service, not assigned directly per boid.
+
+1.5 FollowCommandSequence
+Conditions:
+- activeCommandType == FollowTarget
+
+Actions:
+- tacticalMode = Follow
+- desiredFormationUsage = true
+- desiredAnchorMode = CommandAnchor
+- desiredFocusTarget = null
+- desiredCombatSpread = Tight
+- desiredAggression = low unless threatened
+
+1.6 MoveToPositionSequence
+Conditions:
+- activeCommandType == MoveToPosition
+
+Actions:
+- tacticalMode = Travel
+- desiredFormationUsage = true
+- desiredAnchorMode = CommandAnchor
+- desiredFocusTarget = null
+- desiredCombatSpread = Tight
+
+1.7 FormUpCommandSequence
+Conditions:
+- activeCommandType == FormUp
+
+Actions:
+- tacticalMode = FormUp
+- desiredFormationUsage = true
+- desiredAnchorMode = Leader or FlockCenter
+- regroupRequested = true
+
+1.8 BreakFormationCommandSequence
+Conditions:
+- activeCommandType == BreakFormation
+
+Actions:
+- tacticalMode = Attack
+- desiredFormationUsage = false
+- desiredAnchorMode = FlockCenter or CommandAnchor
+- desiredCombatSpread = Medium or Wide
+- desiredAggression = medium-high
+
+
+2. SafetyCritical
+-----------------
+This branch interrupts lower-priority combat and travel behavior.
+
+2.1 ForcedRetreatSequence
+Conditions:
+- averageHullPercent below retreat threshold
+or
+- combatCapableBoidCount below minimum viable threshold
+or
+- hostilePressureScore greatly exceeds squad strength estimate
+
+Actions:
+- tacticalMode = Retreat
+- desiredFormationUsage = true if still cohesive, otherwise false until regroup begins
+- desiredAnchorMode = CommandAnchor or Leader
+- retreatRequested = true
+- regroupRequested = true
+- desiredFocusTarget = null or only nearest blocker target
+- desiredCombatSpread = Tight
+- desiredAggression = low
+
+Abort rule:
+- Do not exit retreat immediately on one good frame.
+- Use hysteresis via lastRetreatTime and a minimum retreat duration.
+
+2.2 EmergencyRegroupSequence
+Conditions:
+- cohesionScore below regroup threshold
+or
+- outOfEnvelopeBoidCount above threshold
+or
+- averageAnchorDistance above leash threshold for too long
+
+Actions:
+- tacticalMode = Regroup
+- desiredFormationUsage = true
+- desiredAnchorMode = Leader, FlockCenter, or CommandAnchor depending on squad mode
+- regroupRequested = true
+- desiredCombatSpread = Tight
+- desiredAggression = reduced
+
+Abort rule:
+- Exit only after cohesionScore recovers above a higher threshold than the entry threshold.
+
+
+3. CombatTactical
+-----------------
+This branch handles autonomous combat when not under hard command override or safety override.
+
+3.1 DefendAnchorAutonomousSequence
+Conditions:
+- defenseModeActive == true
+and
+- defenseIntrusionDetected == true
+
+Actions:
+- tacticalMode = Defend
+- desiredFormationUsage = true
+- desiredAnchorMode = CommandAnchor
+- desiredFocusTarget = primaryKnownThreat within defend radius
+- desiredCombatSpread = Tight or Medium
+
+3.2 FocusFireOpportunitySequence
+Conditions:
+- knownTargetCount > 0
+and
+- primaryKnownThreat is valid
+and
+- either hostilePressureScore is high or target priority is high
+
+Actions:
+- tacticalMode = Attack
+- desiredFormationUsage = false or loose formation
+- desiredAnchorMode = CommandAnchor or FlockCenter
+- desiredFocusTarget = primaryKnownThreat
+- desiredCombatSpread = Medium
+- desiredAggression = high
+
+Notes:
+- This branch favors concentrated fire rather than free spreading.
+
+3.3 GeneralAttackSequence
+Conditions:
+- knownTargetCount > 0
+
+Actions:
+- tacticalMode = Attack
+- desiredFormationUsage = false
+- desiredAnchorMode = FlockCenter or CommandAnchor
+- desiredFocusTarget = null or primaryKnownThreat depending on spread policy
+- desiredCombatSpread = Medium
+- desiredAggression = medium
+
+3.4 RepositionForCombatSequence
+Conditions:
+- enemies known
+but
+- nearestThreatDistance is outside desirable envelope
+or
+- squad is badly positioned relative to anchor
+
+Actions:
+- tacticalMode = FormUp or Travel depending on posture
+- desiredFormationUsage = true
+- desiredAnchorMode = CommandAnchor
+- regroupRequested = true if cohesion is weak
+
+
+4. TravelAndFormation
+---------------------
+This branch handles the non-combat default modes.
+
+4.1 TravelToAnchorSequence
+Conditions:
+- active command implies travel
+or
+- no known targets and anchor exists and squad is not in desired position
+
+Actions:
+- tacticalMode = Travel
+- desiredFormationUsage = true
+- desiredAnchorMode = CommandAnchor
+- desiredCombatSpread = Tight
+
+4.2 MaintainEscortSequence
+Conditions:
+- currentCommandAnchor exists
+and
+- no meaningful combat pressure
+
+Actions:
+- tacticalMode = Follow
+- desiredFormationUsage = true
+- desiredAnchorMode = CommandAnchor
+
+4.3 PassiveFormUpSequence
+Conditions:
+- no command target
+and
+- no enemies
+and
+- squad not cohesive
+
+Actions:
+- tacticalMode = FormUp
+- desiredFormationUsage = true
+- desiredAnchorMode = Leader or FlockCenter
+- regroupRequested = true
+
+
+5. IdleFallback
+---------------
+Conditions:
+- none of the above branches succeed
+
+Actions:
+- tacticalMode = Idle
+- desiredFormationUsage = true
+- desiredFocusTarget = null
+- regroupRequested = false
+- retreatRequested = false
+
+
+Command override policy
+-----------------------
+Recommended concrete policy:
+
+Hard overrides:
+- ReturnToBase
+- Hold
+- MoveToPosition
+
+Strong bias overrides:
+- AttackTarget
+- Defend
+- FollowTarget
+
+Soft shape commands:
+- FormUp
+- BreakFormation
+
+Interpretation:
+- Hard override means the tree must obey the command exactly.
+- Strong bias means the tree keeps the command’s intent but may still enter regroup or retreat if safety-critical conditions trip.
+- Soft shape means the command changes posture, but the tree still makes tactical choices inside that posture.
+
+
+Interaction with target assignment
+----------------------------------
+The squad tactical tree should not assign a target to each boid.
+
+Recommended interaction model:
+1. Tree decides if the squad should focus fire or spread.
+2. Tree selects desiredFocusTarget if one should be prioritized.
+3. A squad service pushes that into BoidFlockTargetManager as priority target or target-distribution tuning.
+4. BoidFlockTargetManager continues to perform per-boid assignment.
+
+Concrete mapping:
+- desiredFocusTarget -> targetManager.SetPriorityTarget(...) when non-null
+- tactical mode Defend -> targetManager.SetDefenseMode(...)
+- desiredCombatSpread -> later maps to _maxConcurrentCombatTargets and _maxBoidsPerTarget
+
+
+Interaction with command anchors
+--------------------------------
+Command anchors are critical for this project.
+
+Recommended rule:
+- The tree does not compute anchor positions.
+- It chooses anchor policy.
+- Existing services provide the actual anchor transform or anchor position.
+
+Concrete usage:
+- Follow and Travel prefer CommandAnchor
+- FormUp prefers Leader or FlockCenter
+- Defend prefers defend target as anchor
+- Attack can use CommandAnchor for disciplined assault or FlockCenter for freer engagement
+- Retreat prefers CommandAnchor or Leader
+
+
+Blackboard inputs used by the tree
+----------------------------------
+Minimum required inputs from the concrete blackboard spec:
+- activeCommandType
+- activeCommandTarget
+- activeCommandPosition
+- activeCommandRadius
+- currentCommandAnchor
+- defendAnchor
+- aliveBoidCount
+- combatCapableBoidCount
+- flockCenter
+- knownTargetCount
+- primaryKnownThreat
+- nearestThreatDistance
+- hostilePressureScore
+- defenseModeActive
+- cohesionScore
+- averageAnchorDistance
+- outOfEnvelopeBoidCount
+- averageHullPercent
+- timeSinceLastEnemySeen
+- timeInCurrentTacticalMode
+
+
+Blackboard outputs written by the tree
+--------------------------------------
+- tacticalMode
+- desiredFormationUsage
+- desiredAnchorMode
+- desiredFocusTarget
+- desiredCombatSpread
+- desiredAggression
+- regroupRequested
+- retreatRequested
+
+
+Abort rules and hysteresis
+--------------------------
+To avoid tactical thrashing, use these rules:
+
+1. Retreat has minimum hold time.
+2. Regroup requires separate enter and exit thresholds.
+3. Attack target switches should be rate-limited.
+4. Travel / Follow should not break instantly on a single transient enemy detection unless command policy allows it.
+5. Focus-fire target should be sticky unless the target becomes invalid or a much higher-value threat appears.
+
+
+Recommended first implementation slice
+--------------------------------------
+Version 1 should be intentionally small.
+
+Build only these branches first:
+1. ReturnToBaseSequence
+2. HoldSequence
+3. AttackCommandSequence
+4. DefendSequence
+5. ForcedRetreatSequence
+6. EmergencyRegroupSequence
+7. GeneralAttackSequence
+8. FollowCommandSequence
+9. IdleFallback
+
+Why this slice:
+- It maps directly to systems that already exist.
+- It avoids overbuilding before the blackboard and service contracts are proven.
+- It gives immediate value: command integration, regroup, retreat, and autonomous attack posture.
+
+
+Most important implementation rule
+----------------------------------
+The squad tactical tree should decide posture and intent. It should not become a second target manager or a second movement controller.

@@ -1,0 +1,284 @@
+Concrete Hybrid AI Migration Strategy Specification
+===================================================
+
+Purpose
+-------
+This document turns Prompt 05 into a concrete staged migration strategy for this project.
+
+
+Migration principle
+-------------------
+Do not perform a big-bang rewrite.
+
+Preserve these working layers during migration:
+- BoidsManager orchestration
+- BoidFlockTargetManager detection and assignment
+- Boid movement and steering execution
+- existing command flow
+
+Replace gradually:
+- attack-profile-driven tactical choice
+- squad command interpretation logic
+- local combat phase ownership
+
+
+Stage 0. Freeze architecture boundaries
+---------------------------------------
+Goal:
+- Make sure current ownership is clear before adding new systems.
+
+Deliverables:
+- written ownership rules for command, targeting, tactical choice, and steering
+- confirmation that BoidCommandController is the only command-entry path
+- confirmation that BoidFlockTargetManager remains the only squad target allocator
+- confirmation that Boid.cs remains the only final steering executor
+
+Validation checklist:
+- no new duplicate target-selection logic added outside target manager
+- no new direct command-to-per-boid target hacks added
+- no steering logic moved into command code
+
+Rollback / fallback:
+- not applicable, this is a documentation and cleanup stage
+
+
+Stage 1. Introduce squad blackboard
+-----------------------------------
+Goal:
+- Add a shared squad tactical data surface without changing behavior.
+
+Deliverables:
+- squad blackboard data container
+- field population from current manager, command, and target systems
+- debug view for key blackboard values
+
+Validation checklist:
+- no gameplay behavior changes
+- blackboard values match actual command and target state
+- blackboard updates are stable and not stale for more than intended cadence
+
+Highest-risk integration points:
+- stale command anchor state
+- blackboard values disagreeing with target manager reality
+
+Fallback:
+- if blackboard is unstable, keep it debug-only and do not let any runtime system consume it yet
+
+
+Stage 2. Introduce squad tactical brain in observe-only mode
+------------------------------------------------------------
+Goal:
+- Build the squad tactical tree but let it recommend intent without controlling gameplay yet.
+
+Deliverables:
+- squad tactical tree implementation
+- tree reads blackboard and writes proposed outputs to a debug or shadow blackboard
+- debug logs or UI showing proposed tactical mode
+
+Validation checklist:
+- recommended modes make sense in travel, defend, attack, regroup, and retreat scenarios
+- no gameplay authority transferred yet
+- tactical mode changes are not thrashing frame-to-frame
+
+Highest-risk integration points:
+- poor hysteresis causing unstable outputs
+- tree reacting too hard to transient sensing noise
+
+Fallback:
+- leave tactical brain in advisory mode only
+
+
+Stage 3. Let squad tactical brain own posture only
+--------------------------------------------------
+Goal:
+- First real authority transfer: the tree controls squad posture, not targeting or movement execution.
+
+Deliverables:
+- tacticalMode, desiredFormationUsage, desiredAnchorMode, regroupRequested, retreatRequested become live outputs
+- existing systems consume those outputs through narrow integration points
+
+Validation checklist:
+- FormUp, Follow, Attack, Defend, Regroup, Retreat switch correctly
+- command overrides still work
+- squad cohesion is not worse than before
+
+Highest-risk integration points:
+- conflict between command controller intent and tactical brain posture
+- regroup and retreat loops oscillating
+
+Fallback:
+- flag to revert posture control to current command-driven logic
+
+
+Stage 4. Integrate focus target and combat spread policy
+--------------------------------------------------------
+Goal:
+- Let the tactical brain influence target-manager behavior without replacing target assignment.
+
+Deliverables:
+- desiredFocusTarget becomes live input to target manager priority target handling
+- desiredCombatSpread becomes live input to target spread configuration
+- squad aggression biases target distribution only through service APIs
+
+Validation checklist:
+- target focus changes are understandable and stable
+- spread stays within intended envelope
+- no duplicated target assignment ownership appears
+
+Highest-risk integration points:
+- tactical brain and target manager fighting over target choice
+- target switches happening too frequently
+
+Fallback:
+- disable live focus-target control and keep tactical target choice advisory only
+
+
+Stage 5. Introduce individual tactical layer with compatibility mode
+--------------------------------------------------------------------
+Goal:
+- Add per-boid tactical states while keeping existing attack behavior available as fallback.
+
+Deliverables:
+- per-boid tactical state container
+- first states: Transit, ApproachTarget, HoldCombatEnvelope, RegroupToAnchor, Retreat
+- compatibility bridge so current BoidAttackBehavior still provides movement help where needed
+
+Validation checklist:
+- boids still enter combat reliably
+- boids do not lose targets due to local state confusion
+- regroup and return to envelope feel cleaner than old behavior
+
+Highest-risk integration points:
+- overlapping ownership between boid tactical state and BoidAttackBehavior
+- steering regression from ambiguous handoff
+
+Fallback:
+- feature flag to return all boids to current attack behavior path
+
+
+Stage 6. Convert profiles from selectors to tuning assets
+---------------------------------------------------------
+Goal:
+- Stop using profiles as the primary behavior selector.
+
+Deliverables:
+- profile compatibility mapping layer
+- new or renamed fields for range, breakaway, rejoin, pursuit leash, and discipline
+- documentation for profile semantics in the hybrid model
+
+Validation checklist:
+- old profiles still load and produce sensible behavior
+- designer understanding improves rather than degrades
+- no profile field becomes silently meaningless without migration notes
+
+Highest-risk integration points:
+- profile field confusion during transition
+- serialized asset compatibility issues
+
+Fallback:
+- keep compatibility translator active longer
+
+
+Stage 7. Remove obsolete branching and duplicate logic
+------------------------------------------------------
+Goal:
+- Cleanly retire the old attack-profile-driven control flow where it overlaps the new systems.
+
+Deliverables:
+- old mode-selection branches removed or deprecated
+- command, target, tactical, and steering responsibilities finalized
+- cleanup of dead compatibility code only after parity is verified
+
+Validation checklist:
+- behavior parity or improvement confirmed in main scenarios
+- no important feature depends on removed legacy code
+- profiler cost acceptable with new architecture
+
+Highest-risk integration points:
+- deleting compatibility helpers too early
+- removing logic still used by edge-case commands
+
+Fallback:
+- keep a branch or compile flag for the legacy tactical path until QA passes
+
+
+Validation scenarios per stage
+------------------------------
+Use the same repeatable gameplay scenarios each stage.
+
+Scenario A. Escort / follow player
+- squad follows anchor
+- responds to incidental threats without dissolving
+
+Scenario B. Attack ordered target
+- squad focuses assigned target
+- maintains acceptable spread
+- returns to regroup when overextended
+
+Scenario C. Defend target
+- squad holds around defended target
+- only engages relevant intruders
+
+Scenario D. Break formation combat
+- squad loosens posture appropriately
+- does not become uncontrollable chaos
+
+Scenario E. Return to base
+- command overrides other behaviors cleanly
+
+Scenario F. Heavy pressure retreat
+- retreat triggers reliably
+- retreat does not oscillate on and off
+
+
+Success metrics
+---------------
+The new architecture is better only if these improve or stay stable:
+
+Behavior quality metrics:
+- average squad cohesion in combat
+- average anchor distance during attack
+- target churn rate
+- time spent with no valid target while enemies exist
+- time to regroup after spread event
+
+Engineering metrics:
+- easier addition of new squad tactics
+- fewer cross-script edits for a new tactical feature
+- clearer ownership of decisions
+- stable profiler cost at expected boid counts
+
+Designer metrics:
+- profile fields are easier to understand
+- tactical changes are more predictable
+- command behavior is easier to tune
+
+
+Recommended feature flags
+-------------------------
+Use explicit toggles during migration:
+- UseSquadBlackboard
+- UseSquadTacticalBrain
+- UseSquadTacticalBrainLiveOutputs
+- UseHybridTargetFocusPolicy
+- UseIndividualTacticalLayer
+- UseHybridProfileSemantics
+
+These will make testing and rollback much safer.
+
+
+Recommended first implementation slice
+--------------------------------------
+Do not start with everything.
+
+Best first slice:
+1. Stage 1 squad blackboard
+2. Stage 2 observe-only squad tactical brain
+3. Stage 3 live squad posture control
+
+Do not start individual tactical migration until squad posture and blackboard stability are proven.
+
+
+Main rule
+---------
+Every stage should preserve a working fallback path. The migration is only safe if you can disable the new layer and return to the old behavior without tearing the flock system apart.

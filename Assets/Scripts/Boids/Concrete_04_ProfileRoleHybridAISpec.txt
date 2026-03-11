@@ -1,0 +1,266 @@
+Concrete BoidAttackProfile Role In Hybrid AI Specification
+==========================================================
+
+Purpose
+-------
+This document turns Prompt 04 into a concrete plan for the role of BoidAttackProfile in a hybrid behavior-tree + steering architecture.
+
+
+Core recommendation
+-------------------
+BoidAttackProfile should stop deciding which high-level tactic to use.
+
+Instead, it should become a tactical tuning asset used by:
+- the squad tactical brain
+- the individual tactical layer
+- the steering executor
+
+In other words:
+- behavior tree chooses what to do
+- profile tunes how this ship type does it
+
+
+New role of the profile
+-----------------------
+The profile should describe ship doctrine and motion preferences, not own the top-level decision tree.
+
+Good profile responsibilities:
+- preferred combat range band
+- aggression bias
+- breakaway behavior
+- re-engagement behavior
+- strafe / orbit preference
+- discipline vs independence
+- willingness to pursue far from squad anchor
+
+Bad profile responsibilities in the future architecture:
+- choosing squad tactical mode
+- choosing when the squad retreats
+- deciding which specific target the squad focuses
+
+
+Keep / repurpose / remove table
+-------------------------------
+
+Field: attackMode
+- Current role: primary behavior selector
+- Future role: repurpose
+- Recommendation: rename or reinterpret as preferredLocalStyle
+- Why: the tree should choose tactics; the profile can still express a style bias such as Charge, Standoff, Skirmish, Orbiting
+
+Field: facing
+- Future role: keep
+- Why: still useful as a ship doctrine hint for forward, broadside, or rear-facing bias
+
+Field: engagementDistance
+- Future role: repurpose
+- Recommendation: replace with desiredRangeCenter
+- Why: use it as the center of a preferred combat band rather than a mode-dependent special value
+
+Field: minDistance
+- Future role: repurpose
+- Recommendation: replace with desiredRangeMin or hardAvoidDistance depending on need
+- Why: useful as lower combat bound or emergency breakaway threshold
+
+Field: maxDistance
+- Future role: repurpose
+- Recommendation: replace with desiredRangeMax or re-engageDistance
+- Why: gives upper edge of preferred firing envelope
+
+Field: engageTime
+- Future role: keep only if hit-and-run style remains important
+- Recommendation: rename to attackPassDuration
+- Why: only meaningful for pass-based styles
+
+Field: retreatDistance
+- Future role: repurpose
+- Recommendation: rename to breakawayDistance
+- Why: clearer for local disengagement logic
+
+Field: regroupTime
+- Future role: repurpose
+- Recommendation: rename to reengageDelay
+- Why: makes more sense in a state-machine or tactical-action model
+
+Field: orbitSpeed
+- Future role: keep
+- Why: still valid for orbit or strafe-biased motion styles
+
+Field: preferClockwise
+- Future role: keep
+- Why: useful for consistent lateral preference
+
+Field: approachSpeedMultiplier
+- Future role: keep
+- Why: good tactical tuning value
+
+Field: engageSpeedMultiplier
+- Future role: keep
+- Why: useful in envelope-holding or broadside states
+
+Field: retreatSpeedMultiplier
+- Future role: keep
+- Why: useful for breakaway and retreat phases
+
+Field: facingStrictness
+- Future role: keep but only if actually wired into motion
+- Why: good doctrine knob, but it should not remain a dead field
+
+Field: allowReverseThrust
+- Future role: keep if some ships can legitimately back off while aiming
+- Why: useful in starship combat where not all units should always nose-forward commit
+
+Field: squadDisciplineMultiplier
+- Future role: keep
+- Why: directly useful for leash, regroup priority, and willingness to obey anchor constraints
+
+
+Recommended new profile fields
+------------------------------
+These would make the profile more useful in the hybrid architecture.
+
+Field: localStyleBias
+- Type: enum or weighted style struct
+- Suggested values: Assault, Standoff, Skirmish, Broadside, Interceptor
+- Purpose: bias the individual tactical layer without replacing the tree
+
+Field: desiredRangeCenter
+- Type: float
+- Purpose: center of preferred combat band
+
+Field: desiredRangeTolerance
+- Type: float
+- Purpose: acceptable deviation around desired range center
+
+Field: hardAvoidDistance
+- Type: float
+- Purpose: below this distance, breakaway dominates
+
+Field: breakawayDistance
+- Type: float
+- Purpose: distance target for disengage phase
+
+Field: reengageDelay
+- Type: float
+- Purpose: delay before re-entering attack after breakaway
+
+Field: maxPursuitAnchorDistance
+- Type: float
+- Purpose: how far this ship type is willing to chase away from squad anchor before preferring regroup
+
+Field: focusFireAffinity
+- Type: float 0..1
+- Purpose: how strongly this ship prefers squad focus-fire over independent assignment spread
+
+Field: strafeBias
+- Type: float 0..1
+- Purpose: blend between direct approach and lateral combat motion
+
+Field: rejoinUrgency
+- Type: float 0..1
+- Purpose: how quickly this ship abandons local attack to rejoin squad anchor
+
+Field: defensiveEvasionBias
+- Type: float 0..1
+- Purpose: how likely the ship is to prioritize self-preservation during local danger
+
+
+Profile ownership rules
+-----------------------
+Squad tactical brain may read:
+- squadDisciplineMultiplier
+- focusFireAffinity
+- maxPursuitAnchorDistance
+- overall style hints
+
+Individual tactical layer may read:
+- desiredRangeCenter
+- desiredRangeTolerance
+- hardAvoidDistance
+- breakawayDistance
+- reengageDelay
+- strafeBias
+- facing
+- facingStrictness
+- allowReverseThrust
+
+Steering executor may read:
+- speed multipliers
+- facing bias
+- squadDisciplineMultiplier
+- rejoinUrgency
+
+The profile should not directly write into squad tactical state.
+
+
+Interaction with squad discipline, leash, and spread
+----------------------------------------------------
+Recommended concrete meanings:
+
+squadDisciplineMultiplier
+- scales how strongly the boid obeys regroup, anchor, and leash behavior
+
+focusFireAffinity
+- biases whether this ship prefers concentrated target allocation when the squad allows multiple valid targets
+
+maxPursuitAnchorDistance
+- defines the local overextension threshold relative to squad anchor
+
+rejoinUrgency
+- determines how aggressively the ship transitions into regroup when overextended
+
+desiredRangeCenter and tolerance
+- determine the preferred local combat envelope once a target is assigned
+
+
+Migration notes from the current profiles
+----------------------------------------
+Current profiles should be migrated in phases.
+
+Phase 1:
+- Keep existing fields.
+- Treat attackMode as a preferred style hint instead of absolute behavior owner.
+- Continue reading current values through compatibility helpers.
+
+Phase 2:
+- Introduce new names in code while preserving old serialized data.
+- Map old fields into new meanings:
+  - engagementDistance -> desiredRangeCenter
+  - minDistance -> hardAvoidDistance
+  - maxDistance -> desiredRangeMax or desiredRangeCenter + tolerance
+  - retreatDistance -> breakawayDistance
+  - regroupTime -> reengageDelay
+
+Phase 3:
+- Deprecate fields that are no longer meaningful as selectors.
+- Remove direct attack-mode branching from the individual behavior owner.
+
+
+Recommended first implementation slice
+--------------------------------------
+Keep and actively use first:
+- facing
+- engagementDistance or desiredRangeCenter
+- minDistance or hardAvoidDistance
+- maxDistance or desiredRangeMax
+- approachSpeedMultiplier
+- engageSpeedMultiplier
+- retreatSpeedMultiplier
+- squadDisciplineMultiplier
+
+Add next:
+- breakawayDistance
+- reengageDelay
+- maxPursuitAnchorDistance
+- focusFireAffinity
+- rejoinUrgency
+
+Wire later:
+- facingStrictness
+- allowReverseThrust
+- more advanced strafe and style bias fields
+
+
+Main rule
+---------
+Profiles should remain a valuable asset type, but they should become doctrine and tuning data, not the top-level tactical brain.

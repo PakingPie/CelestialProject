@@ -24,6 +24,19 @@ public class BoidsManager : MonoBehaviour
     [Header("Target Management")]
     [SerializeField] private BoidFlockTargetManager _targetManager;
 
+    [Header("Squad State")]
+    [SerializeField] private BoidSquadBlackboard _squadBlackboard;
+    [SerializeField] private BoidSquadTacticalBrain _squadTacticalBrain;
+
+    [Header("Hybrid AI Migration")]
+    [SerializeField] private bool _useSquadBlackboard = true;
+    [SerializeField] private bool _useSquadTacticalBrain = true;
+    [SerializeField] private bool _useSquadTacticalBrainLiveOutputs = true;
+    [SerializeField] private bool _useHybridTargetFocusPolicy = true;
+    [SerializeField] private bool _useIndividualTacticalLayer = true;
+    [SerializeField] private bool _useHybridProfileSemantics = true;
+    [SerializeField] private int _migrationFlagsVersion = 1;
+
     [Header("Performance")]
     [Tooltip("Use async GPU readback to avoid CPU stall. Uses previous frame data if not ready.")]
     public bool UseAsyncReadback = true;
@@ -33,6 +46,12 @@ public class BoidsManager : MonoBehaviour
     [Min(1)] public int CleanupIntervalFrames = 5;
     [Tooltip("Only evaluate combat sync every N frames.")]
     [Min(1)] public int CombatSyncIntervalFrames = 2;
+
+#if UNITY_EDITOR
+    [Header("Debug")]
+    [SerializeField] private bool _drawDebugGizmos = false;
+    [SerializeField] private bool _drawBoidIndexLabels = false;
+#endif
 
     [Header("Flock Identity")]
     [SerializeField] private string _flockId = "Flock_01";
@@ -47,6 +66,7 @@ public class BoidsManager : MonoBehaviour
 
     private List<WeaponBase> _boidWeapons = new List<WeaponBase>();
     private Boid _formationLeader = null;
+    private BoidCommandController _commandController;
 
     private bool _wasAnyInCombat = false;
 
@@ -72,15 +92,47 @@ public class BoidsManager : MonoBehaviour
     public System.Action<Boid> OnBoidRemoved;
     public System.Action OnFlockChanged;
 
+    void Awake()
+    {
+        EnsureMigrationFlagsInitialized();
+    }
+
     void Start()
     {
+        EnsureMigrationFlagsInitialized();
+
         if (_targetManager == null)
         {
             _targetManager = gameObject.AddComponent<BoidFlockTargetManager>();
         }
 
+        if (_squadBlackboard == null)
+        {
+            _squadBlackboard = GetComponent<BoidSquadBlackboard>();
+        }
+
+        if (_squadBlackboard == null)
+        {
+            _squadBlackboard = gameObject.AddComponent<BoidSquadBlackboard>();
+        }
+
+        if (_squadTacticalBrain == null)
+        {
+            _squadTacticalBrain = GetComponent<BoidSquadTacticalBrain>();
+        }
+
+        if (_squadTacticalBrain == null)
+        {
+            _squadTacticalBrain = gameObject.AddComponent<BoidSquadTacticalBrain>();
+        }
+
+        RefreshMigrationRuntimeState();
+
+        _commandController = GetComponent<BoidCommandController>();
+
         _targetManager.Initialize(_flockId, _team, _detectionRadius, _targetTags, _ignoreTags);
         _targetManager.SetCommandAnchor(target);
+        _squadBlackboard.Initialize(_flockId, _team, settings != null && settings.useFormation, settings != null ? settings.combatAnchorMode : CombatAnchorMode.None);
 
         boids = new List<Boid>();
         _boidWeapons = new List<WeaponBase>();
@@ -106,6 +158,9 @@ public class BoidsManager : MonoBehaviour
 
         _lastFormationType = settings.formationType;
         _lastUseFormation = settings.useFormation;
+
+        UpdateSquadBlackboard();
+        ApplyHybridTargetingPolicy();
     }
 
     void OnDestroy()
@@ -297,6 +352,8 @@ public class BoidsManager : MonoBehaviour
         if (boids == null)
             return;
 
+        RefreshMigrationRuntimeState();
+
         // Handle deferred formation reassignment
         if (_formationDirty)
         {
@@ -316,7 +373,10 @@ public class BoidsManager : MonoBehaviour
 
         int numBoids = boids.Count;
         if (numBoids <= 0)
+        {
+            UpdateSquadBlackboard();
             return;
+        }
 
         _combatSyncCounter++;
         if (_combatSyncCounter >= CombatSyncIntervalFrames)
@@ -376,20 +436,7 @@ public class BoidsManager : MonoBehaviour
             {
                 _readbackPending = true;
                 _readbackBoidCount = numBoids; // Store size of buffer being read
-                AsyncGPUReadback.Request(_boidBuffer, request =>
-                {
-                    _readbackPending = false;
-                    if (request.hasError) return;
-                    
-                    var gpuData = request.GetData<BoidData>();
-                    
-                    // Only copy up to the minimum of GPU buffer size and current _boidData size
-                    int copyCount = Mathf.Min(_readbackBoidCount, _boidData.Length);
-                    if (copyCount > 0)
-                    {
-                        System.Array.Copy(gpuData.ToArray(), 0, _boidData, 0, copyCount);
-                    }
-                });
+                AsyncGPUReadback.Request(_boidBuffer, OnBoidReadbackComplete);
             }
         }
         else
@@ -427,6 +474,199 @@ public class BoidsManager : MonoBehaviour
             _weaponUpdateCounter = 0;
             UpdateBoidWeapons();
         }
+
+        UpdateSquadBlackboard();
+        ApplyHybridTargetingPolicy();
+    }
+
+    private void RefreshMigrationRuntimeState()
+    {
+        if (_squadTacticalBrain != null && _squadTacticalBrain.enabled != UseSquadTacticalBrain)
+        {
+            _squadTacticalBrain.enabled = UseSquadTacticalBrain;
+        }
+    }
+
+    private void OnBoidReadbackComplete(AsyncGPUReadbackRequest request)
+    {
+        _readbackPending = false;
+        if (request.hasError || _boidData == null)
+            return;
+
+        var gpuData = request.GetData<BoidData>();
+        int copyCount = Mathf.Min(_readbackBoidCount, _boidData.Length, gpuData.Length);
+        for (int i = 0; i < copyCount; i++)
+        {
+            _boidData[i] = gpuData[i];
+        }
+    }
+
+    private void EnsureMigrationFlagsInitialized()
+    {
+        if (_migrationFlagsVersion >= 1)
+            return;
+
+        _useSquadBlackboard = true;
+        _useSquadTacticalBrain = true;
+        _useSquadTacticalBrainLiveOutputs = true;
+        _useHybridTargetFocusPolicy = true;
+        _useIndividualTacticalLayer = true;
+        _useHybridProfileSemantics = true;
+        _migrationFlagsVersion = 1;
+    }
+
+    private void UpdateSquadBlackboard()
+    {
+        if (!UseSquadBlackboard || _squadBlackboard == null)
+            return;
+
+        PublishBlackboardCommandState();
+        PublishBlackboardTargetState();
+        PublishBlackboardSquadMetrics();
+    }
+
+    private void ApplyHybridTargetingPolicy()
+    {
+        if (_targetManager == null)
+            return;
+
+        if (UseHybridTargetFocusPolicy && _squadBlackboard != null)
+        {
+            _targetManager.SetTacticalPolicy(
+                _squadBlackboard.DesiredFocusTarget,
+                _squadBlackboard.DesiredCombatSpread,
+                _squadBlackboard.DesiredAggression);
+            return;
+        }
+
+        _targetManager.ClearTacticalPolicy();
+    }
+
+    private void PublishBlackboardCommandState()
+    {
+        if (_commandController != null)
+        {
+            _squadBlackboard.PublishCommandState(
+                _commandController.CurrentCommandType,
+                _commandController.CurrentCommandTarget,
+                _commandController.CurrentCommandPosition,
+                _commandController.CurrentCommandRadius,
+                _commandController.LastCommandIssuedTime);
+            return;
+        }
+
+        _squadBlackboard.PublishCommandState(BoidCommandType.None, null, Vector3.zero, 0f, -1f);
+    }
+
+    private void PublishBlackboardTargetState()
+    {
+        Vector3 flockCenter = _targetManager != null ? _targetManager.GetFlockCenterPosition() : transform.position;
+
+        if (_targetManager != null)
+        {
+            _targetManager.GetTargetSummary(
+                out int knownTargetCount,
+                out Transform primaryThreat,
+                out float nearestThreatDistance,
+                out float hostilePressureScore,
+                out bool defenseIntrusionDetected,
+                flockCenter);
+
+            _squadBlackboard.PublishTargetState(
+                _targetManager.CommandAnchor,
+                _targetManager.DefendTarget,
+                _targetManager.PriorityTarget,
+                _targetManager.IsDefenseMode,
+                defenseIntrusionDetected,
+                knownTargetCount,
+                primaryThreat,
+                nearestThreatDistance,
+                hostilePressureScore,
+                flockCenter);
+
+            return;
+        }
+
+        _squadBlackboard.PublishTargetState(null, null, null, false, false, 0, null, -1f, 0f, flockCenter);
+    }
+
+    private void PublishBlackboardSquadMetrics()
+    {
+        int aliveBoidCount = 0;
+        int combatCapableBoidCount = 0;
+        int outOfEnvelopeBoidCount = 0;
+        float totalSpreadDistance = 0f;
+        float totalAnchorDistance = 0f;
+        float totalHullPercent = 0f;
+        int hullSampleCount = 0;
+
+        Vector3 flockCenter = _targetManager != null ? _targetManager.GetFlockCenterPosition() : transform.position;
+        float cohesionReference = 1f;
+        float leashRadius = 0f;
+
+        if (settings != null)
+        {
+            float combatReference = Mathf.Max(
+                settings.combatAnchorSlackRadius + settings.combatRegroupHysteresis,
+                settings.combatLeashRadius * 0.85f);
+            float formationReference = Mathf.Max(
+                settings.formationSpacing * 3f,
+                settings.formationUrgencyRange * 1.5f);
+            cohesionReference = Mathf.Max(1f, combatReference, formationReference);
+            leashRadius = Mathf.Max(0f, settings.combatLeashRadius);
+        }
+
+        CombatAnchorMode metricsAnchorMode = settings != null ? settings.combatAnchorMode : CombatAnchorMode.None;
+        if (_squadBlackboard != null && _useSquadTacticalBrainLiveOutputs && _squadBlackboard.DesiredAnchorMode != CombatAnchorMode.None)
+        {
+            metricsAnchorMode = _squadBlackboard.DesiredAnchorMode;
+        }
+
+        for (int i = 0; i < boids.Count; i++)
+        {
+            Boid boid = boids[i];
+            if (boid == null)
+                continue;
+
+            aliveBoidCount++;
+            if (!boid.IsDespawning)
+            {
+                combatCapableBoidCount++;
+            }
+
+            VehicleBase vehicle = boid.Vehicle;
+            if (vehicle != null && vehicle.MaxHitPoints > 0)
+            {
+                totalHullPercent += Mathf.Clamp01(vehicle.HitPoints / (float)vehicle.MaxHitPoints);
+                hullSampleCount++;
+            }
+
+            totalSpreadDistance += Vector3.Distance(boid.position, flockCenter);
+
+            if (_targetManager != null && _targetManager.TryGetCombatAnchorPosition(boid, metricsAnchorMode, out Vector3 anchorPosition))
+            {
+                float anchorDistance = Vector3.Distance(boid.position, anchorPosition);
+                totalAnchorDistance += anchorDistance;
+
+                if (leashRadius > 0f && anchorDistance > leashRadius)
+                {
+                    outOfEnvelopeBoidCount++;
+                }
+            }
+        }
+
+        float averageSpreadDistance = aliveBoidCount > 0 ? totalSpreadDistance / aliveBoidCount : 0f;
+        float averageHullPercent = hullSampleCount > 0 ? totalHullPercent / hullSampleCount : 1f;
+        float averageAnchorDistance = aliveBoidCount > 0 ? totalAnchorDistance / aliveBoidCount : 0f;
+        float cohesionScore = 1f - Mathf.Clamp01(averageSpreadDistance / cohesionReference);
+
+        _squadBlackboard.PublishSquadMetrics(
+            aliveBoidCount,
+            combatCapableBoidCount,
+            cohesionScore,
+            averageHullPercent,
+            averageAnchorDistance,
+            outOfEnvelopeBoidCount);
     }
 
     private void EnsureComputeResources(int numBoids)
@@ -623,6 +863,14 @@ public class BoidsManager : MonoBehaviour
     public IReadOnlyList<Boid> Boids => boids;
     public Boid Leader => _formationLeader;
     public BoidFlockTargetManager TargetManager => _targetManager;
+    public BoidSquadBlackboard SquadBlackboard => _squadBlackboard;
+    public BoidSquadTacticalBrain SquadTacticalBrain => _squadTacticalBrain;
+    public bool UseSquadBlackboard => _useSquadBlackboard || _useSquadTacticalBrain || _useSquadTacticalBrainLiveOutputs || _useHybridTargetFocusPolicy || _useIndividualTacticalLayer;
+    public bool UseSquadTacticalBrain => UseSquadBlackboard && _useSquadTacticalBrain;
+    public bool UseSquadTacticalBrainLiveOutputs => UseSquadTacticalBrain && _useSquadTacticalBrainLiveOutputs;
+    public bool UseHybridTargetFocusPolicy => UseSquadTacticalBrainLiveOutputs && _useHybridTargetFocusPolicy;
+    public bool UseIndividualTacticalLayer => _useIndividualTacticalLayer;
+    public bool UseHybridProfileSemantics => _useHybridProfileSemantics;
 
     public struct BoidData
     {
@@ -639,7 +887,7 @@ public class BoidsManager : MonoBehaviour
 #if UNITY_EDITOR
     void OnDrawGizmos()
     {
-        if (boids == null) return;
+        if (!_drawDebugGizmos || boids == null) return;
 
         if (_formationLeader != null)
         {
@@ -653,7 +901,7 @@ public class BoidsManager : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        if (boids == null) return;
+        if (!_drawDebugGizmos || boids == null) return;
 
         for (int i = 0; i < boids.Count; i++)
         {
@@ -662,7 +910,10 @@ public class BoidsManager : MonoBehaviour
             Gizmos.color = (i == 0) ? Color.yellow : Color.cyan;
             Gizmos.DrawWireSphere(boids[i].position, 8f);
 
-            UnityEditor.Handles.Label(boids[i].position + Vector3.up * 25f, $"#{i}");
+            if (_drawBoidIndexLabels)
+            {
+                UnityEditor.Handles.Label(boids[i].position + Vector3.up * 25f, $"#{i}");
+            }
         }
     }
 #endif

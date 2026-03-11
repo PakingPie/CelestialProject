@@ -16,10 +16,22 @@ public enum AttackFacing
     Rear        // Face away from target (rear weapons, kiting)
 }
 
+public enum LocalStyleBias
+{
+    Unspecified,
+    Assault,
+    Standoff,
+    Skirmish,
+    Orbiting,
+    Interceptor,
+    Broadside
+}
+
 [CreateAssetMenu(menuName = "Boid/Attack Profile")]
 public class BoidAttackProfile : ScriptableObject
 {
     [Header("Attack Pattern")]
+    [Tooltip("Legacy local style hint. In the hybrid AI flow this acts as a movement-style fallback, not the squad's top-level tactical selector.")]
     public AttackMode attackMode = AttackMode.MaintainDistance;
     public AttackFacing facing = AttackFacing.Forward;
     
@@ -59,4 +71,66 @@ public class BoidAttackProfile : ScriptableObject
     [Header("Squad Discipline")]
     [Tooltip("Multiplier for how strongly this profile obeys squad cohesion and leash rules.")]
     public float squadDisciplineMultiplier = 1f;
+
+    [Header("Hybrid Tactical Tuning")]
+    [Tooltip("Preferred local maneuver style once a higher-level tactical decision has already been made.")]
+    public LocalStyleBias localStyleBias = LocalStyleBias.Unspecified;
+    [Tooltip("Center of the preferred combat envelope. Falls back to engagementDistance when unset.")]
+    public float desiredRangeCenter = 0f;
+    [Tooltip("Half-width of the preferred combat envelope. Falls back to legacy range values when unset.")]
+    public float desiredRangeTolerance = 0f;
+    [Tooltip("Emergency near-distance threshold. Falls back to minDistance when unset.")]
+    public float hardAvoidDistance = 0f;
+    [Tooltip("Preferred breakaway distance before re-engaging. Falls back to retreatDistance when unset.")]
+    public float breakawayDistance = 0f;
+    [Tooltip("Minimum delay before re-engaging after a breakaway. Falls back to regroupTime when unset.")]
+    public float reengageDelay = 0f;
+    [Tooltip("Per-ship pursuit leash relative to squad anchor. Set to 0 to defer entirely to squad settings.")]
+    public float maxPursuitAnchorDistance = 0f;
+    [Range(0f, 1f)] public float focusFireAffinity = 0.5f;
+    [Range(0f, 1f)] public float strafeBias = 0.5f;
+    [Range(0f, 1f)] public float rejoinUrgency = 0.5f;
+    [Range(0f, 1f)] public float defensiveEvasionBias = 0.5f;
+
+    public LocalStyleBias PreferredLocalStyle => localStyleBias != LocalStyleBias.Unspecified ? localStyleBias : MapLegacyStyle(attackMode, facing);
+    public float DesiredRangeCenter => desiredRangeCenter > 0f ? desiredRangeCenter : engagementDistance;
+    public float HardAvoidDistance => hardAvoidDistance > 0f ? hardAvoidDistance : minDistance;
+    public float DesiredRangeTolerance => desiredRangeTolerance > 0f ? desiredRangeTolerance : GetFallbackRangeTolerance();
+    public float DesiredRangeMax => desiredRangeCenter > 0f && desiredRangeTolerance > 0f
+        ? Mathf.Max(HardAvoidDistance, desiredRangeCenter + desiredRangeTolerance)
+        : Mathf.Max(HardAvoidDistance, maxDistance);
+    public float BreakawayDistance => breakawayDistance > 0f ? breakawayDistance : Mathf.Max(retreatDistance, HardAvoidDistance * 1.25f);
+    public float ReengageDelay => reengageDelay > 0f ? reengageDelay : regroupTime;
+    public float MaxPursuitAnchorDistance => Mathf.Max(0f, maxPursuitAnchorDistance);
+    public float FocusFireAffinity => Mathf.Clamp01(focusFireAffinity);
+    public float StrafeBias => Mathf.Clamp01(strafeBias);
+    public float RejoinUrgency => Mathf.Clamp01(rejoinUrgency);
+    public float DefensiveEvasionBias => Mathf.Clamp01(defensiveEvasionBias);
+
+    private float GetFallbackRangeTolerance()
+    {
+        float upperBand = Mathf.Max(0f, maxDistance - DesiredRangeCenter);
+        float lowerBand = Mathf.Max(0f, DesiredRangeCenter - HardAvoidDistance);
+        return Mathf.Max(25f, upperBand, lowerBand);
+    }
+
+    private static LocalStyleBias MapLegacyStyle(AttackMode mode, AttackFacing attackFacing)
+    {
+        if (attackFacing == AttackFacing.Broadside)
+            return LocalStyleBias.Broadside;
+
+        switch (mode)
+        {
+            case AttackMode.Charge:
+                return LocalStyleBias.Assault;
+            case AttackMode.MaintainDistance:
+                return LocalStyleBias.Standoff;
+            case AttackMode.HitAndRun:
+                return LocalStyleBias.Skirmish;
+            case AttackMode.Orbit:
+                return LocalStyleBias.Orbiting;
+            default:
+                return LocalStyleBias.Unspecified;
+        }
+    }
 }

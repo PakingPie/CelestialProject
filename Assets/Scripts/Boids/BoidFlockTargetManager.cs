@@ -50,12 +50,19 @@ public class BoidFlockTargetManager : MonoBehaviour
     [SerializeField] private float _defendRadius;
     [SerializeField] private bool _isDefenseMode;
 
+    [Header("Tactical Bias")]
+    [SerializeField] private Transform _tacticalFocusTarget;
+    [SerializeField] private SquadCombatSpread _tacticalCombatSpread = SquadCombatSpread.Medium;
+    [SerializeField] [Range(0f, 1f)] private float _tacticalAggression = 0.5f;
+
     public bool _debugMode = false;
 
     public string FlockId => _flockId;
     public GlobalHelper.Team Team => _team;
     public Transform PriorityTarget => _priorityTarget;
     public Transform CommandAnchor => _commandAnchor;
+    public Transform DefendTarget => _defendTarget;
+    public float DefendRadius => _defendRadius;
     public bool IsDefenseMode => _isDefenseMode;
 
     private Dictionary<Transform, BoidTargetInfo> _knownTargets = new Dictionary<Transform, BoidTargetInfo>();
@@ -72,8 +79,10 @@ public class BoidFlockTargetManager : MonoBehaviour
     private List<Boid> _keysToRemove = new List<Boid>(16);
     private List<BoidTargetInfo> _candidateTargets = new List<BoidTargetInfo>(16);
     private List<BoidAssignmentCandidate> _assignmentCandidates = new List<BoidAssignmentCandidate>(64);
+    private readonly List<WeaponBase> _threatWeaponBuffer = new List<WeaponBase>(16);
 
     public IReadOnlyDictionary<Boid, BoidTargetInfo> BoidAssignments => _boidAssignments;
+    public IReadOnlyDictionary<Transform, BoidTargetInfo> KnownTargets => _knownTargets;
 
     public void Initialize(
         string flockId,
@@ -363,9 +372,11 @@ public class BoidFlockTargetManager : MonoBehaviour
             threat += (dot + 1f) * 0.5f * _angleWeight;
         }
 
-        var targetWeapons = info.Target.GetComponentsInChildren<WeaponBase>();
-        foreach (var weapon in targetWeapons)
+        _threatWeaponBuffer.Clear();
+        info.Target.GetComponentsInChildren(false, _threatWeaponBuffer);
+        for (int weaponIndex = 0; weaponIndex < _threatWeaponBuffer.Count; weaponIndex++)
         {
+            WeaponBase weapon = _threatWeaponBuffer[weaponIndex];
             if (weapon.Targeted != null)
             {
                 for (int i = 0; i < _managedBoids.Count; i++)
@@ -388,6 +399,136 @@ public class BoidFlockTargetManager : MonoBehaviour
         }
 
         return threat;
+    }
+
+    public void GetTargetSummary(
+        out int knownTargetCount,
+        out Transform primaryThreat,
+        out float nearestThreatDistance,
+        out float hostilePressureScore,
+        out bool defenseIntrusionDetected,
+        Vector3 fallbackFlockCenter)
+    {
+        knownTargetCount = 0;
+        primaryThreat = null;
+        nearestThreatDistance = -1f;
+        hostilePressureScore = 0f;
+        defenseIntrusionDetected = false;
+
+        float highestThreat = float.MinValue;
+        float topThreatA = 0f;
+        float topThreatB = 0f;
+        float topThreatC = 0f;
+        float topThreatD = 0f;
+        int effectivePressureSlots = GetEffectivePressureSlots();
+
+        foreach (var kvp in _knownTargets)
+        {
+            BoidTargetInfo targetInfo = kvp.Value;
+            if (targetInfo == null || !targetInfo.IsValid)
+                continue;
+
+            knownTargetCount++;
+            InsertTopThreat(
+                targetInfo.ThreatLevel,
+                ref topThreatA,
+                ref topThreatB,
+                ref topThreatC,
+                ref topThreatD);
+
+            if (nearestThreatDistance < 0f || targetInfo.Distance < nearestThreatDistance)
+            {
+                nearestThreatDistance = targetInfo.Distance;
+            }
+
+            if (_isDefenseMode && _defendTarget != null)
+            {
+                float distanceToDefendAnchor = Vector3.Distance(_defendTarget.position, targetInfo.LastKnownPosition);
+                if (distanceToDefendAnchor <= _defendRadius)
+                {
+                    defenseIntrusionDetected = true;
+                }
+            }
+
+            if (targetInfo.ThreatLevel > highestThreat)
+            {
+                highestThreat = targetInfo.ThreatLevel;
+                primaryThreat = targetInfo.Target;
+            }
+        }
+
+        hostilePressureScore = SumTopThreats(
+            effectivePressureSlots,
+            topThreatA,
+            topThreatB,
+            topThreatC,
+            topThreatD);
+
+        int overflowThreatCount = Mathf.Max(0, knownTargetCount - effectivePressureSlots);
+        if (overflowThreatCount > 0)
+        {
+            hostilePressureScore += Mathf.Min(overflowThreatCount * 0.2f, 1.5f);
+        }
+    }
+
+    private int GetEffectivePressureSlots()
+    {
+        int pressureSlots = Mathf.Max(1, _maxConcurrentCombatTargets);
+
+        if (_managedBoids.Count > 0 && _maxBoidsPerTarget > 0)
+        {
+            int distributableSlots = Mathf.CeilToInt(_managedBoids.Count / (float)Mathf.Max(1, _maxBoidsPerTarget));
+            pressureSlots = Mathf.Max(pressureSlots, distributableSlots);
+        }
+
+        return Mathf.Clamp(pressureSlots, 1, 4);
+    }
+
+    private static void InsertTopThreat(float threat, ref float topA, ref float topB, ref float topC, ref float topD)
+    {
+        if (threat >= topA)
+        {
+            topD = topC;
+            topC = topB;
+            topB = topA;
+            topA = threat;
+            return;
+        }
+
+        if (threat >= topB)
+        {
+            topD = topC;
+            topC = topB;
+            topB = threat;
+            return;
+        }
+
+        if (threat >= topC)
+        {
+            topD = topC;
+            topC = threat;
+            return;
+        }
+
+        if (threat > topD)
+        {
+            topD = threat;
+        }
+    }
+
+    private static float SumTopThreats(int pressureSlots, float topA, float topB, float topC, float topD)
+    {
+        switch (pressureSlots)
+        {
+            case 1:
+                return topA;
+            case 2:
+                return topA + topB;
+            case 3:
+                return topA + topB + topC;
+            default:
+                return topA + topB + topC + topD;
+        }
     }
 
     private void AssignTargets()
@@ -422,7 +563,7 @@ public class BoidFlockTargetManager : MonoBehaviour
             for (int targetIndex = 0; targetIndex < _candidateTargets.Count; targetIndex++)
             {
                 BoidTargetInfo target = _candidateTargets[targetIndex];
-                if (target.AssignedBoidCount >= _maxBoidsPerTarget) continue;
+                if (target.AssignedBoidCount >= GetEffectiveMaxBoidsPerTarget()) continue;
 
                 float score = ScoreTarget(boid, target);
 
@@ -453,11 +594,12 @@ public class BoidFlockTargetManager : MonoBehaviour
             }
         }
 
-        _candidateTargets.Sort((left, right) => right.ThreatLevel.CompareTo(left.ThreatLevel));
+        _candidateTargets.Sort((left, right) => GetCandidatePriorityScore(right).CompareTo(GetCandidatePriorityScore(left)));
 
-        if (_candidateTargets.Count > _maxConcurrentCombatTargets)
+        int maxConcurrentTargets = GetEffectiveMaxConcurrentCombatTargets();
+        if (_candidateTargets.Count > maxConcurrentTargets)
         {
-            _candidateTargets.RemoveRange(_maxConcurrentCombatTargets, _candidateTargets.Count - _maxConcurrentCombatTargets);
+            _candidateTargets.RemoveRange(maxConcurrentTargets, _candidateTargets.Count - maxConcurrentTargets);
         }
     }
 
@@ -497,10 +639,11 @@ public class BoidFlockTargetManager : MonoBehaviour
     {
         float distance = Vector3.Distance(boid.position, target.LastKnownPosition);
         float score = target.ThreatLevel - (distance / _detectionRadius) * _distancePenaltyWeight;
+        score += GetFocusTargetBias(target);
 
         if (target.AssignedBoidCount > 0)
         {
-            score += target.AssignedBoidCount * _focusFireBias;
+            score += target.AssignedBoidCount * GetEffectiveFocusFireBias();
         }
 
         if (_boidAssignments.TryGetValue(boid, out var currentTarget) && currentTarget == target)
@@ -519,7 +662,7 @@ public class BoidFlockTargetManager : MonoBehaviour
         if (!_candidateTargets.Contains(currentTarget))
             return false;
 
-        if (currentTarget.AssignedBoidCount >= _maxBoidsPerTarget)
+        if (currentTarget.AssignedBoidCount >= GetEffectiveMaxBoidsPerTarget())
             return false;
 
         currentTarget.AssignedBoidCount++;
@@ -583,6 +726,80 @@ public class BoidFlockTargetManager : MonoBehaviour
     public void SetCommandAnchor(Transform anchor)
     {
         _commandAnchor = anchor;
+    }
+
+    public void SetTacticalPolicy(Transform focusTarget, SquadCombatSpread combatSpread, float aggression)
+    {
+        _tacticalFocusTarget = focusTarget;
+        _tacticalCombatSpread = combatSpread;
+        _tacticalAggression = Mathf.Clamp01(aggression);
+    }
+
+    public void ClearTacticalPolicy()
+    {
+        _tacticalFocusTarget = null;
+        _tacticalCombatSpread = SquadCombatSpread.Medium;
+        _tacticalAggression = 0.5f;
+    }
+
+    private float GetCandidatePriorityScore(BoidTargetInfo target)
+    {
+        return target.ThreatLevel + GetFocusTargetBias(target);
+    }
+
+    private float GetFocusTargetBias(BoidTargetInfo target)
+    {
+        if (_tacticalFocusTarget == null || target == null || target.Target != _tacticalFocusTarget)
+            return 0f;
+
+        return Mathf.Lerp(1.5f, 4f, _tacticalAggression);
+    }
+
+    private int GetEffectiveMaxConcurrentCombatTargets()
+    {
+        int baseValue = Mathf.Max(1, _maxConcurrentCombatTargets);
+
+        switch (_tacticalCombatSpread)
+        {
+            case SquadCombatSpread.Tight:
+                return Mathf.Max(1, baseValue - 1);
+            case SquadCombatSpread.Wide:
+                return baseValue + 1;
+            default:
+                return baseValue;
+        }
+    }
+
+    private int GetEffectiveMaxBoidsPerTarget()
+    {
+        int baseValue = Mathf.Max(1, _maxBoidsPerTarget);
+
+        switch (_tacticalCombatSpread)
+        {
+            case SquadCombatSpread.Tight:
+                return baseValue + 1;
+            case SquadCombatSpread.Wide:
+                return Mathf.Max(1, baseValue - 1);
+            default:
+                return baseValue;
+        }
+    }
+
+    private float GetEffectiveFocusFireBias()
+    {
+        float spreadBias = 0f;
+
+        switch (_tacticalCombatSpread)
+        {
+            case SquadCombatSpread.Tight:
+                spreadBias = 0.35f;
+                break;
+            case SquadCombatSpread.Wide:
+                spreadBias = -0.35f;
+                break;
+        }
+
+        return Mathf.Max(0f, _focusFireBias + spreadBias + Mathf.Lerp(-0.15f, 0.25f, _tacticalAggression));
     }
 
     public bool TryGetCombatAnchorPosition(Boid boid, CombatAnchorMode anchorMode, out Vector3 anchorPosition)
@@ -790,6 +1007,9 @@ public class BoidFlockTargetManager : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
+        if (!_debugMode)
+            return;
+
         // Detection radius
         Gizmos.color = new Color(1f, 0f, 0f, 0.2f);
         Gizmos.DrawWireSphere(transform.position, _detectionRadius);

@@ -580,9 +580,18 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: 97a514ce400477348ac008ee9f0adfae, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 0}
-  HeightRange: {x: -10000, y: 10000}
+  HeightRange: {x: 200, y: 2800}
   syncCombatState: 1
   _targetManager: {fileID: 0}
+  _squadBlackboard: {fileID: 0}
+  _squadTacticalBrain: {fileID: 0}
+  _useSquadBlackboard: 1
+  _useSquadTacticalBrain: 1
+  _useSquadTacticalBrainLiveOutputs: 1
+  _useHybridTargetFocusPolicy: 1
+  _useIndividualTacticalLayer: 1
+  _useHybridProfileSemantics: 1
+  _migrationFlagsVersion: 1
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
   CleanupIntervalFrames: 5
@@ -597,7 +606,7 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  _detectionRadius: 10000
+  _detectionRadius: 9000
 --- !u!1 &35072413
 GameObject:
   m_ObjectHideFlags: 0
@@ -7250,11 +7259,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
-  spawnCount: 50
+  spawnCount: 24
   color: {r: 0, g: 0, b: 0, a: 0}
-  HeightRange: {x: -10000, y: 10000}
+  HeightRange: {x: 200, y: 2800}
   spawnMode: 0
-  spawnRadius: 100
+  spawnRadius: 250
   spawnPoints: []
   spawnInterval: 5
   spawnPointRandomness: 2
@@ -9199,9 +9208,18 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: 49db7407d5f4dd24fb52d21c3fd0d29d, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 0}
-  HeightRange: {x: -10000, y: 10000}
+  HeightRange: {x: 200, y: 2800}
   syncCombatState: 1
   _targetManager: {fileID: 0}
+  _squadBlackboard: {fileID: 0}
+  _squadTacticalBrain: {fileID: 0}
+  _useSquadBlackboard: 1
+  _useSquadTacticalBrain: 1
+  _useSquadTacticalBrainLiveOutputs: 1
+  _useHybridTargetFocusPolicy: 1
+  _useIndividualTacticalLayer: 1
+  _useHybridProfileSemantics: 1
+  _migrationFlagsVersion: 1
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
   CleanupIntervalFrames: 5
@@ -9216,7 +9234,7 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  _detectionRadius: 12000
+  _detectionRadius: 9000
 --- !u!1 &775429736
 GameObject:
   m_ObjectHideFlags: 0
@@ -12608,9 +12626,18 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: 983d9d1f7c702e1488fb76954bf52876, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 0}
-  HeightRange: {x: -10000, y: 10000}
+  HeightRange: {x: 200, y: 2800}
   syncCombatState: 1
   _targetManager: {fileID: 0}
+  _squadBlackboard: {fileID: 0}
+  _squadTacticalBrain: {fileID: 0}
+  _useSquadBlackboard: 1
+  _useSquadTacticalBrain: 1
+  _useSquadTacticalBrainLiveOutputs: 1
+  _useHybridTargetFocusPolicy: 1
+  _useIndividualTacticalLayer: 1
+  _useHybridProfileSemantics: 1
+  _migrationFlagsVersion: 1
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
   CleanupIntervalFrames: 5
@@ -12625,7 +12652,7 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  _detectionRadius: 12000
+  _detectionRadius: 9000
 --- !u!1 &1010136049
 GameObject:
   m_ObjectHideFlags: 0
@@ -13197,18 +13224,18 @@ MonoBehaviour:
   prefabs:
   - {fileID: 3109858766895225120, guid: d6482f1a794799f44a33cf4ba66b750e, type: 3}
   - {fileID: 3109858766895225120, guid: d603c2ec335e1964387eb3ca57d0e5f3, type: 3}
-  spawnCount: 50
+  spawnCount: 24
   color: {r: 0, g: 0, b: 0, a: 0}
-  HeightRange: {x: -10000, y: 10000}
+  HeightRange: {x: 200, y: 2800}
   spawnMode: 0
-  spawnRadius: 1000
+  spawnRadius: 450
   spawnPoints:
   - {fileID: 620503882}
   - {fileID: 880481435}
   - {fileID: 839174622}
   - {fileID: 753817243}
   spawnInterval: 0.1
-  spawnPointRandomness: 4
+  spawnPointRandomness: 60
   launchDirection: {x: 0, y: 0, z: 1}
   launchSpeed: 50
   autoStart: 1
@@ -17489,9 +17516,18 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: 538d4f25e1f3dd142aeadbea4384698a, type: 2}
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 0}
-  HeightRange: {x: -10000, y: 10000}
+  HeightRange: {x: 200, y: 2800}
   syncCombatState: 1
   _targetManager: {fileID: 0}
+  _squadBlackboard: {fileID: 0}
+  _squadTacticalBrain: {fileID: 0}
+  _useSquadBlackboard: 1
+  _useSquadTacticalBrain: 1
+  _useSquadTacticalBrainLiveOutputs: 1
+  _useHybridTargetFocusPolicy: 1
+  _useIndividualTacticalLayer: 1
+  _useHybridProfileSemantics: 1
+  _migrationFlagsVersion: 1
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
   CleanupIntervalFrames: 5
@@ -17506,7 +17542,7 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  _detectionRadius: 10000
+  _detectionRadius: 9000
 --- !u!4 &1503629325
 Transform:
   m_ObjectHideFlags: 0

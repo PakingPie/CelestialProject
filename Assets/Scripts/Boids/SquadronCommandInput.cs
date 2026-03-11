@@ -6,10 +6,26 @@ public class SquadronCommandInput : MonoBehaviour
 {
     [SerializeField] private BoidCommandController[] _squadrons;
     [SerializeField] private int _activeSquadron = 0;
+    [SerializeField] private bool _autoDiscoverSquadrons = true;
+
+    private void Awake()
+    {
+        RefreshSquadrons();
+    }
+
+    private void OnEnable()
+    {
+        RefreshSquadrons();
+    }
 
     void Update()
     {
+        RefreshSquadronsIfNeeded();
+
         if (_squadrons == null || _squadrons.Length == 0) return;
+
+        if (_activeSquadron < 0 || _activeSquadron >= _squadrons.Length)
+            _activeSquadron = 0;
 
         var squadron = _squadrons[_activeSquadron];
         if (squadron == null) return;
@@ -100,5 +116,42 @@ public class SquadronCommandInput : MonoBehaviour
         // return playerTargeting?.CurrentTarget;
 
         return null; // Replace with your targeting system
+    }
+
+    private void RefreshSquadronsIfNeeded()
+    {
+        if (!_autoDiscoverSquadrons)
+            return;
+
+        if (_squadrons == null || _squadrons.Length == 0)
+        {
+            RefreshSquadrons();
+            return;
+        }
+
+        for (int i = 0; i < _squadrons.Length; i++)
+        {
+            if (_squadrons[i] == null)
+            {
+                RefreshSquadrons();
+                return;
+            }
+        }
+    }
+
+    private void RefreshSquadrons()
+    {
+        if (!_autoDiscoverSquadrons)
+            return;
+
+        _squadrons = FindObjectsByType<BoidCommandController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+
+        if (_squadrons == null || _squadrons.Length == 0)
+        {
+            _activeSquadron = 0;
+            return;
+        }
+
+        _activeSquadron = Mathf.Clamp(_activeSquadron, 0, _squadrons.Length - 1);
     }
 }

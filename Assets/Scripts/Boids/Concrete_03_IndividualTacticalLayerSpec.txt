@@ -1,0 +1,279 @@
+Concrete Individual Tactical Layer Specification
+================================================
+
+Purpose
+-------
+This document turns Prompt 03 into a concrete design for the per-boid tactical layer in the current starship squadron system.
+
+
+Recommendation
+--------------
+For this project, use a lightweight tactical state machine for individual boids, not a deep behavior tree.
+
+Reasoning:
+1. Individual ship combat behavior in this project is mostly continuous movement control, not long action sequencing.
+2. The interesting decision-making is primarily at squad level, not at single-ship level.
+3. Boid.cs already executes movement well and should remain the steering owner.
+4. A small tactical state machine is easier to debug, tune, and profile across many active ships.
+5. A deep BT per ship would add complexity and overlap with existing squad intent, target assignment, and steering code.
+
+Recommended model:
+- Squad level: behavior tree or hybrid tactical brain
+- Individual level: lightweight tactical state machine
+- Steering level: existing Boid movement code
+
+
+Role of the individual tactical layer
+-------------------------------------
+This layer should decide the local combat phase for one ship based on:
+- squad tactical intent
+- assigned target
+- current range and angle to target
+- local danger or obstruction
+- formation / anchor relationship
+
+It should not:
+- choose overall squad strategy
+- allocate squad targets
+- replace the flock steering executor
+
+
+Proposed tactical states for version 1
+--------------------------------------
+Use a small state set first.
+
+State 1. Transit
+- Meaning: ship is traveling or following outside combat execution.
+- Used when squad tactical mode is Travel, Follow, or FormUp.
+- Steering emphasis: formation, cohesion, anchor following.
+
+State 2. ApproachTarget
+- Meaning: ship has a combat target but is not yet in its preferred combat envelope.
+- Steering emphasis: close to target while respecting squad leash and anchor discipline.
+
+State 3. HoldCombatEnvelope
+- Meaning: ship is inside acceptable combat range and should maintain useful attack positioning.
+- Steering emphasis: controlled attack movement, range correction, strafe/broadside preference if desired.
+
+State 4. BreakAway
+- Meaning: ship is too close, too far beyond leash, or otherwise needs to disengage briefly.
+- Steering emphasis: create space, reduce overextension, prepare to re-enter attack.
+
+State 5. RegroupToAnchor
+- Meaning: squad cohesion or anchor discipline is more important than continuing individual attack.
+- Steering emphasis: rejoin leader / flock center / command anchor.
+
+State 6. EvadeThreat
+- Meaning: immediate local danger or obstruction has priority.
+- Steering emphasis: temporary evasion while preserving broader tactical intent.
+
+State 7. Retreat
+- Meaning: squad tactical brain or local safety condition requests withdrawal.
+- Steering emphasis: break contact and move toward retreat anchor.
+
+
+Why this state set is enough for version 1
+------------------------------------------
+- It covers non-combat movement.
+- It covers entering combat.
+- It covers stable combat behavior.
+- It covers disengagement and regroup.
+- It leaves room for later specialization without overcomplicating the first pass.
+
+
+Inputs to the tactical layer
+----------------------------
+From squad blackboard:
+- tacticalMode
+- desiredFormationUsage
+- desiredAnchorMode
+- desiredFocusTarget
+- desiredCombatSpread
+- desiredAggression
+- regroupRequested
+- retreatRequested
+- currentCommandAnchor
+
+From target manager / boid state:
+- assigned target
+- target info
+- intercept point if needed
+- current target distance
+- current target angle
+- is target valid
+- distance to squad anchor
+- distance to formation slot
+- local obstacle / collision pressure
+
+From profile tuning:
+- desired range band
+- breakaway distance
+- re-engage distance
+- discipline multiplier
+- strafe preference
+- rejoin urgency
+
+
+Outputs from the tactical layer
+-------------------------------
+The tactical layer should output intent parameters for Boid.cs, not raw full steering ownership.
+
+Recommended outputs:
+- currentTacticalState
+- desiredMoveMode
+  - Suggested values: FollowFormation, PursueTarget, HoldRange, BreakAway, RejoinAnchor, Evade, Retreat
+- desiredTarget
+- desiredAimPoint
+- desiredRangeCenter
+- desiredRangeTolerance
+- localAggressionBias
+- localAnchorBias
+- localSeparationBias override if ever needed
+- allowWeaponUse
+
+Important rule:
+- The state machine outputs steering intent.
+- Boid.cs still blends that intent with flocking, avoidance, leash, formation, and movement integration.
+
+
+Concrete handoff to steering code
+---------------------------------
+Recommended integration contract:
+
+1. Tactical layer chooses state.
+2. Tactical layer exposes a small desired-movement descriptor.
+3. Boid.cs reads that descriptor inside combat movement calculation.
+4. Boid.cs combines it with:
+   - combat anchor acceleration
+   - slot retention
+   - separation / cohesion
+   - obstacle avoidance
+   - movement smoothing
+
+This keeps steering quality in one place.
+
+
+Suggested transition rules
+--------------------------
+Transit -> ApproachTarget
+- when tacticalMode is Attack or Defend and a valid target exists
+
+ApproachTarget -> HoldCombatEnvelope
+- when current target distance enters desired combat range band
+
+HoldCombatEnvelope -> BreakAway
+- when too close to target
+or
+- when anchor distance exceeds leash threshold
+or
+- when immediate local danger spikes
+
+BreakAway -> ApproachTarget
+- when safe distance restored and regroup not requested
+
+AnyCombatState -> RegroupToAnchor
+- when regroupRequested is true
+or
+- cohesion failure is severe
+
+RegroupToAnchor -> ApproachTarget
+- when regroupRequested is false and ship is back inside acceptable anchor distance and a valid target exists
+
+AnyState -> EvadeThreat
+- when local obstacle or collision pressure crosses emergency threshold
+
+EvadeThreat -> previous state or ApproachTarget
+- when local hazard clears
+
+AnyState -> Retreat
+- when retreatRequested is true
+or
+- severe local damage rule says preserve unit
+
+Retreat -> Transit
+- when tacticalMode exits retreat and ship has recovered position relative to squad anchor
+
+
+Ownership boundaries
+--------------------
+To avoid duplicated decision ownership:
+
+Squad tactical brain owns:
+- overall posture
+- regroup vs attack vs retreat
+- desired spread policy
+- focus target preference
+
+Target manager owns:
+- which actual combat target each boid is assigned
+
+Individual tactical layer owns:
+- local combat phase for this boid
+- whether the boid should approach, hold, break away, or rejoin
+
+Boid movement executor owns:
+- final steering and motion blending
+
+
+How current attack behavior maps into the new layer
+---------------------------------------------------
+Current BoidAttackBehavior should not disappear immediately.
+
+Recommended transition:
+- First convert it from "mode chooser" into "movement helper for a chosen tactical state".
+- Then split reusable movement helpers out of it if needed.
+
+Example mapping:
+- Charge -> mainly supports ApproachTarget and HoldCombatEnvelope
+- MaintainDistance -> mainly supports HoldCombatEnvelope
+- HitAndRun -> mainly supports ApproachTarget + BreakAway cycle
+- Orbit -> mainly supports HoldCombatEnvelope with stronger tangential bias
+
+
+Risks
+-----
+1. Too many local states too early.
+- Keep the first version small.
+
+2. State churn every frame.
+- Use hysteresis and minimum dwell times.
+
+3. Duplicating squad intent locally.
+- Do not let the boid state machine invent its own squad strategy.
+
+4. Steering ownership confusion.
+- Keep final steering inside Boid.cs.
+
+
+Debugging advice
+----------------
+Expose these per-boid debug values in inspector or gizmos:
+- current tactical state
+- assigned target
+- target distance
+- distance to squad anchor
+- current local aggression bias
+- regroup requested flag
+- retreat requested flag
+- current desired move mode
+
+This will make it much easier to understand whether a bug is in:
+- the squad brain
+- the target manager
+- the tactical state machine
+- or the steering executor
+
+
+Recommended first implementation slice
+--------------------------------------
+Build only these states first:
+- Transit
+- ApproachTarget
+- HoldCombatEnvelope
+- RegroupToAnchor
+- Retreat
+
+Why:
+- It covers the bulk of current behavior.
+- It maps closely to your current combat cohesion work.
+- It gives immediate structure without turning into a full rewrite.

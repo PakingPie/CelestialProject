@@ -1,0 +1,663 @@
+Concrete Squad Blackboard Specification
+======================================
+
+Purpose
+-------
+This document turns the earlier squad-blackboard planning prompt into a concrete design for the current boid system in this project.
+
+It is based on the current responsibilities of:
+- BoidsManager
+- BoidCommandController
+- BoidFlockTargetManager
+- Boid
+
+Design goal
+-----------
+The squad blackboard should become the single shared data surface for squad-level tactical decision making.
+
+It should not replace:
+- target detection logic
+- target assignment logic
+- movement / steering execution
+
+It should provide:
+- a shared squad state snapshot
+- stable inputs for a future squad tactical brain
+- a place where commands, target-manager outputs, and squad-level derived facts are unified
+
+Ownership rule
+--------------
+The behavior tree should mostly read from the blackboard and write only high-level intent fields.
+
+Recommended ownership split:
+- Sensors and shared services write sensed data
+- Squad manager writes roster and formation data
+- Command controller writes command state
+- Target manager writes combat and target state
+- Squad tactical brain writes desired tactical intent
+- Boids read results but do not write back into squad-level intent directly
+
+Blackboard layout
+-----------------
+Use one squad blackboard object per flock.
+
+Recommended categories:
+1. Identity and references
+2. Command state
+3. Roster and formation state
+4. Sensed combat state
+5. Targeting state
+6. Tactical intent state
+7. Derived health and cohesion state
+8. Timers and bookkeeping
+
+
+1. Identity and references
+-------------------------
+These fields identify the squad and point to key world objects.
+
+Field: squadId
+- Type: string
+- Owner: BoidsManager
+- Source: BoidsManager._flockId
+- Update cadence: startup only, or when reassigned
+- BT access: read-only
+- Purpose: stable ID for logs, debugging, and squad lookup
+
+Field: team
+- Type: GlobalHelper.Team
+- Owner: BoidsManager
+- Source: BoidsManager._team
+- Update cadence: startup only
+- BT access: read-only
+- Purpose: faction/team identity for tactical logic
+
+Field: squadRoot
+- Type: Transform
+- Owner: BoidsManager
+- Source: manager transform
+- Update cadence: startup only
+- BT access: read-only
+- Purpose: root transform for fallback reference and debug
+
+Field: currentCommandAnchor
+- Type: Transform
+- Owner: BoidsManager or TargetManager service
+- Source: BoidsManager.target and BoidFlockTargetManager.CommandAnchor
+- Update cadence: on command change or target change
+- BT access: read-only in first version, writable later by tactical brain if you allow autonomous squad repositioning
+- Purpose: shared anchor for regroup, defend, and combat leash behavior
+
+Field: defendAnchor
+- Type: Transform
+- Owner: BoidFlockTargetManager
+- Source: defense mode target
+- Update cadence: on defend command change
+- BT access: read-only
+- Purpose: anchor used during defend behavior
+
+
+2. Command state
+----------------
+These fields represent explicit orders or high-level externally requested state.
+
+Field: activeCommandType
+- Type: BoidCommandType
+- Owner: BoidCommandController
+- Source: CurrentCommandType
+- Update cadence: on command issue / clear
+- BT access: read-only in first version
+- Purpose: tells the tactical brain whether player or AI command is currently constraining squad behavior
+
+Field: activeCommandTarget
+- Type: Transform
+- Owner: BoidCommandController
+- Source: current command target
+- Update cadence: on command issue / clear
+- BT access: read-only
+- Purpose: direct command target for follow, attack, or defend
+
+Field: activeCommandPosition
+- Type: Vector3
+- Owner: BoidCommandController
+- Source: current command position
+- Update cadence: on move command issue
+- BT access: read-only
+- Purpose: destination for move orders
+
+Field: activeCommandRadius
+- Type: float
+- Owner: BoidCommandController
+- Source: current command radius
+- Update cadence: on move / defend / spawn command issue
+- BT access: read-only
+- Purpose: command envelope such as defend radius or arrival radius
+
+Field: activeCommandExpiryTime
+- Type: float
+- Owner: BoidCommandController
+- Source: command duration converted to absolute end time
+- Update cadence: on command issue
+- BT access: read-only
+- Purpose: avoid recalculating expiry semantics inside the tree
+
+Field: commandAuthority
+- Type: enum
+- Suggested values: None, Player, ScriptedAI, TacticalBrain
+- Owner: Command system
+- Source: whoever set the active command
+- Update cadence: on command issue
+- BT access: read-only in first version
+- Purpose: future-proofing for mixed player / AI / scripted control
+
+
+3. Roster and formation state
+-----------------------------
+These fields describe the squad body itself.
+
+Field: aliveBoidCount
+- Type: int
+- Owner: BoidsManager
+- Source: managed boid list count
+- Update cadence: on add/remove and periodic refresh
+- BT access: read-only
+- Purpose: core squad size for tactical decisions
+
+Field: combatCapableBoidCount
+- Type: int
+- Owner: BoidsManager derived pass
+- Source: alive boids not despawning and not invalid
+- Update cadence: every 0.25 to 0.5 seconds
+- BT access: read-only
+- Purpose: more meaningful strength estimate than raw count
+
+Field: formationEnabled
+- Type: bool
+- Owner: BoidsManager
+- Source: settings.useFormation plus manager override state
+- Update cadence: on state change
+- BT access: read-only in first version, writable later by tactical brain
+- Purpose: tells the tactical brain whether the squad is currently trying to maintain formation
+
+Field: formationType
+- Type: FormationType
+- Owner: BoidsManager
+- Source: settings.formationType
+- Update cadence: on settings change
+- BT access: read-only in first version
+- Purpose: formation context for regroup and travel logic
+
+Field: formationLeader
+- Type: Boid
+- Owner: BoidsManager
+- Source: current leader assignment
+- Update cadence: on formation reassignment
+- BT access: read-only
+- Purpose: anchor source for leader-based regroup modes
+
+Field: flockCenter
+- Type: Vector3
+- Owner: BoidFlockTargetManager or BoidsManager derived pass
+- Source: GetFlockCenterPosition()
+- Update cadence: every detection / assignment cycle or every frame if cheap
+- BT access: read-only
+- Purpose: central squad reference for regroup and tactical positioning
+
+Field: averageHeading
+- Type: Vector3
+- Owner: BoidsManager derived pass
+- Source: average boid forward
+- Update cadence: every 0.1 to 0.25 seconds
+- BT access: read-only
+- Purpose: estimate squad alignment and travel direction
+
+
+4. Sensed combat state
+----------------------
+These fields are outputs from sensing and shared world queries.
+
+Field: knownTargetCount
+- Type: int
+- Owner: BoidFlockTargetManager
+- Source: _knownTargets.Count
+- Update cadence: every detection cycle
+- BT access: read-only
+- Purpose: simple threat presence check
+
+Field: visibleTargets
+- Type: list of Transform or target handles
+- Owner: BoidFlockTargetManager
+- Source: current known targets
+- Update cadence: every detection cycle
+- BT access: read-only
+- Purpose: lets the tactical brain reason over available hostile options
+
+Field: primaryKnownThreat
+- Type: Transform
+- Owner: BoidFlockTargetManager derived pass
+- Source: highest threat known target
+- Update cadence: every assignment cycle
+- BT access: read-only
+- Purpose: immediate tactical candidate when no explicit command target exists
+
+Field: nearestThreatDistance
+- Type: float
+- Owner: BoidFlockTargetManager derived pass
+- Source: nearest known target to flock center
+- Update cadence: every detection cycle
+- BT access: read-only
+- Purpose: drive travel vs combat transitions
+
+Field: hostilePressureScore
+- Type: float
+- Owner: BoidFlockTargetManager derived pass
+- Source: sum or weighted average of top threat levels
+- Update cadence: every assignment cycle
+- BT access: read-only
+- Purpose: overall danger estimate for regroup / retreat decisions
+
+Field: defenseIntrusionDetected
+- Type: bool
+- Owner: BoidFlockTargetManager
+- Source: any target within defend radius
+- Update cadence: every detection cycle when defense mode active
+- BT access: read-only
+- Purpose: quick defend trigger
+
+
+5. Targeting state
+------------------
+These fields expose target-manager decisions without moving target logic into the tree.
+
+Field: priorityTarget
+- Type: Transform
+- Owner: BoidFlockTargetManager
+- Source: PriorityTarget
+- Update cadence: on command change or target invalidation
+- BT access: read-only in first version, writable later by tactical brain through service API
+- Purpose: explicit squad focus target
+
+Field: defenseModeActive
+- Type: bool
+- Owner: BoidFlockTargetManager
+- Source: IsDefenseMode
+- Update cadence: on mode change
+- BT access: read-only
+- Purpose: tells tactical layer current targeting constraint
+
+Field: defendRadius
+- Type: float
+- Owner: BoidFlockTargetManager
+- Source: current defense radius
+- Update cadence: on defense mode change
+- BT access: read-only
+- Purpose: defend envelope
+
+Field: concurrentTargetLimit
+- Type: int
+- Owner: Target manager settings service
+- Source: _maxConcurrentCombatTargets
+- Update cadence: on tuning change
+- BT access: read-only in first version, writable later if dynamic target spread is desired
+- Purpose: max number of active combat targets for the squad
+
+Field: boidsPerTargetLimit
+- Type: int
+- Owner: Target manager settings service
+- Source: _maxBoidsPerTarget
+- Update cadence: on tuning change
+- BT access: read-only in first version
+- Purpose: target saturation rule
+
+Field: currentAssignmentCoverage
+- Type: dictionary or summarized metrics
+- Suggested minimal version: top target assigned count, second target assigned count, unassigned count
+- Owner: BoidFlockTargetManager derived pass
+- Update cadence: every assignment cycle
+- BT access: read-only
+- Purpose: tells the tactical brain how spread or focused the squad currently is
+
+
+6. Tactical intent state
+------------------------
+These are the primary write targets for a future squad behavior tree.
+
+Field: tacticalMode
+- Type: enum
+- Suggested values: Idle, Travel, Follow, FormUp, Attack, Defend, Regroup, Retreat, Hold, ReturnToBase
+- Owner: Squad tactical brain
+- Source: tree output
+- Update cadence: on tree evaluation
+- BT access: read-write by tree, read-only by everyone else
+- Purpose: central current squad intent
+
+Field: desiredFormationUsage
+- Type: bool
+- Owner: Squad tactical brain
+- Source: tree output
+- Update cadence: on tactical mode change
+- BT access: read-write by tree
+- Purpose: whether squad should try to maintain formation right now
+
+Field: desiredAnchorMode
+- Type: CombatAnchorMode or squad-specific enum
+- Owner: Squad tactical brain
+- Source: tree output
+- Update cadence: on tactical mode change
+- BT access: read-write by tree
+- Purpose: choose whether combat cohesion anchors to leader, flock center, defend target, or command anchor
+
+Field: desiredFocusTarget
+- Type: Transform
+- Owner: Squad tactical brain
+- Source: tree output
+- Update cadence: on tactical reevaluation
+- BT access: read-write by tree
+- Purpose: selected squad focus target before target-manager application
+
+Field: desiredCombatSpread
+- Type: float or small enum
+- Suggested values: Tight, Medium, Wide or a normalized float 0..1
+- Owner: Squad tactical brain
+- Source: tree output
+- Update cadence: on tactical reevaluation
+- BT access: read-write by tree
+- Purpose: desired squad spread policy that can later drive target-manager limits and leash tuning
+
+Field: desiredAggression
+- Type: float
+- Range: 0..1
+- Owner: Squad tactical brain
+- Source: tree output
+- Update cadence: on tactical reevaluation
+- BT access: read-write by tree
+- Purpose: shared aggression bias for focus fire, pursuit, and regroup thresholds
+
+Field: regroupRequested
+- Type: bool
+- Owner: Squad tactical brain
+- Source: tree output
+- Update cadence: on tactical reevaluation
+- BT access: read-write by tree
+- Purpose: clear signal for all systems that regroup behavior should dominate attack pressure
+
+Field: retreatRequested
+- Type: bool
+- Owner: Squad tactical brain
+- Source: tree output
+- Update cadence: on tactical reevaluation
+- BT access: read-write by tree
+- Purpose: explicit retreat signal
+
+
+7. Derived health and cohesion state
+------------------------------------
+These fields are not directly commanded. They are derived metrics used by the tactical brain.
+
+Field: averageHullPercent
+- Type: float
+- Owner: BoidsManager derived pass
+- Source: average vehicle health of living boids
+- Update cadence: every 0.25 to 0.5 seconds
+- BT access: read-only
+- Purpose: decide whether to press attack or retreat
+
+Field: lowHealthBoidCount
+- Type: int
+- Owner: BoidsManager derived pass
+- Source: boids below threshold
+- Update cadence: every 0.25 to 0.5 seconds
+- BT access: read-only
+- Purpose: squad damage condition summary
+
+Field: cohesionScore
+- Type: float
+- Range: 0..1
+- Owner: BoidsManager derived pass
+- Source: normalized spread around flock center or anchor
+- Update cadence: every 0.1 to 0.25 seconds
+- BT access: read-only
+- Purpose: direct trigger for regroup logic
+
+Field: averageAnchorDistance
+- Type: float
+- Owner: BoidsManager derived pass
+- Source: boid distance to active squad anchor
+- Update cadence: every 0.1 to 0.25 seconds
+- BT access: read-only
+- Purpose: tells whether the squad is overextended relative to its anchor
+
+Field: outOfEnvelopeBoidCount
+- Type: int
+- Owner: BoidsManager derived pass
+- Source: boids outside desired combat leash envelope
+- Update cadence: every 0.1 to 0.25 seconds
+- BT access: read-only
+- Purpose: useful for deciding regroup vs continue attack
+
+Field: inCombatFraction
+- Type: float
+- Owner: BoidsManager derived pass
+- Source: fraction of boids with IsInCombat true
+- Update cadence: every 0.1 to 0.25 seconds
+- BT access: read-only
+- Purpose: distinguish travel, partial skirmish, and full engagement
+
+
+8. Timers and bookkeeping
+-------------------------
+These keep the future tree and services stable.
+
+Field: timeSinceLastCommand
+- Type: float
+- Owner: Command controller derived pass
+- Source: command issue timestamp
+- Update cadence: every tree tick or on demand
+- BT access: read-only
+- Purpose: supports temporary command lockouts or delayed autonomy
+
+Field: timeSinceLastEnemySeen
+- Type: float
+- Owner: Target manager derived pass
+- Source: most recent valid target seen time
+- Update cadence: every detection cycle
+- BT access: read-only
+- Purpose: travel/combat mode transitions
+
+Field: timeInCurrentTacticalMode
+- Type: float
+- Owner: Squad tactical brain
+- Source: mode start timestamp
+- Update cadence: every tree tick or on demand
+- BT access: read-only for conditions, writable only when mode changes
+- Purpose: prevent tactical thrashing
+
+Field: lastRegroupTime
+- Type: float
+- Owner: Squad tactical brain or squad service
+- Source: regroup trigger timestamp
+- Update cadence: on regroup trigger
+- BT access: read-only
+- Purpose: hysteresis for regroup loops
+
+Field: lastRetreatTime
+- Type: float
+- Owner: Squad tactical brain or squad service
+- Source: retreat trigger timestamp
+- Update cadence: on retreat trigger
+- BT access: read-only
+- Purpose: retreat hysteresis and recovery logic
+
+
+Read-only vs writable summary
+-----------------------------
+Read-only to the future squad tree:
+- squadId
+- team
+- activeCommandType
+- activeCommandTarget
+- activeCommandPosition
+- activeCommandRadius
+- aliveBoidCount
+- combatCapableBoidCount
+- flockCenter
+- averageHeading
+- knownTargetCount
+- visibleTargets
+- primaryKnownThreat
+- nearestThreatDistance
+- hostilePressureScore
+- priorityTarget
+- defenseModeActive
+- averageHullPercent
+- cohesionScore
+- averageAnchorDistance
+- outOfEnvelopeBoidCount
+- timeSinceLastEnemySeen
+
+Writable by the future squad tree:
+- tacticalMode
+- desiredFormationUsage
+- desiredAnchorMode
+- desiredFocusTarget
+- desiredCombatSpread
+- desiredAggression
+- regroupRequested
+- retreatRequested
+
+Writable only by services, not the tree:
+- assignment summaries
+- known target list
+- command fields
+- roster counts
+- sensed metrics
+
+
+Recommended first minimal version
+---------------------------------
+Do not build the full blackboard first. Start with a minimal version that covers the current architecture cleanly.
+
+Phase 1 minimum fields:
+- squadId
+- team
+- activeCommandType
+- activeCommandTarget
+- currentCommandAnchor
+- aliveBoidCount
+- flockCenter
+- knownTargetCount
+- primaryKnownThreat
+- nearestThreatDistance
+- priorityTarget
+- defenseModeActive
+- cohesionScore
+- averageAnchorDistance
+- tacticalMode
+- desiredFormationUsage
+- desiredAnchorMode
+- desiredFocusTarget
+- regroupRequested
+- retreatRequested
+
+Why this minimum set:
+- It is enough to drive travel vs attack vs defend vs regroup decisions.
+- It maps directly to systems you already have.
+- It avoids rewriting the target manager or movement layer too early.
+
+
+Suggested update cadence
+------------------------
+Every frame:
+- tactical mode bookkeeping if needed
+- anchor-dependent quick metrics if cheap
+
+Every 0.1 to 0.25 seconds:
+- cohesionScore
+- averageAnchorDistance
+- inCombatFraction
+- averageHeading
+
+Every target-detection cycle:
+- knownTargetCount
+- visibleTargets
+- primaryKnownThreat
+- nearestThreatDistance
+- hostilePressureScore
+
+On command issue / clear:
+- activeCommandType
+- activeCommandTarget
+- activeCommandPosition
+- activeCommandRadius
+- commandAuthority
+- currentCommandAnchor
+
+On formation or flock membership change:
+- aliveBoidCount
+- combatCapableBoidCount
+- formationLeader
+- formationEnabled
+
+
+Concrete mapping to current scripts
+----------------------------------
+BoidsManager should own:
+- squadId
+- team
+- aliveBoidCount
+- combatCapableBoidCount
+- formationEnabled
+- formationType
+- formationLeader
+- averageHeading
+
+BoidCommandController should own:
+- activeCommandType
+- activeCommandTarget
+- activeCommandPosition
+- activeCommandRadius
+- activeCommandExpiryTime
+- commandAuthority
+- timeSinceLastCommand
+
+BoidFlockTargetManager should own:
+- currentCommandAnchor
+- defendAnchor
+- flockCenter
+- knownTargetCount
+- visibleTargets
+- primaryKnownThreat
+- nearestThreatDistance
+- hostilePressureScore
+- priorityTarget
+- defenseModeActive
+- defendRadius
+- assignment coverage summaries
+
+Future Squad Tactical Brain should own:
+- tacticalMode
+- desiredFormationUsage
+- desiredAnchorMode
+- desiredFocusTarget
+- desiredCombatSpread
+- desiredAggression
+- regroupRequested
+- retreatRequested
+
+
+Implementation note
+-------------------
+The blackboard should be a plain data object, not a place where heavy logic runs.
+
+Recommended pattern:
+- services compute data
+- services publish data into the blackboard
+- the tactical brain reads the blackboard and writes intent fields
+- existing systems consume those intent fields through controlled integration points
+
+
+Most important rule
+-------------------
+Do not let the blackboard become a second target manager or a second movement controller.
+
+It should unify squad state, not duplicate existing logic.

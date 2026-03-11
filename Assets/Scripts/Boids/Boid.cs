@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static GlobalHelper;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 public class Boid : MonoBehaviour
 {
 
@@ -20,6 +23,7 @@ public class Boid : MonoBehaviour
     private Transform _cachedTransform;
     private Material _material;
     private BoidFlockTargetManager _targetManager;
+    private VehicleBase _vehicle;
     private Vector3 _velocity;
     [HideInInspector] public Vector3 position;
     [HideInInspector] public Vector3 forward;
@@ -65,6 +69,9 @@ public class Boid : MonoBehaviour
     private const float FormationDeadZone = 10f;
     private const float FormationUrgencyRange = 100f;
     private const float TargetSmoothSpeed = 10f;
+    private const float HeightConstraintMinBuffer = 10f;
+    private const float HeightConstraintMaxBuffer = 60f;
+    private const float HeightBoundaryTolerance = 0.5f;
 
     private Vector3 _combatFacingDirection;
     private const float CombatRotationSpeed = 4f;
@@ -78,11 +85,13 @@ public class Boid : MonoBehaviour
     public BoidSettings Settings => _settings;
     public Vector3 Velocity => _velocity;
     public Transform CurrentTarget => _target;
+    public VehicleBase Vehicle => _vehicle;
 
     private Vector3 _lastCombatHeading;
     private float _postCombatTimer = 0f;
     private const float PostCombatSteadyTime = 5f; // Hold heading for 5 seconds after combat
     private BoidAttackBehavior _attackBehavior;
+    private BoidIndividualTacticalLayer _tacticalLayer;
     private BoidAttackBehavior AttackBehavior
     {
         get
@@ -96,7 +105,11 @@ public class Boid : MonoBehaviour
     void Awake()
     {
         _cachedTransform = transform;
+        _vehicle = GetComponent<VehicleBase>();
         _attackBehavior = GetComponent<BoidAttackBehavior>();
+        _tacticalLayer = GetComponent<BoidIndividualTacticalLayer>();
+        if (_tacticalLayer == null)
+            _tacticalLayer = gameObject.AddComponent<BoidIndividualTacticalLayer>();
         var meshRenderer = GetComponentInChildren<MeshRenderer>();
         if (meshRenderer != null)
             _material = meshRenderer.material;
@@ -178,6 +191,10 @@ public class Boid : MonoBehaviour
     {
         _targetManager = manager;
     }
+
+    public BoidFlockTargetManager TargetManager => _targetManager;
+    public BoidIndividualTacticalLayer TacticalLayer => _tacticalLayer;
+    public BoidsManager Manager => _vehicle != null ? _vehicle.BoidManager : null;
 
     public void UpdateTarget()
     {
@@ -481,6 +498,8 @@ public class Boid : MonoBehaviour
     {
         UpdateTarget();
         UpdateCombatState();
+        if (ShouldUseIndividualTacticalLayer())
+            _tacticalLayer?.EvaluateState();
 
         if (TryHandleDespawnMovement())
             return;
@@ -504,20 +523,25 @@ public class Boid : MonoBehaviour
         if (!_isDespawning)
             return false;
 
-        if (Vector3.Distance(position, _spawnPosition) < 50f)
+        Vector3 clampedSpawnPosition = ClampPointToHeightRange(_spawnPosition);
+
+        if (Vector3.Distance(position, clampedSpawnPosition) < 50f)
         {
             _onDespawnArrived?.Invoke();
             return true;
         }
 
-        Vector3 acceleration = SteerTowards(_spawnPosition - position) * _settings.targetWeight * 2f;
+        Vector3 acceleration = SteerTowards(clampedSpawnPosition - position) * _settings.targetWeight * 2f;
         Vector3 obstacleAvoidance = CalculateObstacleAvoidance();
         if (obstacleAvoidance.sqrMagnitude > 0.01f)
         {
             acceleration += SteerTowards(obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
         }
 
+        ApplyHeightConstraint(ref acceleration);
+
         _velocity += acceleration * Time.deltaTime;
+        ConstrainVerticalVelocityAtBounds();
 
         float speed = _velocity.magnitude;
         if (speed > 0.001f)
@@ -528,7 +552,10 @@ public class Boid : MonoBehaviour
             _velocity = direction * _smoothedSpeed;
 
             Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
-            newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+            ConstrainHeightPositionAndVelocity(ref newPos);
+
+            if (_velocity.sqrMagnitude > 0.001f)
+                direction = _velocity.normalized;
 
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
@@ -547,7 +574,8 @@ public class Boid : MonoBehaviour
         if (!_holdingPosition || !_moveTarget.HasValue)
             return false;
 
-        Vector3 toHoldPos = _moveTarget.Value - position;
+        Vector3 holdTarget = ClampPointToHeightRange(_moveTarget.Value);
+        Vector3 toHoldPos = holdTarget - position;
         float distanceToHold = toHoldPos.magnitude;
         Vector3 acceleration = Vector3.zero;
 
@@ -572,7 +600,10 @@ public class Boid : MonoBehaviour
             acceleration += SteerTowards(boidSeparation) * _settings.separateWeight * 0.5f;
         }
 
+        ApplyHeightConstraint(ref acceleration);
+
         _velocity += acceleration * Time.deltaTime;
+        ConstrainVerticalVelocityAtBounds();
 
         float targetSpeed = distanceToHold > 20f ? _settings.maxSpeed * 0.5f : _settings.minSpeed * 0.5f;
         float speed = _velocity.magnitude;
@@ -584,7 +615,7 @@ public class Boid : MonoBehaviour
             _velocity = direction * _smoothedSpeed;
 
             Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
-            newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+            ConstrainHeightPositionAndVelocity(ref newPos);
 
             Quaternion targetRotation = Quaternion.LookRotation(forward);
             Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed * 0.5f);
@@ -635,6 +666,18 @@ public class Boid : MonoBehaviour
         float discipline = GetCombatDisciplineMultiplier();
         Vector3 acceleration = Vector3.zero;
 
+        if (ShouldUseIndividualTacticalLayer() && _tacticalLayer != null && _tacticalLayer.HasCombatSteeringIntent)
+        {
+            if (_tacticalLayer.SuggestedSpeedMultiplier > 0f)
+            {
+                _velocity *= Mathf.Lerp(1f, _tacticalLayer.SuggestedSpeedMultiplier, Time.deltaTime * 3f);
+            }
+
+            acceleration += SteerTowards(_tacticalLayer.DesiredMoveDirection) * _settings.combatTargetPursuitWeight * discipline * Mathf.Max(0f, _tacticalLayer.LocalAggressionBias);
+            ApplyCombatAnchorAcceleration(ref acceleration, discipline * Mathf.Max(0f, _tacticalLayer.LocalAnchorBias));
+            return acceleration;
+        }
+
         if (_target != null)
         {
             Vector3 movementDir = AttackBehavior.GetDesiredMovementDirection(_target.position, _target.forward);
@@ -651,6 +694,11 @@ public class Boid : MonoBehaviour
         return acceleration;
     }
 
+    private bool ShouldUseIndividualTacticalLayer()
+    {
+        return Manager == null || Manager.UseIndividualTacticalLayer;
+    }
+
     private float GetCombatDisciplineMultiplier()
     {
         if (AttackBehavior != null && AttackBehavior.Profile != null)
@@ -664,7 +712,13 @@ public class Boid : MonoBehaviour
         if (_targetManager == null)
             return;
 
-        if (!_targetManager.TryGetCombatAnchorPosition(this, _settings.combatAnchorMode, out Vector3 anchorPosition))
+        CombatAnchorMode anchorMode = _settings.combatAnchorMode;
+        if (Manager != null && Manager.UseSquadTacticalBrainLiveOutputs && Manager.SquadBlackboard != null && Manager.SquadBlackboard.DesiredAnchorMode != CombatAnchorMode.None)
+        {
+            anchorMode = Manager.SquadBlackboard.DesiredAnchorMode;
+        }
+
+        if (!_targetManager.TryGetCombatAnchorPosition(this, anchorMode, out Vector3 anchorPosition))
             return;
 
         float slackRadius = Mathf.Max(0f, _settings.combatAnchorSlackRadius);
@@ -743,7 +797,7 @@ public class Boid : MonoBehaviour
     {
         if (_target != null)
         {
-            Vector3 targetPos = _target.position;
+            Vector3 targetPos = ClampPointToHeightRange(_target.position);
             _smoothedTargetPosition = Vector3.Lerp(_smoothedTargetPosition, targetPos, Time.deltaTime * TargetSmoothSpeed);
             return SteerTowards(_smoothedTargetPosition - position) * _settings.targetWeight;
         }
@@ -753,7 +807,7 @@ public class Boid : MonoBehaviour
 
     private Vector3 GetTargetChaseAcceleration()
     {
-        Vector3 targetPos = _target.position;
+        Vector3 targetPos = ClampPointToHeightRange(_target.position);
         _smoothedTargetPosition = Vector3.Lerp(_smoothedTargetPosition, targetPos, Time.deltaTime * TargetSmoothSpeed);
         Vector3 offsetToTarget = _smoothedTargetPosition - position;
 
@@ -802,6 +856,8 @@ public class Boid : MonoBehaviour
         {
             acceleration += SteerTowards(obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
         }
+
+        ApplyHeightConstraint(ref acceleration);
     }
 
     private void ApplyMovement(Vector3 acceleration)
@@ -810,6 +866,7 @@ public class Boid : MonoBehaviour
         _previousAcceleration = acceleration;
 
         _velocity += acceleration * Time.deltaTime;
+        ConstrainVerticalVelocityAtBounds();
 
         float speed = _velocity.magnitude;
         if (speed <= 0.001f)
@@ -821,7 +878,10 @@ public class Boid : MonoBehaviour
         _velocity = direction * _smoothedSpeed;
 
         Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
-        newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+        ConstrainHeightPositionAndVelocity(ref newPos);
+
+        if (_velocity.sqrMagnitude > 0.001f)
+            direction = _velocity.normalized;
 
         Quaternion targetRotation = GetMovementRotation(direction);
         Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
@@ -865,6 +925,7 @@ public class Boid : MonoBehaviour
         Vector3 formationOffset = GetFormationOffset();
         Vector3 rawTarget = FormationLeader.position +
             FormationLeader._cachedTransform.TransformDirection(formationOffset);
+        rawTarget = ClampPointToHeightRange(rawTarget);
 
         float distanceToRaw = Vector3.Distance(_smoothedFormationTarget, rawTarget);
         float distanceToFormation = Vector3.Distance(position, rawTarget);
@@ -925,6 +986,69 @@ public class Boid : MonoBehaviour
     {
         Vector3 v = direction.normalized * _settings.maxSpeed - _velocity;
         return Vector3.ClampMagnitude(v, _settings.maxSteerForce);
+    }
+
+    private Vector3 ClampPointToHeightRange(Vector3 point)
+    {
+        point.y = Mathf.Clamp(point.y, HeightRange.x, HeightRange.y);
+        return point;
+    }
+
+    private float GetHeightConstraintBuffer()
+    {
+        return Mathf.Clamp((HeightRange.y - HeightRange.x) * 0.1f, HeightConstraintMinBuffer, HeightConstraintMaxBuffer);
+    }
+
+    private void ApplyHeightConstraint(ref Vector3 acceleration)
+    {
+        if (_settings == null || HeightRange.y <= HeightRange.x)
+            return;
+
+        float buffer = GetHeightConstraintBuffer();
+        float maxCorrection = _settings.maxSteerForce * 2f;
+
+        if (position.y >= HeightRange.y - buffer)
+        {
+            float normalized = Mathf.InverseLerp(HeightRange.y - buffer, HeightRange.y, position.y);
+            float desiredVerticalVelocity = -Mathf.Lerp(0f, _settings.maxSpeed * 0.5f, normalized);
+            float verticalCorrection = Mathf.Clamp(desiredVerticalVelocity - _velocity.y, -maxCorrection, maxCorrection);
+            acceleration += Vector3.up * verticalCorrection;
+        }
+        else if (position.y <= HeightRange.x + buffer)
+        {
+            float normalized = Mathf.InverseLerp(HeightRange.x + buffer, HeightRange.x, position.y);
+            float desiredVerticalVelocity = Mathf.Lerp(0f, _settings.maxSpeed * 0.5f, normalized);
+            float verticalCorrection = Mathf.Clamp(desiredVerticalVelocity - _velocity.y, -maxCorrection, maxCorrection);
+            acceleration += Vector3.up * verticalCorrection;
+        }
+    }
+
+    private void ConstrainVerticalVelocityAtBounds()
+    {
+        if (position.y >= HeightRange.y - HeightBoundaryTolerance && _velocity.y > 0f)
+        {
+            _velocity.y = 0f;
+        }
+        else if (position.y <= HeightRange.x + HeightBoundaryTolerance && _velocity.y < 0f)
+        {
+            _velocity.y = 0f;
+        }
+    }
+
+    private void ConstrainHeightPositionAndVelocity(ref Vector3 newPos)
+    {
+        if (newPos.y > HeightRange.y)
+        {
+            newPos.y = HeightRange.y;
+            if (_velocity.y > 0f)
+                _velocity.y = 0f;
+        }
+        else if (newPos.y < HeightRange.x)
+        {
+            newPos.y = HeightRange.x;
+            if (_velocity.y < 0f)
+                _velocity.y = 0f;
+        }
     }
 
     /// <summary>
@@ -1175,7 +1299,18 @@ public class Boid : MonoBehaviour
             Gizmos.color = _target.CompareTag("Ally") ? Color.red : Color.green;
             Gizmos.DrawLine(transform.position, _target.position);
 
-            if (IsInCombat && AttackBehavior != null && AttackBehavior.Profile != null)
+            if (ShouldUseIndividualTacticalLayer() && _tacticalLayer != null && _tacticalLayer.HasCombatSteeringIntent)
+            {
+                Gizmos.color = _tacticalLayer.GetDebugColor();
+                Gizmos.DrawRay(transform.position + Vector3.up * 3f, _tacticalLayer.DesiredMoveDirection * 60f);
+#if UNITY_EDITOR
+                Handles.color = _tacticalLayer.GetDebugColor();
+                Handles.Label(
+                    transform.position + Vector3.up * 18f,
+                    $"{_tacticalLayer.CurrentTacticalState}\nMove: {_tacticalLayer.DesiredMoveMode}\nTargetDist: {_tacticalLayer.TargetDistance:0.0}\nAnchorDist: {_tacticalLayer.DistanceToAnchor:0.0}\nAggro: {_tacticalLayer.LocalAggressionBias:0.00}\nReason: {_tacticalLayer.LastStateReason}");
+#endif
+            }
+            else if (IsInCombat && AttackBehavior != null && AttackBehavior.Profile != null)
             {
                 Vector3 moveDir = AttackBehavior.GetDesiredMovementDirection(_target.position, _target.forward);
                 Gizmos.color = Color.cyan;

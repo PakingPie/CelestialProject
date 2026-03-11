@@ -20,11 +20,16 @@ public class BoidCommandController : MonoBehaviour
 
     private int _returnToBasePendingCount = 0;
     private bool _isReturningToBase = false;
+    private float _lastCommandIssuedTime = -1f;
 
     private BoidCommand _currentCommand;
 
     public BoidCommand CurrentCommand => _currentCommand;
     public BoidCommandType CurrentCommandType => _currentCommand?.Type ?? BoidCommandType.None;
+    public Transform CurrentCommandTarget => _currentCommand?.Target;
+    public Vector3 CurrentCommandPosition => _currentCommand != null ? _currentCommand.Position : Vector3.zero;
+    public float CurrentCommandRadius => _currentCommand != null ? _currentCommand.Radius : 0f;
+    public float LastCommandIssuedTime => _lastCommandIssuedTime;
 
     public event Action<BoidCommand> OnCommandChanged;
 
@@ -371,6 +376,7 @@ public class BoidCommandController : MonoBehaviour
         ClearBoidOverrides(clearPriorityTarget: true);
         ClearTargetManagerOverrides();
 
+        _lastCommandIssuedTime = Time.time;
         _currentCommand = command;
         UpdateCommandDebugState();
         OnCommandChanged?.Invoke(command);
