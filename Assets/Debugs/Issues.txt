@@ -1,7 +1,64 @@
-Design the exact properties and where they belong in the current scripts.
-Implement a first pass of combat cohesion and leash behavior.
-Rework target assignment so squads stop spreading across too many enemies.
+I’m locating the planet generation and erosion code first so I can identify whether the chunky result is coming from the heightfield, the erosion pass, or the mesh reconstruction.
 
-I implement these properties and wire in a first-pass combat cohesion and leash system.
-I only implement the movement-side part first, and leave target spread for the next pass.
-I implement both movement-side leash and target-side spread limits together as one cohesive change.
+Searched for files matching `**/Assets/**/*.compute`, 7 matches
+
+Searched for files matching `**/Assets/**/SimplePlanetGenerator.cs`, 1 match
+
+I found the two core files. Next I’m reading them end-to-end to see how the heightmap is built, how erosion is applied, and where the sphere mesh is displaced from that data.
+
+Read [](file:///d%3A/Unity%20Projects/CelestialProject/Assets/Scripts/PlanetGeneration/SimplePlanetGenerator.cs#1-1), lines 1 to 400
+
+Read [](file:///d%3A/Unity%20Projects/CelestialProject/Assets/Scripts/PlanetGeneration/PlanetErosion.compute)
+
+I have the erosion kernel. I’m reading the rest of the generator now because the artifact could also be coming from cube-sphere sampling, neighbor topology, or how heights are normalized back onto the mesh.
+
+Read [](file:///d%3A/Unity%20Projects/CelestialProject/Assets/Scripts/PlanetGeneration/SimplePlanetGenerator.cs#401-401), lines 401 to 900
+
+Read [](file:///d%3A/Unity%20Projects/CelestialProject/Assets/Scripts/PlanetGeneration/SimplePlanetGenerator.cs#901-901), lines 901 to 1158
+
+The core issue is becoming clearer: part of the “chunky” look is algorithmic, not just resolution. I’m pulling exact callsites now so I can point to the places where the erosion model is currently too discrete and where the GPU path is writing unsafely.
+
+Searched for regex `heightChanges\[currentIndex\]|heightChanges\[neighborIdx\]|heightChanges\[vertexIdx\]|InterlockedAddFloat|FindLowestNeighbor|CalculatePlains\(|CalculateMountains\(|CalculateBaseElevation\(|RoundVector\(` (`**/Assets/Scripts/PlanetGeneration/PlanetErosion.compute`), 9 results
+
+Searched for regex `CalculateBaseElevation\(|CalculateMountains\(|CalculatePlains\(|RunGPUErosion\(|BuildNeighborData\(|roundedPoint|heightMap\[i\] = CalculateBaseElevation|finalVertices\[i\] = spherePoints\[i\] \* \(radius \+ height\)` (`**/Assets/Scripts/PlanetGeneration/SimplePlanetGenerator.cs`), 14 results
+
+I have the main hotspots. I’m reading the exact surrounding blocks so I can separate “must fix” issues from “quality tuning” changes.
+
+Read [](file:///d%3A/Unity%20Projects/CelestialProject/Assets/Scripts/PlanetGeneration/PlanetErosion.compute#150-150), lines 150 to 215
+
+Read [](file:///d%3A/Unity%20Projects/CelestialProject/Assets/Scripts/PlanetGeneration/PlanetErosion.compute#240-240), lines 240 to 270
+
+Read [](file:///d%3A/Unity%20Projects/CelestialProject/Assets/Scripts/PlanetGeneration/SimplePlanetGenerator.cs#804-804), lines 804 to 920
+
+I’ve isolated a few distinct causes now: one correctness bug in the compute shader, one erosion-model limitation, and one terrain-spectrum problem in the base height generation. I’m grabbing the last exact references for the sampling and droplet density parts.
+
+Searched for regex `erosionIterations|dropletsPerDispatch|numDispatches|threadGroups|vertexThreadGroups` (`**/Assets/Scripts/PlanetGeneration/SimplePlanetGenerator.cs`), 27 results
+
+Searched for regex `float plains = CalculatePlains\(point\) \* 0\.15f|detail \*= \(0\.3f \+ mountains \* 0\.3f\)|float ridged = RidgedNoise\(point, mountainScale, 5, mountainLacunarity, 0\.5f\)|float oceanNoise = FractalNoise\(point, 1f, 3, 2f, 0\.5f\) \* 0\.15f` (`**/Assets/Scripts/PlanetGeneration/SimplePlanetGenerator.cs`), 4 results
+
+Searched for regex `Mathf\.Floor\(plains \* 4f\) / 4f|talusAngle|thermalRate` (`**/Assets/Scripts/PlanetGeneration/SimplePlanetGenerator.cs`), 10 results
+
+Searched for regex `Mathf\.Floor\(plains \* 4f\) / 4f|talusAngle|thermalRate` (`**/Assets/Scripts/PlanetGeneration/PlanetErosion.compute`), 5 results
+
+The main thing to improve is not the mesh resolution by itself. The current result is being limited by how erosion is written and by how much high-frequency noise is being pushed directly into vertex displacement.
+
+**Main Issues**
+- The GPU erosion path has unsafe concurrent writes. In PlanetErosion.compute, PlanetErosion.compute, PlanetErosion.compute, PlanetErosion.compute, and PlanetErosion.compute, many threads write into the same heightChanges entries with plain += and -=. That will produce nondeterministic spikes, pits, and chunky ridges. There is even an atomic helper in PlanetErosion.compute, but it is never used. This is the first thing I would fix.
+- The erosion model is too discrete for natural terrain. The droplet only jumps from one vertex to the lowest immediate neighbor in PlanetErosion.compute and PlanetErosion.compute. Then it erodes the center and all neighbors almost uniformly in PlanetErosion.compute. That creates staircase flow and lumpy, chewed-looking surfaces instead of channels, fans, and smoother drainage.
+- Too much fine detail is going straight into the mesh. In SimplePlanetGenerator.cs, SimplePlanetGenerator.cs, SimplePlanetGenerator.cs, SimplePlanetGenerator.cs, and SimplePlanetGenerator.cs, the generator adds ocean noise, terraced plains, high-octave mountains, and extra detail noise before finally displacing every vertex in SimplePlanetGenerator.cs. At resolution 256 that becomes geometric roughness, not believable terrain. For a more realistic result, only low and mid frequency structure should affect the mesh; smaller detail should move into the material or normal map.
+- Your erosion budget does not scale with mesh size. The settings are fixed in SimplePlanetGenerator.cs and dispatched in SimplePlanetGenerator.cs. Going from 128 to 256 increases the vertex count by about 4x, but you still run the same total droplet count. That means less coherent coverage per area, so you get noisier local damage instead of better-formed large erosion patterns.
+- Thermal erosion is based on raw height difference, not actual slope. See PlanetErosion.compute and SimplePlanetGenerator.cs. talusAngle is being used as a height delta threshold, so the effect changes with tessellation density instead of representing a physical slope limit.
+
+**Best Next Changes**
+1. Fix the compute shader accumulation first. Replace all direct heightChanges writes with a real atomic accumulation path, or restructure the pass so droplets do not write the same vertices concurrently.
+2. Change the erosion brush. Do not split erosion evenly across current vertex plus one-ring neighbors. Use a weighted brush based on edge length, local slope, and distance, or move droplets continuously over triangles instead of hopping vertex-to-vertex.
+3. Lower the mesh-displaced high frequencies. The fastest visual win is to weaken or remove the plains terracing in SimplePlanetGenerator.cs, reduce detail noise contribution in SimplePlanetGenerator.cs, and reduce mountain octave sharpness in SimplePlanetGenerator.cs. Keep continent shape and major ranges in geometry; put fine breakup into shading.
+4. Scale erosion with vertex count. Instead of a fixed 100000 droplets, base it on spherePoints.Length. A practical starting point is several droplets per vertex rather than a flat number.
+5. Rework thermal erosion to use slope over edge length, or an actual angle measure, rather than plain height difference.
+
+If you want a quick improvement without a full rewrite, I would do this combination first: fix the GPU race condition, remove or almost remove the plains terracing, cut detailStrength substantially, reduce the mountain high-frequency contribution, and increase total droplets proportionally with vertex count. That should move the result away from the chunky asteroid look and closer to broad, readable terrain like your reference.
+
+If you want, I can patch the top three issues directly:
+1. Fix the compute shader write races.
+2. Replace the equal-neighbor erosion with a weighted erosion brush.
+3. Rebalance the base height layers so the mesh carries only low/mid frequency terrain.
