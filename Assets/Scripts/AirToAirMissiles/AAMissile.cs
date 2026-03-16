@@ -106,6 +106,7 @@ public class AAMissile : MonoBehaviour
 
     private Vector3 targetPosLastFrame;
     private Quaternion guidedRotation;
+    private readonly List<VehicleBase> _retargetCandidates = new List<VehicleBase>(16);
 
     // Applied by external forces (e.g. black hole gravity). Accumulates as a velocity (m/s).
     private Vector3 _externalVelocity = Vector3.zero;
@@ -182,34 +183,75 @@ public class AAMissile : MonoBehaviour
         }
         else if (isLaunched && missileActive)
         {
-            // Seek another target if the current one is lost
-            // Use bitwise check since Faction is a flags enum
-            GlobalHelper.Faction targetFactions;
-            if ((SourceFaction & (GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally)) != 0)
-            {
-                targetFactions = GlobalHelper.Faction.Foe;
-            }
-            else
-            {
-                targetFactions = GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally;
-            }
-
-            VehicleBase nearestEnemy = CombatRegistry.FindNearestEnemy(
-                transform.position,
-                ActiveRange,
-                targetFactions
-            );
-
-            if (nearestEnemy != null)
-            {
-                target = nearestEnemy.transform;
-            }
-            else
+            if (!TryAcquireReplacementTarget())
             {
                 target = null;
                 DestroyMissile(false);
             }
         }
+    }
+
+    private bool TryAcquireReplacementTarget()
+    {
+        GlobalHelper.Faction targetFactions;
+        if ((SourceFaction & (GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally)) != 0)
+        {
+            targetFactions = GlobalHelper.Faction.Foe;
+        }
+        else
+        {
+            targetFactions = GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally;
+        }
+
+        _retargetCandidates.Clear();
+        CombatRegistry.GetNearbyEnemies(transform.position, ActiveRange, targetFactions, _retargetCandidates);
+
+        VehicleBase bestTarget = null;
+        int bestReservationCount = int.MaxValue;
+        float bestDistanceSqr = Mathf.Infinity;
+        TargetDistributor distributor = TargetDistributor.Instance;
+        Vector3 missilePosition = transform.position;
+        bool allowOverflow = distributor == null || distributor.AllowOrdnanceOverflow;
+
+        for (int i = 0; i < _retargetCandidates.Count; i++)
+        {
+            VehicleBase candidate = _retargetCandidates[i];
+            if (candidate == null)
+                continue;
+
+            Transform candidateTransform = candidate.transform;
+            float distanceSqr = (candidateTransform.position - missilePosition).sqrMagnitude;
+            int reservationCount = distributor != null ? distributor.GetReservedOrdnanceCount(candidateTransform) : 0;
+
+            if (!allowOverflow && distributor != null && !distributor.CanReserveOrdnance(candidateTransform))
+                continue;
+
+            if (reservationCount > bestReservationCount)
+                continue;
+
+            if (reservationCount == bestReservationCount && distanceSqr >= bestDistanceSqr)
+                continue;
+
+            bestReservationCount = reservationCount;
+            bestDistanceSqr = distanceSqr;
+            bestTarget = candidate;
+        }
+
+        if (bestTarget == null)
+            return false;
+
+        target = bestTarget.transform;
+        if (distributor != null)
+        {
+            float remainingLifetime = Mathf.Max(0.5f, timeToLive - TimeSince(launchTime));
+            distributor.RegisterOrdnanceReservation(target, remainingLifetime);
+        }
+
+        if (target != null)
+            targetPosLastFrame = target.position;
+
+        targetTracking = true;
+        return true;
     }
 
     void OnDrawGizmos()

@@ -19,12 +19,25 @@ public class TargetDistributor : MonoBehaviour
     [Tooltip("Enable target distribution system")]
     public bool EnableDistribution = true;
 
+    [Header("Ordnance Reservations")]
+    [Tooltip("Maximum number of active missile or torpedo reservations allowed on the same target")]
+    public int MaxOrdnancePerTarget = 1;
+
+    [Tooltip("If false, missiles and torpedoes will hold or keep flying instead of overflowing onto saturated targets")]
+    public bool AllowOrdnanceOverflow = false;
+
+    [Tooltip("How long a missile or torpedo launch reserves a target for global distribution")]
+    public float OrdnanceReservationSeconds = 8f;
+
     // Track which weapons are targeting which enemies
     // Key: Target instance ID, Value: List of weapons targeting it
     private Dictionary<int, List<WeaponBase>> _targetAssignments = new Dictionary<int, List<WeaponBase>>(128);
     
     // Reverse lookup: Weapon -> Target
     private Dictionary<WeaponBase, Transform> _weaponTargets = new Dictionary<WeaponBase, Transform>(256);
+
+    // Track short-lived reservations for launched ordnance so multiple launchers can coordinate.
+    private Dictionary<int, List<float>> _ordnanceReservations = new Dictionary<int, List<float>>(128);
 
     void Awake()
     {
@@ -132,6 +145,32 @@ public class TargetDistributor : MonoBehaviour
     }
 
     /// <summary>
+    /// Get the projected weapon count if the specified weapon targets this enemy.
+    /// </summary>
+    public int GetProjectedWeaponCountOnTarget(WeaponBase weapon, Transform target)
+    {
+        if (target == null)
+            return 0;
+
+        int currentCount = GetWeaponCountOnTarget(target);
+        if (weapon == null)
+            return currentCount;
+
+        return IsWeaponTargeting(weapon, target) ? currentCount : currentCount + 1;
+    }
+
+    /// <summary>
+    /// Check whether the specified weapon can target this enemy without exceeding the cap.
+    /// </summary>
+    public bool CanWeaponTargetWithoutOverflow(WeaponBase weapon, Transform target)
+    {
+        if (!EnableDistribution)
+            return true;
+
+        return GetProjectedWeaponCountOnTarget(weapon, target) <= MaxWeaponsPerTarget;
+    }
+
+    /// <summary>
     /// Get the score penalty for targeting this enemy (based on how many weapons already target it)
     /// </summary>
     public float GetTargetOverlapPenalty(Transform target)
@@ -140,7 +179,97 @@ public class TargetDistributor : MonoBehaviour
             return 0f;
 
         int weaponCount = GetWeaponCountOnTarget(target);
-        return weaponCount * OverlapPenalty;
+        return Mathf.Max(0, weaponCount - 1) * OverlapPenalty;
+    }
+
+    /// <summary>
+    /// Get the projected score penalty if the specified weapon targets this enemy.
+    /// </summary>
+    public float GetProjectedOverlapPenalty(WeaponBase weapon, Transform target)
+    {
+        if (!EnableDistribution)
+            return 0f;
+
+        int projectedCount = GetProjectedWeaponCountOnTarget(weapon, target);
+        return Mathf.Max(0, projectedCount - 1) * OverlapPenalty;
+    }
+
+    /// <summary>
+    /// Register a short-lived reservation for launched ordnance so other launchers can prefer different targets.
+    /// </summary>
+    public void RegisterOrdnanceReservation(Transform target, float durationSeconds = -1f)
+    {
+        if (!EnableDistribution || target == null)
+            return;
+
+        float duration = durationSeconds > 0f ? durationSeconds : OrdnanceReservationSeconds;
+        if (duration <= 0f)
+            return;
+
+        int targetId = target.GetInstanceID();
+        if (!_ordnanceReservations.TryGetValue(targetId, out var expirations))
+        {
+            expirations = new List<float>(4);
+            _ordnanceReservations[targetId] = expirations;
+        }
+
+        expirations.Add(Time.time + duration);
+    }
+
+    /// <summary>
+    /// Get the number of active ordnance reservations on this target.
+    /// </summary>
+    public int GetReservedOrdnanceCount(Transform target)
+    {
+        if (!EnableDistribution || target == null)
+            return 0;
+
+        int targetId = target.GetInstanceID();
+        CleanupExpiredOrdnanceReservations(targetId);
+
+        if (_ordnanceReservations.TryGetValue(targetId, out var expirations))
+            return expirations.Count;
+
+        return 0;
+    }
+
+    /// <summary>
+    /// Check whether the target can accept another missile or torpedo reservation without overflowing.
+    /// </summary>
+    public bool CanReserveOrdnance(Transform target)
+    {
+        if (!EnableDistribution)
+            return true;
+
+        return GetReservedOrdnanceCount(target) < MaxOrdnancePerTarget;
+    }
+
+    private void CleanupExpiredOrdnanceReservations(int targetId)
+    {
+        if (!_ordnanceReservations.TryGetValue(targetId, out var expirations))
+            return;
+
+        float now = Time.time;
+        for (int i = expirations.Count - 1; i >= 0; i--)
+        {
+            if (expirations[i] <= now)
+                expirations.RemoveAt(i);
+        }
+
+        if (expirations.Count == 0)
+            _ordnanceReservations.Remove(targetId);
+    }
+
+    private void CleanupExpiredOrdnanceReservations()
+    {
+        if (_ordnanceReservations.Count == 0)
+            return;
+
+        var targetIds = new List<int>(_ordnanceReservations.Keys);
+        foreach (int targetId in targetIds)
+        {
+            CleanupExpiredOrdnanceReservations(targetId);
+        }
     }
 
     /// <summary>
@@ -182,6 +311,8 @@ public class TargetDistributor : MonoBehaviour
         {
             _targetAssignments.Remove(targetId);
         }
+
+        CleanupExpiredOrdnanceReservations();
     }
 
     void LateUpdate()

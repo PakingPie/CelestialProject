@@ -167,6 +167,7 @@ public class BoidsManager : MonoBehaviour
             if (!_boidWeapons.Contains(weapon))
             {
                 weapon.UseManagedUpdates = false;
+                CombatManager.Instance?.UnregisterTurret(weapon);
                 _boidWeapons.Add(weapon);
             }
         }

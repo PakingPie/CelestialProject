@@ -29,6 +29,7 @@ public class MissileSalvo : WeaponBase
     private List<Transform> _availableTargets = new List<Transform>(16);
     private Dictionary<Transform, int> _missilesFiredAtTarget = new Dictionary<Transform, int>();
     private int _currentTargetIndex = 0;
+    private Transform _lastLaunchedTarget;
 
     private void Start()
     {
@@ -56,13 +57,22 @@ public class MissileSalvo : WeaponBase
                 if (missileTarget != null)
                 {
                     _launcher.Launch(missileTarget);
+                    _lastLaunchedTarget = missileTarget;
 
                     // Track missiles fired at this target
                     if (DistributeTargetsPerMissile)
                     {
-                        if (!_missilesFiredAtTarget.ContainsKey(missileTarget))
-                            _missilesFiredAtTarget[missileTarget] = 0;
-                        _missilesFiredAtTarget[missileTarget]++;
+                        TargetDistributor distributor = UseTargetDistribution ? TargetDistributor.Instance : null;
+                        if (distributor != null)
+                        {
+                            distributor.RegisterOrdnanceReservation(missileTarget);
+                        }
+                        else
+                        {
+                            if (!_missilesFiredAtTarget.ContainsKey(missileTarget))
+                                _missilesFiredAtTarget[missileTarget] = 0;
+                            _missilesFiredAtTarget[missileTarget]++;
+                        }
                     }
                 }
 
@@ -108,7 +118,15 @@ public class MissileSalvo : WeaponBase
         if (_availableTargets.Count == 0)
             return Targeted; // Fallback to primary target
 
-        // Find a target that hasn't reached max missiles
+        TargetDistributor distributor = UseTargetDistribution ? TargetDistributor.Instance : null;
+        Transform bestAvailableTarget = null;
+        int bestAvailableIndex = -1;
+        int bestAvailableCount = int.MaxValue;
+        bool allowOverflow = distributor == null || distributor.AllowOrdnanceOverflow;
+        Transform bestOverflowTarget = null;
+        int bestOverflowIndex = -1;
+        int bestOverflowCount = int.MaxValue;
+
         for (int i = 0; i < _availableTargets.Count; i++)
         {
             int index = (_currentTargetIndex + i) % _availableTargets.Count;
@@ -116,19 +134,38 @@ public class MissileSalvo : WeaponBase
 
             if (candidate == null) continue;
 
-            int missileCount = 0;
-            _missilesFiredAtTarget.TryGetValue(candidate, out missileCount);
+            int missileCount = distributor != null ? distributor.GetReservedOrdnanceCount(candidate) : GetLocalMissileCount(candidate);
+            bool canAcceptWithoutOverflow = distributor != null ? distributor.CanReserveOrdnance(candidate) : missileCount < MaxMissilesPerTarget;
 
-            if (missileCount < MaxMissilesPerTarget)
+            if (missileCount < MaxMissilesPerTarget && canAcceptWithoutOverflow)
             {
-                _currentTargetIndex = (index + 1) % _availableTargets.Count;
-                return candidate;
+                if (missileCount < bestAvailableCount)
+                {
+                    bestAvailableCount = missileCount;
+                    bestAvailableIndex = index;
+                    bestAvailableTarget = candidate;
+                }
+            }
+            else if (allowOverflow && missileCount < bestOverflowCount)
+            {
+                bestOverflowCount = missileCount;
+                bestOverflowIndex = index;
+                bestOverflowTarget = candidate;
             }
         }
 
-        // All targets have max missiles, cycle back to first
-        _currentTargetIndex = (_currentTargetIndex + 1) % _availableTargets.Count;
-        return _availableTargets[_currentTargetIndex];
+        Transform chosenTarget = bestAvailableTarget != null ? bestAvailableTarget : bestOverflowTarget;
+        int chosenIndex = bestAvailableTarget != null ? bestAvailableIndex : bestOverflowIndex;
+        if (chosenIndex >= 0)
+            _currentTargetIndex = (chosenIndex + 1) % _availableTargets.Count;
+
+        return chosenTarget;
+    }
+
+    private int GetLocalMissileCount(Transform candidate)
+    {
+        _missilesFiredAtTarget.TryGetValue(candidate, out int missileCount);
+        return missileCount;
     }
 
     /// <summary>
@@ -172,16 +209,16 @@ public class MissileSalvo : WeaponBase
 #if UNITY_EDITOR
     public void OnDrawGizmos()
     {
-        base.OnDrawGizmos();
-        if (Targeted != null && EnableDebugGizmos)
+        if (!EnableDebug || !EnableDebugGizmos)
+            return;
+
+        if (Targeted != null)
         {
-            // Draw line to test target
-            Gizmos.color = Color.yellow;
+            Gizmos.color = new Color(1f, 0.85f, 0.1f, 0.75f);
             Gizmos.DrawLine(transform.position, Targeted.position);
-            // Calculate relative angles using the new firing direction method
+
             Vector2 relativeAngles = CalcuateRelativeAngles(Targeted);
 
-            // Get seeker cone if launcher is available
             float seekerCone = TestSeekerCone;
             if (_launcher != null && _launcher.missilePrefabToLaunch != null)
             {
@@ -190,25 +227,35 @@ public class MissileSalvo : WeaponBase
                     seekerCone = missile.seekerCone;
             }
 
-            // Check if target is within seeker cone
             bool withinCone = Mathf.Abs(relativeAngles.x) <= seekerCone / 2f &&
                               Mathf.Abs(relativeAngles.y) <= seekerCone / 2f;
 
-            // Draw sphere at target - green if in cone, red if outside
             Gizmos.color = withinCone ? Color.green : Color.red;
             Gizmos.DrawWireSphere(Targeted.position, 1f);
 
-            // Draw firing direction (green)
             Gizmos.color = Color.green;
             Gizmos.DrawRay(transform.position, transform.forward * 20f);
 
-            // Draw transform.forward (blue) for comparison
             Gizmos.color = Color.blue;
             Gizmos.DrawRay(transform.position, transform.forward * 15f);
 
+            int reservationCount = TargetDistributor.Instance != null ? TargetDistributor.Instance.GetReservedOrdnanceCount(Targeted) : 0;
+
             UnityEditor.Handles.Label(Targeted.position + Vector3.up * 2f,
                 $"Azimuth: {relativeAngles.x:F1}°  Elev: {relativeAngles.y:F1}°\n" +
-                $"Seeker Cone: {seekerCone}°  In Cone: {withinCone}\n");
+                $"Seeker Cone: {seekerCone}°  In Cone: {withinCone}\n" +
+                $"Primary Target Reservations: {reservationCount}");
+        }
+
+        if (_lastLaunchedTarget != null)
+        {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawLine(transform.position, _lastLaunchedTarget.position);
+            Gizmos.DrawWireSphere(_lastLaunchedTarget.position, 1.25f);
+
+            int reservationCount = TargetDistributor.Instance != null ? TargetDistributor.Instance.GetReservedOrdnanceCount(_lastLaunchedTarget) : 0;
+            UnityEditor.Handles.Label(_lastLaunchedTarget.position + Vector3.up * 4f,
+                $"Last Missile Target\nReservations: {reservationCount}");
         }
     }
 #endif

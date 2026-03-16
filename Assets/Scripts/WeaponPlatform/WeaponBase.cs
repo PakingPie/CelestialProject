@@ -286,8 +286,15 @@ public class WeaponBase : MonoBehaviour
             return;
         }
 
-        float bestScore = float.MinValue;
-        VehicleBase bestTarget = null;
+        int bestAvailableCount = int.MaxValue;
+        float bestAvailableScore = float.MinValue;
+        VehicleBase bestAvailableTarget = null;
+        int bestOverflowCount = int.MaxValue;
+        float bestOverflowScore = float.MinValue;
+        VehicleBase bestOverflowTarget = null;
+
+        TargetDistributor distributor = UseTargetDistribution ? TargetDistributor.Instance : null;
+        bool enforcePerTargetCap = distributor != null && AvoidOverTargeting;
 
         // Get current target for stickiness bonus
         VehicleBase currentTargetVehicle = null;
@@ -338,31 +345,44 @@ public class WeaponBase : MonoBehaviour
             if (HasLimitedTraverse && (angles.x > RightLimit || angles.x < -LeftLimit))
                 continue;
 
-            // Check target distribution - skip if target has too many weapons already
-            if (UseTargetDistribution && AvoidOverTargeting && TargetDistributor.Instance != null)
-            {
-                // Allow if we're already targeting this enemy (don't block our own target)
-                bool isOurCurrentTarget = (currentTargetVehicle != null && enemy == currentTargetVehicle);
-                if (!isOurCurrentTarget && !TargetDistributor.Instance.CanTargetAcceptMoreWeapons(enemyTransform))
-                    continue;
-            }
-
             // Calculate score
             float score = CalculateTargetScore(enemy, distance, currentTargetVehicle);
+            int projectedCount = 1;
+            bool canTargetWithoutOverflow = true;
 
-            if (score > bestScore)
+            if (distributor != null)
             {
-                bestScore = score;
-                bestTarget = enemy;
+                projectedCount = distributor.GetProjectedWeaponCountOnTarget(this, enemyTransform);
+                if (enforcePerTargetCap)
+                    canTargetWithoutOverflow = projectedCount <= distributor.MaxWeaponsPerTarget;
+            }
+
+            if (canTargetWithoutOverflow)
+            {
+                if (projectedCount < bestAvailableCount || (projectedCount == bestAvailableCount && score > bestAvailableScore))
+                {
+                    bestAvailableCount = projectedCount;
+                    bestAvailableScore = score;
+                    bestAvailableTarget = enemy;
+                }
+            }
+            else if (projectedCount < bestOverflowCount || (projectedCount == bestOverflowCount && score > bestOverflowScore))
+            {
+                bestOverflowCount = projectedCount;
+                bestOverflowScore = score;
+                bestOverflowTarget = enemy;
             }
         }
+
+        VehicleBase bestTarget = bestAvailableTarget != null ? bestAvailableTarget : bestOverflowTarget;
+        float bestScore = bestAvailableTarget != null ? bestAvailableScore : bestOverflowScore;
 
         Transform newTarget = bestTarget != null ? bestTarget.transform : null;
         
         // Update target distributor
-        if (UseTargetDistribution && TargetDistributor.Instance != null)
+        if (distributor != null)
         {
-            TargetDistributor.Instance.UpdateWeaponTarget(this, newTarget);
+            distributor.UpdateWeaponTarget(this, newTarget);
         }
 
         if (bestTarget != null)
@@ -417,11 +437,15 @@ public class WeaponBase : MonoBehaviour
     {
         using (SelectNearestTargetMarker.Auto())
         {
-        float shortestDistanceSqr = Mathf.Infinity;
-        Transform nearestEnemy = null;
+        int bestAvailableCount = int.MaxValue;
+        float bestAvailableDistanceSqr = Mathf.Infinity;
+        Transform bestAvailableTarget = null;
+        int bestOverflowCount = int.MaxValue;
+        float bestOverflowDistanceSqr = Mathf.Infinity;
+        Transform bestOverflowTarget = null;
 
-        // Get current target for checking
-        Transform currentTarget = Targeted;
+        TargetDistributor distributor = UseTargetDistribution ? TargetDistributor.Instance : null;
+        bool enforcePerTargetCap = distributor != null && AvoidOverTargeting;
 
         for (int i = 0; i < _nearbyEnemies.Count; i++)
         {
@@ -433,7 +457,7 @@ public class WeaponBase : MonoBehaviour
             Vector3 enemyPos = enemyTransform.position;
             float distanceSqr = (enemyPos - myPosition).sqrMagnitude;
 
-            if (distanceSqr < _minRangeSqr || distanceSqr >= shortestDistanceSqr)
+            if (distanceSqr < _minRangeSqr)
                 continue;
 
             Vector2 angles = CalcuateRelativeAngles(enemyTransform);
@@ -442,23 +466,48 @@ public class WeaponBase : MonoBehaviour
             if (HasLimitedTraverse && (angles.x > RightLimit || angles.x < -LeftLimit))
                 continue;
 
-            // Check target distribution - skip if target has too many weapons already
-            if (UseTargetDistribution && AvoidOverTargeting && TargetDistributor.Instance != null)
+            int projectedCount = 1;
+            bool canTargetWithoutOverflow = true;
+
+            if (distributor != null)
             {
-                // Allow if we're already targeting this enemy
-                bool isOurCurrentTarget = (currentTarget != null && enemyTransform == currentTarget);
-                if (!isOurCurrentTarget && !TargetDistributor.Instance.CanTargetAcceptMoreWeapons(enemyTransform))
-                    continue;
+                projectedCount = distributor.GetProjectedWeaponCountOnTarget(this, enemyTransform);
+                if (enforcePerTargetCap)
+                    canTargetWithoutOverflow = projectedCount <= distributor.MaxWeaponsPerTarget;
             }
 
-            shortestDistanceSqr = distanceSqr;
-            nearestEnemy = enemyTransform;
+            if (canTargetWithoutOverflow)
+            {
+                if (projectedCount > bestAvailableCount)
+                    continue;
+
+                if (projectedCount == bestAvailableCount && distanceSqr >= bestAvailableDistanceSqr)
+                    continue;
+
+                bestAvailableCount = projectedCount;
+                bestAvailableDistanceSqr = distanceSqr;
+                bestAvailableTarget = enemyTransform;
+            }
+            else
+            {
+                if (projectedCount > bestOverflowCount)
+                    continue;
+
+                if (projectedCount == bestOverflowCount && distanceSqr >= bestOverflowDistanceSqr)
+                    continue;
+
+                bestOverflowCount = projectedCount;
+                bestOverflowDistanceSqr = distanceSqr;
+                bestOverflowTarget = enemyTransform;
+            }
         }
 
+        Transform nearestEnemy = bestAvailableTarget != null ? bestAvailableTarget : bestOverflowTarget;
+
         // Update target distributor
-        if (UseTargetDistribution && TargetDistributor.Instance != null)
+        if (distributor != null)
         {
-            TargetDistributor.Instance.UpdateWeaponTarget(this, nearestEnemy);
+            distributor.UpdateWeaponTarget(this, nearestEnemy);
         }
 
         Targeted = nearestEnemy;
