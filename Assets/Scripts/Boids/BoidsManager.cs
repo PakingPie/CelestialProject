@@ -149,6 +149,7 @@ public class BoidsManager : MonoBehaviour
         if (boids.Contains(boid)) return;
 
         boids.Add(boid);
+        boid.SetHeightRange(HeightRange);
         boid.Initialize(settings, target);
         boid.SetTargetManager(_targetManager);
 
@@ -406,6 +407,11 @@ public class BoidsManager : MonoBehaviour
         for (int i = 0; i < numBoids; i++)
         {
             if (i >= boids.Count || boids[i] == null) continue;
+
+            if (boids[i].HeightRange != HeightRange)
+            {
+                boids[i].SetHeightRange(HeightRange);
+            }
 
             boids[i].avgFlockHeading = _boidData[i].flockHeading;
             boids[i].avgAvoidanceHeading = _boidData[i].seperationHeading;

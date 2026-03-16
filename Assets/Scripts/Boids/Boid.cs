@@ -65,6 +65,7 @@ public class Boid : MonoBehaviour
     private const float FormationDeadZone = 10f;
     private const float FormationUrgencyRange = 100f;
     private const float TargetSmoothSpeed = 10f;
+    private const float MinHeightRecoveryBuffer = 100f;
 
     private Vector3 _combatFacingDirection;
     private const float CombatRotationSpeed = 4f;
@@ -177,6 +178,23 @@ public class Boid : MonoBehaviour
     public void SetTargetManager(BoidFlockTargetManager manager)
     {
         _targetManager = manager;
+    }
+
+    public void SetHeightRange(Vector2 heightRange)
+    {
+        HeightRange = heightRange;
+
+        if (_cachedTransform != null)
+        {
+            Vector3 clampedPosition = _cachedTransform.position;
+            clampedPosition.y = Mathf.Clamp(clampedPosition.y, HeightRange.x, HeightRange.y);
+            _cachedTransform.position = clampedPosition;
+            position = clampedPosition;
+        }
+
+        _wanderTarget.y = Mathf.Clamp(_wanderTarget.y, HeightRange.x, HeightRange.y);
+        _smoothedTargetPosition.y = Mathf.Clamp(_smoothedTargetPosition.y, HeightRange.x, HeightRange.y);
+        _smoothedFormationTarget.y = Mathf.Clamp(_smoothedFormationTarget.y, HeightRange.x, HeightRange.y);
     }
 
     public void UpdateTarget()
@@ -494,6 +512,7 @@ public class Boid : MonoBehaviour
         Vector3 acceleration = CalculatePrimaryAcceleration();
         ApplyFlockingAcceleration(ref acceleration);
         ApplyLocalAvoidance(ref acceleration);
+        ApplyHeightBoundaryRecovery(ref acceleration);
         ApplyMovement(acceleration);
 
         UpdateRegistryPosition();
@@ -517,6 +536,8 @@ public class Boid : MonoBehaviour
             acceleration += SteerTowards(obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
         }
 
+        ApplyHeightBoundaryRecovery(ref acceleration);
+
         _velocity += acceleration * Time.deltaTime;
 
         float speed = _velocity.magnitude;
@@ -528,7 +549,7 @@ public class Boid : MonoBehaviour
             _velocity = direction * _smoothedSpeed;
 
             Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
-            newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+            ClampPositionToHeightRange(ref newPos);
 
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
@@ -572,6 +593,8 @@ public class Boid : MonoBehaviour
             acceleration += SteerTowards(boidSeparation) * _settings.separateWeight * 0.5f;
         }
 
+        ApplyHeightBoundaryRecovery(ref acceleration);
+
         _velocity += acceleration * Time.deltaTime;
 
         float targetSpeed = distanceToHold > 20f ? _settings.maxSpeed * 0.5f : _settings.minSpeed * 0.5f;
@@ -584,7 +607,7 @@ public class Boid : MonoBehaviour
             _velocity = direction * _smoothedSpeed;
 
             Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
-            newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+            ClampPositionToHeightRange(ref newPos);
 
             Quaternion targetRotation = Quaternion.LookRotation(forward);
             Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed * 0.5f);
@@ -832,7 +855,7 @@ public class Boid : MonoBehaviour
         _velocity = direction * _smoothedSpeed;
 
         Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
-        newPos.y = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+        ClampPositionToHeightRange(ref newPos);
 
         Quaternion targetRotation = GetMovementRotation(direction);
         Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
@@ -929,6 +952,50 @@ public class Boid : MonoBehaviour
             Vector3 formationOffset = GetFormationOffset();
             _smoothedFormationTarget = FormationLeader.position +
                 FormationLeader._cachedTransform.TransformDirection(formationOffset);
+        }
+    }
+
+    private void ApplyHeightBoundaryRecovery(ref Vector3 acceleration)
+    {
+        if (_settings == null)
+            return;
+
+        float minHeight = HeightRange.x;
+        float maxHeight = HeightRange.y;
+        float heightSpan = maxHeight - minHeight;
+        if (heightSpan <= 0f)
+            return;
+
+        float recoveryBuffer = Mathf.Min(heightSpan * 0.25f, Mathf.Max(MinHeightRecoveryBuffer, _settings.maxSpeed * 10f));
+        float verticalBias = 0f;
+
+        if (position.y <= minHeight + recoveryBuffer)
+        {
+            verticalBias = Mathf.InverseLerp(minHeight + recoveryBuffer, minHeight, position.y);
+        }
+        else if (position.y >= maxHeight - recoveryBuffer)
+        {
+            verticalBias = -Mathf.InverseLerp(maxHeight - recoveryBuffer, maxHeight, position.y);
+        }
+
+        if (Mathf.Abs(verticalBias) <= 0.001f)
+            return;
+
+        acceleration += SteerTowards(new Vector3(0f, verticalBias, 0f)) * _settings.targetWeight * 1.5f;
+    }
+
+    private void ClampPositionToHeightRange(ref Vector3 newPos)
+    {
+        float clampedY = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
+        if (!Mathf.Approximately(clampedY, newPos.y))
+        {
+            newPos.y = clampedY;
+
+            if ((clampedY <= HeightRange.x && _velocity.y < 0f) ||
+                (clampedY >= HeightRange.y && _velocity.y > 0f))
+            {
+                _velocity.y = 0f;
+            }
         }
     }
 
