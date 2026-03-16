@@ -12,10 +12,7 @@ public class TargetDistributor : MonoBehaviour
     [Header("Distribution Settings")]
     [Tooltip("Maximum number of weapons that can target the same enemy")]
     public int MaxWeaponsPerTarget = 2;
-    
-    [Tooltip("How much to reduce target score for each weapon already targeting it")]
-    public float OverlapPenalty = 500f;
-    
+
     [Tooltip("Enable target distribution system")]
     public bool EnableDistribution = true;
 
@@ -137,14 +134,6 @@ public class TargetDistributor : MonoBehaviour
     }
 
     /// <summary>
-    /// Check if a target can accept more weapons
-    /// </summary>
-    public bool CanTargetAcceptMoreWeapons(Transform target)
-    {
-        return GetWeaponCountOnTarget(target) < MaxWeaponsPerTarget;
-    }
-
-    /// <summary>
     /// Get the projected weapon count if the specified weapon targets this enemy.
     /// </summary>
     public int GetProjectedWeaponCountOnTarget(WeaponBase weapon, Transform target)
@@ -157,41 +146,6 @@ public class TargetDistributor : MonoBehaviour
             return currentCount;
 
         return IsWeaponTargeting(weapon, target) ? currentCount : currentCount + 1;
-    }
-
-    /// <summary>
-    /// Check whether the specified weapon can target this enemy without exceeding the cap.
-    /// </summary>
-    public bool CanWeaponTargetWithoutOverflow(WeaponBase weapon, Transform target)
-    {
-        if (!EnableDistribution)
-            return true;
-
-        return GetProjectedWeaponCountOnTarget(weapon, target) <= MaxWeaponsPerTarget;
-    }
-
-    /// <summary>
-    /// Get the score penalty for targeting this enemy (based on how many weapons already target it)
-    /// </summary>
-    public float GetTargetOverlapPenalty(Transform target)
-    {
-        if (!EnableDistribution)
-            return 0f;
-
-        int weaponCount = GetWeaponCountOnTarget(target);
-        return Mathf.Max(0, weaponCount - 1) * OverlapPenalty;
-    }
-
-    /// <summary>
-    /// Get the projected score penalty if the specified weapon targets this enemy.
-    /// </summary>
-    public float GetProjectedOverlapPenalty(WeaponBase weapon, Transform target)
-    {
-        if (!EnableDistribution)
-            return 0f;
-
-        int projectedCount = GetProjectedWeaponCountOnTarget(weapon, target);
-        return Mathf.Max(0, projectedCount - 1) * OverlapPenalty;
     }
 
     /// <summary>
