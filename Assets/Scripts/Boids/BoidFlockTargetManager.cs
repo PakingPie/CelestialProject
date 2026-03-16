@@ -70,6 +70,7 @@ public class BoidFlockTargetManager : MonoBehaviour
     private HashSet<Transform> _currentTargets = new HashSet<Transform>();
     private List<Transform> _staleTargets = new List<Transform>(32);
     private List<Boid> _keysToRemove = new List<Boid>(16);
+    private List<Boid> _unassignedBoids = new List<Boid>(64);
     private List<BoidTargetInfo> _candidateTargets = new List<BoidTargetInfo>(16);
     private List<BoidAssignmentCandidate> _assignmentCandidates = new List<BoidAssignmentCandidate>(64);
 
@@ -149,6 +150,11 @@ public class BoidFlockTargetManager : MonoBehaviour
     private bool IsManagedBoid(Boid boid)
     {
         return boid != null && _managedBoidSet.Contains(boid);
+    }
+
+    private bool IsFormationLeader(Boid boid)
+    {
+        return boid != null && boid.FormationIndex == 0 && boid.FormationLeader == null;
     }
 
     public void RegisterBoid(Boid boid)
@@ -406,6 +412,7 @@ public class BoidFlockTargetManager : MonoBehaviour
         }
 
         BuildAssignmentCandidates();
+        _unassignedBoids.Clear();
 
         for (int i = 0; i < _assignmentCandidates.Count; i++)
         {
@@ -416,28 +423,15 @@ public class BoidFlockTargetManager : MonoBehaviour
             if (_preserveAssignmentsUntilInvalid && TryKeepExistingAssignment(boid))
                 continue;
 
-            BoidTargetInfo bestTarget = null;
-            float bestScore = float.MinValue;
-
-            for (int targetIndex = 0; targetIndex < _candidateTargets.Count; targetIndex++)
+            if (!TryAssignBestTarget(boid, true))
             {
-                BoidTargetInfo target = _candidateTargets[targetIndex];
-                if (target.AssignedBoidCount >= _maxBoidsPerTarget) continue;
-
-                float score = ScoreTarget(boid, target);
-
-                if (score > bestScore)
-                {
-                    bestScore = score;
-                    bestTarget = target;
-                }
+                _unassignedBoids.Add(boid);
             }
+        }
 
-            _boidAssignments[boid] = bestTarget;
-            if (bestTarget != null)
-            {
-                bestTarget.AssignedBoidCount++;
-            }
+        for (int i = 0; i < _unassignedBoids.Count; i++)
+        {
+            TryAssignBestTarget(_unassignedBoids[i], false);
         }
     }
 
@@ -474,7 +468,31 @@ public class BoidFlockTargetManager : MonoBehaviour
             _assignmentCandidates.Add(new BoidAssignmentCandidate(boid, GetNearestTargetDistance(boid)));
         }
 
-        _assignmentCandidates.Sort((left, right) => left.DistanceToNearestTarget.CompareTo(right.DistanceToNearestTarget));
+        _assignmentCandidates.Sort((left, right) =>
+        {
+            bool leftIsLeader = IsFormationLeader(left.Boid);
+            bool rightIsLeader = IsFormationLeader(right.Boid);
+
+            if (leftIsLeader != rightIsLeader)
+                return leftIsLeader ? -1 : 1;
+
+            return left.DistanceToNearestTarget.CompareTo(right.DistanceToNearestTarget);
+        });
+    }
+
+    private bool TryAssignBestTarget(Boid boid, bool respectPreferredCapacity)
+    {
+        if (boid == null)
+            return false;
+
+        BoidTargetInfo bestTarget = GetBestTargetForBoid(boid, respectPreferredCapacity);
+        _boidAssignments[boid] = bestTarget;
+
+        if (bestTarget == null)
+            return false;
+
+        bestTarget.AssignedBoidCount++;
+        return true;
     }
 
     private float GetNearestTargetDistance(Boid boid)
@@ -509,6 +527,59 @@ public class BoidFlockTargetManager : MonoBehaviour
         }
 
         return score;
+    }
+
+    private BoidTargetInfo GetBestTargetForBoid(Boid boid, bool respectPreferredCapacity)
+    {
+        BoidTargetInfo bestTarget = null;
+        float bestScore = float.MinValue;
+
+        for (int targetIndex = 0; targetIndex < _candidateTargets.Count; targetIndex++)
+        {
+            BoidTargetInfo target = _candidateTargets[targetIndex];
+            if (respectPreferredCapacity && target.AssignedBoidCount >= _maxBoidsPerTarget)
+                continue;
+
+            float score = ScoreTarget(boid, target);
+
+            if (!respectPreferredCapacity && target.AssignedBoidCount >= _maxBoidsPerTarget)
+            {
+                int overflowCount = target.AssignedBoidCount - _maxBoidsPerTarget;
+                score -= (overflowCount + 1) * Mathf.Max(0.5f, _focusFireBias + 0.5f);
+            }
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestTarget = target;
+            }
+        }
+
+        return bestTarget;
+    }
+
+    private BoidTargetInfo GetLeaderFallbackTargetInfo(Boid boid)
+    {
+        if (!IsFormationLeader(boid))
+            return null;
+
+        BoidTargetInfo bestTarget = null;
+        float bestScore = float.MinValue;
+
+        foreach (var knownTarget in _knownTargets.Values)
+        {
+            if (knownTarget == null || !knownTarget.IsValid)
+                continue;
+
+            float score = ScoreTarget(boid, knownTarget);
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestTarget = knownTarget;
+            }
+        }
+
+        return bestTarget;
     }
 
     private bool TryKeepExistingAssignment(Boid boid)
@@ -735,6 +806,12 @@ public class BoidFlockTargetManager : MonoBehaviour
         if (_boidAssignments.TryGetValue(boid, out var info) && info != null && info.IsValid)
         {
             return info.Target;
+        }
+
+        BoidTargetInfo leaderFallback = GetLeaderFallbackTargetInfo(boid);
+        if (leaderFallback != null)
+        {
+            return leaderFallback.Target;
         }
 
         return null;
