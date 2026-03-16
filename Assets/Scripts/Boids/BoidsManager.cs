@@ -356,7 +356,13 @@ public class BoidsManager : MonoBehaviour
         for (int i = 0; i < copyCount; i++)
         {
             Boid boid = boids[i];
+            _boidData[i].flockHeading = Vector3.zero;
+            _boidData[i].flockCenter = Vector3.zero;
+            _boidData[i].seperationHeading = Vector3.zero;
+            _boidData[i].numFlockmates = 0;
+
             if (boid == null) continue;
+
             _boidData[i].position = boid.position;
             _boidData[i].direction = boid.forward;
         }

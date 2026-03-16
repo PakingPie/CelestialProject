@@ -640,7 +640,18 @@ public class Boid : MonoBehaviour
             Vector3 movementDir = AttackBehavior.GetDesiredMovementDirection(_target.position, _target.forward);
             float speedMult = AttackBehavior.SpeedMultiplier;
             _velocity *= Mathf.Lerp(1f, speedMult, Time.deltaTime * 3f);
-            acceleration += SteerTowards(movementDir) * _settings.combatTargetPursuitWeight * discipline;
+
+            float pursuitWeight = _settings.combatTargetPursuitWeight * discipline;
+            float targetBehindFactor = Mathf.Clamp01(-Vector3.Dot(forward, movementDir));
+            if (targetBehindFactor > 0f)
+            {
+                float turnBoost = FormationIndex == 0
+                    ? Mathf.Lerp(1f, 3f, targetBehindFactor)
+                    : Mathf.Lerp(1f, 1.75f, targetBehindFactor);
+                pursuitWeight *= turnBoost;
+            }
+
+            acceleration += SteerTowards(movementDir) * pursuitWeight;
         }
         else
         {

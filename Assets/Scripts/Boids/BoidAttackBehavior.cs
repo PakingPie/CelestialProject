@@ -115,10 +115,18 @@ public class BoidAttackBehavior : MonoBehaviour
     private Vector3 GetChargeMovement(float distance, Vector3 toTargetDir)
     {
         _currentSpeedMultiplier = _profile.approachSpeedMultiplier;
+        float facingDot = Vector3.Dot(Boid.forward, toTargetDir);
         
         // Always close distance, but respect minimum
         if (distance < _profile.minDistance)
         {
+            // Once the target has slipped behind us, stop extending away and re-engage.
+            if (facingDot < -0.1f)
+            {
+                _currentSpeedMultiplier = _profile.engageSpeedMultiplier;
+                return toTargetDir;
+            }
+
             // Too close - back off slightly
             _currentSpeedMultiplier = _profile.retreatSpeedMultiplier;
             return -toTargetDir;
