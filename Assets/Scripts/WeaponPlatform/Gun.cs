@@ -219,81 +219,21 @@ public class Gun : WeaponBase
         }
         else
         {
-            IsFiring = IsAimed;
-
             if (IsIdle || Targeted == null)
             {
                 if (!IsTurretAtRest)
                     RotateTurretToIdle();
                 IsAimed = false;
+                IsFiring = false;
             }
             else
             {
                 Vector3 aimPosition = Targeted.position;
-                // In the else block where GuidanceType == Lead:
-                if (GuidanceType == GlobalHelper.GuidanceType.Lead)
+                Transform activeFirePoint = GetActiveFirePoint();
+                if (TryResolveAimPointForFirePoint(activeFirePoint, out Vector3 resolvedAimPosition))
                 {
-                    Vector3 targetVelocity = LeadCalculator.GetTargetVelocity(Targeted);
-                    Vector3 shipVelocity = AutoInheritVelocity ? InheritedVelocity : Vector3.zero;
-
-                    // Use fire point position, not transform.position
-                    Transform firePoint = FirePoints.Count > 0
-                        ? FirePoints[_firePointIndex % FirePoints.Count]
-                        : transform;
-
-                    Vector3 acceleration = (_useAccelerationPrediction && _trackedTargetData != null)
-                        ? _trackedTargetData.SmoothedAcceleration
-                        : Vector3.zero;
-
-                    Vector3 interceptPoint = (_compensateForBHGravity && BlackHoleGravity.ActiveGravitySources.Count > 0)
-                        ? LeadCalculator.CalculateGravityCompensatedIntercept(
-                            firePoint.position,
-                            shipVelocity,
-                            BulletPrefab.Speed,
-                            Targeted.position,
-                            targetVelocity,
-                            BulletPrefab.velocityInheritance,
-                            BulletPrefab.LifeTime
-                        )
-                        : (_useAccelerationPrediction && acceleration.magnitude >= _minAccelerationMagnitude)
-                        ? LeadCalculator.CalculateInterceptPointWithAcceleration(
-                            firePoint.position,
-                            shipVelocity,
-                            BulletPrefab.Speed,
-                            Targeted.position,
-                            targetVelocity,
-                            acceleration,
-                            BulletPrefab.velocityInheritance,
-                            BulletPrefab.LifeTime
-                        )
-                        : LeadCalculator.CalculateInterceptPoint(
-                            firePoint.position,
-                            shipVelocity,
-                            BulletPrefab.Speed,
-                            Targeted.position,
-                            targetVelocity,
-                            BulletPrefab.velocityInheritance,  // Account for inheritance
-                            BulletPrefab.LifeTime
-                        );
-
-                    if (interceptPoint != Vector3.zero)
-                    {
-                        aimPosition = interceptPoint;
-                        GimbalTarget = interceptPoint;  // Also update gimbal
-                    }
-                    else
-                    {
-                        aimPosition = LeadCalculator.CalculateSimpleLead(
-                            firePoint.position,
-                            Targeted.position,
-                            targetVelocity,
-                            BulletPrefab.Speed,
-                            shipVelocity,                      // Add
-                            BulletPrefab.velocityInheritance,  // Add
-                            BulletPrefab.LifeTime
-                        );
-                        GimbalTarget = aimPosition;
-                    }
+                    aimPosition = resolvedAimPosition;
+                    GimbalTarget = resolvedAimPosition;
                 }
 
                 RotateBaseToFaceTarget(aimPosition);
@@ -306,6 +246,7 @@ public class Gun : WeaponBase
 
                 // Turret is considered "aimed" when it's pointed at the target.
                 IsAimed = AngleToTarget < AimedThreshold;
+                IsFiring = IsAimed;
 
                 IsBarrelAtRest = false;
                 IsBaseAtRest = false;
@@ -447,6 +388,7 @@ public class Gun : WeaponBase
                 AmmoCount -= 1;
                 AddHeat(HeatPerShot);
             }
+
             _lastShotTime = Time.time;
         }
 
@@ -466,6 +408,116 @@ public class Gun : WeaponBase
         }
     }
 
+    private bool TryResolveAimPointForFirePoint(Transform firePoint, out Vector3 aimPoint)
+    {
+        aimPoint = Vector3.zero;
+
+        if (IsManualMode)
+        {
+            if (_manualAimPosition == Vector3.zero)
+                return false;
+
+            aimPoint = _manualAimPosition;
+            return true;
+        }
+
+        if (IsIdle || Targeted == null)
+            return false;
+
+        Transform resolvedFirePoint = firePoint != null ? firePoint : transform;
+        aimPoint = Targeted.position;
+
+        if (GuidanceType != GlobalHelper.GuidanceType.Lead)
+            return true;
+
+        Vector3 targetVelocity = LeadCalculator.GetTargetVelocity(Targeted);
+        Vector3 shipVelocity = AutoInheritVelocity ? InheritedVelocity : Vector3.zero;
+        Vector3 acceleration = (_useAccelerationPrediction && _trackedTargetData != null)
+            ? _trackedTargetData.SmoothedAcceleration
+            : Vector3.zero;
+
+        Vector3 interceptPoint = (_compensateForBHGravity && BlackHoleGravity.ActiveGravitySources.Count > 0)
+            ? LeadCalculator.CalculateGravityCompensatedIntercept(
+                resolvedFirePoint.position,
+                shipVelocity,
+                BulletPrefab.Speed,
+                Targeted.position,
+                targetVelocity,
+                BulletPrefab.velocityInheritance,
+                BulletPrefab.LifeTime
+            )
+            : (_useAccelerationPrediction && acceleration.magnitude >= _minAccelerationMagnitude)
+            ? LeadCalculator.CalculateInterceptPointWithAcceleration(
+                resolvedFirePoint.position,
+                shipVelocity,
+                BulletPrefab.Speed,
+                Targeted.position,
+                targetVelocity,
+                acceleration,
+                BulletPrefab.velocityInheritance,
+                BulletPrefab.LifeTime
+            )
+            : LeadCalculator.CalculateInterceptPoint(
+                resolvedFirePoint.position,
+                shipVelocity,
+                BulletPrefab.Speed,
+                Targeted.position,
+                targetVelocity,
+                BulletPrefab.velocityInheritance,
+                BulletPrefab.LifeTime
+            );
+
+        if (interceptPoint != Vector3.zero)
+        {
+            aimPoint = interceptPoint;
+            return true;
+        }
+
+        aimPoint = LeadCalculator.CalculateSimpleLead(
+            resolvedFirePoint.position,
+            Targeted.position,
+            targetVelocity,
+            BulletPrefab.Speed,
+            shipVelocity,
+            BulletPrefab.velocityInheritance,
+            BulletPrefab.LifeTime
+        );
+        return true;
+    }
+
+    private Transform GetActiveFirePoint()
+    {
+        if (FirePoints.Count == 0)
+            return transform;
+
+        return FirePoints[_firePointIndex % FirePoints.Count];
+    }
+
+    private Vector3 GetResolvedFireDirection(Transform firePoint)
+    {
+        Vector3 fireDirection = firePoint.forward;
+        Vector3 targetPoint = GimbalTarget != Vector3.zero
+            ? GimbalTarget
+            : firePoint.position + firePoint.forward * 100f;
+
+        bool isGimballingAllowed = UseGimballedAiming;
+        if (isGimballingAllowed && GimbalOnlyWhenInRange)
+        {
+            float angleToTarget = Vector3.Angle(targetPoint - firePoint.position, firePoint.forward);
+            isGimballingAllowed = angleToTarget < GimbalRange;
+        }
+
+        if (!isGimballingAllowed)
+            return fireDirection;
+
+        Vector3 toTarget = (targetPoint - firePoint.position).normalized;
+        Quaternion gimballed = Quaternion.RotateTowards(
+            from: Quaternion.LookRotation(fireDirection),
+            to: Quaternion.LookRotation(toTarget, firePoint.up),
+            maxDegreesDelta: GimbalRange);
+        return gimballed * Vector3.forward;
+    }
+
     private void FireBulletFromFirePoint(Transform firePoint, Vector3 velocity)
     {
         var bullet = Instantiate(BulletPrefab, firePoint.transform.position, firePoint.transform.rotation);
@@ -473,29 +525,7 @@ public class Gun : WeaponBase
         bulletPhysics.FireTarget = FireTarget;
 
         // Start with the fire point's forward direction
-        Vector3 fireDirection = firePoint.forward;
-
-        // Apply gimballing if enabled
-        var isGimballingAllowed = UseGimballedAiming;
-        if (isGimballingAllowed && GimbalOnlyWhenInRange)
-        {
-            var angleToTarget = Vector3.Angle(
-                from: GimbalTarget - firePoint.position,
-                to: firePoint.forward);
-
-            isGimballingAllowed = angleToTarget < GimbalRange;
-        }
-
-        if (isGimballingAllowed)
-        {
-            // Calculate gimballed direction
-            Vector3 toTarget = (GimbalTarget - firePoint.position).normalized;
-            Quaternion gimballed = Quaternion.RotateTowards(
-                from: Quaternion.LookRotation(fireDirection),
-                to: Quaternion.LookRotation(toTarget, firePoint.up),
-                maxDegreesDelta: GimbalRange);
-            fireDirection = gimballed * Vector3.forward;
-        }
+        Vector3 fireDirection = GetResolvedFireDirection(firePoint);
 
         // Apply deviation (spread)
         if (Deviation > 0f)
@@ -663,17 +693,46 @@ public class Gun : WeaponBase
         if (!EnableDebug || Targeted == null) return;
 
         // Draw intercept point
-        if (GimbalTarget != Vector3.zero)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(GimbalTarget, 2f);
-            Gizmos.DrawLine(transform.position, GimbalTarget);
-        }
+        // if (GimbalTarget != Vector3.zero)
+        // {
+        //     Gizmos.color = Color.yellow;
+        //     Gizmos.DrawWireSphere(GimbalTarget, 2f);
+        //     Gizmos.DrawLine(transform.position, GimbalTarget);
+        // }
 
         // Draw target velocity
-        Vector3 targetVel = LeadCalculator.GetTargetVelocity(Targeted);
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawRay(Targeted.position, targetVel);
+        // Vector3 targetVel = LeadCalculator.GetTargetVelocity(Targeted);
+        // Gizmos.color = Color.cyan;
+        // Gizmos.DrawRay(Targeted.position, targetVel);
+
+        DrawFirePointDebugGizmos();
+    }
+
+    private void DrawFirePointDebugGizmos()
+    {
+        Vector3 desiredAimPoint = GimbalTarget != Vector3.zero ? GimbalTarget : Targeted.position;
+        IReadOnlyList<Transform> debugFirePoints = FirePoints.Count > 0
+            ? FirePoints
+            : new Transform[] { transform };
+
+        foreach (Transform firePoint in debugFirePoints)
+        {
+            if (firePoint == null)
+                continue;
+
+            Vector3 desiredDirection = (desiredAimPoint - firePoint.position).normalized;
+            float forwardError = Vector3.Angle(firePoint.forward, desiredDirection);
+            float rayLength = Mathf.Max(10f, Vector3.Distance(firePoint.position, desiredAimPoint) * 0.25f);
+
+            Gizmos.color = forwardError <= AimedThreshold ? Color.green : Color.red;
+            Gizmos.DrawRay(firePoint.position, firePoint.forward * rayLength);
+
+            Gizmos.color = new Color(1f, 0.5f, 0f, 1f);
+            Gizmos.DrawRay(firePoint.position, desiredDirection * rayLength);
+
+            Gizmos.color = Color.white;
+            Gizmos.DrawWireSphere(firePoint.position, 0.15f);
+        }
     }
 #endif
 }
