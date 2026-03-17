@@ -96,7 +96,11 @@ public class WeaponPlatform : VehicleBase
             }
         }
 
+        return TakeSelfDamage(damage, ammoType);
+    }
 
+    public bool TakeSelfDamage(int damage, AmmoType ammoType)
+    {
         // Simple damage calculation; can be expanded based on ammoType and armor/shield
         switch (ammoType)
         {

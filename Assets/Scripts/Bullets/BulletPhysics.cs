@@ -212,11 +212,26 @@ public class BulletPhysics : MonoBehaviour
                 // For VehicleModule, get its parent vehicle
                 vehicleToDamage = vehicleModule.OwnerShip != null ? vehicleModule.OwnerShip.GetComponent<VehicleBase>() : null;
             }
-            // else if (target is WeaponPlatform weaponPlatform)
-            // {
-            //     // For WeaponPlatform, get its parent vehicle
-            //     vehicleToDamage = weaponPlatform.OwnerShip != null ? weaponPlatform.OwnerShip.GetComponent<VehicleBase>() : null;
-            // }
+            else if (target is WeaponPlatform weaponPlatform)
+            {
+                VehicleBase parentVehicle = weaponPlatform.OwnerShip != null
+                    ? weaponPlatform.OwnerShip.GetComponent<VehicleBase>()
+                    : null;
+
+                if (parentVehicle != null && !_damagedParents.Contains(parentVehicle))
+                {
+                    parentVehicle.TakeDamage(Damage, DamageType);
+                    _damagedParents.Add(parentVehicle);
+                }
+
+                if (!_damagedParents.Contains(weaponPlatform))
+                {
+                    weaponPlatform.TakeSelfDamage(Damage, DamageType);
+                    _damagedParents.Add(weaponPlatform);
+                }
+
+                continue;
+            }
             else
             {
                 // For other vehicles, damage directly
