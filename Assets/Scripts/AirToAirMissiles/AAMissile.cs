@@ -327,6 +327,12 @@ public class AAMissile : MonoBehaviour
                         parentVehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
                         damagedParents.Add(parentVehicle);
                     }
+
+                    if (parentVehicle == null && !damagedParents.Contains(vehicle))
+                    {
+                        vehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                        damagedParents.Add(vehicle);
+                    }
                 }
                 else
                 {
