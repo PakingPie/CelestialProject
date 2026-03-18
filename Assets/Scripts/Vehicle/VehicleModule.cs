@@ -48,7 +48,7 @@ public class VehicleModule : VehicleBase
         //     // Fallback for other vehicle types
         //     ownerVehicle.TakeDamage(finalDamage, ammoType);
         // }
-        Debug.Log($"Module on {OwnerShip.name} took {finalDamage} damage (original: {damage}, multiplier: {DamageMultiplier})");
+        // Debug.Log($"Module on {OwnerShip.name} took {finalDamage} damage (original: {damage}, multiplier: {DamageMultiplier})");
 
         return true;
     }

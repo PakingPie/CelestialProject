@@ -9055,7 +9055,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &764762349
 Transform:
   m_ObjectHideFlags: 0
@@ -10916,7 +10916,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
-  spawnCount: 10
+  spawnCount: 5
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: 0, y: 10000}
   spawnMode: 0
@@ -12334,7 +12334,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1001119329
 Transform:
   m_ObjectHideFlags: 0
@@ -12344,7 +12344,7 @@ Transform:
   m_GameObject: {fileID: 1001119328}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1500, z: -2000}
+  m_LocalPosition: {x: 0, y: 1500, z: -4000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -17306,7 +17306,7 @@ Transform:
   m_GameObject: {fileID: 1503629323}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 500, z: 1000}
+  m_LocalPosition: {x: 0, y: 500, z: 3000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -18510,6 +18510,71 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1001 &1638985697
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1398373797933201805, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7631852747893025710, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_Name
+      value: ExplosionVFX Full
+      objectReference: {fileID: 0}
+    - target: {fileID: 7631852747893025710, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8842364476159246814, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8842364476159246814, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8842364476159246814, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8842364476159246814, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8842364476159246814, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8842364476159246814, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8842364476159246814, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8842364476159246814, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8842364476159246814, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8842364476159246814, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}
 --- !u!1 &1639246174
 GameObject:
   m_ObjectHideFlags: 0
@@ -18693,7 +18758,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 1886091069592709415, guid: 73c2bc81616ac994da8f06f2495229d0, type: 3}
-  spawnCount: 10
+  spawnCount: 4
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
   spawnMode: 0
@@ -24890,3 +24955,4 @@ SceneRoots:
   - {fileID: 958941067}
   - {fileID: 8909889}
   - {fileID: 1777330810}
+  - {fileID: 1638985697}

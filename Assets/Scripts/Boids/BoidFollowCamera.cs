@@ -1,0 +1,57 @@
+using UnityEngine;
+
+/// <summary>
+/// Third-person follow camera for observing a boid vehicle.
+/// Attach to the main camera and drag an active boid into the Target field.
+/// </summary>
+public class BoidFollowCamera : MonoBehaviour
+{
+    [Header("Target")]
+    [Tooltip("Drag an active Boid here to follow it.")]
+    public Boid Target;
+
+    [Header("Follow Settings")]
+    [Tooltip("Distance behind the boid.")]
+    public float FollowDistance = 50f;
+
+    [Tooltip("Height above the boid.")]
+    public float HeightOffset = 20f;
+
+    [Tooltip("How quickly the camera catches up to the desired position.")]
+    [Range(0.5f, 20f)]
+    public float SmoothSpeed = 5f;
+
+    [Tooltip("How quickly the camera rotates to look at the boid.")]
+    [Range(0.5f, 20f)]
+    public float RotationSmoothSpeed = 5f;
+
+    [Header("Look Ahead")]
+    [Tooltip("How far ahead of the boid the camera looks (based on velocity).")]
+    public float LookAheadFactor = 0.5f;
+
+    private Vector3 _currentVelocity;
+
+    private void LateUpdate()
+    {
+        if (Target == null)
+            return;
+
+        Vector3 boidPosition = Target.position;
+        Vector3 boidForward = Target.forward;
+
+        // Desired position: behind and above the boid
+        Vector3 desiredPosition = boidPosition
+            - boidForward * FollowDistance
+            + Vector3.up * HeightOffset;
+
+        // Smoothly move towards the desired position
+        transform.position = Vector3.SmoothDamp(
+            transform.position, desiredPosition, ref _currentVelocity, 1f / SmoothSpeed);
+
+        // Look at the boid with a slight look-ahead based on velocity
+        Vector3 lookTarget = boidPosition + Target.Velocity * LookAheadFactor;
+        Quaternion targetRotation = Quaternion.LookRotation(lookTarget - transform.position);
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation, targetRotation, RotationSmoothSpeed * Time.deltaTime);
+    }
+}
