@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using UnityEngine.InputSystem;
 using Unity.Profiling;
 
 
@@ -211,6 +210,8 @@ public class MissileSalvo : WeaponBase
     {
         if (!EnableDebug || !EnableDebugGizmos)
             return;
+        
+        base.OnDrawGizmos();
 
         if (Targeted != null)
         {

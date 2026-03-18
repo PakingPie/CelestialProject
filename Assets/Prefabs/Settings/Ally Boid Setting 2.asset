@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
   minSpeed: 20
   maxSpeed: 60
-  perceptionRadius: 50
+  perceptionRadius: 500
   maxSteerForce: 5
   alignWeight: 0.5
   cohesionWeight: 0.3
-  separateWeight: 0
+  separateWeight: 5
   targetWeight: 3
   separationRadius: 400
   separationWeight: 3
@@ -39,7 +39,7 @@ MonoBehaviour:
   combatSeparationMultiplier: 2
   combatAlignmentMultiplier: 0.5
   returnToFormationDelay: 3
-  combatAnchorMode: 1
+  combatAnchorMode: 2
   combatAnchorWeight: 1.25
   combatAnchorSlackRadius: 150
   combatLeashRadius: 400
