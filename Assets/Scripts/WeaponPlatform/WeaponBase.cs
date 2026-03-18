@@ -305,6 +305,20 @@ public class WeaponBase : MonoBehaviour
                 currentTargetVehicle = Targeted.GetComponentInParent<VehicleBase>();
         }
 
+        // Cache turret orientation for cheap angle pre-check (computed once, not per-enemy)
+        Vector3 turretFwd = _cachedTransform.forward;
+        Vector3 turretUp = _cachedTransform.up;
+        float sinMaxElevSqr = Mathf.Sin((MaxElevation + 5f) * Mathf.Deg2Rad);
+        sinMaxElevSqr *= sinMaxElevSqr;
+        float sinMaxDeprSqr = Mathf.Sin((MaxDepression + 5f) * Mathf.Deg2Rad);
+        sinMaxDeprSqr *= sinMaxDeprSqr;
+        float cosMaxTraverse = 0f, cosMaxTraverseSqr = 0f;
+        if (HasLimitedTraverse)
+        {
+            cosMaxTraverse = Mathf.Cos((Mathf.Max(LeftLimit, RightLimit) + 5f) * Mathf.Deg2Rad);
+            cosMaxTraverseSqr = cosMaxTraverse * cosMaxTraverse;
+        }
+
         for (int i = 0; i < _nearbyEnemies.Count; i++)
         {
             VehicleBase enemy = _nearbyEnemies[i];
@@ -320,7 +334,8 @@ public class WeaponBase : MonoBehaviour
 
             Transform enemyTransform = enemy.transform;
             Vector3 enemyPos = enemyTransform.position;
-            float distanceSqr = (enemyPos - myPosition).sqrMagnitude;
+            Vector3 toEnemy = enemyPos - myPosition;
+            float distanceSqr = toEnemy.sqrMagnitude;
 
             // Check min range
             if (distanceSqr < _minRangeSqr)
@@ -338,7 +353,32 @@ public class WeaponBase : MonoBehaviour
                     continue;
             }
 
-            // Check angle constraints
+            // Cheap angle pre-check using dot products (skips expensive CalcuateRelativeAngles)
+            float vertDot = Vector3.Dot(toEnemy, turretUp);
+            float vertDotSqr = vertDot * vertDot;
+            if (vertDot > 0f && vertDotSqr > sinMaxElevSqr * distanceSqr)
+                continue;
+            if (vertDot < 0f && vertDotSqr > sinMaxDeprSqr * distanceSqr)
+                continue;
+            if (HasLimitedTraverse)
+            {
+                float fwdDot = Vector3.Dot(toEnemy, turretFwd);
+                float horizDistSqr = distanceSqr - vertDotSqr;
+                if (horizDistSqr > 0.001f)
+                {
+                    if (cosMaxTraverse >= 0f)
+                    {
+                        if (fwdDot < 0f || fwdDot * fwdDot < cosMaxTraverseSqr * horizDistSqr)
+                            continue;
+                    }
+                    else if (fwdDot < 0f && fwdDot * fwdDot > cosMaxTraverseSqr * horizDistSqr)
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            // Full angle check for accurate final decision
             Vector2 angles = CalcuateRelativeAngles(enemyTransform);
             if (angles.y > MaxElevation || angles.y < -MaxDepression)
                 continue;
@@ -447,6 +487,20 @@ public class WeaponBase : MonoBehaviour
         TargetDistributor distributor = UseTargetDistribution ? TargetDistributor.Instance : null;
         bool enforcePerTargetCap = distributor != null && AvoidOverTargeting;
 
+        // Cache turret orientation for cheap angle pre-check (computed once, not per-enemy)
+        Vector3 turretFwd = _cachedTransform.forward;
+        Vector3 turretUp = _cachedTransform.up;
+        float sinMaxElevSqr = Mathf.Sin((MaxElevation + 5f) * Mathf.Deg2Rad);
+        sinMaxElevSqr *= sinMaxElevSqr;
+        float sinMaxDeprSqr = Mathf.Sin((MaxDepression + 5f) * Mathf.Deg2Rad);
+        sinMaxDeprSqr *= sinMaxDeprSqr;
+        float cosMaxTraverse = 0f, cosMaxTraverseSqr = 0f;
+        if (HasLimitedTraverse)
+        {
+            cosMaxTraverse = Mathf.Cos((Mathf.Max(LeftLimit, RightLimit) + 5f) * Mathf.Deg2Rad);
+            cosMaxTraverseSqr = cosMaxTraverse * cosMaxTraverse;
+        }
+
         for (int i = 0; i < _nearbyEnemies.Count; i++)
         {
             VehicleBase enemy = _nearbyEnemies[i];
@@ -455,11 +509,38 @@ public class WeaponBase : MonoBehaviour
 
             Transform enemyTransform = enemy.transform;
             Vector3 enemyPos = enemyTransform.position;
-            float distanceSqr = (enemyPos - myPosition).sqrMagnitude;
+            Vector3 toEnemy = enemyPos - myPosition;
+            float distanceSqr = toEnemy.sqrMagnitude;
 
             if (distanceSqr < _minRangeSqr)
                 continue;
 
+            // Cheap angle pre-check using dot products (skips expensive CalcuateRelativeAngles)
+            float vertDot = Vector3.Dot(toEnemy, turretUp);
+            float vertDotSqr = vertDot * vertDot;
+            if (vertDot > 0f && vertDotSqr > sinMaxElevSqr * distanceSqr)
+                continue;
+            if (vertDot < 0f && vertDotSqr > sinMaxDeprSqr * distanceSqr)
+                continue;
+            if (HasLimitedTraverse)
+            {
+                float fwdDot = Vector3.Dot(toEnemy, turretFwd);
+                float horizDistSqr = distanceSqr - vertDotSqr;
+                if (horizDistSqr > 0.001f)
+                {
+                    if (cosMaxTraverse >= 0f)
+                    {
+                        if (fwdDot < 0f || fwdDot * fwdDot < cosMaxTraverseSqr * horizDistSqr)
+                            continue;
+                    }
+                    else if (fwdDot < 0f && fwdDot * fwdDot > cosMaxTraverseSqr * horizDistSqr)
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            // Full angle check for accurate final decision
             Vector2 angles = CalcuateRelativeAngles(enemyTransform);
             if (angles.y > MaxElevation || angles.y < -MaxDepression)
                 continue;

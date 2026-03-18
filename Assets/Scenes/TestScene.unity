@@ -548,7 +548,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &30324697
 Transform:
   m_ObjectHideFlags: 0
@@ -563,6 +563,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 633849870}
+  - {fileID: 2071466169}
   m_Father: {fileID: 914120769}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!114 &30324698
@@ -585,6 +586,7 @@ MonoBehaviour:
   _targetManager: {fileID: 0}
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
+  MaxBoidWeaponUpdatesPerFrame: 8
   CleanupIntervalFrames: 5
   CombatSyncIntervalFrames: 2
   _flockId: Ally Flock 1
@@ -7220,7 +7222,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &633849870
 Transform:
   m_ObjectHideFlags: 0
@@ -7249,7 +7251,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
-  - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
+  - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
   spawnCount: 50
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
@@ -9092,6 +9094,7 @@ MonoBehaviour:
   _targetManager: {fileID: 0}
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
+  MaxBoidWeaponUpdatesPerFrame: 8
   CleanupIntervalFrames: 5
   CombatSyncIntervalFrames: 2
   _flockId: Enemy Flock 1
@@ -12371,6 +12374,7 @@ MonoBehaviour:
   _targetManager: {fileID: 0}
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
+  MaxBoidWeaponUpdatesPerFrame: 8
   CleanupIntervalFrames: 5
   CombatSyncIntervalFrames: 2
   _flockId: Enemy Flock 2
@@ -15114,7 +15118,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatManager
   _cellSize: 100
-  _maxTurretUpdatesPerFrame: 30
+  _maxTurretUpdatesPerFrame: 10
   _showDebugInfo: 1
 --- !u!4 &1177259957
 Transform:
@@ -15910,6 +15914,7 @@ GameObject:
   - component: {fileID: 1312769389}
   - component: {fileID: 1312769388}
   - component: {fileID: 1312769391}
+  - component: {fileID: 1312769392}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -16035,6 +16040,24 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &1312769392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1312769387}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fde2d7ab82ce31a4f95ccc4562206afa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoidFollowCamera
+  Target: {fileID: 0}
+  FollowDistance: 50
+  HeightOffset: 20
+  SmoothSpeed: 5
+  RotationSmoothSpeed: 5
+  LookAheadFactor: 0.5
 --- !u!1 &1314090647
 GameObject:
   m_ObjectHideFlags: 0
@@ -17263,7 +17286,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1503629324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17284,6 +17307,7 @@ MonoBehaviour:
   _targetManager: {fileID: 0}
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
+  MaxBoidWeaponUpdatesPerFrame: 8
   CleanupIntervalFrames: 5
   CombatSyncIntervalFrames: 2
   _flockId: Ally Flock 2
@@ -18758,7 +18782,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 1886091069592709415, guid: 73c2bc81616ac994da8f06f2495229d0, type: 3}
-  spawnCount: 4
+  spawnCount: 6
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
   spawnMode: 0
@@ -23238,6 +23262,71 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2071466168
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2071466169}
+  - component: {fileID: 2071466170}
+  m_Layer: 0
+  m_Name: FighterSpawn_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2071466169
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2071466168}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 30324697}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2071466170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2071466168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 300c8a9d9806cce4ea6a210416e51027, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Spawner
+  prefabs:
+  - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
+  spawnCount: 50
+  color: {r: 0, g: 0, b: 0, a: 0}
+  HeightRange: {x: -10000, y: 10000}
+  spawnMode: 0
+  spawnRadius: 100
+  spawnPoints: []
+  spawnInterval: 5
+  spawnPointRandomness: 2
+  launchDirection: {x: 0, y: 0, z: 1}
+  launchSpeed: 50
+  autoStart: 1
+  boidsPerWave: 10
+  timeBetweenWaves: 10
+  maintainPopulation: 0
+  respawnDelay: 10
+  maxTotalSpawns: 0
+  attackProfile: {fileID: 11400000, guid: f051fd699fd80064284f145585fdc694, type: 2}
+  showSpawnRegion: 0
+  _isPaused: 0
 --- !u!1 &2075037997
 GameObject:
   m_ObjectHideFlags: 0

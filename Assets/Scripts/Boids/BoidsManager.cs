@@ -29,6 +29,8 @@ public class BoidsManager : MonoBehaviour
     public bool UseAsyncReadback = true;
     [Tooltip("Only update weapons every N frames.")]
     [Min(1)] public int WeaponUpdateIntervalFrames = 2;
+    [Tooltip("Maximum boid weapon target updates per frame. Limits CPU spikes.")]
+    [Min(1)] public int MaxBoidWeaponUpdatesPerFrame = 8;
     [Tooltip("Only cleanup destroyed boids every N frames.")]
     [Min(1)] public int CleanupIntervalFrames = 5;
     [Tooltip("Only evaluate combat sync every N frames.")]
@@ -61,6 +63,7 @@ public class BoidsManager : MonoBehaviour
     private int _weaponUpdateCounter = 0;
     private int _cleanupCounter = 0;
     private int _combatSyncCounter = 0;
+    private int _boidWeaponIndex = 0;
 
     // Track when formation needs reassignment
     private bool _formationDirty = false;
@@ -487,14 +490,25 @@ public class BoidsManager : MonoBehaviour
 
     private void UpdateBoidWeapons()
     {
-        for (int i = _boidWeapons.Count - 1; i >= 0; i--)
+        if (_boidWeapons.Count == 0) return;
+
+        int updatesThisFrame = Mathf.Min(MaxBoidWeaponUpdatesPerFrame, _boidWeapons.Count);
+
+        for (int i = 0; i < updatesThisFrame; i++)
         {
-            if (_boidWeapons[i] == null)
+            if (_boidWeapons.Count == 0) break;
+
+            _boidWeaponIndex = _boidWeaponIndex % _boidWeapons.Count;
+            WeaponBase weapon = _boidWeapons[_boidWeaponIndex];
+
+            if (weapon == null)
             {
-                _boidWeapons.RemoveAt(i);
+                _boidWeapons.RemoveAt(_boidWeaponIndex);
                 continue;
             }
-            _boidWeapons[i].ManagedUpdateTarget();
+
+            weapon.ManagedUpdateTarget();
+            _boidWeaponIndex++;
         }
     }
 
