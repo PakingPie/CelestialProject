@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f79a97a8f3d566438e5fbb617fd1c0f, type: 3}
   m_Name: Enemy Boid Setting 2
   m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
-  minSpeed: 20
-  maxSpeed: 50
+  minSpeed: 5
+  maxSpeed: 30
   perceptionRadius: 300
   maxSteerForce: 1
   alignWeight: 0.5
   cohesionWeight: 0.5
-  separateWeight: 5
+  separateWeight: 10
   targetWeight: 10
-  separationRadius: 50
-  separationWeight: 3
+  separationRadius: 500
+  separationWeight: 5
   obstacleDetectionRange: 500
   obstacleAvoidanceWeight: 10
   obstacleMask:
@@ -30,7 +30,7 @@ MonoBehaviour:
   boundsRadius: 10
   useFormation: 1
   formationType: 3
-  formationSpacing: 200
+  formationSpacing: 400
   formationTightness: 100
   formationMatchSpeed: 50
   formationDeadZone: 10
@@ -39,7 +39,7 @@ MonoBehaviour:
   combatSeparationMultiplier: 1
   combatAlignmentMultiplier: 0.5
   returnToFormationDelay: 3
-  combatAnchorMode: 2
+  combatAnchorMode: 0
   combatAnchorWeight: 1.25
   combatAnchorSlackRadius: 150
   combatLeashRadius: 400

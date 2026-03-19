@@ -6192,6 +6192,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: GreatExplosionVFX
       objectReference: {fileID: 0}
+    - target: {fileID: 387120011187374993, guid: 8c08cb748402b224bb53d0e472bd3c16, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4932035968386279344, guid: 8c08cb748402b224bb53d0e472bd3c16, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -6230,6 +6234,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4932035968386279344, guid: 8c08cb748402b224bb53d0e472bd3c16, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7403090855944229929, guid: 8c08cb748402b224bb53d0e472bd3c16, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8368109021739039623, guid: 8c08cb748402b224bb53d0e472bd3c16, type: 3}
+      propertyPath: m_ResetSeedOnPlay
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -8940,7 +8952,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &764762349
 Transform:
   m_ObjectHideFlags: 0
@@ -10775,7 +10787,7 @@ MonoBehaviour:
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: 0, y: 10000}
   spawnMode: 0
-  spawnRadius: 500
+  spawnRadius: 1000
   spawnPoints: []
   spawnInterval: 5
   spawnPointRandomness: 2
@@ -15511,6 +15523,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidFollowCamera
   Target: {fileID: 0}
+  BoidManager: {fileID: 30324698}
+  CurrentBoidIndex: -1
   FollowDistance: 50
   HeightOffset: 20
   SmoothSpeed: 5
@@ -16744,7 +16758,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1503629324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22630,11 +22644,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
-  spawnCount: 16
+  spawnCount: 24
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
   spawnMode: 0
-  spawnRadius: 100
+  spawnRadius: 1000
   spawnPoints: []
   spawnInterval: 5
   spawnPointRandomness: 2

@@ -10,6 +10,11 @@ public class BoidFollowCamera : MonoBehaviour
     [Tooltip("Drag an active Boid here to follow it.")]
     public Boid Target;
 
+    [Tooltip("The BoidsManager to cycle through. If not set, finds one automatically.")]
+    public BoidsManager BoidManager;
+
+    [HideInInspector] public int CurrentBoidIndex = -1;
+
     [Header("Follow Settings")]
     [Tooltip("Distance behind the boid.")]
     public float FollowDistance = 50f;
@@ -30,6 +35,28 @@ public class BoidFollowCamera : MonoBehaviour
     public float LookAheadFactor = 0.5f;
 
     private Vector3 _currentVelocity;
+
+    public void SwitchToNextBoid()
+    {
+        if (BoidManager == null)
+            BoidManager = FindFirstObjectByType<BoidsManager>();
+
+        if (BoidManager == null || BoidManager.BoidCount == 0)
+            return;
+
+        CurrentBoidIndex = (CurrentBoidIndex + 1) % BoidManager.BoidCount;
+
+        // Skip null/destroyed boids
+        int attempts = BoidManager.BoidCount;
+        while (attempts > 0 && BoidManager.Boids[CurrentBoidIndex] == null)
+        {
+            CurrentBoidIndex = (CurrentBoidIndex + 1) % BoidManager.BoidCount;
+            attempts--;
+        }
+
+        if (BoidManager.Boids[CurrentBoidIndex] != null)
+            Target = BoidManager.Boids[CurrentBoidIndex];
+    }
 
     private void LateUpdate()
     {
