@@ -24,6 +24,12 @@ public class BoidAttackBehavior : MonoBehaviour
     public float SpeedMultiplier => _currentSpeedMultiplier;
     public HitAndRunPhase CurrentPhase => _hitAndRunPhase; // For debugging
 
+    /// <summary>
+    /// True when the boid's morale is Broken and it should disengage.
+    /// Weapons can check this to stop targeting.
+    /// </summary>
+    public bool IsFleeing => Boid != null && Boid.CurrentMorale == CombatMorale.Broken;
+
     private Boid Boid
     {
         get

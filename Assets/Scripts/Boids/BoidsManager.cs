@@ -52,6 +52,14 @@ public class BoidsManager : MonoBehaviour
 
     private bool _wasAnyInCombat = false;
 
+    // Adaptive morale
+    private List<VehicleBase> _boidVehicles = new List<VehicleBase>();
+    private int _initialBoidCount = 0;
+    private bool _initialCountSet = false;
+    private CombatMorale _currentMorale = CombatMorale.Confident;
+    public CombatMorale CurrentMorale => _currentMorale;
+    public float CurrentMoraleScore { get; private set; } = 1f;
+
     private List<BoidSpawner> _spawners = new List<BoidSpawner>();
 
     // Compute resources
@@ -140,6 +148,11 @@ public class BoidsManager : MonoBehaviour
     private void OnSpawnerComplete()
     {
         AssignFormationPositions();
+        if (!_initialCountSet && boids.Count > 0)
+        {
+            _initialBoidCount = boids.Count;
+            _initialCountSet = true;
+        }
     }
 
     private void RegisterBoidInternal(GameObject boidObj)
@@ -161,6 +174,7 @@ public class BoidsManager : MonoBehaviour
         {
             vehicle.BoidManager = this;
         }
+        _boidVehicles.Add(vehicle); // May be null if no VehicleBase
 
         _targetManager.RegisterBoid(boid);
 
@@ -220,8 +234,11 @@ public class BoidsManager : MonoBehaviour
 
         bool wasLeader = (boid == _formationLeader);
 
+        int index = boids.IndexOf(boid);
         _targetManager.UnregisterBoid(boid);
         boids.Remove(boid);
+        if (index >= 0 && index < _boidVehicles.Count)
+            _boidVehicles.RemoveAt(index);
 
         var weapons = boid.GetComponentsInChildren<WeaponBase>();
         foreach (var weapon in weapons)
@@ -247,7 +264,10 @@ public class BoidsManager : MonoBehaviour
 
         // Remove from this flock
         _targetManager.UnregisterBoid(boid);
+        int index = boids.IndexOf(boid);
         boids.Remove(boid);
+        if (index >= 0 && index < _boidVehicles.Count)
+            _boidVehicles.RemoveAt(index);
 
         var weapons = boid.GetComponentsInChildren<WeaponBase>();
         foreach (var weapon in weapons)
@@ -352,6 +372,19 @@ public class BoidsManager : MonoBehaviour
                 AssignFormationPositions();
             }
             _wasAnyInCombat = anyInCombat;
+
+            // Evaluate morale on same interval as combat sync
+            if (settings.useAdaptiveMorale && anyInCombat)
+            {
+                EvaluateFlockMorale();
+            }
+            else if (settings.useAdaptiveMorale && _currentMorale != CombatMorale.Confident)
+            {
+                // Reset morale when out of combat
+                _currentMorale = CombatMorale.Confident;
+                CurrentMoraleScore = 1f;
+                SetMoraleOnAllBoids(_currentMorale);
+            }
         }
 
         EnsureComputeResources(numBoids);
@@ -476,6 +509,8 @@ public class BoidsManager : MonoBehaviour
             {
                 if (i == 0) leaderRemoved = true;
                 boids.RemoveAt(i);
+                if (i < _boidVehicles.Count)
+                    _boidVehicles.RemoveAt(i);
                 removedCount++;
             }
         }
@@ -486,6 +521,65 @@ public class BoidsManager : MonoBehaviour
         }
 
         return removedCount;
+    }
+
+    private void EvaluateFlockMorale()
+    {
+        int totalHP = 0;
+        int totalMaxHP = 0;
+        int aliveCount = 0;
+
+        for (int i = 0; i < boids.Count; i++)
+        {
+            if (boids[i] == null) continue;
+            aliveCount++;
+
+            VehicleBase vehicle = i < _boidVehicles.Count ? _boidVehicles[i] : null;
+            if (vehicle != null)
+            {
+                totalHP += vehicle.HitPoints + vehicle.ArmorPoints + vehicle.ShieldPoints;
+                totalMaxHP += vehicle.MaxHitPoints + vehicle.MaxArmorPoints + vehicle.MaxShieldPoints;
+            }
+        }
+
+        float healthRatio = totalMaxHP > 0 ? (float)totalHP / totalMaxHP : 1f;
+        int baseline = _initialCountSet ? _initialBoidCount : aliveCount;
+        float strengthRatio = baseline > 0 ? (float)aliveCount / baseline : 1f;
+
+        float score = healthRatio * settings.healthWeight + strengthRatio * settings.strengthWeight;
+        CurrentMoraleScore = score;
+
+        CombatMorale newMorale = _currentMorale;
+        float hyst = settings.moraleHysteresis;
+
+        // Determine new state with hysteresis for upward transitions
+        if (score <= settings.brokenThreshold)
+        {
+            newMorale = CombatMorale.Broken;
+        }
+        else if (score > settings.confidentThreshold + (_currentMorale < CombatMorale.Confident ? hyst : 0f))
+        {
+            newMorale = CombatMorale.Confident;
+        }
+        else if (score > settings.brokenThreshold + (_currentMorale == CombatMorale.Broken ? hyst : 0f))
+        {
+            newMorale = CombatMorale.Cautious;
+        }
+
+        if (newMorale != _currentMorale)
+        {
+            _currentMorale = newMorale;
+            SetMoraleOnAllBoids(newMorale);
+        }
+    }
+
+    private void SetMoraleOnAllBoids(CombatMorale morale)
+    {
+        for (int i = 0; i < boids.Count; i++)
+        {
+            if (boids[i] != null)
+                boids[i].CurrentMorale = morale;
+        }
     }
 
     private void UpdateBoidWeapons()
@@ -516,6 +610,7 @@ public class BoidsManager : MonoBehaviour
     {
         boids.Clear();
         _boidWeapons.Clear();
+        _boidVehicles.Clear();
 
         foreach (BoidSpawner spawner in _spawners)
         {

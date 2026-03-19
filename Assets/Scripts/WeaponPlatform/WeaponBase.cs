@@ -183,6 +183,15 @@ public class WeaponBase : MonoBehaviour
     {
         using (ManagedUpdateTargetMarker.Auto())
         {
+            // Disengage when parent boid is fleeing (Broken morale)
+            if (_owner != null && _owner.BoidManager != null
+                && _owner.BoidManager.CurrentMorale == CombatMorale.Broken)
+            {
+                Targeted = null;
+                IsAimed = false;
+                return;
+            }
+
             // Handle manual targeting mode
             if (IsManualTargeting)
             {

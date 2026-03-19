@@ -60,6 +60,31 @@ public class BoidSettings : ScriptableObject
     [Range(0f, 1f)] public float combatSlotRetention = 0.35f;
     public float combatRegroupHysteresis = 75f;
     public float combatTargetPursuitWeight = 1.5f;
+
+    [Header("Adaptive Combat Morale")]
+    [Tooltip("Enable morale-based adaptive combat behavior.")]
+    public bool useAdaptiveMorale = false;
+    [Tooltip("Morale score above this = Confident (keep formation in combat).")]
+    [Range(0f, 1f)] public float confidentThreshold = 0.7f;
+    [Tooltip("Morale score below this = Broken (flee from combat).")]
+    [Range(0f, 1f)] public float brokenThreshold = 0.3f;
+    [Tooltip("Extra margin needed to transition UP a morale state (prevents flickering).")]
+    [Range(0f, 0.2f)] public float moraleHysteresis = 0.05f;
+    [Tooltip("Weight of flock HP ratio in morale score.")]
+    [Range(0f, 1f)] public float healthWeight = 0.6f;
+    [Tooltip("Weight of flock member count ratio in morale score.")]
+    [Range(0f, 1f)] public float strengthWeight = 0.4f;
+    [Tooltip("Speed multiplier when fleeing (Broken morale).")]
+    public float fleeSpeedMultiplier = 1.5f;
+    [Tooltip("How much formation is blended into combat when Confident (0=none, 1=full formation).")]
+    [Range(0f, 1f)] public float confidentFormationWeight = 0.5f;
+}
+
+public enum CombatMorale
+{
+    Confident,
+    Cautious,
+    Broken
 }
 
 public enum FormationType

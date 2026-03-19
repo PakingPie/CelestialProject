@@ -51,6 +51,7 @@ public class Boid : MonoBehaviour
     [HideInInspector] public bool IsInCombat = false;
     [HideInInspector] public int FormationIndex = 0;
     [HideInInspector] public Boid FormationLeader = null;
+    [HideInInspector] public CombatMorale CurrentMorale = CombatMorale.Confident;
     private float _combatTimer = 0f;
     private bool _combatLeashEngaged = false;
 
@@ -645,12 +646,62 @@ public class Boid : MonoBehaviour
                 return CalculateFormationAcceleration();
         }
 
-        if (IsInCombat && AttackBehavior != null && AttackBehavior.Profile != null && _target != null)
+        if (IsInCombat)
         {
-            return CalculateCombatAcceleration();
+            // Broken morale: flee regardless of attack profile
+            if (_settings.useAdaptiveMorale && CurrentMorale == CombatMorale.Broken)
+            {
+                return CalculateFleeAcceleration();
+            }
+
+            // Confident morale: blend formation into combat
+            if (_settings.useAdaptiveMorale && CurrentMorale == CombatMorale.Confident
+                && _settings.useFormation && FormationLeader != null && FormationIndex > 0
+                && AttackBehavior != null && AttackBehavior.Profile != null && _target != null)
+            {
+                float fw = _settings.confidentFormationWeight;
+                Vector3 formAcc = CalculateFormationAcceleration();
+                Vector3 combatAcc = CalculateCombatAcceleration();
+                return Vector3.Lerp(combatAcc, formAcc, fw);
+            }
+
+            // Cautious morale (or non-adaptive): pure combat
+            if (AttackBehavior != null && AttackBehavior.Profile != null && _target != null)
+            {
+                return CalculateCombatAcceleration();
+            }
         }
 
         return CalculateTravelAcceleration();
+    }
+
+    private Vector3 CalculateFleeAcceleration()
+    {
+        Vector3 acceleration = Vector3.zero;
+        Vector3 fleeDir = Vector3.zero;
+
+        // Flee from current target
+        if (_target != null)
+        {
+            fleeDir = (position - _target.position).normalized;
+        }
+        else
+        {
+            // No target — flee in current forward direction
+            fleeDir = forward;
+        }
+
+        acceleration += SteerTowards(fleeDir) * _settings.targetWeight * 2f;
+
+        // Apply speed boost
+        float fleeSpeed = _settings.maxSpeed * _settings.fleeSpeedMultiplier;
+        float currentSpeed = _velocity.magnitude;
+        if (currentSpeed > 0.01f && currentSpeed < fleeSpeed)
+        {
+            _velocity = _velocity.normalized * Mathf.Lerp(currentSpeed, fleeSpeed, Time.deltaTime * 3f);
+        }
+
+        return acceleration;
     }
 
     private Vector3 CalculateCombatAcceleration()
@@ -807,6 +858,25 @@ public class Boid : MonoBehaviour
 
         float alignMult = IsInCombat ? _settings.combatAlignmentMultiplier : 1f;
         float cohesionMult = IsInCombat ? _settings.combatCohesionMultiplier : 1f;
+
+        // Adaptive morale overrides during combat
+        if (IsInCombat && _settings.useAdaptiveMorale)
+        {
+            switch (CurrentMorale)
+            {
+                case CombatMorale.Confident:
+                    // Near-normal flocking — stay together
+                    alignMult = Mathf.Lerp(_settings.combatAlignmentMultiplier, 1f, _settings.confidentFormationWeight);
+                    cohesionMult = Mathf.Lerp(_settings.combatCohesionMultiplier, 1f, _settings.confidentFormationWeight);
+                    break;
+                case CombatMorale.Broken:
+                    // Scatter — no cohesion, no alignment
+                    alignMult = 0f;
+                    cohesionMult = 0f;
+                    break;
+                // Cautious: uses default combat multipliers (already set above)
+            }
+        }
 
         if (_settings.useFormation && !IsInCombat && FormationLeader != null && FormationIndex > 0)
         {
