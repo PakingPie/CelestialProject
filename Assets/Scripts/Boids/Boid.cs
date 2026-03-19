@@ -898,7 +898,10 @@ public class Boid : MonoBehaviour
         Vector3 boidSeparation = CalculateBoidSeparation();
         if (boidSeparation.sqrMagnitude > 0.01f)
         {
-            acceleration += SteerTowards(boidSeparation) * _settings.separateWeight;
+            float sepWeight = _settings.separateWeight;
+            if (IsInCombat)
+                sepWeight *= _settings.combatSeparationMultiplier;
+            acceleration += SteerTowards(boidSeparation) * sepWeight;
         }
 
         Vector3 obstacleAvoidance = CalculateObstacleAvoidance();

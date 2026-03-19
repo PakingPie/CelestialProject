@@ -138,6 +138,17 @@ public class BoidAttackBehavior : MonoBehaviour
             return -toTargetDir;
         }
         
+        // Add per-boid lateral offset so the flock doesn't converge on the exact same point
+        int index = Boid.FormationIndex;
+        if (index > 0)
+        {
+            Vector3 lateral = Vector3.Cross(Vector3.up, toTargetDir).normalized;
+            int side = (index % 2 == 0) ? 1 : -1;
+            int rank = (index + 1) / 2;
+            float spread = rank * 0.15f; // grows with rank: 0.15, 0.30, 0.45 …
+            return (toTargetDir + lateral * side * spread).normalized;
+        }
+
         return toTargetDir;
     }
 
