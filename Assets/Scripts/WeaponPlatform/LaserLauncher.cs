@@ -25,6 +25,7 @@ public class LaserLauncher : WeaponBase
     private bool _isOnCooldown = false;
 
     private RaycastHit _hit;
+    private bool _laserActiveThisFrame = false;
 
     public bool ReadyToFire => !_isOnCooldown;
 
@@ -61,8 +62,8 @@ public class LaserLauncher : WeaponBase
 
         if (IsFiring && Targeted != null)
         {
+            _laserActiveThisFrame = true;
             LaserLineRenderer.enabled = true;
-            LaserLaunchEffect.transform.position = LaserOrigin.position;
             LaserLaunchEffect.Play();
             Shoot();
         }
@@ -109,10 +110,20 @@ public class LaserLauncher : WeaponBase
         }
     }
 
+    void LateUpdate()
+    {
+        // Update beam geometry after all movement is resolved
+        if (_laserActiveThisFrame && Targeted != null)
+        {
+            LaserLineRenderer.SetPosition(0, LaserOrigin.position);
+            LaserLineRenderer.SetPosition(1, Targeted.position);
+            LaserLaunchEffect.transform.position = LaserOrigin.position;
+        }
+        _laserActiveThisFrame = false;
+    }
+
     public void Shoot()
     {
-        LaserLineRenderer.SetPosition(0, LaserOrigin.position);
-        LaserLineRenderer.SetPosition(1, Targeted.position);
 
         if (_laserDurationTimer < LaserEffectDuration)
         {
