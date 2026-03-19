@@ -18,7 +18,7 @@ MonoBehaviour:
   maxSteerForce: 5
   alignWeight: 0.5
   cohesionWeight: 0.3
-  separateWeight: 5
+  separateWeight: 10
   targetWeight: 3
   separationRadius: 400
   separationWeight: 3
@@ -29,8 +29,8 @@ MonoBehaviour:
     m_Bits: 8832
   boundsRadius: 10
   useFormation: 1
-  formationType: 0
-  formationSpacing: 300
+  formationType: 8
+  formationSpacing: 200
   formationTightness: 100
   formationMatchSpeed: 50
   formationDeadZone: 10
@@ -39,7 +39,7 @@ MonoBehaviour:
   combatSeparationMultiplier: 2
   combatAlignmentMultiplier: 0.5
   returnToFormationDelay: 3
-  combatAnchorMode: 2
+  combatAnchorMode: 1
   combatAnchorWeight: 1.25
   combatAnchorSlackRadius: 150
   combatLeashRadius: 400
@@ -47,3 +47,11 @@ MonoBehaviour:
   combatSlotRetention: 0.35
   combatRegroupHysteresis: 75
   combatTargetPursuitWeight: 1.5
+  useAdaptiveMorale: 1
+  confidentThreshold: 0.7
+  brokenThreshold: 0.3
+  moraleHysteresis: 0.05
+  healthWeight: 0.6
+  strengthWeight: 0.4
+  fleeSpeedMultiplier: 1.5
+  confidentFormationWeight: 0.5

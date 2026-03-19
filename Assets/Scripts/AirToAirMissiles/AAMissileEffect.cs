@@ -124,6 +124,14 @@ public class AAMissileEffects : MonoBehaviour
                 }
             }
 
+            // Clean up any stale VFX children that may have been baked into the prefab
+            // or left over from a previous lifecycle.
+            if (trailFxPoint != null && trailFxPoint != transform)
+            {
+                for (int i = trailFxPoint.childCount - 1; i >= 0; i--)
+                    Destroy(trailFxPoint.GetChild(i).gameObject);
+            }
+
             // Instantiate the TrailRenderer trail.
             if (trailPrefab != null)
             {
@@ -141,7 +149,8 @@ public class AAMissileEffects : MonoBehaviour
                 visualEffect.transform.localPosition = Vector3.zero;
                 visualEffect.transform.localEulerAngles = Vector3.zero;
 
-                visualEffect.Stop();
+                // Deactivate immediately so no particles spawn until motor fires
+                visualEffect.gameObject.SetActive(false);
 
                 // Ensure that the effect remover is on the gameobject to prevent undeleted effects.
                 effectRemover = visualEffect.GetComponent<AARemoveEffect>();
@@ -182,8 +191,8 @@ public class AAMissileEffects : MonoBehaviour
                 effectRemover.readyToDestroy = false;
 
             SetFlameEnabled(false);
-            visualEffect.Reinit();
             visualEffect.Stop();
+            visualEffect.gameObject.SetActive(false);
         }
     }
 
@@ -211,6 +220,7 @@ public class AAMissileEffects : MonoBehaviour
                 trail.enabled = true;
             else if (visualEffect != null)
             {
+                visualEffect.gameObject.SetActive(true);
                 SetFlameEnabled(true);
                 visualEffect.Reinit();
                 visualEffect.Play();
@@ -301,7 +311,13 @@ public class AAMissileEffects : MonoBehaviour
                 remove.readyToDestroy = true;
             }
             else
-                GameObject.Destroy(visualEffect);
+                GameObject.Destroy(visualEffect.gameObject);
         }
+
+        // Null out references so re-initialization creates fresh instances
+        trail = null;
+        visualEffect = null;
+        effectRemover = null;
+        effectsInitialized = false;
     }
 }
