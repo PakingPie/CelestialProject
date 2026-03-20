@@ -548,7 +548,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &30324697
 Transform:
   m_ObjectHideFlags: 0
@@ -8548,6 +8548,13 @@ MonoBehaviour:
   ExplodeEffect: {fileID: 0}
   DamagedSmokeEffect: {fileID: 0}
   DamagedPoint: {fileID: 0}
+  EnableChaosDeath: 1
+  ChaosDeathChance: 0.3
+  ChaosFlyDurationRange: {x: 0.5, y: 1}
+  ChaosForwardSpeedMultiplier: 0.85
+  ChaosMinimumDriftSpeed: 15
+  ChaosDriftJitter: 10
+  ChaosAngularSpeedRange: {x: 180, y: 540}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 40
   ArmorRegenerationRate: 1
@@ -9128,6 +9135,13 @@ MonoBehaviour:
   ExplodeEffect: {fileID: 0}
   DamagedSmokeEffect: {fileID: 0}
   DamagedPoint: {fileID: 0}
+  EnableChaosDeath: 1
+  ChaosDeathChance: 0.3
+  ChaosFlyDurationRange: {x: 0.5, y: 1}
+  ChaosForwardSpeedMultiplier: 0.85
+  ChaosMinimumDriftSpeed: 15
+  ChaosDriftJitter: 10
+  ChaosAngularSpeedRange: {x: 180, y: 540}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 40
   ArmorRegenerationRate: 1
@@ -12801,7 +12815,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: d603c2ec335e1964387eb3ca57d0e5f3, type: 3}
-  spawnCount: 20
+  spawnCount: 30
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
   spawnMode: 0
@@ -22962,7 +22976,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
-  spawnCount: 25
+  spawnCount: 30
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
   spawnMode: 0
@@ -23526,6 +23540,13 @@ MonoBehaviour:
   ExplodeEffect: {fileID: 0}
   DamagedSmokeEffect: {fileID: 0}
   DamagedPoint: {fileID: 0}
+  EnableChaosDeath: 1
+  ChaosDeathChance: 0.3
+  ChaosFlyDurationRange: {x: 0.5, y: 1}
+  ChaosForwardSpeedMultiplier: 0.85
+  ChaosMinimumDriftSpeed: 15
+  ChaosDriftJitter: 10
+  ChaosAngularSpeedRange: {x: 180, y: 540}
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 40
   ArmorRegenerationRate: 1

@@ -20,6 +20,14 @@ public class EnemyVehicle : VehicleBase
     public VisualEffect ExplodeEffect;
     public VisualEffect DamagedSmokeEffect;
     public Transform DamagedPoint;
+    [Header("Death Chaos")]
+    public bool EnableChaosDeath = true;
+    [Range(0f, 1f)] public float ChaosDeathChance = 0.3f;
+    public Vector2 ChaosFlyDurationRange = new Vector2(0.5f, 1f);
+    public float ChaosForwardSpeedMultiplier = 0.85f;
+    public float ChaosMinimumDriftSpeed = 15f;
+    public float ChaosDriftJitter = 10f;
+    public Vector2 ChaosAngularSpeedRange = new Vector2(180f, 540f);
     [Header("Regeneration")]
     public int HitPointsRegenerationRate = 1;
     public float HitPointsRegenerationDelay = 40f;
@@ -44,6 +52,8 @@ public class EnemyVehicle : VehicleBase
     private EnemyPredictionManager _predictionManager;
     private VisualEffect _damagedSmokeInstance;
     private bool _smokeEffectInitialized = false;
+    private Coroutine _deathRoutine;
+    private Faction _deathFaction = Faction.None;
 
     void OnEnable()
     {
@@ -233,6 +243,11 @@ public class EnemyVehicle : VehicleBase
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
     {
+        if (IsDying)
+        {
+            return false;
+        }
+
         // Simple damage calculation; can be expanded based on ammoType and armor/shield
         switch (ammoType)
         {
@@ -280,48 +295,146 @@ public class EnemyVehicle : VehicleBase
         if (IsDying) return; // Prevent double-destroy
         IsDying = true;
 
-        if (VehicleFaction == Faction.Foe)
+        BeginDeathState();
+
+        if (ShouldEnterChaosFly())
+        {
+            _deathRoutine = StartCoroutine(ChaosFlyAndDestroy());
+            return;
+        }
+
+        FinalizeVehicleDestruction();
+    }
+
+    private void BeginDeathState()
+    {
+        _deathFaction = VehicleFaction;
+
+        if ((_deathFaction & Faction.Foe) != 0)
         {
             PawnCountManager.UpdateEnemyCountAction?.Invoke();
         }
-        else if (VehicleFaction == Faction.Ally)
+        else if ((_deathFaction & Faction.Ally) != 0)
         {
             PawnCountManager.UpdateAllyCountAction?.Invoke();
         }
 
-        // Keep enemy vehicle moving
-        // var boid = GetComponent<Boid>();
+        DisableCombatSystems();
+        RemoveFromTargetingSystems();
+        EnableHitpointBar(false);
+    }
 
-        // if (boid != null && BoidManager != null)
-        // {
-        //     BoidManager.RemoveBoid(boid);
-        // }
-
-        if (ExplodeEffect != null)
+    private bool ShouldEnterChaosFly()
+    {
+        if (!EnableChaosDeath)
         {
-                VisualEffect explode = VFXPool.Instance.Get(ExplodeEffect, transform.position, transform.rotation);
-                if (explode != null)
-                {
-                    VFXPooledInstance pooled = explode.GetComponent<VFXPooledInstance>();
-                    if (pooled == null)
-                    {
-                        pooled = explode.gameObject.AddComponent<VFXPooledInstance>();
-                        pooled.Initialize(ExplodeEffect);
-                    }
-                    else
-                        pooled.spawnTime = Time.time;
-                }
+            return false;
         }
 
-        DetachDamagedSmokeOnDeath();
-        // Disable all weapons but keeps visual, then destroy after short delay
+        return Random.value <= ChaosDeathChance;
+    }
+
+    private IEnumerator ChaosFlyAndDestroy()
+    {
+        float minDuration = Mathf.Min(ChaosFlyDurationRange.x, ChaosFlyDurationRange.y);
+        float maxDuration = Mathf.Max(ChaosFlyDurationRange.x, ChaosFlyDurationRange.y);
+        float duration = Random.Range(minDuration, maxDuration);
+        float driftSpeed = Mathf.Max(Velocity.magnitude * ChaosForwardSpeedMultiplier, ChaosMinimumDriftSpeed);
+        Vector3 driftVelocity = transform.forward * driftSpeed + Random.insideUnitSphere * ChaosDriftJitter;
+        float angularSpeed = Random.Range(ChaosAngularSpeedRange.x, ChaosAngularSpeedRange.y);
+        Vector3 angularVelocity = Random.onUnitSphere * angularSpeed;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            driftVelocity += Random.insideUnitSphere * (ChaosDriftJitter * 0.35f * Time.deltaTime);
+            transform.position += driftVelocity * Time.deltaTime;
+            transform.Rotate(angularVelocity * Time.deltaTime, Space.Self);
+            yield return null;
+        }
+
+        _deathRoutine = null;
+        FinalizeVehicleDestruction();
+    }
+
+    private void DisableCombatSystems()
+    {
         var weapons = GetComponentsInChildren<WeaponBase>();
         foreach (var weapon in weapons)
         {
+            weapon.Targeted = null;
+            weapon.IsAimed = false;
             weapon.enabled = false;
         }
-        // Set Faction to Neutral to avoid further interactions
+
+        var boid = GetComponent<Boid>();
+        if (boid != null)
+        {
+            BoidManager?.RemoveBoid(boid);
+            boid.enabled = false;
+        }
+
+        BoidAttackBehavior attackBehavior = GetComponent<BoidAttackBehavior>();
+        if (attackBehavior != null)
+        {
+            attackBehavior.enabled = false;
+        }
+
+        BoidCommandController commandController = GetComponent<BoidCommandController>();
+        if (commandController != null)
+        {
+            commandController.enabled = false;
+        }
+    }
+
+    private void RemoveFromTargetingSystems()
+    {
+        if (!EnableModuleHits)
+        {
+            CombatRegistry.Unregister(this, _deathFaction);
+        }
+
+        if (_predictionManager != null && EnableIndication)
+        {
+            if ((_deathFaction & Faction.Foe) != 0)
+            {
+                _predictionManager.UnregisterEnemy(this);
+            }
+            else if ((_deathFaction & Faction.Ally) != 0)
+            {
+                _predictionManager.UnregisterAlly(this);
+            }
+        }
+
         VehicleFaction = Faction.Neutral;
+    }
+
+    private void FinalizeVehicleDestruction()
+    {
+        if (_deathRoutine != null)
+        {
+            StopCoroutine(_deathRoutine);
+            _deathRoutine = null;
+        }
+
+        if (ExplodeEffect != null)
+        {
+            VisualEffect explode = VFXPool.Instance.Get(ExplodeEffect, transform.position, transform.rotation);
+            if (explode != null)
+            {
+                VFXPooledInstance pooled = explode.GetComponent<VFXPooledInstance>();
+                if (pooled == null)
+                {
+                    pooled = explode.gameObject.AddComponent<VFXPooledInstance>();
+                    pooled.Initialize(ExplodeEffect);
+                }
+                else
+                    pooled.spawnTime = Time.time;
+            }
+        }
+
+        DetachDamagedSmokeOnDeath();
 
         Destroy(gameObject);
     }
