@@ -1146,12 +1146,23 @@ public class Boid : MonoBehaviour
 
     public void OnFormationChanged()
     {
-        // Reset smoothed target to force immediate recalculation
+        // Smooth transition: blend from current position toward new formation target
+        // instead of snapping, to avoid visible jerks during reassignment
         if (FormationLeader != null)
         {
             Vector3 formationOffset = GetFormationOffset();
-            _smoothedFormationTarget = FormationLeader.position +
+            Vector3 newTarget = FormationLeader.position +
                 FormationLeader._cachedTransform.TransformDirection(formationOffset);
+
+            // If we already have a valid smoothed target, keep it — the normal
+            // formation steering will smoothly blend toward the new slot.
+            // Only snap if the smoothed target is uninitialized (at origin).
+            if (_smoothedFormationTarget.sqrMagnitude < 0.01f)
+            {
+                _smoothedFormationTarget = newTarget;
+            }
+            // Otherwise let CalculateFormationAcceleration's existing smoothing
+            // handle the transition naturally.
         }
     }
 

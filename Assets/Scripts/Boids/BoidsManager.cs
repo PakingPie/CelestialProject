@@ -242,6 +242,7 @@ public class BoidsManager : MonoBehaviour
         if (boid == null) return;
 
         bool wasLeader = (boid == _formationLeader);
+        bool wasSubFlockLeader = boid.IsSubFlockLeader;
 
         int index = boids.IndexOf(boid);
         _targetManager.UnregisterBoid(boid);
@@ -255,9 +256,17 @@ public class BoidsManager : MonoBehaviour
             _boidWeapons.Remove(weapon);
         }
 
+        // Clean from sub-flock list
+        for (int sf = _subFlocks.Count - 1; sf >= 0; sf--)
+        {
+            _subFlocks[sf].Remove(boid);
+            if (_subFlocks[sf].Count == 0)
+                _subFlocks.RemoveAt(sf);
+        }
+
         OnBoidRemoved?.Invoke(boid);
 
-        if (wasLeader || boids.Count > 0)
+        if (wasLeader || wasSubFlockLeader)
         {
             MarkFormationDirty();
         }
@@ -676,7 +685,21 @@ public class BoidsManager : MonoBehaviour
     private int CleanupDestroyedBoids()
     {
         bool leaderRemoved = false;
+        bool subFlockLeaderRemoved = false;
         int removedCount = 0;
+
+        // Check if any sub-flock leaders were destroyed before removing nulls
+        if (settings.useSubFlocks && _subFlocks.Count > 0)
+        {
+            for (int sf = 0; sf < _subFlocks.Count; sf++)
+            {
+                if (_subFlocks[sf].Count > 0 && _subFlocks[sf][0] == null)
+                {
+                    subFlockLeaderRemoved = true;
+                    break;
+                }
+            }
+        }
 
         for (int i = boids.Count - 1; i >= 0; i--)
         {
@@ -690,7 +713,18 @@ public class BoidsManager : MonoBehaviour
             }
         }
 
-        if (removedCount > 0 && (leaderRemoved || _formationDirty))
+        // Also clean nulls from sub-flock lists
+        if (removedCount > 0 && _subFlocks.Count > 0)
+        {
+            for (int sf = _subFlocks.Count - 1; sf >= 0; sf--)
+            {
+                _subFlocks[sf].RemoveAll(b => b == null);
+                if (_subFlocks[sf].Count == 0)
+                    _subFlocks.RemoveAt(sf);
+            }
+        }
+
+        if (removedCount > 0 && (leaderRemoved || subFlockLeaderRemoved || _formationDirty))
         {
             MarkFormationDirty();
         }
