@@ -38,19 +38,45 @@ public class BoidFollowCamera : MonoBehaviour
 
     public void SwitchToNextBoid()
     {
+        if (!EnsureManager()) return;
+
+        CurrentBoidIndex = (CurrentBoidIndex + 1) % BoidManager.BoidCount;
+        SkipNullBoids(1);
+    }
+
+    public void SwitchToPreviousBoid()
+    {
+        if (!EnsureManager()) return;
+
+        CurrentBoidIndex = (CurrentBoidIndex - 1 + BoidManager.BoidCount) % BoidManager.BoidCount;
+        SkipNullBoids(-1);
+    }
+
+    public void SwitchToBoid(int index)
+    {
+        if (!EnsureManager()) return;
+
+        if (index < 0 || index >= BoidManager.BoidCount) return;
+
+        CurrentBoidIndex = index;
+        if (BoidManager.Boids[CurrentBoidIndex] != null)
+            Target = BoidManager.Boids[CurrentBoidIndex];
+    }
+
+    private bool EnsureManager()
+    {
         if (BoidManager == null)
             BoidManager = FindFirstObjectByType<BoidsManager>();
 
-        if (BoidManager == null || BoidManager.BoidCount == 0)
-            return;
+        return BoidManager != null && BoidManager.BoidCount > 0;
+    }
 
-        CurrentBoidIndex = (CurrentBoidIndex + 1) % BoidManager.BoidCount;
-
-        // Skip null/destroyed boids
+    private void SkipNullBoids(int direction)
+    {
         int attempts = BoidManager.BoidCount;
         while (attempts > 0 && BoidManager.Boids[CurrentBoidIndex] == null)
         {
-            CurrentBoidIndex = (CurrentBoidIndex + 1) % BoidManager.BoidCount;
+            CurrentBoidIndex = (CurrentBoidIndex + direction + BoidManager.BoidCount) % BoidManager.BoidCount;
             attempts--;
         }
 

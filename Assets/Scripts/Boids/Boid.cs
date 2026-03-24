@@ -53,6 +53,8 @@ public class Boid : MonoBehaviour
     [HideInInspector] public Boid FormationLeader = null;
     [HideInInspector] public CombatMorale CurrentMorale = CombatMorale.Confident;
     [HideInInspector] public bool IsParentFormationTier = false; // true = sub-flock leader following parent formation
+    [HideInInspector] public bool IsSubFlockLeader = false;
+    [HideInInspector] public Vector3 SubFlockCenter;
     private float _combatTimer = 0f;
     private bool _combatLeashEngaged = false;
 
@@ -645,8 +647,12 @@ public class Boid : MonoBehaviour
     {
         if (_settings.useFormation && !IsInCombat)
         {
-            if (FormationIndex == 0)
+            if (FormationIndex == 0 && FormationLeader == null)
                 return CalculateLeaderAcceleration();
+
+            // Sub-flock leaders: leader-style AI + tether to parent formation slot
+            if (IsSubFlockLeader && IsParentFormationTier && FormationLeader != null)
+                return CalculateSubFlockLeaderAcceleration();
 
             if (FormationLeader != null && FormationIndex > 0)
                 return CalculateFormationAcceleration();
@@ -755,7 +761,20 @@ public class Boid : MonoBehaviour
         if (_targetManager == null)
             return;
 
-        if (!_targetManager.TryGetCombatAnchorPosition(this, _settings.combatAnchorMode, out Vector3 anchorPosition))
+        Vector3 anchorPosition;
+        bool hasAnchor;
+
+        // When sub-flocks are active, remap anchor modes to sub-flock scope
+        if (_settings.useSubFlocks)
+        {
+            hasAnchor = TryGetSubFlockAnchorPosition(out anchorPosition);
+        }
+        else
+        {
+            hasAnchor = _targetManager.TryGetCombatAnchorPosition(this, _settings.combatAnchorMode, out anchorPosition);
+        }
+
+        if (!hasAnchor)
             return;
 
         float slackRadius = Mathf.Max(0f, _settings.combatAnchorSlackRadius);
@@ -813,6 +832,33 @@ public class Boid : MonoBehaviour
         acceleration += SteerTowards(toSlot) * slotRetention;
     }
 
+    private bool TryGetSubFlockAnchorPosition(out Vector3 anchorPosition)
+    {
+        switch (_settings.combatAnchorMode)
+        {
+            case CombatAnchorMode.Leader:
+                // Anchor to sub-flock leader instead of flock leader
+                if (FormationLeader != null)
+                {
+                    anchorPosition = FormationLeader.position;
+                    return true;
+                }
+                break;
+
+            case CombatAnchorMode.FlockCenter:
+                // Use sub-flock center of mass instead of whole-flock center
+                anchorPosition = SubFlockCenter;
+                return true;
+
+            case CombatAnchorMode.CommandAnchor:
+                // Command anchor stays global — pass through to target manager
+                return _targetManager.TryGetCombatAnchorPosition(this, CombatAnchorMode.CommandAnchor, out anchorPosition);
+        }
+
+        anchorPosition = Vector3.zero;
+        return false;
+    }
+
     private Vector3 CalculateLeaderAcceleration()
     {
         if (_target != null)
@@ -828,6 +874,44 @@ public class Boid : MonoBehaviour
         }
 
         return GetWanderForce() * _settings.targetWeight;
+    }
+
+    private Vector3 CalculateSubFlockLeaderAcceleration()
+    {
+        // Leader-style AI: wander/chase/travel
+        Vector3 leaderAccel = CalculateLeaderAcceleration();
+
+        // Tether toward parent formation slot to keep sub-flocks in the general area
+        if (FormationLeader != null)
+        {
+            Vector3 formationOffset = GetFormationOffset();
+            Vector3 slotTarget = FormationLeader.position +
+                FormationLeader._cachedTransform.TransformDirection(formationOffset);
+
+            Vector3 toSlot = slotTarget - position;
+            float distToSlot = toSlot.magnitude;
+
+            // Gentle tether: only pulls when drifting far from the parent slot
+            float tetherStart = _settings.formationSpacing * 1.5f;
+            float tetherMax = _settings.formationSpacing * 4f;
+
+            if (distToSlot > tetherStart)
+            {
+                float urgency = Mathf.Clamp01((distToSlot - tetherStart) / (tetherMax - tetherStart));
+                // Blend: at max urgency, prioritize tether over leader AI
+                Vector3 tetherForce = SteerTowards(toSlot) * _settings.formationTightness * urgency * 0.5f;
+                leaderAccel += tetherForce;
+            }
+
+            // Match the flock leader's velocity loosely
+            Vector3 leaderVel = FormationLeader.Velocity;
+            if (leaderVel.sqrMagnitude > 0.01f)
+            {
+                leaderAccel += SteerTowards(leaderVel) * _settings.formationMatchSpeed * 0.3f;
+            }
+        }
+
+        return leaderAccel;
     }
 
     private Vector3 CalculateTravelAcceleration()

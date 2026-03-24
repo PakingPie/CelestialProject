@@ -331,6 +331,7 @@ public class BoidsManager : MonoBehaviour
         _formationLeader.FormationIndex = 0;
         _formationLeader.FormationLeader = null;
         _formationLeader.IsParentFormationTier = false;
+        _formationLeader.IsSubFlockLeader = false;
         _formationLeader.OnFormationChanged();
 
         for (int i = 1; i < boids.Count; i++)
@@ -338,6 +339,7 @@ public class BoidsManager : MonoBehaviour
             boids[i].FormationIndex = i;
             boids[i].FormationLeader = _formationLeader;
             boids[i].IsParentFormationTier = false;
+            boids[i].IsSubFlockLeader = false;
             boids[i].OnFormationChanged();
         }
     }
@@ -415,6 +417,7 @@ public class BoidsManager : MonoBehaviour
                 subFlockLeader.FormationIndex = 0;
                 subFlockLeader.FormationLeader = null;
                 subFlockLeader.IsParentFormationTier = false;
+                subFlockLeader.IsSubFlockLeader = true;
                 subFlockLeader.OnFormationChanged();
             }
             else
@@ -423,6 +426,7 @@ public class BoidsManager : MonoBehaviour
                 subFlockLeader.FormationIndex = sf;
                 subFlockLeader.FormationLeader = _formationLeader;
                 subFlockLeader.IsParentFormationTier = true;
+                subFlockLeader.IsSubFlockLeader = true;
                 subFlockLeader.OnFormationChanged();
             }
 
@@ -432,6 +436,7 @@ public class BoidsManager : MonoBehaviour
                 subFlock[j].FormationIndex = j;
                 subFlock[j].FormationLeader = subFlockLeader;
                 subFlock[j].IsParentFormationTier = false;
+                subFlock[j].IsSubFlockLeader = false;
                 subFlock[j].OnFormationChanged();
             }
         }
@@ -559,6 +564,35 @@ public class BoidsManager : MonoBehaviour
         else
         {
             _boidBuffer.GetData(_boidData, 0, 0, numBoids);
+        }
+
+        // Compute sub-flock centers (cheap: one pass over sub-flock lists)
+        if (settings.useSubFlocks && _subFlocks.Count > 0)
+        {
+            for (int sf = 0; sf < _subFlocks.Count; sf++)
+            {
+                var subFlock = _subFlocks[sf];
+                Vector3 center = Vector3.zero;
+                int valid = 0;
+
+                for (int j = 0; j < subFlock.Count; j++)
+                {
+                    if (subFlock[j] != null)
+                    {
+                        center += subFlock[j].position;
+                        valid++;
+                    }
+                }
+
+                if (valid > 0)
+                    center /= valid;
+
+                for (int j = 0; j < subFlock.Count; j++)
+                {
+                    if (subFlock[j] != null)
+                        subFlock[j].SubFlockCenter = center;
+                }
+            }
         }
 
         for (int i = 0; i < numBoids; i++)
