@@ -46,9 +46,14 @@ public class BoidsManager : MonoBehaviour
 
     private FormationType _lastFormationType;
     private bool _lastUseFormation;
+    private bool _lastUseSubFlocks;
+    private FormationType _lastSubFlockFormationType;
+    private int _lastPreferredSubFlockSize;
+    private float _lastSubFlockFormationSpacing;
 
     private List<WeaponBase> _boidWeapons = new List<WeaponBase>();
     private Boid _formationLeader = null;
+    private List<List<Boid>> _subFlocks = new List<List<Boid>>();
 
     private bool _wasAnyInCombat = false;
 
@@ -117,6 +122,10 @@ public class BoidsManager : MonoBehaviour
 
         _lastFormationType = settings.formationType;
         _lastUseFormation = settings.useFormation;
+        _lastUseSubFlocks = settings.useSubFlocks;
+        _lastSubFlockFormationType = settings.subFlockFormationType;
+        _lastPreferredSubFlockSize = settings.preferredSubFlockSize;
+        _lastSubFlockFormationSpacing = settings.subFlockFormationSpacing;
     }
 
     void OnDestroy()
@@ -293,6 +302,7 @@ public class BoidsManager : MonoBehaviour
     void AssignFormationPositions()
     {
         boids.RemoveAll(b => b == null);
+        _subFlocks.Clear();
 
         if (boids.Count == 0)
         {
@@ -302,19 +312,129 @@ public class BoidsManager : MonoBehaviour
         }
 
         _formationLeader = boids[0];
+
+        if (settings.useSubFlocks && boids.Count > 1)
+        {
+            AssignSubFlockFormations();
+        }
+        else
+        {
+            AssignFlatFormation();
+        }
+
+        _formationDirty = false;
+        OnFlockChanged?.Invoke();
+    }
+
+    private void AssignFlatFormation()
+    {
         _formationLeader.FormationIndex = 0;
         _formationLeader.FormationLeader = null;
+        _formationLeader.IsParentFormationTier = false;
         _formationLeader.OnFormationChanged();
 
         for (int i = 1; i < boids.Count; i++)
         {
             boids[i].FormationIndex = i;
             boids[i].FormationLeader = _formationLeader;
+            boids[i].IsParentFormationTier = false;
             boids[i].OnFormationChanged();
         }
+    }
 
-        _formationDirty = false;
-        OnFlockChanged?.Invoke();
+    private void AssignSubFlockFormations()
+    {
+        int totalBoids = boids.Count;
+        int preferred = Mathf.Clamp(settings.preferredSubFlockSize, settings.minSubFlockSize, settings.maxSubFlockSize);
+        int minSize = Mathf.Max(2, settings.minSubFlockSize);
+
+        // Determine sub-flock sizes
+        List<int> subFlockSizes = new List<int>();
+        int remaining = totalBoids;
+
+        while (remaining > 0)
+        {
+            if (remaining <= preferred)
+            {
+                // Last group: if too small, merge into previous sub-flock
+                if (subFlockSizes.Count > 0 && remaining < minSize)
+                {
+                    subFlockSizes[subFlockSizes.Count - 1] += remaining;
+                }
+                else
+                {
+                    subFlockSizes.Add(remaining);
+                }
+                remaining = 0;
+            }
+            else if (remaining - preferred < minSize && remaining - preferred > 0)
+            {
+                // Next chunk would leave a remainder too small — split evenly
+                int half1 = remaining / 2;
+                int half2 = remaining - half1;
+                subFlockSizes.Add(half1);
+                subFlockSizes.Add(half2);
+                remaining = 0;
+            }
+            else
+            {
+                subFlockSizes.Add(preferred);
+                remaining -= preferred;
+            }
+        }
+
+        // Clamp any oversized sub-flocks
+        for (int i = 0; i < subFlockSizes.Count; i++)
+        {
+            if (subFlockSizes[i] > settings.maxSubFlockSize)
+            {
+                subFlockSizes[i] = settings.maxSubFlockSize;
+            }
+        }
+
+        // Assign boids to sub-flocks
+        int boidIndex = 0;
+        for (int sf = 0; sf < subFlockSizes.Count; sf++)
+        {
+            int size = subFlockSizes[sf];
+            List<Boid> subFlock = new List<Boid>(size);
+
+            for (int j = 0; j < size && boidIndex < totalBoids; j++, boidIndex++)
+            {
+                subFlock.Add(boids[boidIndex]);
+            }
+
+            _subFlocks.Add(subFlock);
+
+            // Sub-flock leader
+            Boid subFlockLeader = subFlock[0];
+
+            if (sf == 0)
+            {
+                // First sub-flock leader IS the flock leader
+                subFlockLeader.FormationIndex = 0;
+                subFlockLeader.FormationLeader = null;
+                subFlockLeader.IsParentFormationTier = false;
+                subFlockLeader.OnFormationChanged();
+            }
+            else
+            {
+                // Other sub-flock leaders follow flock leader in parent formation
+                subFlockLeader.FormationIndex = sf;
+                subFlockLeader.FormationLeader = _formationLeader;
+                subFlockLeader.IsParentFormationTier = true;
+                subFlockLeader.OnFormationChanged();
+            }
+
+            // Sub-flock followers follow their sub-flock leader
+            for (int j = 1; j < subFlock.Count; j++)
+            {
+                subFlock[j].FormationIndex = j;
+                subFlock[j].FormationLeader = subFlockLeader;
+                subFlock[j].IsParentFormationTier = false;
+                subFlock[j].OnFormationChanged();
+            }
+        }
     }
 
     void Update()
@@ -458,10 +578,31 @@ public class BoidsManager : MonoBehaviour
             boids[i].UpdateBoid();
         }
 
-        if (settings.formationType != _lastFormationType || settings.useFormation != _lastUseFormation)
+        bool formationSettingChanged = settings.formationType != _lastFormationType
+            || settings.useFormation != _lastUseFormation
+            || settings.useSubFlocks != _lastUseSubFlocks
+            || settings.subFlockFormationType != _lastSubFlockFormationType
+            || settings.preferredSubFlockSize != _lastPreferredSubFlockSize
+            || !Mathf.Approximately(settings.subFlockFormationSpacing, _lastSubFlockFormationSpacing);
+
+        if (formationSettingChanged)
         {
+            // Detect changes that require full sub-flock reassignment
+            bool needsReassign = settings.useSubFlocks != _lastUseSubFlocks
+                || settings.formationType != _lastFormationType
+                || settings.preferredSubFlockSize != _lastPreferredSubFlockSize;
+
             _lastFormationType = settings.formationType;
             _lastUseFormation = settings.useFormation;
+            _lastUseSubFlocks = settings.useSubFlocks;
+            _lastSubFlockFormationType = settings.subFlockFormationType;
+            _lastPreferredSubFlockSize = settings.preferredSubFlockSize;
+            _lastSubFlockFormationSpacing = settings.subFlockFormationSpacing;
+
+            if (needsReassign)
+            {
+                MarkFormationDirty();
+            }
 
             foreach (var boid in boids)
             {
@@ -745,6 +886,8 @@ public class BoidsManager : MonoBehaviour
     public IReadOnlyList<Boid> Boids => boids;
     public Boid Leader => _formationLeader;
     public BoidFlockTargetManager TargetManager => _targetManager;
+    public int SubFlockCount => _subFlocks?.Count ?? 0;
+    public IReadOnlyList<List<Boid>> SubFlocks => _subFlocks;
 
     public struct BoidData
     {
@@ -777,14 +920,59 @@ public class BoidsManager : MonoBehaviour
     {
         if (boids == null) return;
 
-        for (int i = 0; i < boids.Count; i++)
+        if (_subFlocks != null && _subFlocks.Count > 1)
         {
-            if (boids[i] == null) continue;
+            // Sub-flock mode: color each sub-flock differently
+            Color[] subFlockColors = {
+                Color.cyan, Color.green, Color.magenta, Color.blue,
+                new Color(1f, 0.5f, 0f), new Color(0.5f, 0f, 1f),
+                new Color(0f, 1f, 0.5f), new Color(1f, 0f, 0.5f)
+            };
 
-            Gizmos.color = (i == 0) ? Color.yellow : Color.cyan;
-            Gizmos.DrawWireSphere(boids[i].position, 8f);
+            for (int sf = 0; sf < _subFlocks.Count; sf++)
+            {
+                Color sfColor = subFlockColors[sf % subFlockColors.Length];
 
-            UnityEditor.Handles.Label(boids[i].position + Vector3.up * 25f, $"#{i}");
+                for (int j = 0; j < _subFlocks[sf].Count; j++)
+                {
+                    Boid boid = _subFlocks[sf][j];
+                    if (boid == null) continue;
+
+                    bool isSubFlockLeader = (j == 0);
+
+                    Gizmos.color = isSubFlockLeader ? Color.yellow : sfColor;
+                    float radius = isSubFlockLeader ? 12f : 8f;
+                    Gizmos.DrawWireSphere(boid.position, radius);
+
+                    // Draw line to sub-flock leader
+                    if (!isSubFlockLeader && _subFlocks[sf][0] != null)
+                    {
+                        Gizmos.color = sfColor;
+                        Gizmos.DrawLine(boid.position, _subFlocks[sf][0].position);
+                    }
+
+                    UnityEditor.Handles.Label(boid.position + Vector3.up * 25f, $"SF{sf}#{j}");
+                }
+
+                // Draw line from sub-flock leader to flock leader
+                if (sf > 0 && _subFlocks[sf][0] != null && _formationLeader != null)
+                {
+                    Gizmos.color = Color.yellow;
+                    Gizmos.DrawLine(_subFlocks[sf][0].position, _formationLeader.position);
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < boids.Count; i++)
+            {
+                if (boids[i] == null) continue;
+
+                Gizmos.color = (i == 0) ? Color.yellow : Color.cyan;
+                Gizmos.DrawWireSphere(boids[i].position, 8f);
+
+                UnityEditor.Handles.Label(boids[i].position + Vector3.up * 25f, $"#{i}");
+            }
         }
     }
 #endif

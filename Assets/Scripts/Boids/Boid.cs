@@ -52,6 +52,7 @@ public class Boid : MonoBehaviour
     [HideInInspector] public int FormationIndex = 0;
     [HideInInspector] public Boid FormationLeader = null;
     [HideInInspector] public CombatMorale CurrentMorale = CombatMorale.Confident;
+    [HideInInspector] public bool IsParentFormationTier = false; // true = sub-flock leader following parent formation
     private float _combatTimer = 0f;
     private bool _combatLeashEngaged = false;
 
@@ -317,6 +318,11 @@ public class Boid : MonoBehaviour
 
     public Vector3 GetFormationOffset()
     {
+        if (_settings.useSubFlocks && !IsParentFormationTier)
+        {
+            // Sub-flock internal formation: use sub-flock formation type and tighter spacing
+            return CalculateFormationOffset(FormationIndex, _settings.subFlockFormationType, _settings.subFlockFormationSpacing);
+        }
         return CalculateFormationOffset(FormationIndex, _settings.formationType, _settings.formationSpacing);
     }
 

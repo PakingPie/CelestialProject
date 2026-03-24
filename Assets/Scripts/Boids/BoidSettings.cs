@@ -45,6 +45,20 @@ public class BoidSettings : ScriptableObject
     public float formationDeadZone = 10f;      // NEW
     public float formationUrgencyRange = 100f; // NEW
 
+    [Header("Sub-Flock Settings")]
+    [Tooltip("Split the flock into sub-flocks (flights/elements) that each maintain their own internal formation.")]
+    public bool useSubFlocks = false;
+    [Tooltip("Preferred number of boids per sub-flock.")]
+    [Range(2, 10)] public int preferredSubFlockSize = 4;
+    [Tooltip("Minimum sub-flock size. Remainders below this merge into the last sub-flock.")]
+    [Range(2, 10)] public int minSubFlockSize = 2;
+    [Tooltip("Maximum sub-flock size.")]
+    [Range(2, 10)] public int maxSubFlockSize = 10;
+    [Tooltip("Formation pattern used within each sub-flock.")]
+    public FormationType subFlockFormationType = FormationType.V;
+    [Tooltip("Spacing between boids inside a sub-flock (typically tighter than parent spacing).")]
+    public float subFlockFormationSpacing = 60f;
+
     [Header("Combat Behavior")]
     public float combatCohesionMultiplier = 0.2f;
     public float combatSeparationMultiplier = 2f;
