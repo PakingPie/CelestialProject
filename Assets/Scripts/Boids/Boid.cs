@@ -861,19 +861,56 @@ public class Boid : MonoBehaviour
 
     private Vector3 CalculateLeaderAcceleration()
     {
+        Vector3 acceleration = Vector3.zero;
+
         if (_target != null)
         {
             Vector3 chaseAcceleration = GetTargetChaseAcceleration();
             if (chaseAcceleration != Vector3.zero)
-                return chaseAcceleration;
+            {
+                acceleration = chaseAcceleration;
+                ApplyLeaderSpeedThrottle();
+                return acceleration;
+            }
         }
 
         if (_postCombatTimer < PostCombatSteadyTime)
         {
-            return SteerTowards(_lastCombatHeading) * _settings.targetWeight * 0.5f;
+            acceleration = SteerTowards(_lastCombatHeading) * _settings.targetWeight * 0.5f;
+            ApplyLeaderSpeedThrottle();
+            return acceleration;
         }
 
-        return GetWanderForce() * _settings.targetWeight;
+        acceleration = GetWanderForce() * _settings.targetWeight;
+        ApplyLeaderSpeedThrottle();
+        return acceleration;
+    }
+
+    private void ApplyLeaderSpeedThrottle()
+    {
+        if (!_settings.useFormation || numPerceivedFlockmates <= 0)
+            return;
+
+        // Use flock center from compute shader to measure how far followers are lagging
+        Vector3 flockCenter = _smoothedFlockCenter / numPerceivedFlockmates;
+        float distToFlock = Vector3.Distance(position, flockCenter);
+
+        // Start throttling when followers are more than 1 spacing behind
+        float throttleStart = _settings.formationSpacing * 1.5f;
+        float throttleMax = _settings.formationSpacing * 4f;
+
+        if (distToFlock > throttleStart)
+        {
+            float throttle = Mathf.Clamp01((distToFlock - throttleStart) / (throttleMax - throttleStart));
+            float minSpeedRatio = 0.4f;
+            float targetSpeed = Mathf.Lerp(_settings.maxSpeed, _settings.minSpeed * minSpeedRatio, throttle);
+            float currentSpeed = _velocity.magnitude;
+
+            if (currentSpeed > targetSpeed)
+            {
+                _velocity = _velocity.normalized * Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime * SpeedSmoothSpeed);
+            }
+        }
     }
 
     private Vector3 CalculateSubFlockLeaderAcceleration()
