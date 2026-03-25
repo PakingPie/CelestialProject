@@ -319,8 +319,6 @@ public class BoidFlockTargetManager : MonoBehaviour
                 Target = target,
                 AssignedBoidCount = 0
             };
-            info.CachedWeapons = target.GetComponentsInChildren<WeaponBase>();
-            info.CachedVehicle = target.GetComponent<VehicleBase>();
             _knownTargets[target] = info;
         }
 
@@ -371,27 +369,24 @@ public class BoidFlockTargetManager : MonoBehaviour
             threat += (dot + 1f) * 0.5f * _angleWeight;
         }
 
-        var targetWeapons = info.CachedWeapons;
-        if (targetWeapons != null)
+        var targetWeapons = info.Target.GetComponentsInChildren<WeaponBase>();
+        foreach (var weapon in targetWeapons)
         {
-            foreach (var weapon in targetWeapons)
+            if (weapon.Targeted != null)
             {
-                if (weapon != null && weapon.Targeted != null)
+                for (int i = 0; i < _managedBoids.Count; i++)
                 {
-                    for (int i = 0; i < _managedBoids.Count; i++)
+                    Boid boid = _managedBoids[i];
+                    if (boid != null && weapon.Targeted == boid.transform)
                     {
-                        Boid boid = _managedBoids[i];
-                        if (boid != null && weapon.Targeted == boid.transform)
-                        {
-                            threat += _targetingUsWeight;
-                            break;
-                        }
+                        threat += _targetingUsWeight;
+                        break;
                     }
                 }
             }
         }
 
-        var vehicleInfo = info.CachedVehicle;
+        var vehicleInfo = info.Target.GetComponent<VehicleBase>();
         if (vehicleInfo != null)
         {
             float healthPercent = vehicleInfo.HitPoints / (float)vehicleInfo.MaxHitPoints;

@@ -562,10 +562,10 @@ public class BoidsManager : MonoBehaviour
                     var gpuData = request.GetData<BoidData>();
                     
                     // Only copy up to the minimum of GPU buffer size and current _boidData size
-                    int copyCount = Mathf.Min(_readbackBoidCount, Mathf.Min(gpuData.Length, _boidData.Length));
+                    int copyCount = Mathf.Min(_readbackBoidCount, _boidData.Length);
                     if (copyCount > 0)
                     {
-                        Unity.Collections.NativeArray<BoidData>.Copy(gpuData, 0, _boidData, 0, copyCount);
+                        System.Array.Copy(gpuData.ToArray(), 0, _boidData, 0, copyCount);
                     }
                 });
             }
