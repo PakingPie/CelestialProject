@@ -9,6 +9,8 @@ public class BoidTargetInfo
     public float LastSeenTime;
     public Vector3 LastKnownPosition;
     public Vector3 EstimatedVelocity;
+    public WeaponBase[] CachedWeapons;
+    public VehicleBase CachedVehicle;
 
     public bool IsValid
     {

@@ -54,6 +54,11 @@ public class EnemyVehicle : VehicleBase
     private bool _smokeEffectInitialized = false;
     private Coroutine _deathRoutine;
     private Faction _deathFaction = Faction.None;
+    private bool _hitBarVisible = false;
+    private Material _healthBarMat;
+    private Material _armorBarMat;
+    private Material _shieldBarMat;
+    private Material _shieldEffectMat;
 
     void OnEnable()
     {
@@ -90,38 +95,43 @@ public class EnemyVehicle : VehicleBase
 
         if (HealthBar)
         {
-            HealthBar.GetComponent<Image>().material = new Material(HealthBarShader);
-            HealthBar.GetComponent<Image>().material.SetInt("_MaxHitPoints", MaxHitPoints);
-            HealthBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", HitPoints);
-            HealthBar.GetComponent<Image>().material.SetVector("_Color1", Color.green);
-            HealthBar.GetComponent<Image>().material.SetVector("_Color2", Color.yellow);
-            HealthBar.GetComponent<Image>().material.SetVector("_Color3", Color.red);
+            _healthBarMat = new Material(HealthBarShader);
+            HealthBar.material = _healthBarMat;
+            _healthBarMat.SetInt("_MaxHitPoints", MaxHitPoints);
+            _healthBarMat.SetInt("_CurrentHitPoints", HitPoints);
+            _healthBarMat.SetVector("_Color1", Color.green);
+            _healthBarMat.SetVector("_Color2", Color.yellow);
+            _healthBarMat.SetVector("_Color3", Color.red);
         }
 
         if (ArmorBar)
         {
-            ArmorBar.GetComponent<Image>().material = new Material(HealthBarShader);
-            ArmorBar.GetComponent<Image>().material.SetInt("_MaxHitPoints", MaxArmorPoints);
-            ArmorBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ArmorPoints);
-            ArmorBar.GetComponent<Image>().material.SetVector("_Color1", Color.yellow);
-            ArmorBar.GetComponent<Image>().material.SetVector("_Color2", Color.yellow);
-            ArmorBar.GetComponent<Image>().material.SetVector("_Color3", Color.yellow);
+            _armorBarMat = new Material(HealthBarShader);
+            ArmorBar.material = _armorBarMat;
+            _armorBarMat.SetInt("_MaxHitPoints", MaxArmorPoints);
+            _armorBarMat.SetInt("_CurrentHitPoints", ArmorPoints);
+            _armorBarMat.SetVector("_Color1", Color.yellow);
+            _armorBarMat.SetVector("_Color2", Color.yellow);
+            _armorBarMat.SetVector("_Color3", Color.yellow);
         }
 
         if (ShieldBar)
         {
-            ShieldBar.GetComponent<Image>().material = new Material(HealthBarShader);
-            ShieldBar.GetComponent<Image>().material.SetInt("_MaxHitPoints", MaxShieldPoints);
-            ShieldBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ShieldPoints);
-            ShieldBar.GetComponent<Image>().material.SetVector("_Color1", Color.cyan);
-            ShieldBar.GetComponent<Image>().material.SetVector("_Color2", Color.cyan);
-            ShieldBar.GetComponent<Image>().material.SetVector("_Color3", Color.cyan);
+            _shieldBarMat = new Material(HealthBarShader);
+            ShieldBar.material = _shieldBarMat;
+            _shieldBarMat.SetInt("_MaxHitPoints", MaxShieldPoints);
+            _shieldBarMat.SetInt("_CurrentHitPoints", ShieldPoints);
+            _shieldBarMat.SetVector("_Color1", Color.cyan);
+            _shieldBarMat.SetVector("_Color2", Color.cyan);
+            _shieldBarMat.SetVector("_Color3", Color.cyan);
         }
 
         if (ShieldEffect)
         {
-            ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial = new Material(EnergyShieldShader);
-            ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", 1.0f);
+            var renderer = ShieldEffect.GetComponent<MeshRenderer>();
+            _shieldEffectMat = new Material(EnergyShieldShader);
+            renderer.sharedMaterial = _shieldEffectMat;
+            _shieldEffectMat.SetFloat("_Strength", 1.0f);
         }
 
         if (!_smokeEffectInitialized && DamagedSmokeEffect != null && DamagedPoint != null)
@@ -186,23 +196,23 @@ public class EnemyVehicle : VehicleBase
 
     public override void RestoreHitPoints()
     {
-        if (HealthBar != null)
-            RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer, 0.1f, HealthBar.GetComponent<Image>().material, "_CurrentHitPoints");
+        if (_healthBarMat != null)
+            RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer, 0.1f, _healthBarMat, "_CurrentHitPoints");
         else
             RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer);
     }
     public override void RestoreArmor()
     {
-        if (ArmorBar != null)
-            RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer, 0.1f, ArmorBar.GetComponent<Image>().material, "_CurrentHitPoints");
+        if (_armorBarMat != null)
+            RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer, 0.1f, _armorBarMat, "_CurrentHitPoints");
         else
             RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer);
 
     }
     public override void RestoreShield()
     {
-        if (ShieldBar != null)
-            RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer, 0.1f, ShieldBar.GetComponent<Image>().material, "_CurrentHitPoints", true);
+        if (_shieldBarMat != null)
+            RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer, 0.1f, _shieldBarMat, "_CurrentHitPoints", true);
         else
             RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer);
     }
@@ -216,9 +226,9 @@ public class EnemyVehicle : VehicleBase
                 currentAmount = maxAmount;
 
             barMat.SetInt(matKeyword, currentAmount);
-            if (isShield)
+            if (isShield && _shieldEffectMat != null)
             {
-                ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", currentAmount / (float)maxAmount);
+                _shieldEffectMat.SetFloat("_Strength", currentAmount / (float)maxAmount);
             }
             regenTimer = 0f;
         }
@@ -233,9 +243,9 @@ public class EnemyVehicle : VehicleBase
             if (currentAmount > maxAmount)
                 currentAmount = maxAmount;
 
-            if (isShield)
+            if (isShield && _shieldEffectMat != null)
             {
-                ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", currentAmount / (float)maxAmount);
+                _shieldEffectMat.SetFloat("_Strength", currentAmount / (float)maxAmount);
             }
             regenTimer = 0f;
         }
@@ -274,11 +284,11 @@ public class EnemyVehicle : VehicleBase
 
         HitPoints -= damage;
         // Debug.Log($"EnemyVehicle took {damage} damage, remaining HP: {HitPoints}");
-        if (HealthBar) HealthBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", HitPoints);
-        if (ArmorBar) ArmorBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ArmorPoints);
-        if (ShieldBar) ShieldBar.GetComponent<Image>().material.SetInt("_CurrentHitPoints", ShieldPoints);
+        if (_healthBarMat) _healthBarMat.SetInt("_CurrentHitPoints", HitPoints);
+        if (_armorBarMat) _armorBarMat.SetInt("_CurrentHitPoints", ArmorPoints);
+        if (_shieldBarMat) _shieldBarMat.SetInt("_CurrentHitPoints", ShieldPoints);
 
-        if (ShieldEffect) ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", ShieldPoints / (float)MaxShieldPoints);
+        if (_shieldEffectMat) _shieldEffectMat.SetFloat("_Strength", ShieldPoints / (float)MaxShieldPoints);
 
         if (HitPoints <= 0)
         {
@@ -463,6 +473,8 @@ public class EnemyVehicle : VehicleBase
 
     public void EnableHitpointBar(bool enable)
     {
+        if (_hitBarVisible == enable) return;
+        _hitBarVisible = enable;
         if (HitpointBarCanvas)
             HitpointBarCanvas.SetActive(enable);
     }

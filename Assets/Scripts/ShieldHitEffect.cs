@@ -95,6 +95,7 @@ public class ShieldHitEffect : MonoBehaviour
         _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
 
         _isInitialized = true;
+        enabled = false;
     }
 
     public void ClearAll()
@@ -133,6 +134,7 @@ public class ShieldHitEffect : MonoBehaviour
         });
 
         _forceClearTimer = 0f;
+        enabled = true;
     }
 
 
@@ -150,6 +152,7 @@ public class ShieldHitEffect : MonoBehaviour
                 {
                     Graphics.Blit(_blackTex, _cumulativeRT);
                 }
+                enabled = false;
                 return;
             }
         }
