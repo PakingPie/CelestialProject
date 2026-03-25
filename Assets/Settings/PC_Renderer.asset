@@ -86,7 +86,8 @@ MonoBehaviour:
   - {fileID: -3296296132177451196}
   - {fileID: 4346526537041776403}
   - {fileID: -4224788479617538315}
-  m_RendererFeatureMap: ad6b866f10d7b46c9e21359d1fbcd53744a711df213441d2130f2f47dbf6513cf5e63bfd42895ec5
+  - {fileID: 2911522591083733574}
+  m_RendererFeatureMap: ad6b866f10d7b46c9e21359d1fbcd53744a711df213441d2130f2f47dbf6513cf5e63bfd42895ec5462212e55ece6728
   m_UseNativeRenderPass: 1
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
@@ -115,6 +116,34 @@ MonoBehaviour:
   m_DepthTextureFormat: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 0
+--- !u!114 &2911522591083733574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a6eb460db188cb4993ad9fc221e3ec2, type: 3}
+  m_Name: PCSSRendererFeature
+  m_EditorClassIdentifier: Assembly-CSharp::PCSSRendererFeature
+  m_Active: 1
+  resolution: 4096
+  customShadowResolution: 1
+  blockerSampleCount: 64
+  pcfSampleCount: 64
+  noiseTexture: {fileID: 2800000, guid: faac31ff95d9d724186a346657948a84, type: 3}
+  softness: 7.5
+  softnessFalloff: 1
+  maxStaticGradientBias: 0
+  blockerGradientBias: 0
+  pcfGradientBias: 1
+  cascadeBlendDistance: 0
+  supportOrthographicProjection: 0
+  format: 14
+  filterMode: 1
+  pcssShader: {fileID: 4800000, guid: a18eec6afb1fcbf47b4dbf2fda9f27f2, type: 3}
 --- !u!114 &4023328686092919198
 MonoBehaviour:
   m_ObjectHideFlags: 0
