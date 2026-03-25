@@ -222,6 +222,11 @@ public static class LeadCalculator
         if (playerShip != null)
             return playerShip.Velocity;
 
+        // Try AAMissile
+        var missile = target.GetComponentInParent<AAMissile>();
+        if (missile != null)
+            return missile.Velocity;
+
         return Vector3.zero;
     }
 }

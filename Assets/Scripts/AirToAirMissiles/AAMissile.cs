@@ -117,6 +117,7 @@ public class AAMissile : MonoBehaviour
 
     public bool MissileLaunched { get { return isLaunched; } }
     public bool MotorActive { get { return motorActive; } }
+    public Vector3 Velocity => transform.forward * missileSpeed + _externalVelocity;
 
     /// <summary>Adds an external velocity impulse (e.g. from black hole gravity). Accumulates each frame.</summary>
     public void AddExternalVelocity(Vector3 deltaV) { _externalVelocity += deltaV; }
