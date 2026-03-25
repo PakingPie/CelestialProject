@@ -226,9 +226,9 @@ public class EnemyVehicle : VehicleBase
                 currentAmount = maxAmount;
 
             barMat.SetInt(matKeyword, currentAmount);
-            if (isShield)
+            if (isShield && _shieldBarMat != null)
             {
-                ShieldEffect.GetComponent<MeshRenderer>().sharedMaterial.SetFloat("_Strength", currentAmount / (float)maxAmount);
+                _shieldEffectMat.SetFloat("_Strength", currentAmount / (float)maxAmount);
             }
             regenTimer = 0f;
         }
