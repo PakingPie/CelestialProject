@@ -959,18 +959,18 @@ public class BoidFlockTargetManager : MonoBehaviour
             Gizmos.DrawLine(transform.position, _priorityTarget.position);
         }
 
-        // Known targets
-        if (_knownTargets != null)
-        {
-            foreach (var kvp in _knownTargets)
-            {
-                if (kvp.Value.IsValid)
-                {
-                    Gizmos.color = Color.Lerp(Color.yellow, Color.red, kvp.Value.ThreatLevel / 5f);
-                    Gizmos.DrawWireSphere(kvp.Value.LastKnownPosition, 2f);
-                    Gizmos.DrawLine(transform.position, kvp.Value.LastKnownPosition);
-                }
-            }
-        }
+        // // Known targets
+        // if (_knownTargets != null)
+        // {
+        //     foreach (var kvp in _knownTargets)
+        //     {
+        //         if (kvp.Value.IsValid)
+        //         {
+        //             Gizmos.color = Color.Lerp(Color.yellow, Color.red, kvp.Value.ThreatLevel / 5f);
+        //             Gizmos.DrawWireSphere(kvp.Value.LastKnownPosition, 2f);
+        //             Gizmos.DrawLine(transform.position, kvp.Value.LastKnownPosition);
+        //         }
+        //     }
+        // }
     }
 }
