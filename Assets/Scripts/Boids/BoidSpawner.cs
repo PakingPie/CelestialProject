@@ -59,6 +59,16 @@ public class BoidSpawner : MonoBehaviour
     [Header("Attack Behavior")]
     public BoidAttackProfile attackProfile;
 
+    [System.Serializable]
+    public struct TypeAttackProfileEntry
+    {
+        public GlobalHelper.VehicleType vehicleType;
+        public BoidAttackProfile profile;
+    }
+
+    [Tooltip("Per-vehicle-type attack profiles. Falls back to attackProfile if no match.")]
+    public List<TypeAttackProfileEntry> typeAttackProfiles = new List<TypeAttackProfileEntry>();
+
     [Header("Debug")]
     public GizmoType showSpawnRegion;
 
@@ -294,12 +304,33 @@ public class BoidSpawner : MonoBehaviour
             boid.SetInitialVelocity(initialVelocity);
         }
 
-        if (attackProfile != null)
+        if (attackProfile != null || typeAttackProfiles.Count > 0)
         {
             var attackBehavior = boid.GetComponent<BoidAttackBehavior>();
             if (attackBehavior == null)
                 attackBehavior = boid.gameObject.AddComponent<BoidAttackBehavior>();
-            attackBehavior.SetProfile(attackProfile);
+
+            // Try per-type profile first
+            BoidAttackProfile selectedProfile = null;
+            var vehicle = boid.GetComponent<VehicleBase>();
+            if (vehicle != null && typeAttackProfiles.Count > 0)
+            {
+                var vType = vehicle.VehicleType;
+                for (int p = 0; p < typeAttackProfiles.Count; p++)
+                {
+                    if (typeAttackProfiles[p].vehicleType == vType)
+                    {
+                        selectedProfile = typeAttackProfiles[p].profile;
+                        break;
+                    }
+                }
+            }
+
+            if (selectedProfile == null)
+                selectedProfile = attackProfile;
+
+            if (selectedProfile != null)
+                attackBehavior.SetProfile(selectedProfile);
         }
 
         OnBoidSpawned?.Invoke(boid);

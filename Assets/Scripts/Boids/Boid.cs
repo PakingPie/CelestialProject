@@ -80,6 +80,12 @@ public class Boid : MonoBehaviour
     private const float WanderRadius = 2500f;
     private const float WanderInterval = 60f;
 
+    // Ship type identity (cached from VehicleBase at init)
+    private GlobalHelper.VehicleType _shipClass = GlobalHelper.VehicleType.Fighter;
+    public GlobalHelper.VehicleType ShipClass => _shipClass;
+    public GlobalHelper.ShipSizeTier SizeTier => GlobalHelper.GetSizeTier(_shipClass);
+    public GlobalHelper.FormationZone FormationZone => GlobalHelper.GetFormationZone(_shipClass);
+
     public BoidSettings Settings => _settings;
     public Vector3 Velocity => _velocity;
     public Transform CurrentTarget => _target;
@@ -132,6 +138,11 @@ public class Boid : MonoBehaviour
         _settings = settings;
         _fallbackTarget = fallbackTarget;  // Store the fallback separately
         _target = fallbackTarget;
+
+        // Cache ship type from VehicleBase (one-time lookup)
+        var vehicle = GetComponent<VehicleBase>();
+        if (vehicle != null)
+            _shipClass = vehicle.VehicleType;
 
         position = _cachedTransform.position;
         forward = _cachedTransform.forward;
@@ -320,12 +331,30 @@ public class Boid : MonoBehaviour
 
     public Vector3 GetFormationOffset()
     {
+        float spacingMultiplier = GetSizeTierSpacingMultiplier();
+
         if (_settings.useSubFlocks && !IsParentFormationTier)
         {
             // Sub-flock internal formation: use sub-flock formation type and tighter spacing
-            return CalculateFormationOffset(FormationIndex, _settings.subFlockFormationType, _settings.subFlockFormationSpacing);
+            return CalculateFormationOffset(FormationIndex, _settings.subFlockFormationType,
+                _settings.subFlockFormationSpacing * spacingMultiplier);
         }
-        return CalculateFormationOffset(FormationIndex, _settings.formationType, _settings.formationSpacing);
+        return CalculateFormationOffset(FormationIndex, _settings.formationType,
+            _settings.formationSpacing * spacingMultiplier);
+    }
+
+    /// <summary>
+    /// Returns the spacing multiplier for this boid based on its ship size tier.
+    /// </summary>
+    private float GetSizeTierSpacingMultiplier()
+    {
+        if (_settings == null) return 1f;
+        switch (SizeTier)
+        {
+            case GlobalHelper.ShipSizeTier.Large:  return _settings.capitalSpacingMultiplier;
+            case GlobalHelper.ShipSizeTier.Medium: return _settings.escortSpacingMultiplier;
+            default:                               return 1f;
+        }
     }
 
     private Vector3 CalculateFormationOffset(int index, FormationType type, float spacing)

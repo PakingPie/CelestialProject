@@ -45,6 +45,12 @@ public class BoidSettings : ScriptableObject
     public float formationDeadZone = 10f;      // NEW
     public float formationUrgencyRange = 100f; // NEW
 
+    [Header("Mixed Formation Spacing")]
+    [Tooltip("Spacing multiplier for Large ships (Cruiser, Battleship, Carrier, Station, Platform).")]
+    public float capitalSpacingMultiplier = 2.0f;
+    [Tooltip("Spacing multiplier for Medium ships (Frigate, Destroyer).")]
+    public float escortSpacingMultiplier = 1.5f;
+
     [Header("Sub-Flock Settings")]
     [Tooltip("Split the flock into sub-flocks (flights/elements) that each maintain their own internal formation.")]
     public bool useSubFlocks = false;

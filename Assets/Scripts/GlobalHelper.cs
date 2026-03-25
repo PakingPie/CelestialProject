@@ -76,6 +76,79 @@ public static class GlobalHelper
 
     public static string[] FactionNames = { "Player", "Ally", "Foe", "Neutral" };
 
+    // ── Ship classification helpers ──────────────────────────────────────
+
+    public enum ShipSizeTier { Small, Medium, Large }
+
+    public enum FormationZone { Screen, Escort, Core }
+
+    public static ShipSizeTier GetSizeTier(VehicleType type)
+    {
+        switch (type)
+        {
+            case VehicleType.Missile:
+            case VehicleType.Fighter:
+            case VehicleType.Bomber:
+            case VehicleType.Corvette:
+                return ShipSizeTier.Small;
+
+            case VehicleType.Frigate:
+            case VehicleType.Destroyer:
+                return ShipSizeTier.Medium;
+
+            default: // Cruiser, Battleship, Carrier, Station, Platform
+                return ShipSizeTier.Large;
+        }
+    }
+
+    public static FormationZone GetFormationZone(VehicleType type)
+    {
+        switch (type)
+        {
+            case VehicleType.Missile:
+            case VehicleType.Fighter:
+            case VehicleType.Bomber:
+                return FormationZone.Screen;
+
+            case VehicleType.Corvette:
+            case VehicleType.Frigate:
+            case VehicleType.Destroyer:
+                return FormationZone.Escort;
+
+            default: // Cruiser, Battleship, Carrier, Station, Platform
+                return FormationZone.Core;
+        }
+    }
+
+    /// <summary>
+    /// Returns a formation sort priority (lower = closer to leader / center).
+    /// Core ships sort first, then Escort, then Screen.
+    /// Within each zone, higher VehicleType int values sort first (Carrier > Battleship > Cruiser, etc).
+    /// </summary>
+    public static int GetFormationSortPriority(VehicleType type)
+    {
+        FormationZone zone = GetFormationZone(type);
+        int zonePriority;
+        switch (zone)
+        {
+            case FormationZone.Core:   zonePriority = 0;   break;
+            case FormationZone.Escort: zonePriority = 100; break;
+            default:                   zonePriority = 200; break;
+        }
+        // Within zone, higher enum value = higher priority ship → should sort first → subtract
+        return zonePriority - (int)type;
+    }
+
+    public static float GetSizeTierMultiplier(ShipSizeTier tier)
+    {
+        switch (tier)
+        {
+            case ShipSizeTier.Large:  return 2.0f;
+            case ShipSizeTier.Medium: return 1.5f;
+            default:                  return 1.0f;
+        }
+    }
+
     // Reusable list to avoid allocations
     private static List<VehicleBase> _tempVehicles = new List<VehicleBase>(500);
     private static List<GameObject> _tempGameObjects = new List<GameObject>(500);

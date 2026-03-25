@@ -23,6 +23,8 @@ public class BoidsManager : MonoBehaviour
 
     [Header("Target Management")]
     [SerializeField] private BoidFlockTargetManager _targetManager;
+    [Tooltip("Optional priority matrix for per-type target preference. Forwarded to the target manager.")]
+    [SerializeField] private TargetPriorityMatrix _targetPriorityMatrix;
 
     [Header("Performance")]
     [Tooltip("Use async GPU readback to avoid CPU stall. Uses previous frame data if not ready.")]
@@ -88,6 +90,14 @@ public class BoidsManager : MonoBehaviour
     public System.Action<Boid> OnBoidRemoved;
     public System.Action OnFlockChanged;
 
+    // Fleet coordination (opt-in)
+    private FleetController _fleet;
+    public FleetController Fleet
+    {
+        get => _fleet;
+        set => _fleet = value;
+    }
+
     void Start()
     {
         if (_targetManager == null)
@@ -96,6 +106,8 @@ public class BoidsManager : MonoBehaviour
         }
 
         _targetManager.Initialize(_flockId, _team, _detectionRadius, _targetTags, _ignoreTags);
+        if (_targetPriorityMatrix != null)
+            _targetManager.SetTargetPriorityMatrix(_targetPriorityMatrix);
         _targetManager.SetCommandAnchor(target);
 
         boids = new List<Boid>();
@@ -320,6 +332,10 @@ public class BoidsManager : MonoBehaviour
             return;
         }
 
+        // Sort boids by formation priority: Core → Escort → Screen,
+        // heaviest ship first within each zone.
+        SortBoidsByFormationPriority();
+
         _formationLeader = boids[0];
 
         if (settings.useSubFlocks && boids.Count > 1)
@@ -333,6 +349,44 @@ public class BoidsManager : MonoBehaviour
 
         _formationDirty = false;
         OnFlockChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Stable-sort boids so Core ships come first, then Escort, then Screen.
+    /// Within each zone, heavier ship types sort first (Carrier > Battleship > ...).
+    /// </summary>
+    private void SortBoidsByFormationPriority()
+    {
+        // Stable sort: equal-priority boids keep their registration order.
+        boids.Sort((a, b) =>
+        {
+            int pa = GlobalHelper.GetFormationSortPriority(a.ShipClass);
+            int pb = GlobalHelper.GetFormationSortPriority(b.ShipClass);
+            return pa.CompareTo(pb);
+        });
+
+        // Keep _boidVehicles in sync with the sorted boids list
+        SyncVehicleListToSortedBoids();
+    }
+
+    private void SyncVehicleListToSortedBoids()
+    {
+        // Rebuild _boidVehicles to match new boid order
+        var oldVehicles = new Dictionary<Boid, VehicleBase>(boids.Count);
+        for (int i = 0; i < boids.Count && i < _boidVehicles.Count; i++)
+        {
+            if (boids[i] != null)
+                oldVehicles[boids[i]] = _boidVehicles[i];
+        }
+
+        _boidVehicles.Clear();
+        for (int i = 0; i < boids.Count; i++)
+        {
+            if (oldVehicles.TryGetValue(boids[i], out var v))
+                _boidVehicles.Add(v);
+            else
+                _boidVehicles.Add(null);
+        }
     }
 
     private void AssignFlatFormation()
@@ -356,69 +410,50 @@ public class BoidsManager : MonoBehaviour
     private void AssignSubFlockFormations()
     {
         int totalBoids = boids.Count;
+
+        // ── Group boids by FormationZone (type-homogeneous sub-flocks) ──
+        // Boids are already sorted Core → Escort → Screen by SortBoidsByFormationPriority().
+        // Split into contiguous runs by zone, then subdivide large zones into preferred-size chunks.
+        List<List<Boid>> zoneGroups = new List<List<Boid>>(3);
+        List<Boid> currentGroup = null;
+        GlobalHelper.FormationZone currentZone = (GlobalHelper.FormationZone)(-1);
+
+        for (int i = 0; i < totalBoids; i++)
+        {
+            var zone = boids[i].FormationZone;
+            if (currentGroup == null || zone != currentZone)
+            {
+                currentGroup = new List<Boid>();
+                zoneGroups.Add(currentGroup);
+                currentZone = zone;
+            }
+            currentGroup.Add(boids[i]);
+        }
+
+        // Subdivide each zone group into preferred-size sub-flocks
         int preferred = Mathf.Clamp(settings.preferredSubFlockSize, settings.minSubFlockSize, settings.maxSubFlockSize);
         int minSize = Mathf.Max(2, settings.minSubFlockSize);
+        int maxSize = settings.maxSubFlockSize;
 
-        // Determine sub-flock sizes
-        List<int> subFlockSizes = new List<int>();
-        int remaining = totalBoids;
-
-        while (remaining > 0)
+        List<List<Boid>> finalSubFlocks = new List<List<Boid>>();
+        for (int g = 0; g < zoneGroups.Count; g++)
         {
-            if (remaining <= preferred)
-            {
-                // Last group: if too small, merge into previous sub-flock
-                if (subFlockSizes.Count > 0 && remaining < minSize)
-                {
-                    subFlockSizes[subFlockSizes.Count - 1] += remaining;
-                }
-                else
-                {
-                    subFlockSizes.Add(remaining);
-                }
-                remaining = 0;
-            }
-            else if (remaining - preferred < minSize && remaining - preferred > 0)
-            {
-                // Next chunk would leave a remainder too small — split evenly
-                int half1 = remaining / 2;
-                int half2 = remaining - half1;
-                subFlockSizes.Add(half1);
-                subFlockSizes.Add(half2);
-                remaining = 0;
-            }
-            else
-            {
-                subFlockSizes.Add(preferred);
-                remaining -= preferred;
-            }
+            SubdivideIntoSubFlocks(zoneGroups[g], preferred, minSize, maxSize, finalSubFlocks);
         }
 
-        // Clamp any oversized sub-flocks
-        for (int i = 0; i < subFlockSizes.Count; i++)
+        // If subdivision produced no groups (shouldn't happen), fall back to flat
+        if (finalSubFlocks.Count == 0)
         {
-            if (subFlockSizes[i] > settings.maxSubFlockSize)
-            {
-                subFlockSizes[i] = settings.maxSubFlockSize;
-            }
+            AssignFlatFormation();
+            return;
         }
 
-        // Assign boids to sub-flocks
-        int boidIndex = 0;
-        for (int sf = 0; sf < subFlockSizes.Count; sf++)
+        // Assign formation roles within each sub-flock
+        for (int sf = 0; sf < finalSubFlocks.Count; sf++)
         {
-            int size = subFlockSizes[sf];
-            List<Boid> subFlock = new List<Boid>(size);
-
-            for (int j = 0; j < size && boidIndex < totalBoids; j++, boidIndex++)
-            {
-                subFlock.Add(boids[boidIndex]);
-            }
-
-            _subFlocks.Add(subFlock);
-
-            // Sub-flock leader
-            Boid subFlockLeader = subFlock[0];
+            _subFlocks.Add(finalSubFlocks[sf]);
+            var subFlock = finalSubFlocks[sf];
+            Boid subFlockLeader = subFlock[0]; // heaviest ship in this sub-flock (already sorted)
 
             if (sf == 0)
             {
@@ -448,6 +483,60 @@ public class BoidsManager : MonoBehaviour
                 subFlock[j].IsSubFlockLeader = false;
                 subFlock[j].OnFormationChanged();
             }
+        }
+    }
+
+    /// <summary>
+    /// Subdivide a zone group into chunks of preferred size, respecting min/max constraints.
+    /// </summary>
+    private void SubdivideIntoSubFlocks(List<Boid> group, int preferred, int minSize, int maxSize, List<List<Boid>> output)
+    {
+        int remaining = group.Count;
+        int offset = 0;
+
+        while (remaining > 0)
+        {
+            int chunkSize;
+            if (remaining <= preferred)
+            {
+                // Last chunk: if too small and we have previous sub-flocks, merge
+                if (output.Count > 0 && remaining < minSize)
+                {
+                    var lastSubFlock = output[output.Count - 1];
+                    for (int i = 0; i < remaining; i++)
+                        lastSubFlock.Add(group[offset + i]);
+                    break;
+                }
+                chunkSize = remaining;
+            }
+            else if (remaining - preferred < minSize && remaining - preferred > 0)
+            {
+                // Splitting would leave a too-small leftover — split evenly
+                int half1 = remaining / 2;
+                int half2 = remaining - half1;
+
+                var sf1 = new List<Boid>(half1);
+                for (int i = 0; i < half1; i++) sf1.Add(group[offset + i]);
+                output.Add(sf1);
+
+                var sf2 = new List<Boid>(half2);
+                for (int i = 0; i < half2; i++) sf2.Add(group[offset + half1 + i]);
+                output.Add(sf2);
+                break;
+            }
+            else
+            {
+                chunkSize = Mathf.Min(preferred, maxSize);
+            }
+
+            chunkSize = Mathf.Min(chunkSize, maxSize);
+            var subFlock = new List<Boid>(chunkSize);
+            for (int i = 0; i < chunkSize; i++)
+                subFlock.Add(group[offset + i]);
+            output.Add(subFlock);
+
+            offset += chunkSize;
+            remaining -= chunkSize;
         }
     }
 

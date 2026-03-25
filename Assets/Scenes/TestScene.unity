@@ -624,8 +624,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 633849870}
   - {fileID: 2071466169}
+  - {fileID: 1698610167}
   m_Father: {fileID: 914120769}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!114 &30324698
@@ -646,6 +646,7 @@ MonoBehaviour:
   HeightRange: {x: -10000, y: 10000}
   syncCombatState: 1
   _targetManager: {fileID: 0}
+  _targetPriorityMatrix: {fileID: 11400000, guid: 8035fa6356ea2554d94cdc6ad03e5fd7, type: 2}
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
   MaxBoidWeaponUpdatesPerFrame: 8
@@ -7439,71 +7440,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 631672585}
   m_CullTransparentMesh: 1
---- !u!1 &633849869
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 633849870}
-  - component: {fileID: 633849871}
-  m_Layer: 0
-  m_Name: FighterSpawn
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &633849870
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 633849869}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 30324697}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &633849871
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 633849869}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 300c8a9d9806cce4ea6a210416e51027, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Spawner
-  prefabs:
-  - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
-  spawnCount: 40
-  color: {r: 0, g: 0, b: 0, a: 0}
-  HeightRange: {x: -10000, y: 10000}
-  spawnMode: 0
-  spawnRadius: 1000
-  spawnPoints: []
-  spawnInterval: 5
-  spawnPointRandomness: 2
-  launchDirection: {x: 0, y: 0, z: 1}
-  launchSpeed: 50
-  autoStart: 1
-  boidsPerWave: 10
-  timeBetweenWaves: 10
-  maintainPopulation: 0
-  respawnDelay: 10
-  maxTotalSpawns: 0
-  attackProfile: {fileID: 11400000, guid: f051fd699fd80064284f145585fdc694, type: 2}
-  showSpawnRegion: 0
-  _isPaused: 0
 --- !u!1 &634216996
 GameObject:
   m_ObjectHideFlags: 0
@@ -9434,7 +9370,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &764762349
 Transform:
   m_ObjectHideFlags: 0
@@ -9469,6 +9405,7 @@ MonoBehaviour:
   HeightRange: {x: -10000, y: 10000}
   syncCombatState: 1
   _targetManager: {fileID: 0}
+  _targetPriorityMatrix: {fileID: 0}
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
   MaxBoidWeaponUpdatesPerFrame: 8
@@ -11344,6 +11281,7 @@ MonoBehaviour:
   respawnDelay: 10
   maxTotalSpawns: 0
   attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
+  typeAttackProfiles: []
   showSpawnRegion: 0
   _isPaused: 0
 --- !u!1 &904740558
@@ -11745,6 +11683,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1380197196}
   - {fileID: 30324697}
   - {fileID: 1503629325}
   - {fileID: 764762349}
@@ -12603,6 +12542,7 @@ MonoBehaviour:
   HeightRange: {x: -10000, y: 10000}
   syncCombatState: 1
   _targetManager: {fileID: 0}
+  _targetPriorityMatrix: {fileID: 0}
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
   MaxBoidWeaponUpdatesPerFrame: 8
@@ -13219,6 +13159,7 @@ MonoBehaviour:
   respawnDelay: 10
   maxTotalSpawns: 0
   attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
+  typeAttackProfiles: []
   showSpawnRegion: 0
   _isPaused: 0
 --- !u!1 &1047094902
@@ -16687,6 +16628,57 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1330036193}
   m_CullTransparentMesh: 1
+--- !u!1 &1380197195
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1380197196}
+  - component: {fileID: 1380197197}
+  m_Layer: 0
+  m_Name: AllyFleetController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1380197196
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1380197195}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 914120769}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1380197197
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1380197195}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59b6e0e7cf76d554b8a9e2d2ca34862d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FleetController
+  _flocks:
+  - {fileID: 30324698}
+  - {fileID: 1503629324}
+  _fleetAnchor: {fileID: 0}
+  _shareTargets: 1
+  _targetSyncInterval: 0.5
+  _useFleetWideMorale: 1
 --- !u!1 &1419095669
 GameObject:
   m_ObjectHideFlags: 0
@@ -17731,7 +17723,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1503629324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17750,6 +17742,7 @@ MonoBehaviour:
   HeightRange: {x: -10000, y: 10000}
   syncCombatState: 1
   _targetManager: {fileID: 0}
+  _targetPriorityMatrix: {fileID: 11400000, guid: 8035fa6356ea2554d94cdc6ad03e5fd7, type: 2}
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
   MaxBoidWeaponUpdatesPerFrame: 8
@@ -19311,13 +19304,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 1886091069592709415, guid: 73c2bc81616ac994da8f06f2495229d0, type: 3}
-  spawnCount: 6
+  spawnCount: 5
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
-  spawnMode: 0
+  spawnMode: 1
   spawnRadius: 100
   spawnPoints: []
-  spawnInterval: 5
+  spawnInterval: 0.5
   spawnPointRandomness: 2
   launchDirection: {x: 0, y: 0, z: 1}
   launchSpeed: 50
@@ -19328,6 +19321,13 @@ MonoBehaviour:
   respawnDelay: 10
   maxTotalSpawns: 0
   attackProfile: {fileID: 11400000, guid: ca3472a5a3aaa674291bf15cfcbe5f82, type: 2}
+  typeAttackProfiles:
+  - vehicleType: 1
+    profile: {fileID: 11400000, guid: 12fc750006aef5f4eae7560d23e94e03, type: 2}
+  - vehicleType: 2
+    profile: {fileID: 11400000, guid: 9eb8d422752367f4a8c72e7879ca2edd, type: 2}
+  - vehicleType: 10
+    profile: {fileID: 11400000, guid: 31a3f97649dd49f46be90eaa2f6872d4, type: 2}
   showSpawnRegion: 0
   _isPaused: 0
 --- !u!1 &1652746882
@@ -19688,6 +19688,78 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &1698610166
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1698610167}
+  - component: {fileID: 1698610168}
+  m_Layer: 0
+  m_Name: FighterSpawn_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1698610167
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1698610166}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 30324697}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1698610168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1698610166}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 300c8a9d9806cce4ea6a210416e51027, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Spawner
+  prefabs:
+  - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
+  spawnCount: 20
+  color: {r: 0, g: 0, b: 0, a: 0}
+  HeightRange: {x: -10000, y: 10000}
+  spawnMode: 0
+  spawnRadius: 1000
+  spawnPoints: []
+  spawnInterval: 0.1
+  spawnPointRandomness: 2
+  launchDirection: {x: 0, y: 0, z: 1}
+  launchSpeed: 50
+  autoStart: 1
+  boidsPerWave: 10
+  timeBetweenWaves: 10
+  maintainPopulation: 0
+  respawnDelay: 10
+  maxTotalSpawns: 0
+  attackProfile: {fileID: 11400000, guid: ca3472a5a3aaa674291bf15cfcbe5f82, type: 2}
+  typeAttackProfiles:
+  - vehicleType: 1
+    profile: {fileID: 11400000, guid: 12fc750006aef5f4eae7560d23e94e03, type: 2}
+  - vehicleType: 2
+    profile: {fileID: 11400000, guid: 9eb8d422752367f4a8c72e7879ca2edd, type: 2}
+  - vehicleType: 10
+    profile: {fileID: 11400000, guid: 31a3f97649dd49f46be90eaa2f6872d4, type: 2}
+  showSpawnRegion: 0
+  _isPaused: 0
 --- !u!1 &1699695147
 GameObject:
   m_ObjectHideFlags: 0
@@ -24106,7 +24178,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
-  - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
+  - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
   spawnCount: 40
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
@@ -24123,7 +24195,14 @@ MonoBehaviour:
   maintainPopulation: 0
   respawnDelay: 10
   maxTotalSpawns: 0
-  attackProfile: {fileID: 11400000, guid: f051fd699fd80064284f145585fdc694, type: 2}
+  attackProfile: {fileID: 11400000, guid: ca3472a5a3aaa674291bf15cfcbe5f82, type: 2}
+  typeAttackProfiles:
+  - vehicleType: 1
+    profile: {fileID: 11400000, guid: 12fc750006aef5f4eae7560d23e94e03, type: 2}
+  - vehicleType: 2
+    profile: {fileID: 11400000, guid: 9eb8d422752367f4a8c72e7879ca2edd, type: 2}
+  - vehicleType: 10
+    profile: {fileID: 11400000, guid: 31a3f97649dd49f46be90eaa2f6872d4, type: 2}
   showSpawnRegion: 0
   _isPaused: 0
 --- !u!1 &2075037997

@@ -39,6 +39,12 @@ public class BoidFlockTargetManager : MonoBehaviour
     [SerializeField] private float _healthWeight = 0.3f;
     [SerializeField] private float _targetingUsWeight = 2f;
 
+    [Header("Type-Aware Targeting")]
+    [Tooltip("Optional priority matrix for per-type target preference. If null, all types score equally.")]
+    [SerializeField] private TargetPriorityMatrix _targetPriorityMatrix;
+    [Tooltip("Scale _maxBoidsPerTarget by target size tier (Large=2x, Medium=1.5x, Small=1x).")]
+    [SerializeField] private bool _scaleCapByTargetSize = true;
+
     [Header("Flock Identity")]
     [SerializeField] private string _flockId = "";
     [SerializeField] private GlobalHelper.Team _team = GlobalHelper.Team.Neutral;
@@ -74,7 +80,23 @@ public class BoidFlockTargetManager : MonoBehaviour
     private List<BoidTargetInfo> _candidateTargets = new List<BoidTargetInfo>(16);
     private List<BoidAssignmentCandidate> _assignmentCandidates = new List<BoidAssignmentCandidate>(64);
 
+    // Fleet-level shared target pool (set by FleetController)
+    private List<BoidTargetInfo> _fleetTargetPool;
+
     public IReadOnlyDictionary<Boid, BoidTargetInfo> BoidAssignments => _boidAssignments;
+
+    /// <summary>
+    /// Called by FleetController to push shared targets from other flocks.
+    /// </summary>
+    public void SetFleetTargetPool(List<BoidTargetInfo> pool)
+    {
+        _fleetTargetPool = pool;
+    }
+
+    public void SetTargetPriorityMatrix(TargetPriorityMatrix matrix)
+    {
+        _targetPriorityMatrix = matrix;
+    }
 
     public void Initialize(
         string flockId,
@@ -321,6 +343,19 @@ public class BoidFlockTargetManager : MonoBehaviour
             };
             info.CachedWeapons = target.GetComponentsInChildren<WeaponBase>();
             info.CachedVehicle = target.GetComponent<VehicleBase>();
+
+            // Cache VehicleType for type-aware targeting
+            if (info.CachedVehicle != null)
+            {
+                info.TargetShipClass = info.CachedVehicle.VehicleType;
+                info.TargetSizeTier = GlobalHelper.GetSizeTier(info.TargetShipClass);
+            }
+            else
+            {
+                info.TargetShipClass = GlobalHelper.VehicleType.Fighter;
+                info.TargetSizeTier = GlobalHelper.ShipSizeTier.Small;
+            }
+
             _knownTargets[target] = info;
         }
 
@@ -452,6 +487,19 @@ public class BoidFlockTargetManager : MonoBehaviour
             }
         }
 
+        // Include fleet-shared targets that this flock hasn't detected itself
+        if (_fleetTargetPool != null)
+        {
+            for (int i = 0; i < _fleetTargetPool.Count; i++)
+            {
+                var ft = _fleetTargetPool[i];
+                if (ft != null && ft.IsValid && ft.Target != null && !_knownTargets.ContainsKey(ft.Target))
+                {
+                    _candidateTargets.Add(ft);
+                }
+            }
+        }
+
         _candidateTargets.Sort((left, right) => right.ThreatLevel.CompareTo(left.ThreatLevel));
 
         if (_candidateTargets.Count > _maxConcurrentCombatTargets)
@@ -531,7 +579,25 @@ public class BoidFlockTargetManager : MonoBehaviour
             score += _targetAssignmentStickiness;
         }
 
+        // Apply type-aware priority multiplier
+        if (_targetPriorityMatrix != null)
+        {
+            score *= _targetPriorityMatrix.GetPriority(boid.ShipClass, target.TargetShipClass);
+        }
+
         return score;
+    }
+
+    /// <summary>
+    /// Returns the effective boid-per-target cap, scaled by target size tier if enabled.
+    /// </summary>
+    private int GetEffectiveMaxBoidsForTarget(BoidTargetInfo target)
+    {
+        if (!_scaleCapByTargetSize)
+            return _maxBoidsPerTarget;
+
+        float multiplier = GlobalHelper.GetSizeTierMultiplier(target.TargetSizeTier);
+        return Mathf.Max(1, Mathf.RoundToInt(_maxBoidsPerTarget * multiplier));
     }
 
     private BoidTargetInfo GetBestTargetForBoid(Boid boid, bool respectPreferredCapacity)
@@ -542,14 +608,16 @@ public class BoidFlockTargetManager : MonoBehaviour
         for (int targetIndex = 0; targetIndex < _candidateTargets.Count; targetIndex++)
         {
             BoidTargetInfo target = _candidateTargets[targetIndex];
-            if (respectPreferredCapacity && target.AssignedBoidCount >= _maxBoidsPerTarget)
+            int effectiveCap = GetEffectiveMaxBoidsForTarget(target);
+
+            if (respectPreferredCapacity && target.AssignedBoidCount >= effectiveCap)
                 continue;
 
             float score = ScoreTarget(boid, target);
 
-            if (!respectPreferredCapacity && target.AssignedBoidCount >= _maxBoidsPerTarget)
+            if (!respectPreferredCapacity && target.AssignedBoidCount >= effectiveCap)
             {
-                int overflowCount = target.AssignedBoidCount - _maxBoidsPerTarget;
+                int overflowCount = target.AssignedBoidCount - effectiveCap;
                 score -= (overflowCount + 1) * Mathf.Max(0.5f, _focusFireBias + 0.5f);
             }
 
@@ -595,7 +663,7 @@ public class BoidFlockTargetManager : MonoBehaviour
         if (!_candidateTargets.Contains(currentTarget))
             return false;
 
-        if (currentTarget.AssignedBoidCount >= _maxBoidsPerTarget)
+        if (currentTarget.AssignedBoidCount >= GetEffectiveMaxBoidsForTarget(currentTarget))
             return false;
 
         currentTarget.AssignedBoidCount++;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using static GlobalHelper;
 
 public class BoidTargetInfo
 {
@@ -11,6 +12,8 @@ public class BoidTargetInfo
     public Vector3 EstimatedVelocity;
     public WeaponBase[] CachedWeapons;
     public VehicleBase CachedVehicle;
+    public VehicleType TargetShipClass;
+    public ShipSizeTier TargetSizeTier;
 
     public bool IsValid
     {
