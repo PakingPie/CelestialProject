@@ -22,12 +22,21 @@ public class FleetController : MonoBehaviour
     [Tooltip("Interval (seconds) between cross-flock target synchronization.")]
     [SerializeField] private float _targetSyncInterval = 0.5f;
 
+    [Header("Fleet Cohesion")]
+    [Tooltip("Keep flocks together by steering leaders toward the fleet center.")]
+    [SerializeField] private bool _keepFlocksTogether = true;
+    [Tooltip("How far a flock leader can drift from the fleet center before being pulled back.")]
+    [SerializeField] private float _fleetTetherRadius = 500f;
+    [Tooltip("How fast the fleet centroid marker tracks the actual centroid (0=instant, higher=smoother).")]
+    [SerializeField] private float _centroidSmoothing = 2f;
+
     [Header("Coordinated Morale")]
     [Tooltip("Compute morale across the entire fleet rather than per-flock.")]
     [SerializeField] private bool _useFleetWideMorale = false;
 
     private float _lastTargetSyncTime;
     private List<BoidTargetInfo> _sharedTargetPool = new List<BoidTargetInfo>(32);
+    private Transform _centroidMarker;
 
     // ── Properties ──
 
@@ -174,7 +183,31 @@ public class FleetController : MonoBehaviour
         }
     }
 
-    // ── Target Sharing ──
+    // ── Target Sharing & Fleet Cohesion ──
+
+    void Start()
+    {
+        // Create the fleet centroid marker (invisible transform that leaders follow)
+        if (_centroidMarker == null)
+        {
+            var go = new GameObject($"{gameObject.name}_FleetCentroid");
+            go.transform.SetParent(transform);
+            _centroidMarker = go.transform;
+        }
+
+        // Wire flocks to this controller
+        for (int i = 0; i < _flocks.Count; i++)
+        {
+            if (_flocks[i] != null)
+                _flocks[i].Fleet = this;
+        }
+    }
+
+    void LateUpdate()
+    {
+        if (_keepFlocksTogether)
+            UpdateFleetCohesion();
+    }
 
     void Update()
     {
@@ -182,6 +215,48 @@ public class FleetController : MonoBehaviour
         {
             SyncSharedTargets();
             _lastTargetSyncTime = Time.time;
+        }
+    }
+
+    private void UpdateFleetCohesion()
+    {
+        // Compute fleet centroid from leaders (or flock centers)
+        Vector3 centroid = Vector3.zero;
+        int count = 0;
+        for (int i = 0; i < _flocks.Count; i++)
+        {
+            var flock = _flocks[i];
+            if (flock == null || flock.BoidCount == 0) continue;
+
+            // Use leader position if available, else flock center
+            var leader = flock.Leader;
+            centroid += (leader != null) ? leader.transform.position : flock.FlockCenter;
+            count++;
+        }
+
+        if (count == 0) return;
+        centroid /= count;
+
+        // If a fleet anchor is set, use it as the target instead of the centroid
+        Vector3 targetPos = (_fleetAnchor != null) ? _fleetAnchor.position : centroid;
+
+        // Smoothly move the centroid marker toward the target position
+        if (_centroidSmoothing > 0f)
+            _centroidMarker.position = Vector3.Lerp(_centroidMarker.position, targetPos, Time.deltaTime * _centroidSmoothing);
+        else
+            _centroidMarker.position = targetPos;
+
+        // Assign the centroid marker as each flock's target if they don't already have one
+        for (int i = 0; i < _flocks.Count; i++)
+        {
+            var flock = _flocks[i];
+            if (flock == null || flock.BoidCount == 0) continue;
+
+            // Only set target if the flock has no explicit target assigned
+            if (flock.target == null)
+            {
+                flock.SetTarget(_centroidMarker);
+            }
         }
     }
 

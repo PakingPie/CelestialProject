@@ -1046,6 +1046,25 @@ public class BoidsManager : MonoBehaviour
     public int SubFlockCount => _subFlocks?.Count ?? 0;
     public IReadOnlyList<List<Boid>> SubFlocks => _subFlocks;
 
+    public Vector3 FlockCenter
+    {
+        get
+        {
+            if (boids == null || boids.Count == 0) return transform.position;
+            Vector3 sum = Vector3.zero;
+            int count = 0;
+            for (int i = 0; i < boids.Count; i++)
+            {
+                if (boids[i] != null)
+                {
+                    sum += boids[i].transform.position;
+                    count++;
+                }
+            }
+            return count > 0 ? sum / count : transform.position;
+        }
+    }
+
     public struct BoidData
     {
         public Vector3 position;

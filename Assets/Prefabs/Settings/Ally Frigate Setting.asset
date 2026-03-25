@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0f79a97a8f3d566438e5fbb617fd1c0f, type: 3}
-  m_Name: Ally Boid Setting 2
+  m_Name: Ally Frigate Setting
   m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
   minSpeed: 5
   maxSpeed: 50
   perceptionRadius: 500
-  maxSteerForce: 5
+  maxSteerForce: 1
   alignWeight: 0.5
   cohesionWeight: 0.3
   separateWeight: 10
@@ -29,12 +29,20 @@ MonoBehaviour:
     m_Bits: 8832
   boundsRadius: 10
   useFormation: 1
-  formationType: 8
-  formationSpacing: 200
+  formationType: 3
+  formationSpacing: 500
   formationTightness: 100
   formationMatchSpeed: 50
   formationDeadZone: 10
   formationUrgencyRange: 100
+  capitalSpacingMultiplier: 2
+  escortSpacingMultiplier: 1.5
+  useSubFlocks: 1
+  preferredSubFlockSize: 2
+  minSubFlockSize: 2
+  maxSubFlockSize: 10
+  subFlockFormationType: 0
+  subFlockFormationSpacing: 100
   combatCohesionMultiplier: 0.2
   combatSeparationMultiplier: 2
   combatAlignmentMultiplier: 0.5
