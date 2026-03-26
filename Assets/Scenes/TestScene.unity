@@ -1805,7 +1805,7 @@ Transform:
   m_GameObject: {fileID: 94674488}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -45, z: 0}
+  m_LocalPosition: {x: 0, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4707,7 +4707,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 50, y: 10, z: 50}
+  m_LocalScale: {x: 300, y: 10, z: 300}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -6141,6 +6141,14 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: _fireClip
+      value: 
+      objectReference: {fileID: 8300000, guid: 42389f150a1e3e2449d7af43fd4d162b, type: 3}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: RecoilLength
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: MuzzleFlashPrefab
       value: 
       objectReference: {fileID: 4024419132641768552, guid: 8ff11a9e105596d41bc4222ec2ef3fd5, type: 3}
@@ -6783,6 +6791,14 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: _fireClip
+      value: 
+      objectReference: {fileID: 8300000, guid: 42389f150a1e3e2449d7af43fd4d162b, type: 3}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: RecoilLength
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: GravitySource
       value: 
       objectReference: {fileID: 1777330811}
@@ -7339,7 +7355,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3051697227123494425, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: _fireDelay
@@ -8926,8 +8942,16 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: _fireClip
+      value: 
+      objectReference: {fileID: 8300000, guid: 42389f150a1e3e2449d7af43fd4d162b, type: 3}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: EnableDebug
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: RecoilLength
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: MuzzleFlashPrefab
@@ -9149,7 +9173,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3051697227123494425, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: _fireDelay
@@ -9437,7 +9461,7 @@ GameObject:
   - component: {fileID: 764762350}
   m_Layer: 0
   m_Name: Enemy Boid Spawn Manager 1
-  m_TagString: Ally
+  m_TagString: Foe
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -9451,7 +9475,7 @@ Transform:
   m_GameObject: {fileID: 764762348}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 2000, z: -3000}
+  m_LocalPosition: {x: 0, y: 2000, z: -1000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -14606,6 +14630,14 @@ PrefabInstance:
       value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: _fireClip
+      value: 
+      objectReference: {fileID: 8300000, guid: 42389f150a1e3e2449d7af43fd4d162b, type: 3}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: RecoilLength
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: MuzzleFlashPrefab
       value: 
       objectReference: {fileID: 4024419132641768552, guid: 8ff11a9e105596d41bc4222ec2ef3fd5, type: 3}
@@ -14700,7 +14732,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 15000
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 7.8e-43, y: 3.6180047e-37, z: 7.8e-43, w: 6.7886296e-38}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -16383,8 +16415,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1312769387}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.25143376, y: 0.65919435, z: -0.24992971, w: 0.6631584}
-  m_LocalPosition: {x: -9.363786, y: 18.11144, z: -0.6248903}
+  m_LocalRotation: {x: -0.001585619, y: 0.99841124, z: 0.038701136, w: 0.040925078}
+  m_LocalPosition: {x: -0.6539887, y: 9.055904, z: 111.114716}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -16447,10 +16479,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidFollowCamera
   Target: {fileID: 0}
-  BoidManager: {fileID: 30324698}
+  BoidManager: {fileID: 2046028406}
   CurrentBoidIndex: -1
-  FollowDistance: 100
-  HeightOffset: 20
+  FollowDistance: 200
+  HeightOffset: 30
   SmoothSpeed: 1
   RotationSmoothSpeed: 2
   LookAheadFactor: 0.5
@@ -20027,7 +20059,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3051697227123494425, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: _fireDelay
@@ -21496,7 +21528,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1802494801
 Transform:
   m_ObjectHideFlags: 0
@@ -25856,6 +25888,15 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 3811297906100513072, guid: d32e877e73e0730498fa8516097758c6, type: 3}
   FireInFixed: 0
   IsFiring: 1
+  _fireClip: {fileID: 0}
+  _fireAudioSource: {fileID: 0}
+  _fireMixerGroup: {fileID: 0}
+  _fireVolume: 1
+  _fireAudioInterval: 0.1
+  _fireMinDistance: 10
+  _fireMaxDistance: 250
+  _firePitchMin: 0.96
+  _firePitchMax: 1.04
   MaxHeat: 100
   HeatPerShot: 1
   HeatDissipationRate: 20

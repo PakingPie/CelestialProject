@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.VFX;
+using UnityEngine.Audio;
 using System.Collections.Generic;
 using static GlobalHelper;
 
@@ -46,6 +47,26 @@ public class Gun : WeaponBase
     public bool FireInFixed = true;
     [Tooltip("Set to true to fire the gun automatically.")]
     public bool IsFiring = false;
+
+    [Header("Audio")]
+    [Tooltip("Optional sound played when the gun fires.")]
+    [SerializeField] private AudioClip _fireClip;
+    [Tooltip("Audio source used for firing audio. If left empty, one is created automatically.")]
+    [SerializeField] private AudioSource _fireAudioSource;
+    [Tooltip("Associates the generated audio source with the specified mixer group.")]
+    [SerializeField] private AudioMixerGroup _fireMixerGroup;
+    [Tooltip("How loud the firing sound is played.")]
+    [SerializeField] private float _fireVolume = 1f;
+    [Tooltip("Minimum time between firing sound replays. Prevents rapid-fire guns from stacking too many sounds.")]
+    [SerializeField] private float _fireAudioInterval = 0.1f;
+    [Tooltip("Minimum 3D attenuation distance for the firing sound.")]
+    [SerializeField] private float _fireMinDistance = 10f;
+    [Tooltip("Maximum 3D attenuation distance for the firing sound.")]
+    [SerializeField] private float _fireMaxDistance = 250f;
+    [Tooltip("Minimum randomized pitch used each time the firing sound plays.")]
+    [SerializeField] private float _firePitchMin = 0.96f;
+    [Tooltip("Maximum randomized pitch used each time the firing sound plays.")]
+    [SerializeField] private float _firePitchMax = 1.04f;
 
     [Header("Overheating")]
     [Tooltip("Maximum heat before the gun overheats and must cool down.")]
@@ -94,6 +115,7 @@ public class Gun : WeaponBase
     private Dictionary<Transform, VisualEffect> firePointToMuzzleFlash = new Dictionary<Transform, VisualEffect>();
     private List<GunBarrel> barrelVisuals = new List<GunBarrel>();
     private float _lastShotTime = -float.MaxValue;
+    private float _lastFireAudioTime = -float.MaxValue;
     private int _firePointIndex = 0;
     private Vector3 _targetPosLastFrame;
 
@@ -164,6 +186,43 @@ public class Gun : WeaponBase
         }
 
         ActiveRange.y = BulletPrefab.Speed * BulletPrefab.LifeTime;
+        ConfigureFireAudio();
+    }
+
+    private void ConfigureFireAudio()
+    {
+        if (_fireClip == null)
+            return;
+
+        if (_fireAudioSource == null)
+            _fireAudioSource = gameObject.AddComponent<AudioSource>();
+
+        _fireAudioSource.clip = _fireClip;
+        _fireAudioSource.playOnAwake = false;
+        _fireAudioSource.loop = false;
+        _fireAudioSource.spatialBlend = 1f;
+        _fireAudioSource.dopplerLevel = 0f;
+        _fireAudioSource.volume = _fireVolume;
+        _fireAudioSource.minDistance = _fireMinDistance;
+        _fireAudioSource.maxDistance = _fireMaxDistance;
+        _fireAudioSource.outputAudioMixerGroup = _fireMixerGroup;
+    }
+
+    private void TryPlayFireAudio()
+    {
+        if (_fireClip == null || _fireAudioSource == null)
+            return;
+
+        if (Time.time - _lastFireAudioTime < Mathf.Max(0f, _fireAudioInterval))
+            return;
+
+        float minPitch = Mathf.Min(_firePitchMin, _firePitchMax);
+        float maxPitch = Mathf.Max(_firePitchMin, _firePitchMax);
+
+        _fireAudioSource.pitch = Random.Range(minPitch, maxPitch);
+        _fireAudioSource.volume = _fireVolume;
+        _fireAudioSource.Play();
+        _lastFireAudioTime = Time.time;
     }
 
     private void Update()
@@ -391,6 +450,8 @@ public class Gun : WeaponBase
 
             _lastShotTime = Time.time;
         }
+
+        TryPlayFireAudio();
 
         return true;
     }
