@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f79a97a8f3d566438e5fbb617fd1c0f, type: 3}
   m_Name: Ally Fighter Setting
   m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
-  minSpeed: 20
+  minSpeed: 30
   maxSpeed: 60
   perceptionRadius: 500
-  maxSteerForce: 2
+  maxSteerForce: 1
   alignWeight: 0.5
   cohesionWeight: 0.3
   separateWeight: 10
@@ -32,7 +32,7 @@ MonoBehaviour:
   formationType: 3
   formationSpacing: 200
   formationTightness: 200
-  formationMatchSpeed: 30
+  formationMatchSpeed: 50
   formationDeadZone: 10
   formationUrgencyRange: 100
   capitalSpacingMultiplier: 2
@@ -55,6 +55,15 @@ MonoBehaviour:
   combatSlotRetention: 0.35
   combatRegroupHysteresis: 75
   combatTargetPursuitWeight: 1.5
+  linearDrag: 0.3
+  rotationalDrag: 4
+  torqueStrength: 6
+  maxAngularSpeed: 30
+  velocityCoupling: 0.75
+  capitalTorqueMultiplier: 0.3
+  capitalDragMultiplier: 0.6
+  escortTorqueMultiplier: 0.6
+  escortDragMultiplier: 0.8
   useAdaptiveMorale: 1
   confidentThreshold: 0.7
   brokenThreshold: 0.3

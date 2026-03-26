@@ -81,6 +81,31 @@ public class BoidSettings : ScriptableObject
     public float combatRegroupHysteresis = 75f;
     public float combatTargetPursuitWeight = 1.5f;
 
+    [Header("Newtonian Physics")]
+    [Tooltip("Linear drag coefficient — controls velocity decay and drift feel.")]
+    [Range(0f, 2f)]
+    public float linearDrag = 0.3f;
+    [Tooltip("Rotational drag — how quickly angular velocity decays (higher = snappier stops).")]
+    [Range(0f, 10f)]
+    public float rotationalDrag = 4f;
+    [Tooltip("Torque strength for turning (degrees/s²). Higher = faster turning. Keep proportional to maxSteerForce/maxSpeed.")]
+    public float torqueStrength = 12f;
+    [Tooltip("Maximum angular speed (degrees/s).")]
+    public float maxAngularSpeed = 45f;
+    [Tooltip("How much velocity rotates with the ship (0 = full drift, 1 = full coupling).")]
+    [Range(0f, 1f)]
+    public float velocityCoupling = 0.75f;
+
+    [Header("Ship Size Physics Multipliers")]
+    [Tooltip("Torque multiplier for Large ships (lower = slower turning).")]
+    public float capitalTorqueMultiplier = 0.3f;
+    [Tooltip("Drag multiplier for Large ships (lower = more drift).")]
+    public float capitalDragMultiplier = 0.6f;
+    [Tooltip("Torque multiplier for Medium ships.")]
+    public float escortTorqueMultiplier = 0.6f;
+    [Tooltip("Drag multiplier for Medium ships.")]
+    public float escortDragMultiplier = 0.8f;
+
     [Header("Adaptive Combat Morale")]
     [Tooltip("Enable morale-based adaptive combat behavior.")]
     public bool useAdaptiveMorale = false;

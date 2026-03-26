@@ -42,6 +42,14 @@ public class Boid : MonoBehaviour
     private float _smoothedSpeed;
     private Vector3 _smoothedTargetPosition;
 
+    // Newtonian physics state
+    private Vector3 _angularVelocity;
+    private Quaternion _previousRotation;
+
+    // Per-ship-class physics multipliers (cached from BoidSettings at init)
+    private float _torqueMultiplier = 1f;
+    private float _dragMultiplier = 1f;
+
 
     [Header("Debug")]
     [SerializeField] private bool _EnableDebugLogs = false;
@@ -156,6 +164,9 @@ public class Boid : MonoBehaviour
         _smoothedFormationTarget = position;
         _smoothedTargetPosition = position + forward * 50f;
         _previousAcceleration = Vector3.zero;
+        _angularVelocity = Vector3.zero;
+        _previousRotation = _cachedTransform.rotation;
+        InitializePhysicsMultipliers();
         _combatFacingDirection = forward;
         _wanderTarget = position + Random.insideUnitSphere * WanderRadius;
         _wanderTarget.y = Mathf.Clamp(_wanderTarget.y, HeightRange.x, HeightRange.y);
@@ -576,25 +587,38 @@ public class Boid : MonoBehaviour
 
         ApplyHeightBoundaryRecovery(ref acceleration);
 
+        // Apply steering forces to velocity
         _velocity += acceleration * Time.deltaTime;
+
+        // Linear drag
+        float effectiveDrag = _settings.linearDrag * _dragMultiplier;
+        if (effectiveDrag > 0f)
+            _velocity *= 1f / (1f + effectiveDrag * Time.deltaTime);
 
         float speed = _velocity.magnitude;
         if (speed > 0.001f)
         {
-            Vector3 direction = _velocity / speed;
+            // Speed limits
             float targetSpeed = Mathf.Clamp(speed, _settings.minSpeed, _settings.maxSpeed);
-            _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, targetSpeed, Time.deltaTime * SpeedSmoothSpeed);
-            _velocity = direction * _smoothedSpeed;
+            if (speed > targetSpeed * 1.5f)
+                _velocity = _velocity / speed * targetSpeed * 1.5f;
 
+            _smoothedSpeed = _velocity.magnitude;
+
+            // Rotational physics
+            Vector3 direction = _velocity.normalized;
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            ApplyRotationalPhysics(targetRotation, Time.deltaTime);
+
+            // Velocity coupling
+            ApplyVelocityCoupling(Time.deltaTime);
+
+            // Position update
             Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
             ClampPositionToHeightRange(ref newPos);
-
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
-
-            _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
+            _cachedTransform.position = newPos;
             position = newPos;
-            forward = smoothedRotation * Vector3.forward;
+            forward = _cachedTransform.forward;
         }
 
         UpdateRegistryPosition();
@@ -633,24 +657,37 @@ public class Boid : MonoBehaviour
 
         ApplyHeightBoundaryRecovery(ref acceleration);
 
+        // Apply steering forces to velocity
         _velocity += acceleration * Time.deltaTime;
+
+        // Linear drag (stronger for hold position)
+        float effectiveDrag = _settings.linearDrag * _dragMultiplier;
+        float holdDragBoost = distanceToHold <= 20f ? 3f : 1.5f;
+        if (effectiveDrag > 0f)
+            _velocity *= 1f / (1f + effectiveDrag * holdDragBoost * Time.deltaTime);
 
         float targetSpeed = distanceToHold > 20f ? _settings.maxSpeed * 0.5f : _settings.minSpeed * 0.5f;
         float speed = _velocity.magnitude;
 
         if (speed > 0.001f)
         {
-            Vector3 direction = _velocity / speed;
-            _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, Mathf.Min(speed, targetSpeed), Time.deltaTime * SpeedSmoothSpeed * 2f);
-            _velocity = direction * _smoothedSpeed;
+            // Soft speed cap for approach
+            if (speed > targetSpeed * 1.5f)
+                _velocity = _velocity / speed * targetSpeed * 1.5f;
 
+            _smoothedSpeed = _velocity.magnitude;
+
+            // Rotational physics (gentler for hold)
+            Quaternion targetRotation = Quaternion.LookRotation(forward);
+            ApplyRotationalPhysics(targetRotation, Time.deltaTime);
+
+            // Velocity coupling
+            ApplyVelocityCoupling(Time.deltaTime);
+
+            // Position update
             Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
             ClampPositionToHeightRange(ref newPos);
-
-            Quaternion targetRotation = Quaternion.LookRotation(forward);
-            Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed * 0.5f);
-
-            _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
+            _cachedTransform.position = newPos;
             position = newPos;
         }
 
@@ -1067,31 +1104,132 @@ public class Boid : MonoBehaviour
         }
     }
 
+    private void InitializePhysicsMultipliers()
+    {
+        switch (SizeTier)
+        {
+            case GlobalHelper.ShipSizeTier.Large:
+                _torqueMultiplier = _settings.capitalTorqueMultiplier;
+                _dragMultiplier = _settings.capitalDragMultiplier;
+                break;
+            case GlobalHelper.ShipSizeTier.Medium:
+                _torqueMultiplier = _settings.escortTorqueMultiplier;
+                _dragMultiplier = _settings.escortDragMultiplier;
+                break;
+            default:
+                _torqueMultiplier = 1f;
+                _dragMultiplier = 1f;
+                break;
+        }
+    }
+
+    private void ApplyRotationalPhysics(Quaternion desiredRotation, float dt)
+    {
+        float effectiveTorque = _settings.torqueStrength * _torqueMultiplier;
+        float maxAngSpeed = _settings.maxAngularSpeed * _torqueMultiplier;
+        float damping = _settings.rotationalDrag;
+
+        // Decompose desired facing into yaw/pitch (no roll) by using an up-constrained LookRotation
+        Vector3 desiredForward = desiredRotation * Vector3.forward;
+        Vector3 currentForward = _cachedTransform.forward;
+        Vector3 currentUp = _cachedTransform.up;
+
+        // --- Yaw/Pitch: Critically-damped spring toward desired heading ---
+        // Calculate signed pitch and yaw errors in local space
+        Vector3 localDesired = _cachedTransform.InverseTransformDirection(desiredForward);
+        float yawError = Mathf.Atan2(localDesired.x, localDesired.z) * Mathf.Rad2Deg;
+        float pitchError = -Mathf.Asin(Mathf.Clamp(localDesired.y, -1f, 1f)) * Mathf.Rad2Deg;
+
+        // Critically-damped spring: acceleration = stiffness * error - damping * velocity
+        // This prevents oscillation by decelerating as we approach the target
+        float criticalDamping = 2f * Mathf.Sqrt(effectiveTorque);
+        float dampingForce = Mathf.Max(damping, criticalDamping);
+
+        // Yaw torque (local Y axis)
+        float yawAccel = yawError * effectiveTorque - _angularVelocity.y * dampingForce;
+        _angularVelocity.y += yawAccel * dt;
+
+        // Pitch torque (local X axis)
+        float pitchAccel = pitchError * effectiveTorque - _angularVelocity.x * dampingForce;
+        _angularVelocity.x += pitchAccel * dt;
+
+        // --- Roll stabilization: auto-level toward world up ---
+        float rollAngle = Vector3.SignedAngle(Vector3.up, currentUp, currentForward);
+        float rollTorque = -rollAngle * effectiveTorque * 0.5f - _angularVelocity.z * dampingForce * 2f;
+        _angularVelocity.z += rollTorque * dt;
+
+        // Clamp angular speed per-axis to prevent spikes
+        _angularVelocity.x = Mathf.Clamp(_angularVelocity.x, -maxAngSpeed, maxAngSpeed);
+        _angularVelocity.y = Mathf.Clamp(_angularVelocity.y, -maxAngSpeed, maxAngSpeed);
+        _angularVelocity.z = Mathf.Clamp(_angularVelocity.z, -maxAngSpeed * 0.5f, maxAngSpeed * 0.5f);
+
+        // Apply angular velocity to rotation (in local space)
+        if (_angularVelocity.sqrMagnitude > 0.0001f)
+        {
+            _cachedTransform.Rotate(_angularVelocity.x * dt, _angularVelocity.y * dt, _angularVelocity.z * dt, Space.Self);
+        }
+    }
+
+    private void ApplyVelocityCoupling(float dt)
+    {
+        if (_settings.velocityCoupling <= 0f || _velocity.sqrMagnitude < 0.01f)
+        {
+            _previousRotation = _cachedTransform.rotation;
+            return;
+        }
+
+        // Rotate velocity by a portion of the ship's rotation change this frame
+        Quaternion rotationDelta = _cachedTransform.rotation * Quaternion.Inverse(_previousRotation);
+        Vector3 rotatedVelocity = rotationDelta * _velocity;
+        _velocity = Vector3.Lerp(_velocity, rotatedVelocity, _settings.velocityCoupling);
+
+        _previousRotation = _cachedTransform.rotation;
+    }
+
     private void ApplyMovement(Vector3 acceleration)
     {
-        acceleration = Vector3.Lerp(_previousAcceleration, acceleration, Time.deltaTime * AccelerationSmoothSpeed);
+        float dt = Time.deltaTime;
+        if (dt <= 0f) return;
+
+        acceleration = Vector3.Lerp(_previousAcceleration, acceleration, dt * AccelerationSmoothSpeed);
         _previousAcceleration = acceleration;
 
-        _velocity += acceleration * Time.deltaTime;
+        // Apply steering forces to velocity
+        _velocity += acceleration * dt;
+
+        // Linear drag
+        float effectiveDrag = _settings.linearDrag * _dragMultiplier;
+        if (effectiveDrag > 0f)
+            _velocity *= 1f / (1f + effectiveDrag * dt);
 
         float speed = _velocity.magnitude;
         if (speed <= 0.001f)
             return;
 
-        Vector3 direction = _velocity / speed;
+        // Soft speed management — target speed acts as a brake/thrust target
         float targetSpeed = GetDesiredCruiseSpeed(speed);
-        _smoothedSpeed = Mathf.Lerp(_smoothedSpeed, targetSpeed, Time.deltaTime * SpeedSmoothSpeed);
-        _velocity = direction * _smoothedSpeed;
+        if (speed > targetSpeed * 1.5f)
+            _velocity = _velocity / speed * targetSpeed * 1.5f;
+        else if (speed < _settings.minSpeed)
+            _velocity += _cachedTransform.forward * (_settings.minSpeed - speed) * 2f * dt;
 
-        Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
+        speed = _velocity.magnitude;
+        _smoothedSpeed = speed;
+
+        // Rotational physics — torque-based turning replaces Slerp
+        Vector3 desiredDirection = speed > 0.01f ? _velocity.normalized : forward;
+        Quaternion desiredRotation = GetMovementRotation(desiredDirection);
+        ApplyRotationalPhysics(desiredRotation, dt);
+
+        // Velocity coupling — velocity partially rotates with the ship
+        ApplyVelocityCoupling(dt);
+
+        // Position update
+        Vector3 newPos = _cachedTransform.position + _velocity * dt;
         ClampPositionToHeightRange(ref newPos);
-
-        Quaternion targetRotation = GetMovementRotation(direction);
-        Quaternion smoothedRotation = Quaternion.Slerp(_cachedTransform.rotation, targetRotation, Time.deltaTime * RotationSmoothSpeed);
-
-        _cachedTransform.SetPositionAndRotation(newPos, smoothedRotation);
+        _cachedTransform.position = newPos;
         position = newPos;
-        forward = smoothedRotation * Vector3.forward;
+        forward = _cachedTransform.forward;
     }
 
     private float GetDesiredCruiseSpeed(float currentSpeed)
