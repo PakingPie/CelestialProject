@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f79a97a8f3d566438e5fbb617fd1c0f, type: 3}
   m_Name: Ally Frigate Setting
   m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
-  minSpeed: 5
-  maxSpeed: 50
+  minSpeed: 20
+  maxSpeed: 40
   perceptionRadius: 500
   maxSteerForce: 1
   alignWeight: 0.5
@@ -30,15 +30,15 @@ MonoBehaviour:
   boundsRadius: 10
   useFormation: 1
   formationType: 3
-  formationSpacing: 500
+  formationSpacing: 400
   formationTightness: 100
-  formationMatchSpeed: 50
+  formationMatchSpeed: 30
   formationDeadZone: 10
   formationUrgencyRange: 100
   capitalSpacingMultiplier: 2
   escortSpacingMultiplier: 1.5
   useSubFlocks: 1
-  preferredSubFlockSize: 2
+  preferredSubFlockSize: 3
   minSubFlockSize: 2
   maxSubFlockSize: 10
   subFlockFormationType: 0
@@ -55,6 +55,15 @@ MonoBehaviour:
   combatSlotRetention: 0.35
   combatRegroupHysteresis: 75
   combatTargetPursuitWeight: 1.5
+  linearDrag: 0.3
+  rotationalDrag: 4
+  torqueStrength: 12
+  maxAngularSpeed: 45
+  velocityCoupling: 0.75
+  capitalTorqueMultiplier: 0.3
+  capitalDragMultiplier: 0.6
+  escortTorqueMultiplier: 0.6
+  escortDragMultiplier: 0.8
   useAdaptiveMorale: 1
   confidentThreshold: 0.7
   brokenThreshold: 0.3
