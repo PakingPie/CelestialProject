@@ -30,11 +30,35 @@ public class BoidFollowCamera : MonoBehaviour
     [Range(0.5f, 20f)]
     public float RotationSmoothSpeed = 5f;
 
+    [Header("Camera Rotation")]
+    [Tooltip("Mouse sensitivity for horizontal orbit.")]
+    public float HorizontalSensitivity = 3f;
+
+    [Tooltip("Mouse sensitivity for vertical orbit.")]
+    public float VerticalSensitivity = 2f;
+
+    [Tooltip("Minimum vertical angle (degrees). Negative = look from below.")]
+    public float MinVerticalAngle = -30f;
+
+    [Tooltip("Maximum vertical angle (degrees). Positive = look from above.")]
+    public float MaxVerticalAngle = 80f;
+
+    [Tooltip("If true, camera only orbits while holding right mouse button.")]
+    public bool RequireRightClick = true;
+
+    [Tooltip("How quickly the orbit resets to behind the boid when not rotating. Set 0 to disable reset.")]
+    [Range(0f, 10f)]
+    public float OrbitResetSpeed = 2f;
+
     [Header("Look Ahead")]
     [Tooltip("How far ahead of the boid the camera looks (based on velocity).")]
     public float LookAheadFactor = 0.5f;
 
     private Vector3 _currentVelocity;
+    private float _orbitYaw;
+    private float _orbitPitch;
+    private bool _orbitInitialized;
+    private bool _isUserRotating;
 
     public void SwitchToNextBoid()
     {
@@ -92,10 +116,37 @@ public class BoidFollowCamera : MonoBehaviour
         Vector3 boidPosition = Target.position;
         Vector3 boidForward = Target.forward;
 
-        // Desired position: behind and above the boid
-        Vector3 desiredPosition = boidPosition
-            - boidForward * FollowDistance
-            + Vector3.up * HeightOffset;
+        // Initialize orbit angles to match the boid's current heading
+        if (!_orbitInitialized)
+        {
+            _orbitYaw = Mathf.Atan2(boidForward.x, boidForward.z) * Mathf.Rad2Deg;
+            _orbitPitch = HeightOffset > 0 ? Mathf.Atan2(HeightOffset, FollowDistance) * Mathf.Rad2Deg : 10f;
+            _orbitInitialized = true;
+        }
+
+        // Handle orbit input
+        bool wantsRotate = !RequireRightClick || Input.GetMouseButton(1);
+        _isUserRotating = wantsRotate && (Mathf.Abs(Input.GetAxis("Mouse X")) > 0.01f || Mathf.Abs(Input.GetAxis("Mouse Y")) > 0.01f);
+
+        if (wantsRotate)
+        {
+            _orbitYaw += Input.GetAxis("Mouse X") * HorizontalSensitivity;
+            _orbitPitch -= Input.GetAxis("Mouse Y") * VerticalSensitivity;
+            _orbitPitch = Mathf.Clamp(_orbitPitch, MinVerticalAngle, MaxVerticalAngle);
+        }
+        else if (OrbitResetSpeed > 0f)
+        {
+            // Smoothly reset orbit behind the boid when not rotating
+            float targetYaw = Mathf.Atan2(boidForward.x, boidForward.z) * Mathf.Rad2Deg;
+            float targetPitch = HeightOffset > 0 ? Mathf.Atan2(HeightOffset, FollowDistance) * Mathf.Rad2Deg : 10f;
+            _orbitYaw = Mathf.LerpAngle(_orbitYaw, targetYaw, OrbitResetSpeed * Time.deltaTime);
+            _orbitPitch = Mathf.Lerp(_orbitPitch, targetPitch, OrbitResetSpeed * Time.deltaTime);
+        }
+
+        // Compute desired position from orbit angles
+        Quaternion orbitRotation = Quaternion.Euler(_orbitPitch, _orbitYaw, 0f);
+        Vector3 offset = orbitRotation * Vector3.back * FollowDistance;
+        Vector3 desiredPosition = boidPosition + offset;
 
         // Smoothly move towards the desired position
         transform.position = Vector3.SmoothDamp(

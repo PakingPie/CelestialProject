@@ -2726,6 +2726,7 @@ MonoBehaviour:
   respawnDelay: 2
   maxTotalSpawns: 30
   attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
+  typeAttackProfiles: []
   showSpawnRegion: 0
   _isPaused: 0
 --- !u!4 &376653059 stripped
@@ -2898,8 +2899,10 @@ MonoBehaviour:
   HeightRange: {x: -2500, y: 2500}
   syncCombatState: 1
   _targetManager: {fileID: 0}
+  _targetPriorityMatrix: {fileID: 0}
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
+  MaxBoidWeaponUpdatesPerFrame: 8
   CleanupIntervalFrames: 5
   CombatSyncIntervalFrames: 2
   _flockId: Ally Flock 1
@@ -3386,6 +3389,7 @@ MonoBehaviour:
   respawnDelay: 10
   maxTotalSpawns: 0
   attackProfile: {fileID: 11400000, guid: f051fd699fd80064284f145585fdc694, type: 2}
+  typeAttackProfiles: []
   showSpawnRegion: 0
   _isPaused: 1
 --- !u!1001 &491243686
@@ -4177,7 +4181,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &576097986
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5173,7 +5177,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &673285183
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5451,6 +5455,7 @@ MonoBehaviour:
   respawnDelay: 2
   maxTotalSpawns: 80
   attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
+  typeAttackProfiles: []
   showSpawnRegion: 0
   _isPaused: 0
 --- !u!1 &704204505
@@ -5736,7 +5741,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!135 &735672077
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -6931,6 +6936,7 @@ MonoBehaviour:
   respawnDelay: 10
   maxTotalSpawns: 5
   attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
+  typeAttackProfiles: []
   showSpawnRegion: 0
   _isPaused: 0
 --- !u!1 &857814629 stripped
@@ -8300,7 +8306,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1089406260
 Transform:
   m_ObjectHideFlags: 0
@@ -8391,7 +8397,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   maxLights: 8
-  _activeLightCount: 0
+  _activeLightCount: 4
 --- !u!1 &1112071337
 GameObject:
   m_ObjectHideFlags: 0
@@ -9884,8 +9890,10 @@ MonoBehaviour:
   HeightRange: {x: -2500, y: 2500}
   syncCombatState: 1
   _targetManager: {fileID: 0}
+  _targetPriorityMatrix: {fileID: 0}
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
+  MaxBoidWeaponUpdatesPerFrame: 8
   CleanupIntervalFrames: 5
   CombatSyncIntervalFrames: 2
   _flockId: Enemy Flock 2
@@ -9994,7 +10002,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1295040090
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10098,7 +10106,7 @@ Transform:
   m_GameObject: {fileID: 1295040089}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -13163, y: 3889, z: -583}
+  m_LocalPosition: {x: -13163, y: 4047, z: -583}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10355,6 +10363,7 @@ MonoBehaviour:
   respawnDelay: 2
   maxTotalSpawns: 30
   attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
+  typeAttackProfiles: []
   showSpawnRegion: 0
   _isPaused: 0
 --- !u!21 &1329238403
@@ -11377,7 +11386,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1456225715
 Transform:
   m_ObjectHideFlags: 0
@@ -11658,7 +11667,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1486282240
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12273,7 +12282,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1556059681
 Transform:
   m_ObjectHideFlags: 0
@@ -13525,6 +13534,7 @@ MonoBehaviour:
   respawnDelay: 2
   maxTotalSpawns: 0
   attackProfile: {fileID: 11400000, guid: 71feeab79cab49643a296d8606de0f13, type: 2}
+  typeAttackProfiles: []
   showSpawnRegion: 0
   _isPaused: 0
 --- !u!43 &1742118267
@@ -16735,8 +16745,10 @@ MonoBehaviour:
   HeightRange: {x: -2500, y: 2500}
   syncCombatState: 1
   _targetManager: {fileID: 0}
+  _targetPriorityMatrix: {fileID: 0}
   UseAsyncReadback: 1
   WeaponUpdateIntervalFrames: 2
+  MaxBoidWeaponUpdatesPerFrame: 8
   CleanupIntervalFrames: 5
   CombatSyncIntervalFrames: 2
   _flockId: Enemy Flock 2
