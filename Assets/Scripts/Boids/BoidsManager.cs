@@ -66,6 +66,8 @@ public class BoidsManager : MonoBehaviour
     private CombatMorale _currentMorale = CombatMorale.Confident;
     public CombatMorale CurrentMorale => _currentMorale;
     public float CurrentMoraleScore { get; private set; } = 1f;
+    private bool _debugMoraleLocked = false;
+    public bool DebugMoraleLocked => _debugMoraleLocked;
 
     private List<BoidSpawner> _spawners = new List<BoidSpawner>();
 
@@ -84,6 +86,7 @@ public class BoidsManager : MonoBehaviour
     private bool _formationDirty = false;
     private float _formationDirtyTimer = 0f;
     private const float FormationReassignDelay = 0.1f; // Small delay to batch changes
+    private bool _formationDeferredUntilCombatEnd = false; // Defers reformation during combat
 
     // Events for external listeners
     public System.Action<Boid> OnBoidAdded;
@@ -280,7 +283,7 @@ public class BoidsManager : MonoBehaviour
 
         if (wasLeader || wasSubFlockLeader)
         {
-            MarkFormationDirty();
+            MarkFormationDirty(deferDuringCombat: true);
         }
     }
 
@@ -313,9 +316,16 @@ public class BoidsManager : MonoBehaviour
 
     /// <summary>
     /// Mark formation as needing reassignment (batched for performance).
+    /// If deferDuringCombat is true and flock is in combat, delays until combat ends.
     /// </summary>
-    private void MarkFormationDirty()
+    private void MarkFormationDirty(bool deferDuringCombat = false)
     {
+        if (deferDuringCombat && _wasAnyInCombat)
+        {
+            _formationDeferredUntilCombatEnd = true;
+            return;
+        }
+
         _formationDirty = true;
         _formationDirtyTimer = FormationReassignDelay;
     }
@@ -546,7 +556,7 @@ public class BoidsManager : MonoBehaviour
             return;
 
         // Handle deferred formation reassignment
-        if (_formationDirty)
+        if (_formationDirty && !_formationDeferredUntilCombatEnd)
         {
             _formationDirtyTimer -= Time.deltaTime;
             if (_formationDirtyTimer <= 0f)
@@ -592,16 +602,18 @@ public class BoidsManager : MonoBehaviour
 
             if (_wasAnyInCombat && !anyInCombat)
             {
+                // Flush any deferred formation changes from mid-combat leader deaths
+                _formationDeferredUntilCombatEnd = false;
                 AssignFormationPositions();
             }
             _wasAnyInCombat = anyInCombat;
 
             // Evaluate morale on same interval as combat sync
-            if (settings.useAdaptiveMorale && anyInCombat)
+            if (settings.useAdaptiveMorale && anyInCombat && !_debugMoraleLocked)
             {
                 EvaluateFlockMorale();
             }
-            else if (settings.useAdaptiveMorale && _currentMorale != CombatMorale.Confident)
+            else if (settings.useAdaptiveMorale && _currentMorale != CombatMorale.Confident && !_debugMoraleLocked)
             {
                 // Reset morale when out of combat
                 _currentMorale = CombatMorale.Confident;
@@ -815,7 +827,7 @@ public class BoidsManager : MonoBehaviour
 
         if (removedCount > 0 && (leaderRemoved || subFlockLeaderRemoved || _formationDirty))
         {
-            MarkFormationDirty();
+            MarkFormationDirty(deferDuringCombat: true);
         }
 
         return removedCount;
@@ -878,6 +890,42 @@ public class BoidsManager : MonoBehaviour
             if (boids[i] != null)
                 boids[i].CurrentMorale = morale;
         }
+    }
+
+    /// <summary>
+    /// Force all boids into escape (Broken morale + combat). Editor debug only.
+    /// </summary>
+    public void DebugForceEscape()
+    {
+        if (boids == null || boids.Count == 0) return;
+
+        _debugMoraleLocked = true;
+        _currentMorale = CombatMorale.Broken;
+        CurrentMoraleScore = 0f;
+        SetMoraleOnAllBoids(CombatMorale.Broken);
+
+        foreach (var boid in boids)
+        {
+            if (boid != null)
+                boid.EnterCombat();
+        }
+        _wasAnyInCombat = true;
+
+        Debug.Log($"[{_flockId}] Forced {boids.Count} boids into escape (Broken morale + combat)");
+    }
+
+    /// <summary>
+    /// Restore all boids to Confident morale. Editor debug only.
+    /// </summary>
+    public void DebugRestoreConfident()
+    {
+        if (boids == null || boids.Count == 0) return;
+
+        _debugMoraleLocked = false;
+        _currentMorale = CombatMorale.Confident;
+        CurrentMoraleScore = 1f;
+        SetMoraleOnAllBoids(CombatMorale.Confident);
+        Debug.Log($"[{_flockId}] Restored {boids.Count} boids to Confident morale");
     }
 
     private void UpdateBoidWeapons()

@@ -19,6 +19,11 @@ public class BoidFlockTargetManager : MonoBehaviour
 
     [Header("Detection")]
     [SerializeField] private float _detectionRadius = 5000f;
+    [Tooltip("Ratio of combat engage radius to detection radius (used when Combat Engage Radius is 0).")]
+    [Range(0.1f, 1f)]
+    [SerializeField] private float _combatRadiusRatio = 0.7f;
+    [Tooltip("Max range at which boids engage targets. Tracked targets disengage at detection radius (hysteresis). Set to 0 to use Detection Radius × Combat Radius Ratio.")]
+    [SerializeField] private float _combatEngageRadius = 0f;
     [SerializeField] private float _detectionInterval = 0.2f;
     [SerializeField] private List<string> _targetTags = new List<string>();
     [SerializeField] private List<string> _ignoreTags = new List<string>();
@@ -82,6 +87,11 @@ public class BoidFlockTargetManager : MonoBehaviour
 
     // Fleet-level shared target pool (set by FleetController)
     private List<BoidTargetInfo> _fleetTargetPool;
+
+    /// <summary>
+    /// Effective combat engage radius: uses explicit value if set, otherwise 0.7x detection radius.
+    /// </summary>
+    private float EffectiveCombatRadius => _combatEngageRadius > 0f ? _combatEngageRadius : _detectionRadius * _combatRadiusRatio;
 
     public IReadOnlyDictionary<Boid, BoidTargetInfo> BoidAssignments => _boidAssignments;
 
@@ -478,10 +488,15 @@ public class BoidFlockTargetManager : MonoBehaviour
     private void BuildCandidateTargets()
     {
         _candidateTargets.Clear();
+        float combatRadius = EffectiveCombatRadius;
 
         foreach (var target in _knownTargets.Values)
         {
-            if (target != null && target.IsValid)
+            if (target == null || !target.IsValid) continue;
+
+            // New targets must be within combat engage radius.
+            // Already-assigned targets stay valid within full detection radius (hysteresis).
+            if (target.Distance <= combatRadius || target.AssignedBoidCount > 0)
             {
                 _candidateTargets.Add(target);
             }
@@ -938,17 +953,31 @@ public class BoidFlockTargetManager : MonoBehaviour
 
     #endregion
 
+#if UNITY_EDITOR
     void OnDrawGizmosSelected()
     {
-        // Detection radius
-        Gizmos.color = new Color(1f, 0f, 0f, 0.2f);
-        Gizmos.DrawWireSphere(transform.position, _detectionRadius);
+        Vector3 center = Application.isPlaying ? CalculateFlockCenter() : transform.position;
+        float combatRadius = EffectiveCombatRadius;
+
+        // Detection radius (awareness / disengage boundary) — yellow
+        Gizmos.color = new Color(1f, 1f, 0f, 0.15f);
+        Gizmos.DrawWireSphere(center, _detectionRadius);
+        UnityEditor.Handles.color = new Color(1f, 1f, 0f, 0.6f);
+        UnityEditor.Handles.Label(center + Vector3.up * _detectionRadius, $"Detection: {_detectionRadius:F0}");
+
+        // Combat engage radius — red
+        Gizmos.color = new Color(1f, 0.2f, 0f, 0.25f);
+        Gizmos.DrawWireSphere(center, combatRadius);
+        UnityEditor.Handles.color = new Color(1f, 0.2f, 0f, 0.8f);
+        UnityEditor.Handles.Label(center + Vector3.up * combatRadius, $"Combat: {combatRadius:F0}");
 
         // Defense radius
         if (_isDefenseMode && _defendTarget != null)
         {
             Gizmos.color = new Color(0f, 1f, 1f, 0.3f);
             Gizmos.DrawWireSphere(_defendTarget.position, _defendRadius);
+            UnityEditor.Handles.color = new Color(0f, 1f, 1f, 0.8f);
+            UnityEditor.Handles.Label(_defendTarget.position + Vector3.up * _defendRadius, $"Defense: {_defendRadius:F0}");
         }
 
         // Priority target
@@ -956,21 +985,32 @@ public class BoidFlockTargetManager : MonoBehaviour
         {
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(_priorityTarget.position, 30f);
-            Gizmos.DrawLine(transform.position, _priorityTarget.position);
+            Gizmos.DrawLine(center, _priorityTarget.position);
         }
 
-        // // Known targets
-        // if (_knownTargets != null)
-        // {
-        //     foreach (var kvp in _knownTargets)
-        //     {
-        //         if (kvp.Value.IsValid)
-        //         {
-        //             Gizmos.color = Color.Lerp(Color.yellow, Color.red, kvp.Value.ThreatLevel / 5f);
-        //             Gizmos.DrawWireSphere(kvp.Value.LastKnownPosition, 2f);
-        //             Gizmos.DrawLine(transform.position, kvp.Value.LastKnownPosition);
-        //         }
-        //     }
-        // }
+        // Known targets and assignments (play mode only)
+        if (Application.isPlaying && _knownTargets != null)
+        {
+            foreach (var kvp in _knownTargets)
+            {
+                if (!kvp.Value.IsValid || kvp.Key == null) continue;
+
+                bool isEngaged = kvp.Value.AssignedBoidCount > 0;
+                bool inCombatRange = kvp.Value.Distance <= combatRadius;
+
+                // Red = engaged, orange = in combat range but unassigned, yellow = awareness only
+                Gizmos.color = isEngaged ? Color.red
+                    : inCombatRange ? new Color(1f, 0.5f, 0f, 0.7f)
+                    : new Color(1f, 1f, 0f, 0.4f);
+
+                Gizmos.DrawWireSphere(kvp.Value.LastKnownPosition, 15f);
+                Gizmos.DrawLine(center, kvp.Value.LastKnownPosition);
+
+                UnityEditor.Handles.color = Gizmos.color;
+                UnityEditor.Handles.Label(kvp.Value.LastKnownPosition + Vector3.up * 25f,
+                    $"T:{kvp.Value.ThreatLevel:F1} D:{kvp.Value.Distance:F0} A:{kvp.Value.AssignedBoidCount}");
+            }
+        }
     }
+#endif
 }
