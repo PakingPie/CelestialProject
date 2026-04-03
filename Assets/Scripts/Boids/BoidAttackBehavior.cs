@@ -91,7 +91,7 @@ public class BoidAttackBehavior : MonoBehaviour
                 break;
                 
             case AttackMode.MaintainDistance:
-                movement = GetMaintainDistanceMovement(distance, toTargetDir);
+                movement = GetMaintainDistanceMovement(targetPosition, distance, toTargetDir);
                 break;
                 
             case AttackMode.HitAndRun:
@@ -152,36 +152,32 @@ public class BoidAttackBehavior : MonoBehaviour
         return toTargetDir;
     }
 
-    private Vector3 GetMaintainDistanceMovement(float distance, Vector3 toTargetDir)
+    private Vector3 GetMaintainDistanceMovement(Vector3 targetPosition, float distance, Vector3 toTargetDir)
     {
-        float distanceError = distance - _profile.engagementDistance;
-        
         if (distance < _profile.minDistance)
         {
-            // Too close - retreat urgently
             _currentSpeedMultiplier = _profile.retreatSpeedMultiplier;
             return -toTargetDir;
         }
         else if (distance > _profile.maxDistance)
         {
-            // Too far - approach
             _currentSpeedMultiplier = _profile.approachSpeedMultiplier;
             return toTargetDir;
         }
-        else
-        {
-            // In range - make small adjustments
-            _currentSpeedMultiplier = _profile.engageSpeedMultiplier;
-            
-            float adjustment = Mathf.Clamp(distanceError / _profile.engagementDistance, -0.5f, 0.5f);
-            
-            // Mostly tangential movement with slight distance correction
-            Vector3 tangent = Vector3.Cross(Vector3.up, toTargetDir).normalized;
-            if (_committedSide == 0)
-                _committedSide = Random.value > 0.5f ? 1 : -1;
-            
-            return tangent * _committedSide * 0.7f + toTargetDir * adjustment;
-        }
+
+        _currentSpeedMultiplier = _profile.engageSpeedMultiplier;
+
+        if (_committedSide == 0)
+            _committedSide = Random.value > 0.5f ? 1 : -1;
+
+        // Steer toward a point 45° ahead on the orbit circle at engagementDistance.
+        // fromTarget and tangent are perpendicular unit vectors; their normalized sum
+        // points 45° ahead. SteerTowards() subtracts current velocity so the boid
+        // naturally decelerates as it converges on the arc — no momentum overshoot.
+        Vector3 fromTarget = -toTargetDir;
+        Vector3 tangent = Vector3.Cross(Vector3.up, toTargetDir).normalized * _committedSide;
+        Vector3 orbitPoint = targetPosition + (fromTarget + tangent).normalized * _profile.engagementDistance;
+        return (orbitPoint - Boid.position).normalized;
     }
 
     private Vector3 GetHitAndRunMovement(float distance, Vector3 toTargetDir)
@@ -256,34 +252,31 @@ public class BoidAttackBehavior : MonoBehaviour
 
     private Vector3 GetOrbitMovement(Vector3 targetPosition, float distance, Vector3 toTargetDir)
     {
-        _currentSpeedMultiplier = _profile.engageSpeedMultiplier;
-        
-        float direction = _profile.preferClockwise ? 1f : -1f;
-        Vector3 tangent = Vector3.Cross(Vector3.up, toTargetDir).normalized * direction;
+        float dir = _profile.preferClockwise ? 1f : -1f;
 
-        // Update orbit angle
-        _orbitAngle += _profile.orbitSpeed * Time.deltaTime * direction;
-
-        // Maintain engagement distance while orbiting
-        float distanceError = distance - _profile.engagementDistance;
-        float radialStrength;
-        
         if (distance < _profile.minDistance)
         {
-            radialStrength = -1f;
             _currentSpeedMultiplier = _profile.retreatSpeedMultiplier;
+            return -toTargetDir;
         }
         else if (distance > _profile.maxDistance)
         {
-            radialStrength = 1f;
             _currentSpeedMultiplier = _profile.approachSpeedMultiplier;
-        }
-        else
-        {
-            radialStrength = Mathf.Clamp(distanceError / _profile.engagementDistance, -0.5f, 0.5f);
+            return toTargetDir;
         }
 
-        return (tangent + toTargetDir * radialStrength).normalized;
+        _currentSpeedMultiplier = _profile.engageSpeedMultiplier;
+
+        // Steer toward a point 45° ahead on the orbit circle at engagementDistance.
+        // fromTarget (radial) and tangent are perpendicular; their normalized sum
+        // points 45° ahead on the circle. Because SteerTowards() subtracts current
+        // velocity, the boid decelerates as it reaches the arc and never overshoots.
+        // Orbit radius correction is implicit: if the boid is too far or too close,
+        // the orbit point is closer/farther than current position, pulling it in.
+        Vector3 fromTarget = -toTargetDir;
+        Vector3 tangent = Vector3.Cross(Vector3.up, toTargetDir).normalized * dir;
+        Vector3 orbitPoint = targetPosition + (fromTarget + tangent).normalized * _profile.engagementDistance;
+        return (orbitPoint - Boid.position).normalized;
     }
 
     #endregion

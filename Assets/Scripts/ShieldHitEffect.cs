@@ -7,6 +7,8 @@ using UnityEditor;
 
 public class ShieldHitEffect : MonoBehaviour
 {
+    private static Texture2D s_blackTex;
+
     public GameObject ShieldGO;
     [Header("Settings")]
     public int TextureSize = 64;
@@ -68,12 +70,17 @@ public class ShieldHitEffect : MonoBehaviour
         if (_cumulativeRT == null) _cumulativeRT = CreateRT();
         if (_singleEffectRT == null) _singleEffectRT = CreateRT();
         if (_tempRT == null) _tempRT = CreateRT();
-        if (_blackTex == null)
+        if (s_blackTex == null)
         {
-            _blackTex = new Texture2D(2, 2);
-            _blackTex.SetPixels(new Color[] { Color.black, Color.black, Color.black, Color.black });
-            _blackTex.Apply();
+            s_blackTex = new Texture2D(2, 2, TextureFormat.RGBA32, false, true)
+            {
+                name = "ShieldHitEffect BlackTex"
+            };
+            s_blackTex.SetPixels(new Color[] { Color.black, Color.black, Color.black, Color.black });
+            s_blackTex.Apply();
         }
+
+        _blackTex = s_blackTex;
 
         if (_cumulativeMat == null) _cumulativeMat = new Material(CumulativeShader);
 
@@ -100,25 +107,32 @@ public class ShieldHitEffect : MonoBehaviour
 
     public void ClearAll()
     {
-        ReleaseRT(_cumulativeRT);
-        ReleaseRT(_singleEffectRT);
-        ReleaseRT(_tempRT);
-
-        if (_blackTex != null) Destroy(_blackTex);
+        ReleaseRT(ref _cumulativeRT);
+        ReleaseRT(ref _singleEffectRT);
+        ReleaseRT(ref _tempRT);
 
         if (_hitEffectMat != null) Destroy(_hitEffectMat);
         if (_cumulativeMat != null) Destroy(_cumulativeMat);
 
+        _hitEffectMat = null;
+        _cumulativeMat = null;
+        _shieldRenderer = null;
+        _shieldPropBlock = null;
+        _blackTex = null;
+        _activeRipples.Clear();
+        _forceClearTimer = 0f;
+
         _isInitialized = false;
     }
 
-    private void ReleaseRT(RenderTexture rt)
+    private void ReleaseRT(ref RenderTexture rt)
     {
         if (rt != null)
         {
             if (RenderTexture.active == rt)
                 RenderTexture.active = null;
             rt.Release();
+            Destroy(rt);
             rt = null;
         }
     }
@@ -307,7 +321,8 @@ public class ShieldHitEffect : MonoBehaviour
 
     void OnDisable()
     {
-        ClearAll();
+        _activeRipples.Clear();
+        _forceClearTimer = 0f;
     }
 
     // void OnGUI()

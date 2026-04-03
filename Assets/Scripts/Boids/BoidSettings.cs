@@ -95,6 +95,15 @@ public class BoidSettings : ScriptableObject
     [Tooltip("How much velocity rotates with the ship (0 = full drift, 1 = full coupling).")]
     [Range(0f, 1f)]
     public float velocityCoupling = 0.75f;
+    [Tooltip("Lateral/vertical thruster authority as a fraction of forward thrust. 0 = turn-then-burn only, 1 = omnidirectional. Models RCS ports.")]
+    [Range(0f, 1f)]
+    public float rcsAuthority = 0.15f;
+    [Tooltip("Reverse thruster authority as a fraction of forward thrust. 0.35 ≈ fighter with weak aft thrusters.")]
+    [Range(0f, 1f)]
+    public float reverseThrustRatio = 0.35f;
+    [Tooltip("RCS authority multiplier for attack profiles that use custom facing (orbiting / strafing). Effective lateral = rcsAuthority × combatRcsBoost.")]
+    [Range(1f, 8f)]
+    public float combatRcsBoost = 3f;
 
     [Header("Ship Size Physics Multipliers")]
     [Tooltip("Torque multiplier for Large ships (lower = slower turning).")]

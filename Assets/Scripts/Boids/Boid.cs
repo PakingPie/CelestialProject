@@ -1194,6 +1194,9 @@ public class Boid : MonoBehaviour
         acceleration = Vector3.Lerp(_previousAcceleration, acceleration, dt * AccelerationSmoothSpeed);
         _previousAcceleration = acceleration;
 
+        // Newtonian thrust decomposition — constrain acceleration to ship thruster axes
+        acceleration = ApplyThrustAuthority(acceleration);
+
         // Apply steering forces to velocity
         _velocity += acceleration * dt;
 
@@ -1230,6 +1233,28 @@ public class Boid : MonoBehaviour
         _cachedTransform.position = newPos;
         position = newPos;
         forward = _cachedTransform.forward;
+    }
+
+    /// <summary>
+    /// Decomposes a world-space acceleration vector into ship-local thruster axes and scales
+    /// each axis by its available authority: forward (main engine), reverse, and lateral/vertical (RCS).
+    /// </summary>
+    private Vector3 ApplyThrustAuthority(Vector3 acceleration)
+    {
+        if (acceleration.sqrMagnitude < 0.0001f) return acceleration;
+
+        Vector3 shipForward = _cachedTransform.forward;
+        float forwardDot = Vector3.Dot(acceleration, shipForward);
+        Vector3 forwardComponent = shipForward * forwardDot;
+        Vector3 lateralComponent = acceleration - forwardComponent;
+
+        float forwardAuthority = forwardDot >= 0f ? 1.0f : _settings.reverseThrustRatio;
+
+        float lateralAuthority = _settings.rcsAuthority;
+        if (IsInCombat && AttackBehavior != null)
+            lateralAuthority = Mathf.Min(lateralAuthority * _settings.combatRcsBoost, 1f);
+
+        return (forwardComponent * forwardAuthority) + (lateralComponent * lateralAuthority);
     }
 
     private float GetDesiredCruiseSpeed(float currentSpeed)
