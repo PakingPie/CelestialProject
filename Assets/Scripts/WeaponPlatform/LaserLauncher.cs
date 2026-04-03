@@ -7,7 +7,8 @@ using UnityEngine.VFX;
 public class LaserLauncher : WeaponBase
 {
     [Header("Laser Turret Settings")]
-    public LineRenderer LaserLineRenderer;
+    [Tooltip("Maximum thickness when the laser is at full power.")]
+    public float MaxThickness = 1.0f;
 
     [Header("Laser Settings")]
     [Tooltip("Duration of the laser effect in seconds.")]
@@ -17,7 +18,7 @@ public class LaserLauncher : WeaponBase
     public int LaserDPS = 1;
     public bool IsFiring = false;
     public Transform LaserOrigin;
-    public VisualEffect LaserLaunchEffect;
+    public VisualEffect LaserVFX;
 
     private float _laserDurationTimer = 0.0f;
     private float _laserDamageTimer = 0f;
@@ -26,14 +27,20 @@ public class LaserLauncher : WeaponBase
 
     private RaycastHit _hit;
     private bool _laserActiveThisFrame = false;
+    private bool _laserVFXPlaying = false;
 
     public bool ReadyToFire => !_isOnCooldown;
 
     void Start()
     {
-        LaserLineRenderer.SetPosition(0, LaserOrigin.position);
-        // Instantiate Laser Launch Effect
-        LaserLaunchEffect = Instantiate(LaserLaunchEffect, LaserOrigin.position, Quaternion.identity, LaserOrigin);
+        // Instantiate Laser VFX at world origin (not parented, since positions are set in world space)
+        if (LaserVFX != null)
+        {
+            LaserVFX = Instantiate(LaserVFX);
+            LaserVFX.transform.position = Vector3.zero;
+            LaserVFX.transform.rotation = Quaternion.identity;
+            LaserVFX.transform.localScale = Vector3.one;
+        }
     }
 
     void Update()
@@ -43,7 +50,7 @@ public class LaserLauncher : WeaponBase
             _laserDurationTimer = LaserEffectDuration;
             _isOnCooldown = true;
             _fireCooldownTimer = 0f;
-            LaserLaunchEffect.Stop();
+            if (LaserVFX != null) { LaserVFX.Stop(); _laserVFXPlaying = false; }
             return;
         }
 
@@ -63,28 +70,30 @@ public class LaserLauncher : WeaponBase
         if (IsFiring && Targeted != null)
         {
             _laserActiveThisFrame = true;
-            LaserLineRenderer.enabled = true;
-            LaserLaunchEffect.Play();
+            if (LaserVFX != null && !_laserVFXPlaying)
+            {
+                LaserVFX.Play();
+                _laserVFXPlaying = true;
+            }
             Shoot();
         }
         else if (Targeted == null && _laserDurationTimer > 0.0f)
         {
             // Fade out laser when target lost mid-fire
             _laserDurationTimer += Time.deltaTime;
-            LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(LaserEffectDuration / 2f - (_laserDurationTimer - LaserEffectDuration / 2f)));
+            float fade = Mathf.Clamp01(LaserEffectDuration / 2f - (_laserDurationTimer - LaserEffectDuration / 2f)) * MaxThickness;
+            if (LaserVFX != null) LaserVFX.SetFloat("Fade", fade);
 
             // Reset if fade complete
             if (_laserDurationTimer >= LaserEffectDuration)
             {
                 _laserDurationTimer = 0f;
-                LaserLineRenderer.enabled = false;
-                LaserLaunchEffect.Stop();
+                if (LaserVFX != null) { LaserVFX.SetFloat("Fade", 0f); LaserVFX.Stop(); _laserVFXPlaying = false; }
             }
         }
         else
         {
-            LaserLineRenderer.enabled = false;
-            LaserLaunchEffect.Stop();
+            if (LaserVFX != null) { LaserVFX.SetFloat("Fade", 0f); LaserVFX.Stop(); _laserVFXPlaying = false; }
         }
 
         // Rotate turret logic
@@ -115,9 +124,11 @@ public class LaserLauncher : WeaponBase
         // Update beam geometry after all movement is resolved
         if (_laserActiveThisFrame && Targeted != null)
         {
-            LaserLineRenderer.SetPosition(0, LaserOrigin.position);
-            LaserLineRenderer.SetPosition(1, Targeted.position);
-            LaserLaunchEffect.transform.position = LaserOrigin.position;
+            if (LaserVFX != null)
+            {
+                LaserVFX.SetVector3("StartPosition", LaserOrigin.position);
+                LaserVFX.SetVector3("EndPosition", Targeted.position);
+            }
         }
         _laserActiveThisFrame = false;
     }
@@ -130,15 +141,13 @@ public class LaserLauncher : WeaponBase
             _laserDurationTimer += Time.deltaTime;
             _laserDamageTimer += Time.deltaTime;
 
-            // Fade in/out effect
+            // Fade in/out effect via VFX Fade
+            float fade;
             if (_laserDurationTimer > LaserEffectDuration / 2f)
-            {
-                LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(LaserEffectDuration / 2f - (_laserDurationTimer - LaserEffectDuration / 2f)));
-            }
+                fade = Mathf.Clamp01(LaserEffectDuration / 2f - (_laserDurationTimer - LaserEffectDuration / 2f)) * MaxThickness;
             else
-            {
-                LaserLineRenderer.material.SetFloat("_Active_Time", Mathf.Clamp01(_laserDurationTimer));
-            }
+                fade = Mathf.Clamp01(_laserDurationTimer) * MaxThickness;
+            if (LaserVFX != null) LaserVFX.SetFloat("Fade", fade);
 
             // Deal damage
             var enemyVehicle = Targeted.gameObject.GetComponent<VehicleBase>();
@@ -175,8 +184,7 @@ public class LaserLauncher : WeaponBase
             _laserDurationTimer = 0f;
             _isOnCooldown = true;
             _fireCooldownTimer = 0f;
-            LaserLineRenderer.enabled = false;
-            LaserLaunchEffect.Stop();
+            if (LaserVFX != null) { LaserVFX.SetFloat("Fade", 0f); LaserVFX.Stop(); _laserVFXPlaying = false; }
         }
     }
 }
