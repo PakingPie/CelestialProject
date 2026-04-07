@@ -119,6 +119,8 @@ MonoBehaviour:
   CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
+  _ammoBeltTypes: []
+  _ammoBeltPattern: 
   _useAccelerationPrediction: 0
   _accelerationSmoothingAlpha: 0.3
   _minAccelerationMagnitude: 2
@@ -195,6 +197,7 @@ Transform:
   - {fileID: 7861154152680076551}
   - {fileID: 6322306213026796330}
   - {fileID: 5022621856819778991}
+  - {fileID: 5948593509507587859}
   m_Father: {fileID: 5346510314729312143}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &424294684519852583
@@ -674,6 +677,11 @@ MonoBehaviour:
   CooldownTime: 2
   UseAmmo: 0
   MaxAmmo: 10000
+  _ammoBeltTypes:
+  - {fileID: -3295528032157664246, guid: ef4b6b9a634cf0e4e99150ff7b1472f8, type: 3}
+  - {fileID: -3295528032157664246, guid: 57d5d7426e7f05346b8dbfc9e67be577, type: 3}
+  - {fileID: -3295528032157664246, guid: 912aed142c8077344b54c7d00393b3e7, type: 3}
+  _ammoBeltPattern: 0012
   _useAccelerationPrediction: 0
   _accelerationSmoothingAlpha: 0.3
   _minAccelerationMagnitude: 2
@@ -1624,6 +1632,209 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &1954561722696874522
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5948593509507587859}
+  - component: {fileID: 4892017225319981363}
+  - component: {fileID: 7586887669449739358}
+  m_Layer: 0
+  m_Name: FlameWithSmokeVFX Damage Flame Large(Clone)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &5948593509507587859
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1954561722696874522}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5300287968947172822}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!2083052967 &4892017225319981363
+VisualEffect:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1954561722696874522}
+  m_Enabled: 1
+  m_Asset: {fileID: 8926484042661614526, guid: e92eff469faa62040a9d1be0f81ebb6c, type: 3}
+  m_InitialEventName: OnPlay
+  m_InitialEventNameOverriden: 0
+  m_StartSeed: 0
+  m_ResetSeedOnPlay: 1
+  m_AllowInstancing: 1
+  m_ResourceVersion: 1
+  m_PropertySheet:
+    m_Float:
+      m_Array:
+      - m_Value: 0.3
+        m_Name: FlameLifeTime
+        m_Overridden: 1
+    m_Vector2f:
+      m_Array:
+      - m_Value: {x: 5, y: 6}
+        m_Name: SmokeLifeTime
+        m_Overridden: 1
+      - m_Value: {x: 15, y: 20}
+        m_Name: SmokeSize
+        m_Overridden: 1
+      - m_Value: {x: 6, y: 10}
+        m_Name: FlameSize
+        m_Overridden: 1
+    m_Vector3f:
+      m_Array:
+      - m_Value: {x: 4, y: 4, z: 30}
+        m_Name: SmokeJitterDirection
+        m_Overridden: 1
+    m_Vector4f:
+      m_Array: []
+    m_Uint:
+      m_Array: []
+    m_Int:
+      m_Array: []
+    m_Matrix4x4f:
+      m_Array: []
+    m_AnimationCurve:
+      m_Array: []
+    m_Gradient:
+      m_Array:
+      - m_Value:
+          serializedVersion: 2
+          key0: {r: 766.99615, g: 153.39923, b: 76.699615, a: 0.039215688}
+          key1: {r: 153.6, g: 23.988434, b: 13.050981, a: 0.15686275}
+          key2: {r: 34.052826, g: 2.714572, b: 0, a: 0}
+          key3: {r: 5.977357, g: 0.29578632, b: 0, a: 0}
+          key4: {r: 0, g: 0, b: 0, a: 0}
+          key5: {r: 0, g: 0, b: 0, a: 0}
+          key6: {r: 0, g: 0, b: 0, a: 0}
+          key7: {r: 0, g: 0, b: 0, a: 0}
+          ctime0: 0
+          ctime1: 3277
+          ctime2: 13107
+          ctime3: 65535
+          ctime4: 65535
+          ctime5: 0
+          ctime6: 0
+          ctime7: 0
+          atime0: 0
+          atime1: 26214
+          atime2: 65535
+          atime3: 65535
+          atime4: 0
+          atime5: 0
+          atime6: 0
+          atime7: 0
+          m_Mode: 0
+          m_ColorSpace: 1
+          m_NumColorKeys: 4
+          m_NumAlphaKeys: 3
+        m_Name: FlameColorGradient
+        m_Overridden: 1
+      - m_Value:
+          serializedVersion: 2
+          key0: {r: 8.150944, g: 0.5410204, b: 0, a: 1}
+          key1: {r: 2.807547, g: 0.1773986, b: 0, a: 0.3137255}
+          key2: {r: 0.15, g: 0.125, b: 0.1, a: 0}
+          key3: {r: 0, g: 0, b: 0, a: 0}
+          key4: {r: 0, g: 0, b: 0, a: 0}
+          key5: {r: 0, g: 0, b: 0, a: 0}
+          key6: {r: 0, g: 0, b: 0, a: 0}
+          key7: {r: 0, g: 0, b: 0, a: 0}
+          ctime0: 0
+          ctime1: 1311
+          ctime2: 3277
+          ctime3: 65535
+          ctime4: 0
+          ctime5: 0
+          ctime6: 0
+          ctime7: 0
+          atime0: 0
+          atime1: 32768
+          atime2: 65535
+          atime3: 0
+          atime4: 0
+          atime5: 0
+          atime6: 0
+          atime7: 0
+          m_Mode: 0
+          m_ColorSpace: 1
+          m_NumColorKeys: 4
+          m_NumAlphaKeys: 3
+        m_Name: SmokeColorGradient
+        m_Overridden: 1
+    m_NamedObject:
+      m_Array: []
+    m_Bool:
+      m_Array:
+      - m_Value: 1
+        m_Name: EnableFlame
+        m_Overridden: 1
+      - m_Value: 1
+        m_Name: EnableSmoke
+        m_Overridden: 1
+--- !u!73398921 &7586887669449739358
+VFXRenderer:
+  serializedVersion: 1
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1954561722696874522}
+  m_Enabled: 0
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 0
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
 --- !u!1 &2020209559923141714
 GameObject:
   m_ObjectHideFlags: 0
@@ -2890,6 +3101,11 @@ MonoBehaviour:
   CooldownTime: 2
   UseAmmo: 0
   MaxAmmo: 10000
+  _ammoBeltTypes:
+  - {fileID: -3295528032157664246, guid: ef4b6b9a634cf0e4e99150ff7b1472f8, type: 3}
+  - {fileID: -3295528032157664246, guid: 57d5d7426e7f05346b8dbfc9e67be577, type: 3}
+  - {fileID: -3295528032157664246, guid: 912aed142c8077344b54c7d00393b3e7, type: 3}
+  _ammoBeltPattern: 0012
   _useAccelerationPrediction: 0
   _accelerationSmoothingAlpha: 0.3
   _minAccelerationMagnitude: 2
@@ -6117,6 +6333,8 @@ MonoBehaviour:
   CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
+  _ammoBeltTypes: []
+  _ammoBeltPattern: 
   _useAccelerationPrediction: 0
   _accelerationSmoothingAlpha: 0.3
   _minAccelerationMagnitude: 2
@@ -6861,6 +7079,11 @@ MonoBehaviour:
   CooldownTime: 2
   UseAmmo: 0
   MaxAmmo: 10000
+  _ammoBeltTypes:
+  - {fileID: -3295528032157664246, guid: ef4b6b9a634cf0e4e99150ff7b1472f8, type: 3}
+  - {fileID: -3295528032157664246, guid: 57d5d7426e7f05346b8dbfc9e67be577, type: 3}
+  - {fileID: -3295528032157664246, guid: 912aed142c8077344b54c7d00393b3e7, type: 3}
+  _ammoBeltPattern: 0012
   _useAccelerationPrediction: 0
   _accelerationSmoothingAlpha: 0.3
   _minAccelerationMagnitude: 2
@@ -7263,6 +7486,8 @@ MonoBehaviour:
   CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
+  _ammoBeltTypes: []
+  _ammoBeltPattern: 
   _useAccelerationPrediction: 0
   _accelerationSmoothingAlpha: 0.3
   _minAccelerationMagnitude: 2
