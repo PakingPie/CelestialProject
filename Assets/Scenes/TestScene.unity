@@ -610,7 +610,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &30324697
 Transform:
   m_ObjectHideFlags: 0
@@ -5779,7 +5779,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 550058537733726526, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2570990964021263345, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
       propertyPath: m_Enabled
@@ -5830,9 +5830,21 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8379451601201940147, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
+      propertyPath: LaserDPS
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 8379451601201940147, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
       propertyPath: LaserVFX
       value: 
       objectReference: {fileID: 4279287325252703058, guid: 1fa8028f9dbb7354a823a462fe81cf44, type: 3}
+    - target: {fileID: 8379451601201940147, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
+      propertyPath: LaserType
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8379451601201940147, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
+      propertyPath: FireInterval
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8379451601201940147, guid: 8c6e271ab9f37c1409e62c3719c257ab, type: 3}
       propertyPath: LightningVFX
       value: 
@@ -9006,7 +9018,7 @@ Transform:
   m_GameObject: {fileID: 764762348}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 2000, z: -2000}
+  m_LocalPosition: {x: 0, y: 1000, z: -2000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -19700,7 +19712,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
-  spawnCount: 30
+  spawnCount: 15
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
   spawnMode: 0
@@ -25023,7 +25035,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 98966aa3787d31b4b8efaa8911a5c441, type: 3}
-  spawnCount: 30
+  spawnCount: 15
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
   spawnMode: 1

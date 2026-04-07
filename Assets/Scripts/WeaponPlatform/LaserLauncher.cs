@@ -31,6 +31,8 @@ public class LaserLauncher : WeaponBase
 
     public bool ReadyToFire => !_isOnCooldown;
 
+    public AmmoType LaserType = AmmoType.Energy;
+
     void Start()
     {
         // Instantiate Laser VFX at world origin (not parented, since positions are set in world space)
@@ -128,6 +130,12 @@ public class LaserLauncher : WeaponBase
             {
                 LaserVFX.SetVector3("StartPosition", LaserOrigin.position);
                 LaserVFX.SetVector3("EndPosition", Targeted.position);
+
+                float distance = Vector3.Distance(LaserOrigin.position, Targeted.position);
+                LaserVFX.SetVector2("NoiseUVScale", new Vector2(
+                    1.0f,
+                    Mathf.Max(1f, distance)
+                ));
             }
         }
         _laserActiveThisFrame = false;
@@ -175,7 +183,7 @@ public class LaserLauncher : WeaponBase
                         _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
                     }
                 }
-                enemyVehicle.TakeDamage(LaserDPS, AmmoType.Energy);
+                enemyVehicle.TakeDamage(LaserDPS, LaserType);
             }
         }
         else
@@ -186,5 +194,11 @@ public class LaserLauncher : WeaponBase
             _fireCooldownTimer = 0f;
             if (LaserVFX != null) { LaserVFX.SetFloat("Fade", 0f); LaserVFX.Stop(); _laserVFXPlaying = false; }
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (LaserVFX != null)
+            Destroy(LaserVFX.gameObject);
     }
 }
