@@ -32,8 +32,12 @@ public class VFXPool : MonoBehaviour
     public int maxPoolSize = 50;
     [Tooltip("How often to check active VFX for completion (seconds)")]
     public float checkInterval = 0.2f;
+    [Tooltip("Maximum seconds a VFX instance can stay active before being force-returned to the pool.")]
+    public float maxVFXLifetime = 10f;
 
     private float _checkTimer = 0f;
+    private readonly List<VisualEffect> _toReturn = new List<VisualEffect>();
+    private readonly List<VisualEffect> _toRemove = new List<VisualEffect>();
 
     void Awake()
     {
@@ -130,41 +134,57 @@ public class VFXPool : MonoBehaviour
     /// </summary>
     private void CheckActiveVFX()
     {
-        List<VisualEffect> toReturn = new List<VisualEffect>();
+        _toReturn.Clear();
+        _toRemove.Clear();
 
         foreach (var vfx in _activeVFX)
         {
-            if (vfx == null || (!vfx.gameObject.activeInHierarchy && vfx.aliveParticleCount == 0))
+            // Handle destroyed / externally-removed VFX
+            if (vfx == null)
             {
-                toReturn.Add(vfx);
+                _toRemove.Add(vfx);
                 continue;
             }
 
-            // Check if finished playing (no alive particles and sufficient time passed)
-            if (vfx.aliveParticleCount == 0)
+            if (!vfx.gameObject.activeInHierarchy)
             {
-                VFXPooledInstance pooledInstance = vfx.GetComponent<VFXPooledInstance>();
-                if (pooledInstance != null)
-                {
-                    if (Time.time - pooledInstance.spawnTime > 1f) // Wait 1 second after particles finish
-                    {
-                        toReturn.Add(vfx);
-                    }
-                }
+                _toRemove.Add(vfx);
+                continue;
+            }
+
+            VFXPooledInstance pooledInstance = vfx.GetComponent<VFXPooledInstance>();
+            if (pooledInstance == null)
+            {
+                _toRemove.Add(vfx);
+                continue;
+            }
+
+            float elapsed = Time.time - pooledInstance.spawnTime;
+
+            // Force-return after max lifetime regardless of particle count
+            if (elapsed >= maxVFXLifetime)
+            {
+                _toReturn.Add(vfx);
+                continue;
+            }
+
+            // Return early if particles have finished and a grace period has passed
+            if (vfx.aliveParticleCount == 0 && elapsed > 1f)
+            {
+                _toReturn.Add(vfx);
             }
         }
 
+        // Remove dead references that can't be returned
+        for (int i = 0; i < _toRemove.Count; i++)
+            _activeVFX.Remove(_toRemove[i]);
+
         // Return finished VFX to pool
-        foreach (var vfx in toReturn)
+        for (int i = 0; i < _toReturn.Count; i++)
         {
-            if (vfx != null)
-            {
-                VFXPooledInstance pooledInstance = vfx.GetComponent<VFXPooledInstance>();
-                if (pooledInstance != null)
-                {
-                    Return(vfx, pooledInstance.prefab);
-                }
-            }
+            VisualEffect vfx = _toReturn[i];
+            VFXPooledInstance pooledInstance = vfx.GetComponent<VFXPooledInstance>();
+            Return(vfx, pooledInstance.prefab);
         }
     }
 
