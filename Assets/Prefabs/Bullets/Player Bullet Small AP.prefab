@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1324292948685452850}
   - component: {fileID: -3295528032157664246}
   m_Layer: 11
-  m_Name: Bullet_Middle_AP
+  m_Name: Player Bullet Small AP
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29,7 +29,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.8, y: 0.8, z: 18}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 11b00a7cbc3d1644e901ecd92aa6d0fc, type: 2}
+  - {fileID: 2100000, guid: 106e0aa59f19ab747885c8cd3841bfe0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -104,13 +104,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletPhysics
   _impactFXPrefab: {fileID: 7712910556444932483, guid: d4570ccc75b64494482d7be034ef5db5, type: 3}
-  _explodeFXPrefab: {fileID: 5729205090524001833, guid: 6abfa58cf92d7b442984512573567cad, type: 3}
+  _explodeFXPrefab: {fileID: 7712910556444932483, guid: d4570ccc75b64494482d7be034ef5db5, type: 3}
   _childTrails: []
-  Damage: 75
+  Damage: 20
   CanDamagePlanet: 0
   CanDamageAsteroids: 1
   Speed: 200
-  LifeTime: 10
+  LifeTime: 5
   FuseDetonationDistance: 10
   ExplosionRadius: 10
   velocityInheritance: 1
@@ -118,7 +118,7 @@ MonoBehaviour:
   alignmentSpeed: 5
   DamageType: 0
   FireTarget: 12
-  ExplodeOnImpact: 1
+  ExplodeOnImpact: 0
   UseSpatialGrid: 1
   HitCheckIntervalFrames: 2
   TargetObject: {fileID: 0}

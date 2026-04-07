@@ -82,6 +82,12 @@ public class Gun : WeaponBase
     public bool UseAmmo = false;
     public int MaxAmmo = 10000;
 
+    [Header("Ammo Belt")]
+    [Tooltip("List of bullet prefabs available for the ammo belt. Index 0 maps to '0' in the pattern, index 1 to '1', etc.")]
+    [SerializeField] private List<BulletPhysics> _ammoBeltTypes = new List<BulletPhysics>();
+    [Tooltip("Belt pattern string where each digit selects a prefab from AmmoBeltTypes. E.g. '0100' cycles: type0, type1, type0, type0. Loops circularly.")]
+    [SerializeField] private string _ammoBeltPattern = "";
+
     [Header("Lead Prediction")]
     [Tooltip("When enabled, uses smoothed target acceleration to improve lead accuracy for thrusting targets.")]
     [SerializeField] private bool _useAccelerationPrediction = false;
@@ -117,6 +123,7 @@ public class Gun : WeaponBase
     private float _lastShotTime = -float.MaxValue;
     private float _lastFireAudioTime = -float.MaxValue;
     private int _firePointIndex = 0;
+    private int _beltIndex = 0;
     private Vector3 _targetPosLastFrame;
 
     private float _currentHeat = 0f;
@@ -379,6 +386,7 @@ public class Gun : WeaponBase
     public void ReloadAmmo()
     {
         AmmoCount = MaxAmmo;
+        _beltIndex = 0;
     }
 
     /// <summary>
@@ -579,9 +587,28 @@ public class Gun : WeaponBase
         return gimballed * Vector3.forward;
     }
 
+    private BulletPhysics GetCurrentBeltPrefab()
+    {
+        if (_ammoBeltTypes.Count == 0 || string.IsNullOrEmpty(_ammoBeltPattern))
+            return BulletPrefab;
+
+        int index = _ammoBeltPattern[_beltIndex % _ammoBeltPattern.Length] - '0';
+        if (index < 0 || index >= _ammoBeltTypes.Count || _ammoBeltTypes[index] == null)
+            return BulletPrefab;
+
+        return _ammoBeltTypes[index];
+    }
+
+    private void AdvanceBelt()
+    {
+        if (_ammoBeltTypes.Count > 0 && !string.IsNullOrEmpty(_ammoBeltPattern))
+            _beltIndex = (_beltIndex + 1) % _ammoBeltPattern.Length;
+    }
+
     private void FireBulletFromFirePoint(Transform firePoint, Vector3 velocity)
     {
-        var bullet = Instantiate(BulletPrefab, firePoint.transform.position, firePoint.transform.rotation);
+        BulletPhysics prefab = GetCurrentBeltPrefab();
+        var bullet = Instantiate(prefab, firePoint.transform.position, firePoint.transform.rotation);
         var bulletPhysics = bullet.GetComponent<BulletPhysics>();
         bulletPhysics.FireTarget = FireTarget;
 
@@ -612,6 +639,8 @@ public class Gun : WeaponBase
         {
             bulletPhysics.Initialize(fireDirection, Vector3.zero);
         }
+
+        AdvanceBelt();
 
         // Visual feedback
         if (barrelVisuals.Count > 0)
