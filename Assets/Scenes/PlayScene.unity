@@ -2880,7 +2880,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &413969322
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4181,7 +4181,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &576097986
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4586,14 +4586,15 @@ MonoBehaviour:
   EnableDebug: 1
   ShowGunAngles: 1
   UseManagedUpdates: 1
-  LaserLineRenderer: {fileID: 619725935}
+  MaxThickness: 1
   LaserEffectDuration: 10
   MinimumLaserDamageInterval: 0.5
   FireInterval: 20
   LaserDPS: 100
   IsFiring: 0
   LaserOrigin: {fileID: 725396406}
-  LaserLaunchEffect: {fileID: 3277384423898632000, guid: 4b84a482b0952d34fbac8590c8ad108f, type: 3}
+  LaserVFX: {fileID: 0}
+  LaserType: 1
 --- !u!120 &619725935
 LineRenderer:
   serializedVersion: 3
@@ -5177,7 +5178,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &673285183
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5741,7 +5742,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!135 &735672077
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -10002,7 +10003,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1295040090
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10315,7 +10316,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1310404615
 Transform:
   m_ObjectHideFlags: 0
@@ -11386,7 +11387,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1456225715
 Transform:
   m_ObjectHideFlags: 0
@@ -11667,7 +11668,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1486282240
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12546,8 +12547,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.38268343, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1980694548}
   - {fileID: 1752583859}
@@ -17793,9 +17794,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovementController
   ship: {fileID: 7103346325574244501}
   shipMovement: {fileID: 2840843351104990238}
-  orbitDistance: 750
-  minOrbitDistance: 300
-  maxOrbitDistance: 1500
+  orbitDistance: 350
+  minOrbitDistance: 100
+  maxOrbitDistance: 500
   zoomSpeed: 50
   zoomSmoothness: 10
   mouseSensitivity: 0.2

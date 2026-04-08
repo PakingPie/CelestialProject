@@ -18,7 +18,6 @@ public class EnemyVehicle : VehicleBase
     public Shader EnergyShieldShader;
     public GameObject ShieldEffect;
     public VisualEffect ExplodeEffect;
-    public VisualEffect DamagedSmokeEffect;
     public Transform DamagedPoint;
     [Header("Death Chaos")]
     public bool EnableChaosDeath = true;
@@ -51,7 +50,6 @@ public class EnemyVehicle : VehicleBase
     public Vector3 Velocity => _velocity;
     private EnemyPredictionManager _predictionManager;
     private VisualEffect _damagedSmokeInstance;
-    private bool _smokeEffectInitialized = false;
     private Coroutine _deathRoutine;
     private Faction _deathFaction = Faction.None;
     private bool _hitBarVisible = false;
@@ -134,14 +132,14 @@ public class EnemyVehicle : VehicleBase
             _shieldEffectMat.SetFloat("_Strength", 1.0f);
         }
 
-        if (!_smokeEffectInitialized && DamagedSmokeEffect != null && DamagedPoint != null)
+        if (DamagedPoint != null)
         {
-            _damagedSmokeInstance = Instantiate(DamagedSmokeEffect, DamagedPoint);
-            _damagedSmokeInstance.transform.localPosition = Vector3.zero;
-            _damagedSmokeInstance.transform.localEulerAngles = Vector3.zero;
-            _damagedSmokeInstance.Stop();
-            _damagedSmokeInstance.gameObject.SetActive(false);
-            _smokeEffectInitialized = true;
+            _damagedSmokeInstance = DamagedPoint.GetComponentInChildren<VisualEffect>(true);
+            if (_damagedSmokeInstance != null)
+            {
+                _damagedSmokeInstance.Stop();
+                _damagedSmokeInstance.gameObject.SetActive(false);
+            }
         }
     }
 

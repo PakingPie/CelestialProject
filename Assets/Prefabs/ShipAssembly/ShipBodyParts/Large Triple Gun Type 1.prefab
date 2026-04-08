@@ -242,7 +242,7 @@ MonoBehaviour:
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
-  _fireDelay: 36
+  _fireDelay: 8
   Deviation: 0.8
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -265,12 +265,23 @@ MonoBehaviour:
   MuzzleFlashPrefab: {fileID: 4024419132641768552, guid: 8ff11a9e105596d41bc4222ec2ef3fd5, type: 3}
   FireInFixed: 0
   IsFiring: 1
+  _fireClip: {fileID: 0}
+  _fireAudioSource: {fileID: 0}
+  _fireMixerGroup: {fileID: 0}
+  _fireVolume: 1
+  _fireAudioInterval: 0.1
+  _fireMinDistance: 10
+  _fireMaxDistance: 250
+  _firePitchMin: 0.96
+  _firePitchMax: 1.04
   MaxHeat: 100
   HeatPerShot: 10
   HeatDissipationRate: 20
   CooldownTime: 5
   UseAmmo: 0
   MaxAmmo: 10000
+  _ammoBeltTypes: []
+  _ammoBeltPattern: 
   _useAccelerationPrediction: 0
   _accelerationSmoothingAlpha: 0.3
   _minAccelerationMagnitude: 2
