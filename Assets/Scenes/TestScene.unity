@@ -508,7 +508,7 @@ Transform:
   m_GameObject: {fileID: 30324696}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 2000, z: 2000}
+  m_LocalPosition: {x: 0, y: 1000, z: 2000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -13371,8 +13371,8 @@ Light:
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_ColorTemperature: 15000
-  m_UseColorTemperature: 0
+  m_ColorTemperature: 8000
+  m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
@@ -19131,7 +19131,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 10000, y: 10000, z: 10000}
+  m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -19143,14 +19143,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1709872562}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b82924bc9f37244890e47ee84d033f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NebulaVolume
   noiseTexture: {fileID: 11700000, guid: deeb788bb693d2a4cb6070968b22ea68, type: 2}
-  noiseDomainHalf: 10
-  lightPower: 10
+  noiseDomainHalf: 5
+  lightPower: 100
   nebulaColor: {r: 1, g: 1, b: 1, a: 1}
   fadeInnerRadius: 1
   fadeOuterRadius: 1
@@ -19160,7 +19160,7 @@ MonoBehaviour:
   shapeTendrilStrength: 0.45
   axisStretch: {x: 1, y: 1, z: 1}
   stepsPrimary: 64
-  stepsLight: 16
+  stepsLight: 8
   enableStars: 1
   starDensity: 0.01
   starBrightness: 0.5

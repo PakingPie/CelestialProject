@@ -93,30 +93,30 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
     private int prevWidth, prevHeight;
 
     // Shader property IDs
-    private static readonly int _NebulaWorldToLocal    = Shader.PropertyToID("_NebulaWorldToLocal");
-    private static readonly int _NebulaLocalToWorld    = Shader.PropertyToID("_NebulaLocalToWorld");
-    private static readonly int _AxisStretch           = Shader.PropertyToID("_AxisStretch");
-    private static readonly int _NebulaColor           = Shader.PropertyToID("_NebulaColor");
-    private static readonly int _Power                 = Shader.PropertyToID("_Power");
-    private static readonly int _FadeInnerRadius       = Shader.PropertyToID("_FadeInnerRadius");
-    private static readonly int _FadeOuterRadius       = Shader.PropertyToID("_FadeOuterRadius");
-    private static readonly int _FadeNoiseStrength     = Shader.PropertyToID("_FadeNoiseStrength");
-    private static readonly int _FadeBoxMargin         = Shader.PropertyToID("_FadeBoxMargin");
-    private static readonly int _ShapeNoiseScale       = Shader.PropertyToID("_ShapeNoiseScale");
-    private static readonly int _ShapeTendrilStrength  = Shader.PropertyToID("_ShapeTendrilStrength");
-    private static readonly int _NoiseDomainHalf       = Shader.PropertyToID("_NoiseDomainHalf");
-    private static readonly int _NoiseVolume           = Shader.PropertyToID("_NoiseVolume");
-    private static readonly int _StepsPrimary          = Shader.PropertyToID("_StepsPrimary");
-    private static readonly int _StepsLight            = Shader.PropertyToID("_StepsLight");
-    private static readonly int _EnableStars           = Shader.PropertyToID("_EnableStars");
-    private static readonly int _StarDensity           = Shader.PropertyToID("_StarDensity");
-    private static readonly int _StarBrightness        = Shader.PropertyToID("_StarBrightness");
-    private static readonly int _BlueNoise             = Shader.PropertyToID("_BlueNoise");
-    private static readonly int _DitherSpeed           = Shader.PropertyToID("_DitherSpeed");
-    private static readonly int _NebulaTexture         = Shader.PropertyToID("_NebulaTexture");
-    private static readonly int _HistoryTexture        = Shader.PropertyToID("_HistoryTexture");
-    private static readonly int _TemporalBlendFactor   = Shader.PropertyToID("_TemporalBlendFactor");
-    private static readonly int _NebulaPrevVP          = Shader.PropertyToID("_NebulaPrevVP");
+    private static readonly int _NebulaWorldToLocal = Shader.PropertyToID("_NebulaWorldToLocal");
+    private static readonly int _NebulaLocalToWorld = Shader.PropertyToID("_NebulaLocalToWorld");
+    private static readonly int _AxisStretch = Shader.PropertyToID("_AxisStretch");
+    private static readonly int _NebulaColor = Shader.PropertyToID("_NebulaColor");
+    private static readonly int _Power = Shader.PropertyToID("_Power");
+    private static readonly int _FadeInnerRadius = Shader.PropertyToID("_FadeInnerRadius");
+    private static readonly int _FadeOuterRadius = Shader.PropertyToID("_FadeOuterRadius");
+    private static readonly int _FadeNoiseStrength = Shader.PropertyToID("_FadeNoiseStrength");
+    private static readonly int _FadeBoxMargin = Shader.PropertyToID("_FadeBoxMargin");
+    private static readonly int _ShapeNoiseScale = Shader.PropertyToID("_ShapeNoiseScale");
+    private static readonly int _ShapeTendrilStrength = Shader.PropertyToID("_ShapeTendrilStrength");
+    private static readonly int _NoiseDomainHalf = Shader.PropertyToID("_NoiseDomainHalf");
+    private static readonly int _NoiseVolume = Shader.PropertyToID("_NoiseVolume");
+    private static readonly int _StepsPrimary = Shader.PropertyToID("_StepsPrimary");
+    private static readonly int _StepsLight = Shader.PropertyToID("_StepsLight");
+    private static readonly int _EnableStars = Shader.PropertyToID("_EnableStars");
+    private static readonly int _StarDensity = Shader.PropertyToID("_StarDensity");
+    private static readonly int _StarBrightness = Shader.PropertyToID("_StarBrightness");
+    private static readonly int _BlueNoise = Shader.PropertyToID("_BlueNoise");
+    private static readonly int _DitherSpeed = Shader.PropertyToID("_DitherSpeed");
+    private static readonly int _NebulaTexture = Shader.PropertyToID("_NebulaTexture");
+    private static readonly int _HistoryTexture = Shader.PropertyToID("_HistoryTexture");
+    private static readonly int _TemporalBlendFactor = Shader.PropertyToID("_TemporalBlendFactor");
+    private static readonly int _NebulaPrevVP = Shader.PropertyToID("_NebulaPrevVP");
 
     // ─── Constructor ───
 
@@ -138,9 +138,8 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
     private class TemporalPassData
     {
         public Material material;
-        // *** FIX: store RTHandle references for reliable texture binding ***
-        public RTHandle currentFrameRT;
-        public RTHandle historyInRT;
+        public TextureHandle currentFrame;
+        public TextureHandle historyIn;
         public float blendFactor;
         public Matrix4x4 prevVP;
     }
@@ -148,8 +147,7 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
     private class CompositePassData
     {
         public Material material;
-        // *** FIX: store RTHandle reference ***
-        public RTHandle sourceRT;
+        public TextureHandle source;
     }
 
     private struct NebulaVolumeGPU
@@ -195,6 +193,10 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
             TextureWrapMode.Clamp, name: "NebulaHalfRes");
 
         ClearRT(nebulaRT);
+
+        // *** ADD THESE TWO LINES ***
+        prevWidth = w;
+        prevHeight = h;
     }
 
     /// <summary>
@@ -249,7 +251,7 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
         UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
         Camera camera = cameraData.camera;
 
-        int halfW = Mathf.Max(1, camera.pixelWidth  / settings.downscale);
+        int halfW = Mathf.Max(1, camera.pixelWidth / settings.downscale);
         int halfH = Mathf.Max(1, camera.pixelHeight / settings.downscale);
 
         // ── Collect active volumes ──
@@ -265,26 +267,26 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
 
             volumes[count++] = new NebulaVolumeGPU
             {
-                worldToLocal         = v.transform.worldToLocalMatrix,
-                localToWorld         = v.transform.localToWorldMatrix,
-                axisStretch          = new Vector4(v.axisStretch.x, v.axisStretch.y, v.axisStretch.z, 0),
-                nebulaColor          = v.nebulaColor,
-                lightPower           = v.lightPower,
-                fadeInnerRadius      = v.fadeInnerRadius,
-                fadeOuterRadius      = v.fadeOuterRadius,
-                fadeNoiseStrength    = v.fadeNoiseStrength,
-                fadeBoxMargin        = v.fadeBoxMargin,
-                shapeNoiseScale      = v.shapeNoiseScale,
+                worldToLocal = v.transform.worldToLocalMatrix,
+                localToWorld = v.transform.localToWorldMatrix,
+                axisStretch = new Vector4(v.axisStretch.x, v.axisStretch.y, v.axisStretch.z, 0),
+                nebulaColor = v.nebulaColor,
+                lightPower = v.lightPower,
+                fadeInnerRadius = v.fadeInnerRadius,
+                fadeOuterRadius = v.fadeOuterRadius,
+                fadeNoiseStrength = v.fadeNoiseStrength,
+                fadeBoxMargin = v.fadeBoxMargin,
+                shapeNoiseScale = v.shapeNoiseScale,
                 shapeTendrilStrength = v.shapeTendrilStrength,
-                noiseDomainHalf      = v.noiseDomainHalf,
-                stepsPrimary         = v.stepsPrimary,
-                stepsLight           = v.stepsLight,
-                enableStars          = v.enableStars ? 1f : 0f,
-                starDensity          = v.starDensity,
-                starBrightness       = v.starBrightness,
-                ditherSpeed          = v.ditherSpeed,
-                noiseTexture         = v.noiseTexture,
-                blueNoiseTexture     = v.blueNoiseTexture
+                noiseDomainHalf = v.noiseDomainHalf,
+                stepsPrimary = v.stepsPrimary,
+                stepsLight = v.stepsLight,
+                enableStars = v.enableStars ? 1f : 0f,
+                starDensity = v.starDensity,
+                starBrightness = v.starBrightness,
+                ditherSpeed = v.ditherSpeed,
+                noiseTexture = v.noiseTexture,
+                blueNoiseTexture = v.blueNoiseTexture
             };
         }
         if (count == 0) return;
@@ -301,8 +303,8 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
         using (var builder = renderGraph.AddRasterRenderPass<NebulaPassData>(
                    "Nebula Raymarch", out var passData))
         {
-            passData.material    = material;
-            passData.volumes     = volumes;
+            passData.material = material;
+            passData.volumes = volumes;
             passData.volumeCount = count;
 
             builder.SetRenderAttachment(nebulaHalfRes, 0);
@@ -317,46 +319,43 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
         // // ── Pass 1: Temporal Blend (optional) ──
 
         TextureHandle compositeSource = nebulaHalfRes;
-        RTHandle compositeSourceRT    = nebulaRT;
 
-        // if (settings.enableTemporal)
-        // {
-        //     EnsureTemporalBuffers(halfW, halfH);
+        if (settings.enableTemporal)
+        {
+            EnsureTemporalBuffers(halfW, halfH);
 
-        //     RTHandle histIn  = pingPong ? historyB : historyA;
-        //     RTHandle histOut = pingPong ? historyA : historyB;
+            RTHandle histIn  = pingPong ? historyB : historyA;
+            RTHandle histOut = pingPong ? historyA : historyB;
 
-        //     TextureHandle histInHandle  = renderGraph.ImportTexture(histIn);
-        //     TextureHandle histOutHandle = renderGraph.ImportTexture(histOut);
+            TextureHandle histInHandle  = renderGraph.ImportTexture(histIn);
+            TextureHandle histOutHandle = renderGraph.ImportTexture(histOut);
 
-        //     using (var builder = renderGraph.AddRasterRenderPass<TemporalPassData>(
-        //                "Nebula Temporal", out var passData))
-        //     {
-        //         passData.material       = material;
-        //         // *** FIX: store RTHandle references for binding ***
-        //         passData.currentFrameRT = nebulaRT;
-        //         passData.historyInRT    = histIn;
-        //         passData.blendFactor    = hasPrevFrame ? settings.temporalBlend : 1f;
-        //         passData.prevVP         = prevViewProjMatrix;
+            using (var builder = renderGraph.AddRasterRenderPass<TemporalPassData>(
+                       "Nebula Temporal", out var passData))
+            {
+                passData.material       = material;
+                passData.currentFrame   = nebulaHalfRes;
+                passData.historyIn      = histInHandle;
+                passData.blendFactor    = hasPrevFrame ? settings.temporalBlend : 1f;
+                passData.prevVP         = prevViewProjMatrix;
 
-        //         // Declare render graph dependencies (for scheduling)
-        //         builder.UseTexture(nebulaHalfRes);
-        //         builder.UseTexture(histInHandle);
-        //         builder.SetRenderAttachment(histOutHandle, 0);
+                builder.UseTexture(nebulaHalfRes);
+                builder.UseTexture(histInHandle);
+                builder.SetRenderAttachment(histOutHandle, 0);
+                builder.AllowGlobalStateModification(true);
 
-        //         builder.SetRenderFunc(static (TemporalPassData data, RasterGraphContext ctx) =>
-        //             ExecuteTemporalPass(data, ctx));
-        //     }
+                builder.SetRenderFunc(static (TemporalPassData data, RasterGraphContext ctx) =>
+                    ExecuteTemporalPass(data, ctx));
+            }
 
-        //     compositeSource   = histOutHandle;
-        //     compositeSourceRT = histOut;
+            compositeSource = histOutHandle;
 
-        //     // Advance state for next frame
-        //     prevViewProjMatrix = GL.GetGPUProjectionMatrix(
-        //         camera.projectionMatrix, true) * camera.worldToCameraMatrix;
-        //     pingPong     = !pingPong;
-        //     hasPrevFrame = true;
-        // }
+            // Advance state for next frame
+            prevViewProjMatrix = GL.GetGPUProjectionMatrix(
+                camera.projectionMatrix, true) * camera.worldToCameraMatrix;
+            pingPong     = !pingPong;
+            hasPrevFrame = true;
+        }
 
         // ── Pass 2: Composite → camera colour (additive) ──
 
@@ -364,11 +363,11 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
                    "Nebula Composite", out var passData))
         {
             passData.material = material;
-            // *** FIX: store RTHandle reference for binding ***
-            passData.sourceRT = compositeSourceRT;
+            passData.source   = compositeSource;
 
             builder.UseTexture(compositeSource);
             builder.SetRenderAttachment(resourceData.activeColorTexture, 0);
+            builder.AllowGlobalStateModification(true);
 
             builder.SetRenderFunc(static (CompositePassData data, RasterGraphContext ctx) =>
                 ExecuteCompositePass(data, ctx));
@@ -389,25 +388,25 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
         {
             ref NebulaVolumeGPU vol = ref data.volumes[i];
 
-            mat.SetMatrix(_NebulaWorldToLocal,   vol.worldToLocal);
-            mat.SetMatrix(_NebulaLocalToWorld,   vol.localToWorld);
-            mat.SetVector(_AxisStretch,          vol.axisStretch);
-            mat.SetColor (_NebulaColor,          vol.nebulaColor);
-            mat.SetFloat (_Power,                vol.lightPower);
-            mat.SetFloat (_FadeInnerRadius,      vol.fadeInnerRadius);
-            mat.SetFloat (_FadeOuterRadius,      vol.fadeOuterRadius);
-            mat.SetFloat (_FadeNoiseStrength,    vol.fadeNoiseStrength);
-            mat.SetFloat (_FadeBoxMargin,        vol.fadeBoxMargin);
-            mat.SetFloat (_ShapeNoiseScale,      vol.shapeNoiseScale);
-            mat.SetFloat (_ShapeTendrilStrength, vol.shapeTendrilStrength);
-            mat.SetFloat (_NoiseDomainHalf,      vol.noiseDomainHalf);
-            mat.SetInteger(_StepsPrimary,        vol.stepsPrimary);
-            mat.SetInteger(_StepsLight,          vol.stepsLight);
-            mat.SetFloat (_EnableStars,          vol.enableStars);
-            mat.SetFloat (_StarDensity,          vol.starDensity);
-            mat.SetFloat (_StarBrightness,       vol.starBrightness);
-            mat.SetFloat (_DitherSpeed,          vol.ditherSpeed);
-            mat.SetTexture(_NoiseVolume,         vol.noiseTexture);
+            mat.SetMatrix(_NebulaWorldToLocal, vol.worldToLocal);
+            mat.SetMatrix(_NebulaLocalToWorld, vol.localToWorld);
+            mat.SetVector(_AxisStretch, vol.axisStretch);
+            mat.SetColor(_NebulaColor, vol.nebulaColor);
+            mat.SetFloat(_Power, vol.lightPower);
+            mat.SetFloat(_FadeInnerRadius, vol.fadeInnerRadius);
+            mat.SetFloat(_FadeOuterRadius, vol.fadeOuterRadius);
+            mat.SetFloat(_FadeNoiseStrength, vol.fadeNoiseStrength);
+            mat.SetFloat(_FadeBoxMargin, vol.fadeBoxMargin);
+            mat.SetFloat(_ShapeNoiseScale, vol.shapeNoiseScale);
+            mat.SetFloat(_ShapeTendrilStrength, vol.shapeTendrilStrength);
+            mat.SetFloat(_NoiseDomainHalf, vol.noiseDomainHalf);
+            mat.SetInteger(_StepsPrimary, vol.stepsPrimary);
+            mat.SetInteger(_StepsLight, vol.stepsLight);
+            mat.SetFloat(_EnableStars, vol.enableStars);
+            mat.SetFloat(_StarDensity, vol.starDensity);
+            mat.SetFloat(_StarBrightness, vol.starBrightness);
+            mat.SetFloat(_DitherSpeed, vol.ditherSpeed);
+            mat.SetTexture(_NoiseVolume, vol.noiseTexture);
 
             if (vol.blueNoiseTexture != null)
                 mat.SetTexture(_BlueNoise, vol.blueNoiseTexture);
@@ -419,23 +418,21 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
 
     private static void ExecuteTemporalPass(TemporalPassData data, RasterGraphContext ctx)
     {
+        var cmd = ctx.cmd;
         var mat = data.material;
 
-        // *** FIX: bind via RTHandle (reliable .rt conversion) instead of TextureHandle ***
-        mat.SetTexture(_NebulaTexture,       data.currentFrameRT);
-        mat.SetTexture(_HistoryTexture,      data.historyInRT);
-        mat.SetFloat  (_TemporalBlendFactor, data.blendFactor);
-        mat.SetMatrix (_NebulaPrevVP,        data.prevVP);
+        cmd.SetGlobalTexture("_NebulaTexture",  data.currentFrame);
+        cmd.SetGlobalTexture("_HistoryTexture", data.historyIn);
+        mat.SetFloat(_TemporalBlendFactor, data.blendFactor);
+        mat.SetMatrix(_NebulaPrevVP, data.prevVP);
 
-        ctx.cmd.DrawProcedural(Matrix4x4.identity, mat, 1,
-                               MeshTopology.Triangles, 3);
+        cmd.DrawProcedural(Matrix4x4.identity, mat, 1,
+                           MeshTopology.Triangles, 3);
     }
 
     private static void ExecuteCompositePass(CompositePassData data, RasterGraphContext ctx)
     {
-        // *** FIX: bind via RTHandle ***
-        data.material.SetTexture(_NebulaTexture, data.sourceRT);
-
+        ctx.cmd.SetGlobalTexture("_NebulaTexture", data.source);
         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.material, 2,
                                MeshTopology.Triangles, 3);
     }
