@@ -218,28 +218,29 @@ public class AAMissileEffects : MonoBehaviour
 
             if (trail != null)
                 trail.enabled = true;
-            else if (visualEffect != null)
+
+            if (visualEffect != null)
             {
                 visualEffect.gameObject.SetActive(true);
                 SetFlameEnabled(true);
                 visualEffect.Reinit();
                 visualEffect.Play();
             }
-            else
+
+            if (trail == null && visualEffect == null)
                 Debug.LogWarning("No TrailRenderer or Visual Effect Graph prefabs assigned for missile trail FX on " + transform.name + ".");
         }
 
-        // Detach the trail when motor shuts off. (If applicable.)
-        if (!trailAlwaysOn && motorHasActivated && !missile.MotorActive)
-        {
-            DetachTrail();
-        }
-
-        // When trail is always on but motor has stopped, disable the flame on the VFX.
-        if (trailAlwaysOn && motorHasActivated && !motorHasDeactivated && !missile.MotorActive)
+        // When motor shuts off, detach the VFX immediately and handle trail based on setting.
+        if (motorHasActivated && !motorHasDeactivated && !missile.MotorActive)
         {
             motorHasDeactivated = true;
-            SetFlameEnabled(false);
+            DetachVisualEffect();
+
+            if (!trailAlwaysOn)
+            {
+                DetachTrail();
+            }
         }
     }
 
@@ -273,6 +274,32 @@ public class AAMissileEffects : MonoBehaviour
     }
 
     /// <summary>
+    /// Detaches the visual effect, stopping emission and unparenting for cleanup.
+    /// </summary>
+    private void DetachVisualEffect()
+    {
+        if (visualEffect == null)
+            return;
+
+        SetFlameEnabled(false);
+        visualEffect.Stop();
+
+        if (visualEffect.gameObject.activeSelf)
+        {
+            visualEffect.transform.parent = null;
+            AARemoveEffect remove = visualEffect.GetComponent<AARemoveEffect>();
+            if (remove == null)
+                remove = visualEffect.gameObject.AddComponent<AARemoveEffect>();
+            remove.readyToDestroy = true;
+        }
+        else
+            GameObject.Destroy(visualEffect.gameObject);
+
+        visualEffect = null;
+        effectRemover = null;
+    }
+
+    /// <summary>
     /// Detaches all trail effects.
     /// </summary>
     private void DetachTrail()
@@ -284,7 +311,6 @@ public class AAMissileEffects : MonoBehaviour
 
         if (trail != null)
         {
-            // If the trail was disabled, just delete it straight up.
             if (trail.gameObject.activeSelf)
             {
                 trail.transform.parent = null;
@@ -294,30 +320,9 @@ public class AAMissileEffects : MonoBehaviour
                 GameObject.Destroy(trail);
         }
 
-        if (visualEffect != null)
-        {
-            // Disable the flame and stop new particle emission
-            SetFlameEnabled(false);
-            visualEffect.Stop();
-            
-            // If the effect is active, unparent it so it persists after missile is destroyed
-            if (visualEffect.gameObject.activeSelf)
-            {
-                visualEffect.transform.parent = null;
-                // Add AARemoveEffect if not already present to clean up after smoke finishes
-                AARemoveEffect remove = visualEffect.GetComponent<AARemoveEffect>();
-                if (remove == null)
-                    remove = visualEffect.gameObject.AddComponent<AARemoveEffect>();
-                remove.readyToDestroy = true;
-            }
-            else
-                GameObject.Destroy(visualEffect.gameObject);
-        }
+        DetachVisualEffect();
 
-        // Null out references so re-initialization creates fresh instances
         trail = null;
-        visualEffect = null;
-        effectRemover = null;
         effectsInitialized = false;
     }
 }
