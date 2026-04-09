@@ -1,0 +1,67 @@
+// NebulaNoiseBake.compute
+// Evaluates the 12-octave gyroid FBM on the GPU and writes results to a buffer.
+// The C# baker reads this buffer back to create a Texture3D asset.
+
+#pragma kernel BakeNebulaNoise
+
+RWStructuredBuffer<float> _ResultBuffer;
+int   _Resolution;
+float _DomainHalf;   // bake domain covers [-_DomainHalf, +_DomainHalf]
+
+// ─── Gyroid noise (identical to the original shader) ───
+
+float gyroid(float3 p, float thickness, float bias, float freq)
+{
+    return clamp(
+        abs(dot(sin(p * 0.5), cos(p.zxy * 1.23) * freq) - bias) - thickness,
+        0.0, 3.0) / 3.0;
+}
+
+// ─── 12-octave FBM (identical to the original shader) ───
+
+float fbm(float3 p)
+{
+    const float fbmScale = 1.95;
+    const float rot_c = 0.96592582628; // cos(PI/12)
+    const float rot_s = 0.25881904510; // sin(PI/12)
+    const float3x3 rotMat = fbmScale * float3x3(
+         rot_c, -rot_s, 0.0,
+         rot_s,  rot_c, 0.0,
+         0.0,    0.0,   1.0
+    );
+
+    float weight    = 0.0;
+    float amplitude = 1.0;
+    float freq      = 1.0;
+    float res       = 0.0;
+
+    [unroll]
+    for (int i = 0; i < 12; i++)
+    {
+        res  += amplitude * gyroid(p, 0.1, 0.0, freq);
+        p     = mul(rotMat, p);
+        weight    += amplitude;
+        amplitude *= (i < 4) ? 0.9 : 0.7;
+        freq      *= (i < 3) ? 0.65 : 0.78;
+    }
+
+    return saturate(res / weight);
+}
+
+// ─── Kernel ───
+
+[numthreads(8, 8, 8)]
+void BakeNebulaNoise(uint3 id : SV_DispatchThreadID)
+{
+    uint res = (uint)_Resolution;
+    if (any(id >= res)) return;
+
+    // Linearise 3D index → 1D buffer index
+    uint index = id.x + id.y * res + id.z * res * res;
+
+    // Map voxel centre to the bake domain [-_DomainHalf, +_DomainHalf]
+    float3 uvw = ((float3)id + 0.5) / (float)_Resolution;
+    float3 q   = (uvw * 2.0 - 1.0) * _DomainHalf;
+
+    _ResultBuffer[index] = fbm(q);
+}
