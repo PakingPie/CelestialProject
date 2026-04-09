@@ -498,7 +498,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &30324697
 Transform:
   m_ObjectHideFlags: 0
@@ -2368,11 +2368,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3051697227123494425, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
-      propertyPath: _fireDelay
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: HeatPerShot
@@ -3769,7 +3765,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4881622573265132125, guid: 7d05e78d625ecbc4db6ce2753ec63dee, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6395277569226294552, guid: 7d05e78d625ecbc4db6ce2753ec63dee, type: 3}
       propertyPath: m_LocalPosition.x
@@ -4188,7 +4184,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!65 &338711367
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5859,7 +5855,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 1886091069592709415, guid: 73c2bc81616ac994da8f06f2495229d0, type: 3}
-  spawnCount: 10
+  spawnCount: 3
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
   spawnMode: 1
@@ -6126,7 +6122,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6205,6 +6201,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 42389f150a1e3e2449d7af43fd4d162b, type: 3}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: _fireDelay
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: RecoilLength
       value: 0.2
       objectReference: {fileID: 0}
@@ -6239,6 +6239,10 @@ PrefabInstance:
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: _useGravityCompensation
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: SequentialFiringInterval
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: _ammoBeltTypes.Array.size
@@ -6480,11 +6484,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3051697227123494425, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
-      propertyPath: _fireDelay
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: HeatPerShot
@@ -8380,7 +8380,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &764762349
 Transform:
   m_ObjectHideFlags: 0
@@ -8804,7 +8804,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -8883,6 +8883,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 42389f150a1e3e2449d7af43fd4d162b, type: 3}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: _fireDelay
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: RecoilLength
       value: 0.2
       objectReference: {fileID: 0}
@@ -8917,6 +8921,10 @@ PrefabInstance:
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: _useGravityCompensation
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: SequentialFiringInterval
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: _ammoBeltTypes.Array.size
@@ -10131,7 +10139,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
-  spawnCount: 10
+  spawnCount: 3
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: 0, y: 10000}
   spawnMode: 0
@@ -11369,7 +11377,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1001119329
 Transform:
   m_ObjectHideFlags: 0
@@ -13456,7 +13464,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4881622573265132125, guid: 7d05e78d625ecbc4db6ce2753ec63dee, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6395277569226294552, guid: 7d05e78d625ecbc4db6ce2753ec63dee, type: 3}
       propertyPath: m_LocalPosition.x
@@ -14498,7 +14506,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -14577,6 +14585,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 42389f150a1e3e2449d7af43fd4d162b, type: 3}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: _fireDelay
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: RecoilLength
       value: 0.2
       objectReference: {fileID: 0}
@@ -14611,6 +14623,10 @@ PrefabInstance:
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: _useGravityCompensation
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: SequentialFiringInterval
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: _ammoBeltTypes.Array.size
@@ -14969,11 +14985,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3051697227123494425, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
-      propertyPath: _fireDelay
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: HeatPerShot
@@ -15546,7 +15558,7 @@ MonoBehaviour:
   Target: {fileID: 0}
   BoidManager: {fileID: 30324698}
   CurrentBoidIndex: -1
-  FollowDistance: 200
+  FollowDistance: 50
   HeightOffset: 30
   SmoothSpeed: 1
   RotationSmoothSpeed: 2
@@ -17344,11 +17356,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3051697227123494425, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
-      propertyPath: _fireDelay
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: HeatPerShot
@@ -19104,7 +19112,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1709872563
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19130,8 +19138,8 @@ Transform:
   m_GameObject: {fileID: 1709872562}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 100, y: 100, z: 100}
+  m_LocalPosition: {x: 0, y: 144.6, z: 0}
+  m_LocalScale: {x: 10000, y: 10000, z: 10000}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -19149,23 +19157,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NebulaVolume
   noiseTexture: {fileID: 11700000, guid: deeb788bb693d2a4cb6070968b22ea68, type: 2}
-  noiseDomainHalf: 5
-  lightPower: 100
+  noiseDomainHalf: 2.5
+  lightPower: 10
   nebulaColor: {r: 1, g: 1, b: 1, a: 1}
-  fadeInnerRadius: 1
-  fadeOuterRadius: 1
-  fadeNoiseStrength: 0
+  emissionStrength: 1
+  colorLowDensity: {r: 0.9986931, g: 1.6644884, b: 2.9960792, a: 1}
+  colorMidDensity: {r: 11.984314, g: 2.8198385, b: 7.0495963, a: 1}
+  colorHighDensity: {r: 191.749, g: 95.8745, b: 31.958164, a: 1}
+  detailStrength: 0.4
+  voidStrength: 0.4
+  densityContrast: 1.3
+  fadeInnerRadius: 0.4
+  fadeOuterRadius: 0.85
+  fadeNoiseStrength: 0.5
   fadeBoxMargin: 0.2
   shapeNoiseScale: 1.5
   shapeTendrilStrength: 0.45
-  axisStretch: {x: 1, y: 1, z: 1}
+  axisStretch: {x: 1, y: 0.6, z: 0.4}
   stepsPrimary: 64
-  stepsLight: 8
+  stepsLight: 4
   enableStars: 1
   starDensity: 0.01
   starBrightness: 0.5
   blueNoiseTexture: {fileID: 2800000, guid: 5bb92e256168a454aa369217d922e1b3, type: 3}
-  ditherSpeed: 0.136
+  ditherSpeed: 0.1
 --- !u!1 &1715575074
 GameObject:
   m_ObjectHideFlags: 0
@@ -19319,11 +19334,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3051697227123494425, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
-      propertyPath: _fireDelay
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: HeatPerShot
@@ -20572,7 +20583,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1802494801
 Transform:
   m_ObjectHideFlags: 0
@@ -21016,7 +21027,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -21095,6 +21106,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 42389f150a1e3e2449d7af43fd4d162b, type: 3}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: _fireDelay
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: RecoilLength
       value: 0.2
       objectReference: {fileID: 0}
@@ -21129,6 +21144,10 @@ PrefabInstance:
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: _useGravityCompensation
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: SequentialFiringInterval
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: _ammoBeltTypes.Array.size
@@ -21238,11 +21257,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3051697227123494425, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
-      propertyPath: _fireDelay
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: HeatPerShot
@@ -22863,11 +22878,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3051697227123494425, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
-      propertyPath: _fireDelay
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: HeatPerShot
@@ -23055,7 +23066,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4881622573265132125, guid: 7d05e78d625ecbc4db6ce2753ec63dee, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6395277569226294552, guid: 7d05e78d625ecbc4db6ce2753ec63dee, type: 3}
       propertyPath: m_LocalPosition.x
@@ -23501,11 +23512,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3051697227123494425, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
-      propertyPath: _fireDelay
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4736007115502005769, guid: 6a826d1c4122970448258e68255e483f, type: 3}
       propertyPath: HeatPerShot
@@ -23580,7 +23587,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2046028405
 Transform:
   m_ObjectHideFlags: 0
@@ -23646,7 +23653,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -23725,6 +23732,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 42389f150a1e3e2449d7af43fd4d162b, type: 3}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: _fireDelay
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: RecoilLength
       value: 0.2
       objectReference: {fileID: 0}
@@ -23759,6 +23770,10 @@ PrefabInstance:
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: _useGravityCompensation
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: SequentialFiringInterval
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: _ammoBeltTypes.Array.size
@@ -23879,7 +23894,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5899318295700349875, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6090927502486155818, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -23958,6 +23973,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 42389f150a1e3e2449d7af43fd4d162b, type: 3}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: _fireDelay
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: RecoilLength
       value: 0.2
       objectReference: {fileID: 0}
@@ -23992,6 +24011,10 @@ PrefabInstance:
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: _useGravityCompensation
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
+      propertyPath: SequentialFiringInterval
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: 9193549522913463278, guid: fa6cac69e6468a5448cc18e7c24ec41e, type: 3}
       propertyPath: _ammoBeltTypes.Array.size
