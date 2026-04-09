@@ -113,6 +113,13 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
     private static readonly int _StarBrightness = Shader.PropertyToID("_StarBrightness");
     private static readonly int _BlueNoise = Shader.PropertyToID("_BlueNoise");
     private static readonly int _DitherSpeed = Shader.PropertyToID("_DitherSpeed");
+    private static readonly int _EmissionStrength = Shader.PropertyToID("_EmissionStrength");
+    private static readonly int _ColorLowDensity = Shader.PropertyToID("_ColorLowDensity");
+    private static readonly int _ColorMidDensity = Shader.PropertyToID("_ColorMidDensity");
+    private static readonly int _ColorHighDensity = Shader.PropertyToID("_ColorHighDensity");
+    private static readonly int _DetailStrength = Shader.PropertyToID("_DetailStrength");
+    private static readonly int _VoidStrength = Shader.PropertyToID("_VoidStrength");
+    private static readonly int _DensityContrast = Shader.PropertyToID("_DensityContrast");
     private static readonly int _NebulaTexture = Shader.PropertyToID("_NebulaTexture");
     private static readonly int _HistoryTexture = Shader.PropertyToID("_HistoryTexture");
     private static readonly int _TemporalBlendFactor = Shader.PropertyToID("_TemporalBlendFactor");
@@ -165,6 +172,9 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
         public float enableStars;
         public float starDensity, starBrightness;
         public float ditherSpeed;
+        public float emissionStrength;
+        public Color colorLowDensity, colorMidDensity, colorHighDensity;
+        public float detailStrength, voidStrength, densityContrast;
         public Texture3D noiseTexture;
         public Texture2D blueNoiseTexture;
     }
@@ -285,6 +295,13 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
                 starDensity = v.starDensity,
                 starBrightness = v.starBrightness,
                 ditherSpeed = v.ditherSpeed,
+                emissionStrength = v.emissionStrength,
+                colorLowDensity = v.colorLowDensity,
+                colorMidDensity = v.colorMidDensity,
+                colorHighDensity = v.colorHighDensity,
+                detailStrength = v.detailStrength,
+                voidStrength = v.voidStrength,
+                densityContrast = v.densityContrast,
                 noiseTexture = v.noiseTexture,
                 blueNoiseTexture = v.blueNoiseTexture
             };
@@ -406,6 +423,13 @@ public class NebulaRenderPass : ScriptableRenderPass, IDisposable
             mat.SetFloat(_StarDensity, vol.starDensity);
             mat.SetFloat(_StarBrightness, vol.starBrightness);
             mat.SetFloat(_DitherSpeed, vol.ditherSpeed);
+            mat.SetFloat(_EmissionStrength, vol.emissionStrength);
+            mat.SetColor(_ColorLowDensity, vol.colorLowDensity);
+            mat.SetColor(_ColorMidDensity, vol.colorMidDensity);
+            mat.SetColor(_ColorHighDensity, vol.colorHighDensity);
+            mat.SetFloat(_DetailStrength, vol.detailStrength);
+            mat.SetFloat(_VoidStrength, vol.voidStrength);
+            mat.SetFloat(_DensityContrast, vol.densityContrast);
             mat.SetTexture(_NoiseVolume, vol.noiseTexture);
 
             if (vol.blueNoiseTexture != null)

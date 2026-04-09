@@ -1,14 +1,17 @@
 // NebulaNoiseBake.compute
-// Evaluates the 12-octave gyroid FBM on the GPU and writes results to a buffer.
-// The C# baker reads this buffer back to create a Texture3D asset.
+// Bakes a 4-channel 3D noise texture for the nebula renderer.
+//   R: low-frequency gyroid FBM  (large-scale structure)
+//   G: mid-frequency gyroid FBM  (filaments / detail)
+//   B: high-frequency gyroid FBM (fine wisps)
+//   A: cellular / Worley noise   (void carving)
 
 #pragma kernel BakeNebulaNoise
 
-RWStructuredBuffer<float> _ResultBuffer;
+RWStructuredBuffer<float4> _ResultBuffer;
 int   _Resolution;
 float _DomainHalf;   // bake domain covers [-_DomainHalf, +_DomainHalf]
 
-// ─── Gyroid noise (identical to the original shader) ───
+// ─── Gyroid noise ───
 
 float gyroid(float3 p, float thickness, float bias, float freq)
 {
@@ -17,9 +20,9 @@ float gyroid(float3 p, float thickness, float bias, float freq)
         0.0, 3.0) / 3.0;
 }
 
-// ─── 12-octave FBM (identical to the original shader) ───
+// ─── Parameterised FBM ───
 
-float fbm(float3 p)
+float fbm(float3 p, int octaves, float persistence, float freqDecay)
 {
     const float fbmScale = 1.95;
     const float rot_c = 0.96592582628; // cos(PI/12)
@@ -35,17 +38,47 @@ float fbm(float3 p)
     float freq      = 1.0;
     float res       = 0.0;
 
-    [unroll]
-    for (int i = 0; i < 12; i++)
+    [unroll(12)]
+    for (int i = 0; i < octaves; i++)
     {
         res  += amplitude * gyroid(p, 0.1, 0.0, freq);
         p     = mul(rotMat, p);
         weight    += amplitude;
-        amplitude *= (i < 4) ? 0.9 : 0.7;
-        freq      *= (i < 3) ? 0.65 : 0.78;
+        amplitude *= persistence;
+        freq      *= freqDecay;
     }
 
     return saturate(res / weight);
+}
+
+// ─── Worley / cellular noise ───
+
+float3 hashWorley(float3 p)
+{
+    p = float3(dot(p, float3(127.1, 311.7, 74.7)),
+               dot(p, float3(269.5, 183.3, 246.1)),
+               dot(p, float3(113.5, 271.9, 124.6)));
+    return frac(sin(p) * 43758.5453123);
+}
+
+float worley(float3 p)
+{
+    float3 id  = floor(p);
+    float3 fd  = frac(p);
+    float  minDist = 1e10;
+
+    [unroll] for (int x = -1; x <= 1; x++)
+    [unroll] for (int y = -1; y <= 1; y++)
+    [unroll] for (int z = -1; z <= 1; z++)
+    {
+        float3 offset = float3(x, y, z);
+        float3 h      = hashWorley(id + offset);
+        float3 diff   = offset + h - fd;
+        float  d      = dot(diff, diff);
+        minDist = min(minDist, d);
+    }
+
+    return saturate(sqrt(minDist));
 }
 
 // ─── Kernel ───
@@ -56,12 +89,15 @@ void BakeNebulaNoise(uint3 id : SV_DispatchThreadID)
     uint res = (uint)_Resolution;
     if (any(id >= res)) return;
 
-    // Linearise 3D index → 1D buffer index
     uint index = id.x + id.y * res + id.z * res * res;
 
-    // Map voxel centre to the bake domain [-_DomainHalf, +_DomainHalf]
     float3 uvw = ((float3)id + 0.5) / (float)_Resolution;
     float3 q   = (uvw * 2.0 - 1.0) * _DomainHalf;
 
-    _ResultBuffer[index] = fbm(q);
+    float r = fbm(q,       12, 0.8, 0.72);  // low freq — large structure
+    float g = fbm(q * 2.0, 10, 0.7, 0.75);  // mid freq — filaments
+    float b = fbm(q * 4.0,  8, 0.6, 0.78);  // high freq — fine wisps
+    float a = worley(q * 3.0);               // cellular — void carving
+
+    _ResultBuffer[index] = float4(r, g, b, a);
 }

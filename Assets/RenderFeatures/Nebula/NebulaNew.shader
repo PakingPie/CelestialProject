@@ -53,6 +53,13 @@ Shader "Hidden/Nebula/Raymarch"
         float    _StarDensity;
         float    _StarBrightness;
         float    _DitherSpeed;
+        float    _EmissionStrength;
+        float4   _ColorLowDensity;
+        float4   _ColorMidDensity;
+        float4   _ColorHighDensity;
+        float    _DetailStrength;
+        float    _VoidStrength;
+        float    _DensityContrast;
         int      _StepsPrimary;
         int      _StepsLight;
 
@@ -121,22 +128,52 @@ Shader "Hidden/Nebula/Raymarch"
             return (t.x > 0.0) && (t.x < t.y);
         }
 
-        // ─── 3D noise ───
+        // ─── 3D noise (4-channel) ───
+
+        float4 sampleNoise4(float3 q)
+        {
+            float3 uvw = q / (2.0 * _NoiseDomainHalf) + 0.5;
+            return SAMPLE_TEXTURE3D_LOD(_NoiseVolume, sampler_NoiseVolume, uvw, 0);
+        }
 
         float sampleNoise(float3 q)
         {
-            float3 uvw = q / (2.0 * _NoiseDomainHalf) + 0.5;
-            return SAMPLE_TEXTURE3D_LOD(_NoiseVolume, sampler_NoiseVolume, uvw, 0).r;
+            return sampleNoise4(q).r;
         }
 
         float clouds(float3 p)
         {
             if (!insideAABB(p)) return 0.0;
 
-            float noise     = sampleNoise(0.25 * p);
-            float structure = smoothstep(3.0, 5.0,  length(p)) * smoothstep(0.05, 0.1, noise);
-            float haze      = smoothstep(2.0, 10.0, length(p)) * smoothstep(0.02, 0.5, noise);
-            return 3e-4 + (0.5 * haze + 0.75 * structure);
+            float4 n = sampleNoise4(0.25 * p);
+            // R = low-freq structure, G = mid-freq detail, B = fine wisps, A = cellular voids
+
+            float base    = n.r;
+            float detail  = n.g * 0.5 + n.b * 0.25;
+            float voids   = n.a;
+
+            float radial  = length(p) / CLOUD_EXTENT;
+            float envelope = smoothstep(0.1, 0.4, radial) * smoothstep(1.0, 0.7, radial);
+
+            // Subtract detail for edge erosion, multiply voids for cavity carving
+            float density = saturate(base - detail * _DetailStrength);
+            density *= lerp(1.0, 1.0 - voids, _VoidStrength);
+            density  = max(density, 0.0);
+            density *= envelope;
+            density  = pow(density, _DensityContrast);
+
+            return density;
+        }
+
+        // Density-driven color gradient
+        float3 densityColor(float density)
+        {
+            // Map density [0,1] through a 3-stop gradient
+            float t = saturate(density * 3.0); // remap so we use the full gradient
+            float3 col = (t < 0.5)
+                ? lerp(_ColorLowDensity.rgb, _ColorMidDensity.rgb, t * 2.0)
+                : lerp(_ColorMidDensity.rgb, _ColorHighDensity.rgb, (t - 0.5) * 2.0);
+            return col;
         }
 
         // ─── Utility ───
@@ -295,6 +332,9 @@ Shader "Hidden/Nebula/Raymarch"
                     float3 sS = sigmaS * density;
                     float3 sE = sigmaE * density;
 
+                    // Density-driven color
+                    float3 gasColor = densityColor(density);
+
                     float3 ambient = 0.0;
                     if (_EnableStars > 0.5)
                     {
@@ -305,12 +345,20 @@ Shader "Hidden/Nebula/Raymarch"
                         ambient *= smoothstep(1e-3, 2e-3, density);
                     }
 
-                    float3 L = ambient
-                             + sun * phase * lightRay(p, mu, sunDir, stepsL);
-                    L *= sS;
+                    // Scattered light (directional + ambient), tinted by gas color
+                    float3 Lscatter = (ambient
+                                     + sun * phase * lightRay(p, mu, sunDir, stepsL))
+                                     * sS * gasColor;
+
+                    // Self-emission: independent of scattering, bypasses sS
+                    float3 Lemit = _EmissionStrength * gasColor * density;
 
                     float3 tr = exp(-sE * stepS);
-                    colour += totalTransmittance * (L - L * tr) / max(sE, 1e-6);
+
+                    // In-scatter uses standard energy integration; emission adds directly
+                    colour += totalTransmittance
+                            * ((Lscatter - Lscatter * tr) / max(sE, 1e-6)
+                               + Lemit * stepS);
                     totalTransmittance *= tr;
 
                     if (dot(totalTransmittance, 1.0) <= 0.003)
@@ -405,7 +453,7 @@ Shader "Hidden/Nebula/Raymarch"
 
                 col *= _NebulaColor.rgb;
 
-                return half4(col, 1.0);
+                return half4(max(col, 0.0), 1.0);
             }
 
             ENDHLSL

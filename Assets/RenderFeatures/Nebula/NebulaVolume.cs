@@ -27,6 +27,36 @@ public class NebulaVolume : MonoBehaviour
     [ColorUsage(true, true)]
     public Color nebulaColor = Color.white;
 
+    // ─── Emission ───
+    [Header("Self-Emission")]
+    [Tooltip("Strength of density-dependent self-emission (ionized gas glow).")]
+    [Range(0f, 5f)] public float emissionStrength = 1.0f;
+
+    // ─── Density Color Gradient ───
+    [Header("Density Color Gradient")]
+    [Tooltip("Color in low-density (ionized/hot) regions.")]
+    [ColorUsage(true, true)]
+    public Color colorLowDensity = new Color(0.3f, 0.6f, 0.9f, 1f);
+
+    [Tooltip("Color in mid-density regions.")]
+    [ColorUsage(true, true)]
+    public Color colorMidDensity = new Color(0.85f, 0.25f, 0.5f, 1f);
+
+    [Tooltip("Color in high-density (dust) regions.")]
+    [ColorUsage(true, true)]
+    public Color colorHighDensity = new Color(0.6f, 0.3f, 0.1f, 1f);
+
+    // ─── Detail Noise ───
+    [Header("Detail Noise")]
+    [Tooltip("How much the mid-frequency channel erodes the base density.")]
+    [Range(0f, 1f)] public float detailStrength = 0.35f;
+
+    [Tooltip("How much the cellular channel carves voids.")]
+    [Range(0f, 1f)] public float voidStrength = 0.4f;
+
+    [Tooltip("Contrast exponent applied to final density. Higher = sharper edges.")]
+    [Range(0.5f, 4f)] public float densityContrast = 1.0f;
+
     // ─── Shape ───
     [Header("Shape")]
     [Range(0f, 1f)]   public float   fadeInnerRadius      = 0.55f;

@@ -40,8 +40,8 @@ public class NebulaNoiseBaker : MonoBehaviour
         int kernel = noiseCompute.FindKernel("BakeNebulaNoise");
         int count  = resolution * resolution * resolution;
 
-        // Allocate GPU buffer
-        ComputeBuffer buffer = new ComputeBuffer(count, sizeof(float));
+        // Allocate GPU buffer (4 floats per voxel: RGBA)
+        ComputeBuffer buffer = new ComputeBuffer(count, sizeof(float) * 4);
         noiseCompute.SetBuffer(kernel, "_ResultBuffer", buffer);
         noiseCompute.SetInt("_Resolution", resolution);
         noiseCompute.SetFloat("_DomainHalf", domainHalf);
@@ -50,20 +50,27 @@ public class NebulaNoiseBaker : MonoBehaviour
         noiseCompute.Dispatch(kernel, groups, groups, groups);
 
         // Read back to CPU
-        float[] data = new float[count];
-        buffer.GetData(data);
+        float[] raw = new float[count * 4];
+        buffer.GetData(raw);
         buffer.Release();
 
-        // Build Texture3D (single-channel RFloat)
+        // Convert to Color array for Texture3D
+        Color[] colors = new Color[count];
+        for (int i = 0; i < count; i++)
+        {
+            colors[i] = new Color(raw[i * 4], raw[i * 4 + 1], raw[i * 4 + 2], raw[i * 4 + 3]);
+        }
+
+        // Build Texture3D (4-channel RGBAHalf)
         Texture3D tex = new Texture3D(resolution, resolution, resolution,
-                                      TextureFormat.RFloat, false);
+                                      TextureFormat.RGBAHalf, false);
         tex.wrapMode   = TextureWrapMode.Clamp;
         tex.filterMode = FilterMode.Bilinear;
-        tex.SetPixelData(data, 0);
+        tex.SetPixels(colors);
         tex.Apply(updateMipmaps: false, makeNoLongerReadable: false);
 
         bakedNoise = tex;
-        Debug.Log($"NebulaNoiseBaker: Baked {resolution}³ noise texture ({count} voxels).");
+        Debug.Log($"NebulaNoiseBaker: Baked {resolution}³ RGBA noise texture ({count} voxels).");
         return tex;
     }
 }
