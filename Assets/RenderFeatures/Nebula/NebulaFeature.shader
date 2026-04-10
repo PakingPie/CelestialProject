@@ -5,7 +5,7 @@
 // Pass 1  TemporalBlend    – blends current frame with reprojected history
 // Pass 2  Composite        – bilinear upscale + additive blit onto camera colour
 
-Shader "Hidden/Nebula/Raymarch"
+Shader "Hidden/Nebula/NebulaFeature"
 {
     SubShader
     {
