@@ -34,7 +34,6 @@ public class BoidSettings : ScriptableObject
 
     [Header("Collisions")]
     public LayerMask obstacleMask;
-    public float boundsRadius = 0.27f;
     
     [Header("Formation Settings")]
     public bool useFormation = true;

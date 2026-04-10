@@ -49,7 +49,7 @@ public class Asteroid : VehicleBase
         if (_renderer != null)
         {
             _material = _renderer.material;
-            _originalColor = _material.color;
+            _originalColor = _material.GetColor("_BaseColor");
         }
         
         _lastPosition = transform.position;
@@ -88,7 +88,7 @@ public class Asteroid : VehicleBase
             _hitFlashTimer -= Time.deltaTime;
             if (_hitFlashTimer <= 0 && _material != null)
             {
-                _material.color = _originalColor;
+                _material.SetColor("_BaseColor", _originalColor);
             }
         }
     }
@@ -111,6 +111,14 @@ public class Asteroid : VehicleBase
     {
         MaxHitPoints = health;
         HitPoints = health;
+    }
+
+    /// <summary>
+    /// Set destruction VFX prefab at runtime (used by AsteroidSpawner)
+    /// </summary>
+    public void SetDestructionFX(VisualEffect fxPrefab)
+    {
+        _destructionFXPrefab = fxPrefab;
     }
     
     /// <summary>
@@ -163,7 +171,7 @@ public class Asteroid : VehicleBase
     {
         if (_material != null)
         {
-            _material.color = Color.white;
+            _material.SetColor("_BaseColor", Color.white);
             _hitFlashTimer = HIT_FLASH_DURATION;
         }
     }

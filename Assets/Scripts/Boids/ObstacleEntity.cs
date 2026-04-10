@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Attach to any obstacle (asteroid, planet, etc.) to register it with ObstacleRegistry.
-/// Automatically calculates radius from mesh bounds.
+/// Automatically calculates an axis-aligned bounding box from all child renderers.
 /// </summary>
 public class ObstacleEntity : MonoBehaviour
 {
@@ -15,20 +15,39 @@ public class ObstacleEntity : MonoBehaviour
     [SerializeField] private float _updateInterval = 0.1f;
 
     private int _obstacleId = -1;
-    private float _radius;
+    private Bounds _localBounds;   // Bounds in local space (extents relative to transform origin)
     private float _lastUpdateTime;
     private Vector3 _lastPosition;
+    private bool _pendingRegistration = false;
 
     void OnEnable()
     {
-        if (ObstacleRegistry.Instance == null)
-        {
-            // Debug.LogWarning($"ObstacleEntity '{name}': ObstacleRegistry not found in scene.");
-            return;
-        }
+        _localBounds = CalculateLocalBounds();
 
-        _radius = CalculateRadius();
-        _obstacleId = ObstacleRegistry.Instance.RegisterObstacle(transform, _radius, _isStatic);
+        if (ObstacleRegistry.Instance != null)
+        {
+            Register();
+        }
+        else
+        {
+            _pendingRegistration = true;
+        }
+    }
+
+    void Start()
+    {
+        // Retry registration if OnEnable fired before ObstacleRegistry.Awake()
+        if (_pendingRegistration && _obstacleId < 0 && ObstacleRegistry.Instance != null)
+        {
+            Register();
+            _pendingRegistration = false;
+        }
+    }
+
+    private void Register()
+    {
+        Bounds worldBounds = GetWorldBounds();
+        _obstacleId = ObstacleRegistry.Instance.RegisterObstacle(transform, worldBounds, _isStatic);
         _lastPosition = transform.position;
         _lastUpdateTime = Time.time;
     }
@@ -61,50 +80,72 @@ public class ObstacleEntity : MonoBehaviour
         _lastUpdateTime = Time.time;
     }
 
-    private float CalculateRadius()
+    /// <summary>
+    /// Calculate combined bounds from all child renderers, stored relative to this transform's position.
+    /// </summary>
+    private Bounds CalculateLocalBounds()
     {
         if (_radiusOverride > 0f)
-            return _radiusOverride * _radiusMultiplier;
-
-        // Check this GameObject first
-        MeshFilter meshFilter = GetComponent<MeshFilter>();
-        if (meshFilter == null)
         {
-            // Check children
-            meshFilter = GetComponentInChildren<MeshFilter>();
+            float r = _radiusOverride * _radiusMultiplier;
+            return new Bounds(Vector3.zero, Vector3.one * r * 2f);
         }
 
-        if (meshFilter != null && meshFilter.sharedMesh != null)
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+
+        if (renderers.Length == 0)
         {
-            Bounds bounds = meshFilter.sharedMesh.bounds;
-            Vector3 scale = meshFilter.transform.lossyScale;
-            Vector3 scaledSize = Vector3.Scale(bounds.size, scale);
-            float radius = Mathf.Max(scaledSize.x, scaledSize.y, scaledSize.z) * 0.5f;
-            return radius * _radiusMultiplier;
+            Debug.LogWarning($"ObstacleEntity '{name}': No renderers found, using default 10-unit bounds.");
+            float r = 10f * _radiusMultiplier;
+            return new Bounds(Vector3.zero, Vector3.one * r * 2f);
         }
 
-        // Check MeshRenderer as fallback
-        MeshRenderer renderer = GetComponent<MeshRenderer>();
-        if (renderer == null)
+        // Build combined world bounds from all renderers
+        Bounds combined = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
         {
-            renderer = GetComponentInChildren<MeshRenderer>();
+            combined.Encapsulate(renderers[i].bounds);
         }
 
-        if (renderer != null)
-        {
-            Bounds bounds = renderer.bounds;
-            float radius = Mathf.Max(bounds.extents.x, bounds.extents.y, bounds.extents.z);
-            return radius * _radiusMultiplier;
-        }
+        // Convert to local offset from this transform's position
+        Vector3 localCenter = combined.center - transform.position;
+        Vector3 localSize = combined.size * _radiusMultiplier;
+        return new Bounds(localCenter, localSize);
+    }
 
-        Debug.LogWarning($"ObstacleEntity '{name}': No mesh found, using default radius of 10.");
-        return 10f * _radiusMultiplier;
+    /// <summary>
+    /// Get world-space AABB by translating local bounds to current position.
+    /// </summary>
+    private Bounds GetWorldBounds()
+    {
+        return new Bounds(transform.position + _localBounds.center, _localBounds.size);
     }
 
     void OnDrawGizmosSelected()
     {
-        float radius = (_radiusOverride > 0f) ? _radiusOverride * _radiusMultiplier : CalculateRadius();
+        Bounds b;
+        if (_radiusOverride > 0f)
+        {
+            float r = _radiusOverride * _radiusMultiplier;
+            b = new Bounds(transform.position, Vector3.one * r * 2f);
+        }
+        else
+        {
+            Renderer[] renderers = GetComponentsInChildren<Renderer>();
+            if (renderers.Length > 0)
+            {
+                b = renderers[0].bounds;
+                for (int i = 1; i < renderers.Length; i++)
+                    b.Encapsulate(renderers[i].bounds);
+                b.size *= _radiusMultiplier;
+            }
+            else
+            {
+                b = new Bounds(transform.position, Vector3.one * 20f * _radiusMultiplier);
+            }
+        }
+
         Gizmos.color = _isStatic ? Color.blue : Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, radius);
+        Gizmos.DrawWireCube(b.center, b.size);
     }
 }

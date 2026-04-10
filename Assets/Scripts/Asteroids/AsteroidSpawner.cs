@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -15,6 +16,7 @@ public class AsteroidSpawner : MonoBehaviour
     [SerializeField, Range(2, 64)] private int resolution = 16;
     [SerializeField] private Vector2 radiusRange = new Vector2(2f, 8f);
     [SerializeField] private Material asteroidMaterial;
+    [SerializeField] private VisualEffect destructionFXPrefab;
     
     [Header("Noise Settings")]
     [SerializeField] private Vector2Int layersRange = new Vector2Int(4, 6);
@@ -141,10 +143,16 @@ public class AsteroidSpawner : MonoBehaviour
             ? asteroidMaterial 
             : new Material(Shader.Find("Universal Render Pipeline/Lit"));
 
-        // Optional: Add collider
-        MeshCollider collider = asteroidRoot.AddComponent<MeshCollider>();
-        collider.sharedMesh = combinedMesh;
-        collider.convex = true;
+        // // Optional: Add collider
+        // MeshCollider collider = asteroidRoot.AddComponent<MeshCollider>();
+        // collider.sharedMesh = combinedMesh;
+        // collider.convex = true;
+
+        // Register as obstacle for boid avoidance
+        ObstacleEntity obstacle = asteroidRoot.AddComponent<ObstacleEntity>();
+        Asteroid asteroid = asteroidRoot.AddComponent<Asteroid>();
+        if (destructionFXPrefab != null)
+            asteroid.SetDestructionFX(destructionFXPrefab);
 
         spawnedAsteroids.Add(asteroidRoot);
     }

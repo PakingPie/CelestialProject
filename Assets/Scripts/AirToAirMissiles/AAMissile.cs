@@ -85,6 +85,7 @@ public class AAMissile : MonoBehaviour
     public int Damage = 100;
     public int ExplodeRadius = 5;
     public int DetonationRadius = 3;
+    public bool CanDamageAsteroids = true;
 
     [Header("Apperance")]
     public Vector3 MissileScale = Vector3.one * 0.5f;
@@ -303,6 +304,12 @@ public class AAMissile : MonoBehaviour
 
             List<VehicleBase> nearbyTargets = new List<VehicleBase>(16);
             CombatRegistry.GetNearbyEnemies(transform.position, ExplodeRadius, targetFactions, nearbyTargets, true);
+
+            // Also damage neutral objects (asteroids) if enabled
+            if (CanDamageAsteroids)
+            {
+                CombatRegistry.GetNearbyEnemies(transform.position, ExplodeRadius, GlobalHelper.Faction.Neutral, nearbyTargets, true);
+            }
 
             // Group VehicleModules and WeaponPlatforms by their parent vehicle to prevent multiple damage from same parent
             HashSet<VehicleBase> damagedParents = new HashSet<VehicleBase>();

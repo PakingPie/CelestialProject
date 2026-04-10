@@ -24,7 +24,8 @@ public class ObstacleRegistry : MonoBehaviour
     {
         public int Id;
         public Vector3 Position;
-        public float Radius;
+        public float Radius;       // Conservative query radius (half-diagonal of AABB)
+        public Bounds WorldBounds;  // Axis-aligned bounding box in world space
         public bool IsStatic;
         public Transform Transform;
 
@@ -50,15 +51,17 @@ public class ObstacleRegistry : MonoBehaviour
     /// <summary>
     /// Register an obstacle and receive an ID for future updates/removal.
     /// </summary>
-    public int RegisterObstacle(Transform transform, float radius, bool isStatic)
+    public int RegisterObstacle(Transform transform, Bounds worldBounds, bool isStatic)
     {
         int id = _nextObstacleId++;
+        float queryRadius = worldBounds.extents.magnitude; // half-diagonal for grid queries
 
         ObstacleData data = new ObstacleData
         {
             Id = id,
             Position = transform.position,
-            Radius = radius,
+            Radius = queryRadius,
+            WorldBounds = worldBounds,
             IsStatic = isStatic,
             Transform = transform
         };
@@ -67,7 +70,7 @@ public class ObstacleRegistry : MonoBehaviour
         AddToGrid(data);
 
         if (_debugMode)
-            Debug.Log($"ObstacleRegistry: Registered obstacle {id} at {data.Position} with radius {radius}");
+            Debug.Log($"ObstacleRegistry: Registered obstacle {id} at {data.Position} bounds={worldBounds.size}");
 
         return id;
     }
@@ -88,7 +91,7 @@ public class ObstacleRegistry : MonoBehaviour
     }
 
     /// <summary>
-    /// Update position of a moving obstacle.
+    /// Update position of a moving obstacle. Translates the AABB center to match.
     /// </summary>
     public void UpdateObstaclePosition(int id, Vector3 newPosition)
     {
@@ -99,7 +102,13 @@ public class ObstacleRegistry : MonoBehaviour
         int oldHash = GetCellHash(oldPosition);
         int newHash = GetCellHash(newPosition);
 
+        // Translate bounds center by the same delta
+        Vector3 delta = newPosition - oldPosition;
+        Bounds newBounds = data.WorldBounds;
+        newBounds.center += delta;
+
         data.Position = newPosition;
+        data.WorldBounds = newBounds;
         _obstacles[id] = data;
 
         if (oldHash != newHash)
@@ -157,7 +166,7 @@ public class ObstacleRegistry : MonoBehaviour
 
     /// <summary>
     /// Check if there's an obstacle in a specific direction (for directional avoidance).
-    /// Returns the closest obstacle in the cone.
+    /// Returns the closest obstacle in the cone. Uses AABB closest-point for accuracy.
     /// </summary>
     public bool CheckDirection(Vector3 position, Vector3 direction, float distance, float coneAngle, out ObstacleData hitObstacle, out float hitDistance)
     {
@@ -171,21 +180,20 @@ public class ObstacleRegistry : MonoBehaviour
         for (int i = 0; i < nearby.Count; i++)
         {
             ObstacleData obstacle = nearby[i];
-            Vector3 toObstacle = obstacle.Position - position;
-            float dist = toObstacle.magnitude;
+            Vector3 closestPoint = obstacle.WorldBounds.ClosestPoint(position);
+            Vector3 toClosest = closestPoint - position;
+            float dist = toClosest.magnitude;
 
-            if (dist < 0.01f || dist > distance + obstacle.Radius)
+            if (dist < 0.01f || dist > distance)
                 continue;
 
-            float dot = Vector3.Dot(direction, toObstacle / dist);
+            float dot = Vector3.Dot(direction, toClosest / dist);
 
             if (dot >= cosAngle)
             {
-                float effectiveDist = dist - obstacle.Radius;
-
-                if (effectiveDist < hitDistance)
+                if (dist < hitDistance)
                 {
-                    hitDistance = effectiveDist;
+                    hitDistance = dist;
                     hitObstacle = obstacle;
                     found = true;
                 }
@@ -288,7 +296,7 @@ public class ObstacleRegistry : MonoBehaviour
             ObstacleData data = kvp.Value;
             if (data.IsValid)
             {
-                Gizmos.DrawWireSphere(data.Position, data.Radius);
+                Gizmos.DrawWireCube(data.WorldBounds.center, data.WorldBounds.size);
             }
         }
     }

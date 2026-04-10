@@ -88,6 +88,9 @@ public class Boid : MonoBehaviour
     private const float WanderRadius = 2500f;
     private const float WanderInterval = 60f;
 
+    // Auto-calculated collision bounds radius (surface clearance margin)
+    private float _boundsRadius;
+
     // Ship type identity (cached from VehicleBase at init)
     private GlobalHelper.VehicleType _shipClass = GlobalHelper.VehicleType.Fighter;
     public GlobalHelper.VehicleType ShipClass => _shipClass;
@@ -167,6 +170,7 @@ public class Boid : MonoBehaviour
         _angularVelocity = Vector3.zero;
         _previousRotation = _cachedTransform.rotation;
         InitializePhysicsMultipliers();
+        _boundsRadius = CalculateBoundsRadius();
         _combatFacingDirection = forward;
         _wanderTarget = position + Random.insideUnitSphere * WanderRadius;
         _wanderTarget.y = Mathf.Clamp(_wanderTarget.y, HeightRange.x, HeightRange.y);
@@ -1457,6 +1461,23 @@ public class Boid : MonoBehaviour
         return separation;
     }
 
+    /// <summary>
+    /// Auto-calculate boid collision radius from child renderers.
+    /// </summary>
+    private float CalculateBoundsRadius()
+    {
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        if (renderers.Length == 0)
+            return 1f; // Fallback for empty prefabs
+
+        Bounds combined = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
+            combined.Encapsulate(renderers[i].bounds);
+
+        // Half the maximum extent as the spherical clearance radius
+        return Mathf.Max(combined.extents.x, combined.extents.y, combined.extents.z);
+    }
+
     private Vector3 CalculateObstacleAvoidance()
     {
         if (ObstacleRegistry.Instance == null)
@@ -1473,9 +1494,10 @@ public class Boid : MonoBehaviour
         {
             var obstacle = obstacles[i];
 
-            Vector3 toSelf = position - obstacle.Position;
+            Vector3 closestPoint = obstacle.WorldBounds.ClosestPoint(position);
+            Vector3 toSelf = position - closestPoint;
             float distance = toSelf.magnitude;
-            float safeDistance = obstacle.Radius + _settings.boundsRadius;
+            float safeDistance = _boundsRadius; // margin from surface, not center
 
             if (distance < safeDistance + _settings.obstacleDetectionRange)
             {
@@ -1483,7 +1505,15 @@ public class Boid : MonoBehaviour
                 float urgency = Mathf.Clamp01(penetration / _settings.obstacleDetectionRange);
                 urgency = urgency * urgency;
 
-                avoidance += toSelf.normalized * urgency;
+                if (distance < 0.01f)
+                {
+                    // Inside the obstacle — push away from obstacle center
+                    avoidance += (position - obstacle.Position).normalized * urgency;
+                }
+                else
+                {
+                    avoidance += toSelf.normalized * urgency;
+                }
             }
         }
 
