@@ -498,7 +498,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &30324697
 Transform:
   m_ObjectHideFlags: 0
@@ -508,7 +508,7 @@ Transform:
   m_GameObject: {fileID: 30324696}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1000, z: 3000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -16114,7 +16114,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1424876217
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16127,18 +16127,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: feff91e2a25e7bf43bfd54e833fc03d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AsteroidSpawner
-  asteroidCount: 100
-  spawnAreaSize: {x: 5000, y: 5000, z: 5000}
+  asteroidCount: 200
+  spawnAreaSize: {x: 50000, y: 5000, z: 5000}
   minDistanceBetweenAsteroids: 10
-  resolution: 24
-  radiusRange: {x: 5, y: 50}
-  asteroidMaterial: {fileID: 2100000, guid: f974bf7f1ad017b4ebba4e0511d61afb, type: 2}
+  asteroidPrefabs:
+  - {fileID: 9055008998387302774, guid: a5e3e4d5f1c0a3c478e051a1a70e569c, type: 3}
+  - {fileID: 806719783450447714, guid: 8d10cd5f798871d42bbaa9593b9e4ec2, type: 3}
+  - {fileID: 6068514211088741654, guid: c6fd82ec9776bc541b7a409cb768ba35, type: 3}
+  - {fileID: 1872263186610204325, guid: a34ce0c632af50a4e9713c202c3deb4f, type: 3}
+  - {fileID: 5567572996470994594, guid: 830489da14392414fbb24e15130e9ea2, type: 3}
+  scaleRange: {x: 10, y: 100}
   destructionFXPrefab: {fileID: 5729205090524001833, guid: 4e708db8294091b43a506de5cf961268, type: 3}
-  layersRange: {x: 4, y: 6}
-  baseRoughnessRange: {x: 0.5, y: 1}
-  roughnessRange: {x: 1.5, y: 2}
-  strength: 1
-  persistence: 0.5
   spawnedAsteroids: []
 --- !u!4 &1424876218
 Transform:
@@ -19056,7 +19055,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 3986b3ff96b7c69428b64d9aed7c7684, type: 3}
-  spawnCount: 30
+  spawnCount: 60
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: -10000, y: 10000}
   spawnMode: 0

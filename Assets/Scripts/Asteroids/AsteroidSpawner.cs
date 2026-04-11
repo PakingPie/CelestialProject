@@ -12,18 +12,11 @@ public class AsteroidSpawner : MonoBehaviour
     [SerializeField] private Vector3 spawnAreaSize = new Vector3(100f, 100f, 100f);
     [SerializeField] private float minDistanceBetweenAsteroids = 10f;
     
-    [Header("Asteroid Settings")]
-    [SerializeField, Range(2, 64)] private int resolution = 16;
-    [SerializeField] private Vector2 radiusRange = new Vector2(2f, 8f);
-    [SerializeField] private Material asteroidMaterial;
+    [Header("Asteroid Prefabs")]
+    [Tooltip("Drag asteroid prefabs here. A random one is chosen per spawn.")]
+    [SerializeField] private GameObject[] asteroidPrefabs;
+    [SerializeField] private Vector2 scaleRange = new Vector2(2f, 8f);
     [SerializeField] private VisualEffect destructionFXPrefab;
-    
-    [Header("Noise Settings")]
-    [SerializeField] private Vector2Int layersRange = new Vector2Int(4, 6);
-    [SerializeField] private Vector2 baseRoughnessRange = new Vector2(0.5f, 1.0f);
-    [SerializeField] private Vector2 roughnessRange = new Vector2(1.5f, 2.0f);
-    [SerializeField] private float strength = 0.5f;
-    [SerializeField] private float persistence = 0.5f;
     
     [SerializeField, HideInInspector]
     private List<GameObject> spawnedAsteroids = new List<GameObject>();
@@ -31,6 +24,12 @@ public class AsteroidSpawner : MonoBehaviour
     public void SpawnAsteroids()
     {
         ClearAsteroids();
+        
+        if (asteroidPrefabs == null || asteroidPrefabs.Length == 0)
+        {
+            Debug.LogError("AsteroidSpawner: No asteroid prefabs assigned!");
+            return;
+        }
         
         List<Vector3> positions = GenerateSpawnPositions();
         
@@ -95,62 +94,21 @@ public class AsteroidSpawner : MonoBehaviour
 
     private void CreateAsteroid(Vector3 position)
     {
-        GameObject asteroidRoot = new GameObject($"Asteroid_{spawnedAsteroids.Count}");
-        asteroidRoot.transform.parent = transform;
-        asteroidRoot.transform.position = position;
-        asteroidRoot.transform.rotation = Random.rotation;
+        GameObject prefab = asteroidPrefabs[Random.Range(0, asteroidPrefabs.Length)];
+        GameObject asteroidRoot = Instantiate(prefab, position, Random.rotation, transform);
+        asteroidRoot.name = $"Asteroid_{spawnedAsteroids.Count}";
 
-        float radius = Random.Range(radiusRange.x, radiusRange.y);
-        AsteroidShapeGenerator shapeGenerator = new AsteroidShapeGenerator(
-            radius,
-            strength,
-            Random.Range(layersRange.x, layersRange.y),
-            Random.Range(baseRoughnessRange.x, baseRoughnessRange.y),
-            Random.Range(roughnessRange.x, roughnessRange.y),
-            persistence
-        );
+        float scale = Random.Range(scaleRange.x, scaleRange.y);
+        asteroidRoot.transform.localScale = Vector3.one * scale;
 
-        Vector3[] directions = { Vector3.up, Vector3.down, Vector3.left, Vector3.right, Vector3.forward, Vector3.back };
+        // Add gameplay components if not already on the prefab
+        if (asteroidRoot.GetComponent<ObstacleEntity>() == null)
+            asteroidRoot.AddComponent<ObstacleEntity>();
 
-        // Create a single combined mesh for better performance
-        CombineInstance[] combineInstances = new CombineInstance[6];
+        Asteroid asteroid = asteroidRoot.GetComponent<Asteroid>();
+        if (asteroid == null)
+            asteroid = asteroidRoot.AddComponent<Asteroid>();
 
-        for (int i = 0; i < 6; i++)
-        {
-            Mesh faceMesh = new Mesh();
-            AsteroidMeshOptimized.ConstructMesh(faceMesh, shapeGenerator, resolution, directions[i]);
-            
-            combineInstances[i].mesh = faceMesh;
-            combineInstances[i].transform = Matrix4x4.identity;
-        }
-
-        Mesh combinedMesh = new Mesh();
-        combinedMesh.CombineMeshes(combineInstances, true, true);
-        combinedMesh.RecalculateNormals();
-        combinedMesh.RecalculateBounds();
-
-        // Clean up temporary meshes
-        for (int i = 0; i < 6; i++)
-        {
-            DestroyImmediate(combineInstances[i].mesh);
-        }
-
-        MeshFilter meshFilter = asteroidRoot.AddComponent<MeshFilter>();
-        meshFilter.sharedMesh = combinedMesh;
-
-        MeshRenderer renderer = asteroidRoot.AddComponent<MeshRenderer>();
-        renderer.sharedMaterial = asteroidMaterial != null 
-            ? asteroidMaterial 
-            : new Material(Shader.Find("Universal Render Pipeline/Lit"));
-
-        // // Optional: Add collider
-        // MeshCollider collider = asteroidRoot.AddComponent<MeshCollider>();
-        // collider.sharedMesh = combinedMesh;
-        // collider.convex = true;
-
-        // Register as obstacle for boid avoidance
-        ObstacleEntity obstacle = asteroidRoot.AddComponent<ObstacleEntity>();
-        Asteroid asteroid = asteroidRoot.AddComponent<Asteroid>();
         if (destructionFXPrefab != null)
             asteroid.SetDestructionFX(destructionFXPrefab);
 
