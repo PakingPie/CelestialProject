@@ -53,41 +53,42 @@ Shader "Unlit/MyVolumetricLighting"
             float _APVContributionWeight;
             float3 _Tint;
             int _MaxSteps;
+            float _MaxPhaseIntensity;
+            float _DensityFalloff;
 
             float _Anisotropies[MAX_VISIBLE_LIGHTS + 1];
             float _Scatterings[MAX_VISIBLE_LIGHTS + 1];
             float _RadiiSq[MAX_VISIBLE_LIGHTS];
 
-            // Gets the fog density at the given world height.
-            float GetFogDensity(float posWSy)
+            // Gets the fog density at the given world height and distance from camera.
+            float GetFogDensity(float3 posWS, float distFromCamera)
             {
-                // float t = saturate((posWSy - _BaseHeight) / (_MaximumHeight - _BaseHeight));
-                // t = 1.0 - t;
-                // t = lerp(t, 0.0, posWSy < _GroundHeight);
+                // Distance-based falloff: density decays exponentially with distance from camera
+                // _DensityFalloff = 0 means no falloff (uniform), higher values = faster decay
+                float distanceFade = exp(-distFromCamera * _DensityFalloff);
 
-                return _Density;// * t;
+                return _Density * distanceFade;
             }
 
-            // Gets the main light color at one raymarch step.
-            float3 GetStepMainLightColor(float3 currPosWS, float phaseMainLight, float density)
+            // Gets the main light scattering source rate at one raymarch step.
+            // Returns sigma_s * phase * L_incident (the in-scattering source term, WITHOUT density)
+            float3 GetStepMainLightColor(float3 currPosWS, float phaseMainLight)
             {
                 #if _MAIN_LIGHT_CONTRIBUTION_DISABLED
                     return float3(0.0, 0.0, 0.0);
                 #endif
-                // get the main light and set its data
                 Light mainLight = GetMainLight();
                 float4 shadowCoord = TransformWorldToShadowCoord(currPosWS);
                 mainLight.shadowAttenuation = VolumetricMainLightRealtimeShadow(shadowCoord);
                 #if _LIGHT_COOKIES
-                    // when light cookies are enabled and one is set for the main light, also factor it
                     mainLight.color *= SampleMainLightCookie(currPosWS);
                 #endif
-                // return the final color
-                return (mainLight.color * _Tint) * (mainLight.shadowAttenuation * phaseMainLight * density * _Scatterings[_CustomAdditionalLightsCount]);
+                return (mainLight.color * _Tint) * (mainLight.shadowAttenuation * phaseMainLight * _Scatterings[_CustomAdditionalLightsCount]);
             }
 
             // Gets the accumulated color from additional lights at one raymarch step.
-            float3 GetStepAdditionalLightsColor(float2 uv, float3 currPosWS, float3 rd, float density)
+            // Returns in-scattering source rate (WITHOUT density, density is applied in the main loop).
+            float3 GetStepAdditionalLightsColor(float2 uv, float3 currPosWS, float3 rd)
             {
                 #if _ADDITIONAL_LIGHTS_CONTRIBUTION_DISABLED
                     return float3(0.0, 0.0, 0.0);
@@ -134,9 +135,10 @@ Shader "Unlit/MyVolumetricLighting"
                 // They store direction in additionalLightPos.xyz and have .w set to 0, while point and spotlights have it set to 1.
                 // newScattering = lerp(1.0, newScattering, additionalLightPos.w);
 
-                // accumulate the total color for additional lights
-                float phase = CornetteShanksPhaseFunction(_Anisotropies[lightIndex], dot(rd, additionalLight.direction));
-                additionalLightsColor += (additionalLight.color * (additionalLight.shadowAttenuation * additionalLight.distanceAttenuation * phase * density * newScattering));
+                // accumulate the total color for additional lights (phase clamped to prevent blow-out)
+                float rawPhaseAL = CornetteShanksPhaseFunction(_Anisotropies[lightIndex], dot(rd, additionalLight.direction));
+                float phaseAL = min(rawPhaseAL, _MaxPhaseIntensity * 0.07957747);
+                additionalLightsColor += (additionalLight.color * (additionalLight.shadowAttenuation * additionalLight.distanceAttenuation * phaseAL * newScattering));
                 LIGHT_LOOP_END
 
                 return additionalLightsColor;
@@ -240,23 +242,22 @@ Shader "Unlit/MyVolumetricLighting"
                     offsetLength = min(offsetLength, _Distance);
                 }
 
-                offsetLength -= initialOffsetToNearPlane;
-                offsetLength = max(0.0, offsetLength); // Ensure non-negative
-                
-                float3 roNearPlane = ro + rd * initialOffsetToNearPlane;
-                // calculate the step length and jitter
-                float stepLength = (_Distance - initialOffsetToNearPlane) / (float)_MaxSteps;
-                float jitter = stepLength * InterleavedGradientNoise(input.positionCS, _FrameCount);
+                // Logarithmic step distribution — denser near camera, sparser far away
+                float nearStep = max(1.0, initialOffsetToNearPlane);
+                float farStep = max(nearStep + 0.01, offsetLength);
+                float logNear = log(nearStep);
+                float logFar = log(farStep);
+                float logRange = logFar - logNear;
+                float jitter01 = InterleavedGradientNoise(input.positionCS, _FrameCount);
 
                 #if _MAIN_LIGHT_CONTRIBUTION_DISABLED
                     float phaseMainLight = 0.0;
                 #else
-                    // calculate the phase function for the main light and part of the extinction factor
-                    // note that we fake the view ray dir for orthographic, as it would otherwise mean that the main light will always have the same phase
-                    float phaseMainLight = CornetteShanksPhaseFunction(_Anisotropies[_CustomAdditionalLightsCount], dot(rdPhase, GetMainLight().direction));
+                    // Clamp phase to prevent blow-out at high anisotropy
+                    float rawPhase = CornetteShanksPhaseFunction(_Anisotropies[_CustomAdditionalLightsCount], dot(rdPhase, GetMainLight().direction));
+                    float maxPhase = _MaxPhaseIntensity * 0.07957747; // _MaxPhaseIntensity x isotropic (1/4pi)
+                    float phaseMainLight = min(rawPhase, maxPhase);
                 #endif
-
-                float minusStepLengthTimesAbsortion = -stepLength * _Absortion;
                 
                 // initialize the volumetric fog color and transmittance
                 float3 volumetricFogColor = float3(0.0, 0.0, 0.0);
@@ -265,42 +266,52 @@ Shader "Unlit/MyVolumetricLighting"
                 UNITY_LOOP
                 for (int i = 0; i < _MaxSteps; ++i)
                 {
-                    // calculate the distance we are at
-                    float dist = jitter + i * stepLength;
+                    // Logarithmic step: denser near camera, sparser far away
+                    float t = (float(i) + jitter01) / float(_MaxSteps);
+                    float dist = exp(logNear + t * logRange);
 
                     // perform depth test to break out early
                     UNITY_BRANCH
                     if (dist >= offsetLength)
                     break;
 
-                    // We are making the space between the camera position and the near plane "non existant", as if fog did not exist there.
-                    // However, it removes a lot of noise when in closed environments with an attenuation that makes the scene darker
-                    // and certain combinations of field of view, raymarching resolution and camera near plane.
-                    // In those edge cases, it looks so much better, specially when near plane is higher than the minimum (0.01) allowed.
-                    float3 currPosWS = roNearPlane + rd * dist;
+                    // Per-step length for exponential distribution (derivative of exp mapping)
+                    float localStepLength = dist * logRange / float(_MaxSteps);
 
-                    // calculate density
-                    float density = GetFogDensity(currPosWS.y);
+                    float3 currPosWS = ro + rd * dist;
+
+                    // calculate density with distance-based falloff
+                    float density = GetFogDensity(currPosWS, dist);
                     
                     // keep marching when there is not enough density
                     UNITY_BRANCH
                     if (density <= 0.0)
                     continue;
 
-                    // calculate attenuation
-                    float stepAttenuation = exp(minusStepLengthTimesAbsortion * density);
-                    
-                    // attenuate transmittance
-                    transmittance *= stepAttenuation;
+                    // Extinction coefficient: sigma_t = density * absorption_coeff
+                    float sigmaT = density * _Absortion;
 
-                    // calculate the colors at this step and accumulate them
+                    // Transmittance for this step (Beer-Lambert)
+                    float stepAttenuation = exp(-localStepLength * sigmaT);
+
+                    // Energy-conserving in-scattering weight (exponential integration)
+                    // Analytical integral: (1 - exp(-sigmaT * ds)) / sigmaT
+                    // Approaches stepLength when sigmaT*ds is small, saturates at 1/sigmaT for large steps
+                    float scatterWeight = (sigmaT > 0.0001) ? (1.0 - stepAttenuation) / sigmaT : localStepLength;
+
+                    // In-scattering source: density * (sum of light contributions)
+                    // density acts as the scattering coefficient sigma_s here
                     float3 apvColor = GetStepAdaptiveVolumeEvaluation(input.texcoord, currPosWS, density);
-                    float3 mainLightColor = GetStepMainLightColor(currPosWS, phaseMainLight, density);
-                    float3 additionalLightsColor = GetStepAdditionalLightsColor(input.texcoord, currPosWS, rd, density);
+                    float3 mainLightColor = GetStepMainLightColor(currPosWS, phaseMainLight);
+                    float3 additionalLightsColor = GetStepAdditionalLightsColor(input.texcoord, currPosWS, rd);
 
-                    // TODO: add ambient?
-                    float3 stepColor = mainLightColor + additionalLightsColor;
-                    volumetricFogColor += (stepColor * (transmittance * stepLength));
+                    float3 sourceRate = density * (mainLightColor + additionalLightsColor);
+
+                    // Accumulate: source * transmittance * energy-conserving weight
+                    volumetricFogColor += sourceRate * transmittance * scatterWeight;
+
+                    // Attenuate transmittance AFTER accumulation (correct ordering)
+                    transmittance *= stepAttenuation;
                 }
 
                 return float4(volumetricFogColor, transmittance);

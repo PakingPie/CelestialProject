@@ -22,12 +22,11 @@ MonoBehaviour:
   targetWeight: 5
   separationRadius: 300
   separationWeight: 5
-  obstacleDetectionRange: 500
-  obstacleAvoidanceWeight: 10
+  obstacleDetectionRange: 100
+  obstacleAvoidanceWeight: 20
   obstacleMask:
     serializedVersion: 2
     m_Bits: 8832
-  boundsRadius: 10
   useFormation: 1
   formationType: 8
   formationSpacing: 600
@@ -60,6 +59,9 @@ MonoBehaviour:
   torqueStrength: 12
   maxAngularSpeed: 45
   velocityCoupling: 0.75
+  rcsAuthority: 0.15
+  reverseThrustRatio: 0.35
+  combatRcsBoost: 3
   capitalTorqueMultiplier: 0.3
   capitalDragMultiplier: 0.6
   escortTorqueMultiplier: 0.6

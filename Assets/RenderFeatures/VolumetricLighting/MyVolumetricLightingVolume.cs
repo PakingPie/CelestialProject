@@ -23,7 +23,7 @@ public class MyVolumetricLightingVolume : VolumeComponent, IPostProcessComponent
 
     [Header("Distances")]
     [Tooltip("The maximum distance from the camera that the fog will be rendered up to.")]
-	public ClampedFloatParameter distance = new ClampedFloatParameter(64.0f, 0.0f, 1024.0f);
+	public ClampedFloatParameter distance = new ClampedFloatParameter(64.0f, 0.0f, 16384.0f);
 	[Tooltip("The world height at which the fog will have the density specified in the volume.")]
 	public FloatParameter baseHeight = new FloatParameter(0.0f, true);
 	[Tooltip("The world height at which the fog will have no density at all.")]
@@ -38,6 +38,10 @@ public class MyVolumetricLightingVolume : VolumeComponent, IPostProcessComponent
 	[Header("Lighting")]
 	[Tooltip("How dense is the fog.")]
 	public ClampedFloatParameter density = new ClampedFloatParameter(0.2f, 0.0f, 1.0f);
+	[Tooltip("Caps the peak brightness of directional scattering relative to uniform scattering. Lower values prevent blow-out when looking toward lights with high anisotropy.")]
+	public ClampedFloatParameter maxPhaseIntensity = new ClampedFloatParameter(8.0f, 1.0f, 32.0f);
+	[Tooltip("Rate at which fog density decreases with distance from the camera. 0 = uniform fog, higher values = fog concentrated near the camera. Useful for space scenes.")]
+	public ClampedFloatParameter densityFalloff = new ClampedFloatParameter(0.0f, 0.0f, 0.01f);
 	[Tooltip("Value that defines how much the fog attenuates light as distance increases. Lesser values lead to a darker image.")]
 	public MinFloatParameter attenuationDistance = new MinFloatParameter(128.0f, 0.05f);
 	[Tooltip("When enabled, adaptive probe volumes (APV) will be sampled to contribute to fog.")]

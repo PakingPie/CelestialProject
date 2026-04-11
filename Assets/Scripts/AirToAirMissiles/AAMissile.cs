@@ -303,13 +303,10 @@ public class AAMissile : MonoBehaviour
             }
 
             List<VehicleBase> nearbyTargets = new List<VehicleBase>(16);
-            CombatRegistry.GetNearbyEnemies(transform.position, ExplodeRadius, targetFactions, nearbyTargets, true);
-
-            // Also damage neutral objects (asteroids) if enabled
+            GlobalHelper.Faction combinedFactions = targetFactions;
             if (CanDamageAsteroids)
-            {
-                CombatRegistry.GetNearbyEnemies(transform.position, ExplodeRadius, GlobalHelper.Faction.Neutral, nearbyTargets, true);
-            }
+                combinedFactions |= GlobalHelper.Faction.Neutral;
+            CombatRegistry.GetNearbyEnemies(transform.position, ExplodeRadius, combinedFactions, nearbyTargets, true);
 
             // Group VehicleModules and WeaponPlatforms by their parent vehicle to prevent multiple damage from same parent
             HashSet<VehicleBase> damagedParents = new HashSet<VehicleBase>();
