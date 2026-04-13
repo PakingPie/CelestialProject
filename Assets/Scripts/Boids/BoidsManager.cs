@@ -18,6 +18,9 @@ public class BoidsManager : MonoBehaviour
     [Tooltip("Height range for boid movement (Y axis)")]
     public Vector2 HeightRange = new Vector2(-1000.0f, 1000.0f);
 
+    [Tooltip("Leash center override. If not set, uses the flock target transform.")]
+    public Transform LeashCenter;
+
     [Header("Formation")]
     public bool syncCombatState = true;
 
@@ -722,6 +725,15 @@ public class BoidsManager : MonoBehaviour
             }
         }
 
+        // Compute leash center once per frame
+        Vector3 leashCenter = Vector3.zero;
+        bool leashActive = settings.useLeash;
+        if (leashActive)
+        {
+            Transform lc = LeashCenter != null ? LeashCenter : target;
+            leashCenter = lc != null ? lc.position : transform.position;
+        }
+
         for (int i = 0; i < numBoids; i++)
         {
             if (i >= boids.Count || boids[i] == null) continue;
@@ -730,6 +742,10 @@ public class BoidsManager : MonoBehaviour
             {
                 boids[i].SetHeightRange(HeightRange);
             }
+
+            boids[i].UseLeash = leashActive;
+            if (leashActive)
+                boids[i].LeashCenter = leashCenter;
 
             boids[i].avgFlockHeading = _boidData[i].flockHeading;
             boids[i].avgAvoidanceHeading = _boidData[i].seperationHeading;

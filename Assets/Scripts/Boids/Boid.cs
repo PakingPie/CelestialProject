@@ -32,6 +32,10 @@ public class Boid : MonoBehaviour
     [Tooltip("Height range for boid movement (Y axis)")]
     public Vector2 HeightRange = new Vector2(-100.0f, 100.0f);
 
+    [Header("Leash Boundary")]
+    [HideInInspector] public Vector3 LeashCenter;
+    [HideInInspector] public bool UseLeash;
+
 
     private Transform _fallbackTarget;
     // Smoothing state
@@ -566,6 +570,7 @@ public class Boid : MonoBehaviour
         ApplyFlockingAcceleration(ref acceleration);
         ApplyLocalAvoidance(ref acceleration);
         ApplyHeightBoundaryRecovery(ref acceleration);
+        ApplyLeashBoundary(ref acceleration);
         ApplyMovement(acceleration);
 
         UpdateRegistryPosition();
@@ -1391,6 +1396,24 @@ public class Boid : MonoBehaviour
         acceleration += SteerTowards(new Vector3(0f, verticalBias, 0f)) * _settings.targetWeight * 1.5f;
     }
 
+    private void ApplyLeashBoundary(ref Vector3 acceleration)
+    {
+        if (_settings == null || !_settings.useLeash || !UseLeash)
+            return;
+
+        Vector3 offset = position - LeashCenter;
+        float dist = offset.magnitude;
+        float radius = _settings.leashRadius;
+
+        if (dist < radius * _settings.leashSoftEdge)
+            return;
+
+        // Soft steering: ramps from 0 at softEdge to full strength at radius
+        float t = Mathf.InverseLerp(radius * _settings.leashSoftEdge, radius, dist);
+        Vector3 pullDir = -offset.normalized;
+        acceleration += SteerTowards(pullDir) * _settings.leashStrength * t;
+    }
+
     private void ClampPositionToHeightRange(ref Vector3 newPos)
     {
         float clampedY = Mathf.Clamp(newPos.y, HeightRange.x, HeightRange.y);
@@ -1402,6 +1425,23 @@ public class Boid : MonoBehaviour
                 (clampedY >= HeightRange.y && _velocity.y > 0f))
             {
                 _velocity.y = 0f;
+            }
+        }
+
+        // Hard clamp to leash radius as safety net
+        if (_settings != null && _settings.useLeash && UseLeash)
+        {
+            Vector3 offset = newPos - LeashCenter;
+            float dist = offset.magnitude;
+            if (dist > _settings.leashRadius)
+            {
+                newPos = LeashCenter + offset.normalized * _settings.leashRadius;
+
+                // Kill outward velocity component
+                Vector3 outDir = offset.normalized;
+                float outVel = Vector3.Dot(_velocity, outDir);
+                if (outVel > 0f)
+                    _velocity -= outDir * outVel;
             }
         }
     }

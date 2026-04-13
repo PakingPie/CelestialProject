@@ -131,6 +131,16 @@ public class BoidSettings : ScriptableObject
     public float fleeSpeedMultiplier = 1.5f;
     [Tooltip("How much formation is blended into combat when Confident (0=none, 1=full formation).")]
     [Range(0f, 1f)] public float confidentFormationWeight = 0.5f;
+
+    [Header("Spherical Leash")]
+    [Tooltip("Enable spherical boundary around the flock target.")]
+    public bool useLeash = false;
+    [Tooltip("Maximum distance a boid can travel from the leash center.")]
+    public float leashRadius = 5000f;
+    [Tooltip("Fraction of radius where soft steering begins (e.g. 0.8 = at 80% of radius).")]
+    [Range(0.5f, 0.99f)] public float leashSoftEdge = 0.85f;
+    [Tooltip("Strength of the leash pull-back force.")]
+    [Range(0.5f, 5f)] public float leashStrength = 2f;
 }
 
 public enum CombatMorale
