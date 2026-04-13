@@ -32,6 +32,19 @@ Shader "Custom/Atmosphere"
         _Exposure("Exposure", Float) = 2.0
 
         _LocalLightIntensity("Local Light Intensity", Float) = 1.0  // ▶ NEW
+
+        [Header(Aurora)]
+        [Toggle] _AURORA("Enable Aurora", Float) = 0
+        _AuroraIntensity("Aurora Intensity", Float) = 1.0
+        _AuroraSpeed("Aurora Speed", Float) = 1.0
+        _AuroraScale("Aurora Scale", Float) = 2.0
+        _AuroraAltitude("Aurora Altitude (km)", Float) = 80
+        _AuroraHeight("Aurora Height (km)", Float) = 200
+        _AuroraLatitude("Aurora Latitude (rad from pole)", Range(0.0, 1.57)) = 0.35
+        _AuroraLatWidth("Aurora Latitude Width (rad)", Range(0.01, 1.0)) = 0.25
+        _AuroraSteps("Aurora Steps", Int) = 32
+        _AuroraPoleAxis("Aurora Pole Axis", Vector) = (0, 1, 0, 0)
+        _AuroraColorTint("Aurora Color Tint", Color) = (1, 1, 1, 1)
     }
 
     SubShader
@@ -73,6 +86,16 @@ Shader "Custom/Atmosphere"
                 uint _LightSteps;
                 float _Exposure;
                 float _LocalLightIntensity;  // ▶ NEW
+                float _AuroraIntensity;
+                float _AuroraSpeed;
+                float _AuroraScale;
+                float _AuroraAltitude;
+                float _AuroraHeight;
+                float _AuroraLatitude;
+                float _AuroraLatWidth;
+                uint  _AuroraSteps;
+                float3 _AuroraPoleAxis;
+                float4 _AuroraColorTint;
             CBUFFER_END
 
             // ▶ NEW — Additional light data (set by AtmosphericLightManager)
@@ -101,6 +124,7 @@ Shader "Custom/Atmosphere"
             #pragma multi_compile _SUN_MODE_USE_SUN_POSITION _SUN_MODE_USE_DIRECTIONAL
 
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_ON
+            #pragma multi_compile _ _AURORA_ON
             
             struct Attributes
             {
@@ -193,6 +217,8 @@ Shader "Custom/Atmosphere"
                 float sqrtDisc = sqrt(discriminant);
                 return float2(-b - sqrtDisc, -b + sqrtDisc);
             }
+
+            #include "Auroras.hlsl"
 
             float DensityAtHeight(float height, float scaleHeight)
             {
@@ -469,6 +495,23 @@ Shader "Custom/Atmosphere"
                 #else
                     float3 scatter = sunScatter;                       // ▶ NEW
                 #endif
+
+                // ▶ AURORA
+                #if defined(_AURORA_ON)
+                {
+                    float4 aurora = EvaluateAurora(
+                        cameraPos, viewDir, planetCenter, _PlanetRadius,
+                        normalize(_AuroraPoleAxis),
+                        _AuroraAltitude, _AuroraHeight,
+                        _AuroraLatitude, _AuroraLatWidth,
+                        _AuroraSteps, _AuroraSpeed, _AuroraScale,
+                        screenUV, _Time.y);
+                    aurora.rgb *= _AuroraColorTint.rgb * _AuroraIntensity;
+                    scatter = scatter * (1.0 - aurora.a) + pow(aurora.rgb, 2.0);
+                }
+                #endif
+                // ▶ END AURORA
+
                 scatter *= _Exposure;
                 
                 // Filmic tonemapping

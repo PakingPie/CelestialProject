@@ -26,6 +26,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ADDITIONAL_LIGHTS_ON
+  - _AURORA_ON
   - _SUN_MODE_USE_DIRECTIONAL
   m_InvalidKeywords:
   - _SURFACE_TYPE_TRANSPARENT
@@ -43,7 +44,16 @@ Material:
     m_Ints: []
     m_Floats:
     - _ADDITIONAL_LIGHTS: 1
+    - _AURORA: 1
     - _AtmosphereHeight: 1200
+    - _AuroraAltitude: 80
+    - _AuroraHeight: 100
+    - _AuroraIntensity: 1
+    - _AuroraLatWidth: 0.2
+    - _AuroraLatitude: 0
+    - _AuroraScale: 8
+    - _AuroraSpeed: 1
+    - _AuroraSteps: 32
     - _Exposure: 1
     - _G: 0.2
     - _LightIntensity: 1
@@ -66,6 +76,8 @@ Material:
     - _TerminatorStart: -0.3
     - _TerrainMaxHeight: 0
     m_Colors:
+    - _AuroraColorTint: {r: 1, g: 1, b: 1, a: 1}
+    - _AuroraPoleAxis: {r: 0, g: 1, b: 0, a: 0}
     - _MieBeta: {r: 1, g: 1, b: 1, a: 0}
     - _OzoneAbsorption: {r: 1, g: 1, b: 1, a: 0}
     - _RayleighBeta: {r: 1, g: 1, b: 1, a: 0}

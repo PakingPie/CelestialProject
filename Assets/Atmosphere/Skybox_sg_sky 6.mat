@@ -25,6 +25,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _AURORA_ON
   - _SUN_MODE_USE_DIRECTIONAL
   m_InvalidKeywords:
   - _SURFACE_TYPE_TRANSPARENT
@@ -42,7 +43,16 @@ Material:
     m_Ints: []
     m_Floats:
     - _ADDITIONAL_LIGHTS: 0
-    - _AtmosphereHeight: 2
+    - _AURORA: 1
+    - _AtmosphereHeight: 10
+    - _AuroraAltitude: 0
+    - _AuroraHeight: 2
+    - _AuroraIntensity: 0.1
+    - _AuroraLatWidth: 0.079
+    - _AuroraLatitude: 0.01
+    - _AuroraScale: 5
+    - _AuroraSpeed: 0.1
+    - _AuroraSteps: 64
     - _Exposure: 1
     - _G: 0.2
     - _LightIntensity: 10
@@ -58,13 +68,15 @@ Material:
     - _PlanetRadius: 50
     - _PrimarySteps: 64
     - _RayleighMultiplier: 1
-    - _RayleighScaleHeight: 0.2
+    - _RayleighScaleHeight: 0.5
     - _RayleighScatteringCoeff: 1
     - _SUN_MODE: 1
     - _TerminatorEnd: 0.1
     - _TerminatorStart: -0.3
     - _TerrainMaxHeight: 0
     m_Colors:
+    - _AuroraColorTint: {r: 1, g: 1, b: 1, a: 1}
+    - _AuroraPoleAxis: {r: 0, g: 1, b: 0, a: 0}
     - _MieBeta: {r: 1, g: 1, b: 1, a: 0}
     - _OzoneAbsorption: {r: 1, g: 1, b: 1, a: 0}
     - _RayleighBeta: {r: 1, g: 1, b: 1, a: 0}
