@@ -10,10 +10,12 @@ public class BoidFollowCamera : MonoBehaviour
     [Tooltip("Drag an active Boid here to follow it.")]
     public Boid Target;
 
-    [Tooltip("The BoidsManager to cycle through. If not set, finds one automatically.")]
+    [Tooltip("The BoidsManager to cycle through. Auto-assigned if not set. Press M to cycle managers.")]
     public BoidsManager BoidManager;
 
     [HideInInspector] public int CurrentBoidIndex = -1;
+    private BoidsManager[] _allManagers;
+    private int _currentManagerIndex = -1;
 
     [Header("Follow Settings")]
     [Tooltip("Distance behind the boid.")]
@@ -60,6 +62,53 @@ public class BoidFollowCamera : MonoBehaviour
     private bool _orbitInitialized;
     private bool _isUserRotating;
 
+    private void Start()
+    {
+        RefreshManagers();
+    }
+
+    public void RefreshManagers()
+    {
+        _allManagers = FindObjectsByType<BoidsManager>(FindObjectsSortMode.None);
+        if (_allManagers.Length > 0 && BoidManager == null)
+        {
+            _currentManagerIndex = 0;
+            SetManager(_allManagers[0]);
+        }
+        else if (BoidManager != null)
+        {
+            _currentManagerIndex = System.Array.IndexOf(_allManagers, BoidManager);
+        }
+    }
+
+    public void SwitchToNextManager()
+    {
+        RefreshManagers();
+        if (_allManagers == null || _allManagers.Length == 0) return;
+
+        _currentManagerIndex = (_currentManagerIndex + 1) % _allManagers.Length;
+        SetManager(_allManagers[_currentManagerIndex]);
+    }
+
+    public void SwitchToPreviousManager()
+    {
+        RefreshManagers();
+        if (_allManagers == null || _allManagers.Length == 0) return;
+
+        _currentManagerIndex = (_currentManagerIndex - 1 + _allManagers.Length) % _allManagers.Length;
+        SetManager(_allManagers[_currentManagerIndex]);
+    }
+
+    private void SetManager(BoidsManager manager)
+    {
+        BoidManager = manager;
+        CurrentBoidIndex = -1;
+        Target = null;
+        _orbitInitialized = false;
+        if (BoidManager != null && BoidManager.BoidCount > 0)
+            SwitchToNextBoid();
+    }
+
     public void SwitchToNextBoid()
     {
         if (!EnsureManager()) return;
@@ -90,7 +139,7 @@ public class BoidFollowCamera : MonoBehaviour
     private bool EnsureManager()
     {
         if (BoidManager == null)
-            BoidManager = FindFirstObjectByType<BoidsManager>();
+            RefreshManagers();
 
         return BoidManager != null && BoidManager.BoidCount > 0;
     }

@@ -43,5 +43,27 @@ public class BoidFollowCameraEditor : Editor
         }
 
         EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.Space(8);
+
+        // Manager switching
+        string managerName = cam.BoidManager != null ? cam.BoidManager.name : "None";
+        EditorGUILayout.LabelField("Current Manager", managerName, EditorStyles.boldLabel);
+
+        EditorGUILayout.BeginHorizontal();
+
+        if (GUILayout.Button("\u25C0 Previous Manager", GUILayout.Height(30)))
+        {
+            cam.SwitchToPreviousManager();
+            EditorUtility.SetDirty(cam);
+        }
+
+        if (GUILayout.Button("Next Manager \u25B6", GUILayout.Height(30)))
+        {
+            cam.SwitchToNextManager();
+            EditorUtility.SetDirty(cam);
+        }
+
+        EditorGUILayout.EndHorizontal();
     }
 }

@@ -69,6 +69,11 @@ public class BoidsManager : MonoBehaviour
     private bool _debugMoraleLocked = false;
     public bool DebugMoraleLocked => _debugMoraleLocked;
 
+    // Combat morale tracking — morale only decreases during combat via death penalties.
+    // Full reassessment happens only when exiting combat.
+    private float _combatEntryMoraleScore = 1f;
+    private int _deathsDuringCombat = 0;
+
     private List<BoidSpawner> _spawners = new List<BoidSpawner>();
 
     // Compute resources
@@ -280,6 +285,10 @@ public class BoidsManager : MonoBehaviour
         }
 
         OnBoidRemoved?.Invoke(boid);
+
+        // Track death for combat morale penalty
+        if (_wasAnyInCombat && settings.useAdaptiveMorale)
+            _deathsDuringCombat++;
 
         if (wasLeader || wasSubFlockLeader)
         {
@@ -593,6 +602,14 @@ public class BoidsManager : MonoBehaviour
 
             if (syncCombatState && anyInCombat && !_wasAnyInCombat)
             {
+                // Entering combat — snapshot morale and reset death counter
+                if (settings.useAdaptiveMorale && !_debugMoraleLocked)
+                {
+                    EvaluateFlockMorale(); // get accurate baseline
+                    _combatEntryMoraleScore = CurrentMoraleScore;
+                    _deathsDuringCombat = 0;
+                }
+
                 foreach (var boid in boids)
                 {
                     if (boid != null)
@@ -602,23 +619,23 @@ public class BoidsManager : MonoBehaviour
 
             if (_wasAnyInCombat && !anyInCombat)
             {
+                // Exiting combat — full reassessment from current surviving state
+                if (settings.useAdaptiveMorale && !_debugMoraleLocked)
+                {
+                    _deathsDuringCombat = 0;
+                    EvaluateFlockMorale();
+                }
+
                 // Flush any deferred formation changes from mid-combat leader deaths
                 _formationDeferredUntilCombatEnd = false;
                 AssignFormationPositions();
             }
             _wasAnyInCombat = anyInCombat;
 
-            // Evaluate morale on same interval as combat sync
+            // During combat: apply death penalties only (no health recalc)
             if (settings.useAdaptiveMorale && anyInCombat && !_debugMoraleLocked)
             {
-                EvaluateFlockMorale();
-            }
-            else if (settings.useAdaptiveMorale && _currentMorale != CombatMorale.Confident && !_debugMoraleLocked)
-            {
-                // Reset morale when out of combat
-                _currentMorale = CombatMorale.Confident;
-                CurrentMoraleScore = 1f;
-                SetMoraleOnAllBoids(_currentMorale);
+                ApplyCombatMoraleDeathPenalty();
             }
         }
 
@@ -825,6 +842,10 @@ public class BoidsManager : MonoBehaviour
             }
         }
 
+        // Track deaths for combat morale penalty
+        if (removedCount > 0 && _wasAnyInCombat && settings.useAdaptiveMorale)
+            _deathsDuringCombat += removedCount;
+
         if (removedCount > 0 && (leaderRemoved || subFlockLeaderRemoved || _formationDirty))
         {
             MarkFormationDirty(deferDuringCombat: true);
@@ -833,6 +854,10 @@ public class BoidsManager : MonoBehaviour
         return removedCount;
     }
 
+    /// <summary>
+    /// Full morale reassessment from current flock state.
+    /// Called on combat entry (baseline snapshot) and combat exit (reassessment).
+    /// </summary>
     private void EvaluateFlockMorale()
     {
         int totalHP = 0;
@@ -852,17 +877,52 @@ public class BoidsManager : MonoBehaviour
             }
         }
 
-        float healthRatio = totalMaxHP > 0 ? (float)totalHP / totalMaxHP : 1f;
+        // If all boids are dead, score is 0
+        float healthRatio = (aliveCount == 0) ? 0f : (totalMaxHP > 0 ? (float)totalHP / totalMaxHP : 1f);
         int baseline = _initialCountSet ? _initialBoidCount : aliveCount;
-        float strengthRatio = baseline > 0 ? (float)aliveCount / baseline : 1f;
+        float strengthRatio = baseline > 0 ? (float)aliveCount / baseline : 0f;
 
         float score = healthRatio * settings.healthWeight + strengthRatio * settings.strengthWeight;
         CurrentMoraleScore = score;
 
+        ApplyMoraleThresholds(score);
+    }
+
+    /// <summary>
+    /// During combat: morale only decreases via death penalties.
+    /// Each death subtracts a proportional penalty from the combat-entry snapshot.
+    /// No health recalculation — killing a damaged boid never improves morale.
+    /// </summary>
+    private void ApplyCombatMoraleDeathPenalty()
+    {
+        int baseline = _initialCountSet ? _initialBoidCount : 1;
+        float deathPenalty = (float)_deathsDuringCombat / baseline;
+        float score = Mathf.Clamp01(_combatEntryMoraleScore - deathPenalty);
+        CurrentMoraleScore = score;
+
+        // During combat, morale can only decrease — never transition upward
+        CombatMorale newMorale = _currentMorale;
+
+        if (score <= settings.brokenThreshold)
+            newMorale = CombatMorale.Broken;
+        else if (score <= settings.confidentThreshold && _currentMorale == CombatMorale.Confident)
+            newMorale = CombatMorale.Cautious;
+
+        if (newMorale > _currentMorale) // higher enum = worse morale
+        {
+            _currentMorale = newMorale;
+            SetMoraleOnAllBoids(newMorale);
+        }
+    }
+
+    /// <summary>
+    /// Apply morale state thresholds with hysteresis. Used by full reassessment.
+    /// </summary>
+    private void ApplyMoraleThresholds(float score)
+    {
         CombatMorale newMorale = _currentMorale;
         float hyst = settings.moraleHysteresis;
 
-        // Determine new state with hysteresis for upward transitions
         if (score <= settings.brokenThreshold)
         {
             newMorale = CombatMorale.Broken;
