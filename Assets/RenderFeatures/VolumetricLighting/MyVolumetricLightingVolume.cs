@@ -54,6 +54,8 @@ public class MyVolumetricLightingVolume : VolumeComponent, IPostProcessComponent
 	public BoolParameter enableMainLightContribution = new BoolParameter(false, BoolParameter.DisplayType.Checkbox, true);
 	[Tooltip("Higher values will make the fog affected by the main light to appear brighter when directly looking to the main light. The higher the value the less the brightness will spread when looking away from the light.")]
 	public ClampedFloatParameter anisotropy = new ClampedFloatParameter(0.4f,-1.0f, 1.0f);
+	[Tooltip("Blends between the directional phase lobe and uniform isotropic scattering. 0 = fully directional (sun dot only), 1 = fully isotropic (uniform beam). Use this to make light beams visible at high anisotropy.")]
+	public ClampedFloatParameter scatterSpread = new ClampedFloatParameter(0.3f, 0.0f, 1.0f);
 	[Tooltip("Higher values will make fog affected by the main light to appear brighter.")]
 	public ClampedFloatParameter scattering = new ClampedFloatParameter(0.15f, 0.0f, 1.0f);
 	[Tooltip("A multiplier color to tint the main light fog.")]

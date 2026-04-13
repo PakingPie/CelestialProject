@@ -81,6 +81,7 @@ public class MyVolumetricLighting : ScriptableRendererFeature
         private static readonly int MaxStepsId = Shader.PropertyToID("_MaxSteps");
         private static readonly int MaxPhaseIntensityId = Shader.PropertyToID("_MaxPhaseIntensity");
         private static readonly int DensityFalloffId = Shader.PropertyToID("_DensityFalloff");
+        private static readonly int ScatterSpreadId = Shader.PropertyToID("_ScatterSpread");
 
         private static readonly int AnisotropiesArrayId = Shader.PropertyToID("_Anisotropies");
         private static readonly int ScatteringsArrayId = Shader.PropertyToID("_Scatterings");
@@ -278,6 +279,7 @@ public class MyVolumetricLighting : ScriptableRendererFeature
             material.SetInteger(MaxStepsId, volume.maxSteps.value);
             material.SetFloat(MaxPhaseIntensityId, volume.maxPhaseIntensity.value);
             material.SetFloat(DensityFalloffId, volume.densityFalloff.value);
+            material.SetFloat(ScatterSpreadId, volume.scatterSpread.value);
         }
     }
 }

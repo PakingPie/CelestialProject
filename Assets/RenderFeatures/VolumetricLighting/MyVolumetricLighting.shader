@@ -55,6 +55,7 @@ Shader "Unlit/MyVolumetricLighting"
             int _MaxSteps;
             float _MaxPhaseIntensity;
             float _DensityFalloff;
+            float _ScatterSpread;
 
             float _Anisotropies[MAX_VISIBLE_LIGHTS + 1];
             float _Scatterings[MAX_VISIBLE_LIGHTS + 1];
@@ -135,9 +136,10 @@ Shader "Unlit/MyVolumetricLighting"
                 // They store direction in additionalLightPos.xyz and have .w set to 0, while point and spotlights have it set to 1.
                 // newScattering = lerp(1.0, newScattering, additionalLightPos.w);
 
-                // accumulate the total color for additional lights (phase clamped to prevent blow-out)
+                // Dual-lobe phase for additional lights
                 float rawPhaseAL = CornetteShanksPhaseFunction(_Anisotropies[lightIndex], dot(rd, additionalLight.direction));
-                float phaseAL = min(rawPhaseAL, _MaxPhaseIntensity * 0.07957747);
+                float directionalPhaseAL = rawPhaseAL / (1.0 + rawPhaseAL / _MaxPhaseIntensity);
+                float phaseAL = lerp(directionalPhaseAL, 0.07957747, _ScatterSpread);
                 additionalLightsColor += (additionalLight.color * (additionalLight.shadowAttenuation * additionalLight.distanceAttenuation * phaseAL * newScattering));
                 LIGHT_LOOP_END
 
@@ -253,10 +255,12 @@ Shader "Unlit/MyVolumetricLighting"
                 #if _MAIN_LIGHT_CONTRIBUTION_DISABLED
                     float phaseMainLight = 0.0;
                 #else
-                    // Clamp phase to prevent blow-out at high anisotropy
+                    // Dual-lobe phase: blend directional lobe with isotropic scattering
+                    // Anisotropy controls sun dot size, ScatterSpread controls beam visibility
                     float rawPhase = CornetteShanksPhaseFunction(_Anisotropies[_CustomAdditionalLightsCount], dot(rdPhase, GetMainLight().direction));
-                    float maxPhase = _MaxPhaseIntensity * 0.07957747; // _MaxPhaseIntensity x isotropic (1/4pi)
-                    float phaseMainLight = min(rawPhase, maxPhase);
+                    float directionalPhase = rawPhase / (1.0 + rawPhase / _MaxPhaseIntensity);
+                    float isotropicPhase = 0.07957747; // 1/(4*PI)
+                    float phaseMainLight = lerp(directionalPhase, isotropicPhase, _ScatterSpread);
                 #endif
                 
                 // initialize the volumetric fog color and transmittance
