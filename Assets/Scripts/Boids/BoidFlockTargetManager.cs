@@ -95,6 +95,16 @@ public class BoidFlockTargetManager : MonoBehaviour
     [NonSerialized] public bool SuppressAssignments;
 
     /// <summary>
+    /// Number of enemy targets lost to destruction (Transform became null) since last reset.
+    /// </summary>
+    [NonSerialized] public int EnemyKillCount;
+
+    /// <summary>
+    /// Current number of known enemy targets.
+    /// </summary>
+    public int KnownTargetCount => _knownTargets.Count;
+
+    /// <summary>
     /// Effective combat engage radius: uses explicit value if set, otherwise 0.7x detection radius.
     /// </summary>
     private float EffectiveCombatRadius => _combatEngageRadius > 0f ? _combatEngageRadius : _detectionRadius * _combatRadiusRatio;
@@ -108,6 +118,45 @@ public class BoidFlockTargetManager : MonoBehaviour
     public bool HasDetectedEnemies()
     {
         return _knownTargets.Count > 0;
+    }
+
+    /// <summary>
+    /// Returns true if any known enemy is within the combat engage radius of the flock center.
+    /// Used by BoidsManager to keep Broken flocks "in combat" only while enemies are close enough to fight.
+    /// </summary>
+    public bool HasEnemiesWithinCombatRadius()
+    {
+        if (_knownTargets.Count == 0) return false;
+        Vector3 center = GetFlockCenterPosition();
+        float combatRadiusSqr = EffectiveCombatRadius * EffectiveCombatRadius;
+        foreach (var kvp in _knownTargets)
+        {
+            if (kvp.Value == null || !kvp.Value.IsValid) continue;
+            if ((kvp.Value.LastKnownPosition - center).sqrMagnitude <= combatRadiusSqr)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Returns the position of the nearest known enemy to a given point, or null if none exist.
+    /// Used by fleeing boids to determine flee direction.
+    /// </summary>
+    public Vector3? GetNearestEnemyPosition(Vector3 fromPosition)
+    {
+        float bestSqr = float.MaxValue;
+        Vector3? best = null;
+        foreach (var kvp in _knownTargets)
+        {
+            if (kvp.Value == null || !kvp.Value.IsValid) continue;
+            float sqr = (kvp.Value.LastKnownPosition - fromPosition).sqrMagnitude;
+            if (sqr < bestSqr)
+            {
+                bestSqr = sqr;
+                best = kvp.Value.LastKnownPosition;
+            }
+        }
+        return best;
     }
 
     /// <summary>
@@ -404,7 +453,13 @@ public class BoidFlockTargetManager : MonoBehaviour
         foreach (var kvp in _knownTargets)
         {
             Transform target = kvp.Key;
-            if (target == null || (!_currentTargets.Contains(target) && Time.time - kvp.Value.LastSeenTime > 5f))
+            if (target == null)
+            {
+                // Target destroyed — count as kill
+                _staleTargets.Add(target);
+                EnemyKillCount++;
+            }
+            else if (!_currentTargets.Contains(target) && Time.time - kvp.Value.LastSeenTime > 5f)
             {
                 _staleTargets.Add(target);
             }

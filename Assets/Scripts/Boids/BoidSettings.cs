@@ -131,6 +131,12 @@ public class BoidSettings : ScriptableObject
     public float fleeSpeedMultiplier = 1.5f;
     [Tooltip("How much formation is blended into combat when Confident (0=none, 1=full formation).")]
     [Range(0f, 1f)] public float confidentFormationWeight = 0.5f;
+    [Tooltip("Separation multiplier when Cautious — spread out more to reduce hits.")]
+    public float cautiousSeparationMult = 1.5f;
+    [Tooltip("Engagement range multiplier when Cautious — won't chase as far.")]
+    [Range(0.3f, 1f)] public float cautiousEngageRangeMult = 0.6f;
+    [Tooltip("Weight of fleet-wide morale pressure on individual flock morale (0=none, 1=full).")]
+    [Range(0f, 1f)] public float fleetMoraleInfluence = 0.15f;
 
     [Header("Spherical Leash")]
     [Tooltip("Enable spherical boundary around the flock target.")]

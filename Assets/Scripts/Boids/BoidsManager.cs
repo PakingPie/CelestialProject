@@ -76,6 +76,8 @@ public class BoidsManager : MonoBehaviour
     // Full reassessment happens only when exiting combat.
     private float _combatEntryMoraleScore = 1f;
     private int _deathsDuringCombat = 0;
+    private float _outOfCombatRecoveryTimer = 0f;
+    private const float OutOfCombatRecoveryInterval = 5f;
 
     private List<BoidSpawner> _spawners = new List<BoidSpawner>();
 
@@ -169,15 +171,7 @@ public class BoidsManager : MonoBehaviour
 
         // Ensure _initialBoidCount is set even if OnSpawnerComplete fired before subscription
         // (happens with Instant spawn mode where spawning occurs in Awake)
-        if (!_initialCountSet)
-        {
-            int total = boids.Count + _dockedPool.Count;
-            if (total > 0)
-            {
-                _initialBoidCount = total;
-                _initialCountSet = true;
-            }
-        }
+        TrySetBaseline(boids.Count + _dockedPool.Count);
 
         // StationParking: if OnSpawnerComplete missed (Instant spawn), trigger parking now
         if (settings.startDocked && settings.moorageType == MoorageType.StationParking
@@ -236,21 +230,13 @@ public class BoidsManager : MonoBehaviour
         if (settings.startDocked && settings.moorageType == MoorageType.CarrierDocking)
         {
             // Boids are in the docked pool, count them as initial
-            if (!_initialCountSet && _dockedPool.Count > 0)
-            {
-                _initialBoidCount = _dockedPool.Count;
-                _initialCountSet = true;
-            }
+            TrySetBaseline(_dockedPool.Count);
             return;
         }
 
         AssignFormationPositions();
 
-        if (!_initialCountSet && boids.Count > 0)
-        {
-            _initialBoidCount = boids.Count;
-            _initialCountSet = true;
-        }
+        TrySetBaseline(boids.Count);
 
         // StationParking: now that all boids are spawned and formation assigned,
         // send each boid to fly to its parked formation slot
@@ -692,8 +678,8 @@ public class BoidsManager : MonoBehaviour
                 }
             }
 
-            // Broken flock stays "in combat" until enemies leave detection range
-            if (_currentMorale == CombatMorale.Broken && _targetManager.HasDetectedEnemies())
+            // Broken flock stays "in combat" only while enemies are within combat engage radius
+            if (_currentMorale == CombatMorale.Broken && _targetManager.HasEnemiesWithinCombatRadius())
                 anyInCombat = true;
 
             if (syncCombatState && anyInCombat && !_wasAnyInCombat)
@@ -739,6 +725,22 @@ public class BoidsManager : MonoBehaviour
             {
                 ApplyCombatMoraleDeathPenalty();
             }
+        }
+
+        // Out-of-combat gradual morale recovery
+        if (settings.useAdaptiveMorale && !_wasAnyInCombat && !_debugMoraleLocked
+            && _currentMorale != CombatMorale.Confident)
+        {
+            _outOfCombatRecoveryTimer += Time.deltaTime;
+            if (_outOfCombatRecoveryTimer >= OutOfCombatRecoveryInterval)
+            {
+                _outOfCombatRecoveryTimer = 0f;
+                EvaluateFlockMorale();
+            }
+        }
+        else
+        {
+            _outOfCombatRecoveryTimer = 0f;
         }
 
         EnsureComputeResources(numBoids);
@@ -970,6 +972,43 @@ public class BoidsManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Single point for setting the initial boid baseline count.
+    /// </summary>
+    private void TrySetBaseline(int count)
+    {
+        if (count <= 0) return;
+        if (count > _initialBoidCount)
+        {
+            _initialBoidCount = count;
+            _initialCountSet = true;
+        }
+    }
+
+    /// <summary>
+    /// Size-scaled broken threshold: small flocks (≤5) raise the threshold by up to 50%,
+    /// making elite squads break sooner per-death. Large flocks (≥20) use the base value.
+    /// </summary>
+    private float EffectiveBrokenThreshold
+    {
+        get
+        {
+            int size = _initialCountSet ? _initialBoidCount : boids.Count;
+            float scale = Mathf.InverseLerp(20f, 5f, size); // 0 at 20+, 1 at ≤5
+            return settings.brokenThreshold * (1f + scale * 0.5f);
+        }
+    }
+
+    private float EffectiveConfidentThreshold
+    {
+        get
+        {
+            int size = _initialCountSet ? _initialBoidCount : boids.Count;
+            float scale = Mathf.InverseLerp(20f, 5f, size);
+            return settings.confidentThreshold * (1f + scale * 0.15f);
+        }
+    }
+
+    /// <summary>
     /// Full morale reassessment from current flock state.
     /// Called on combat entry (baseline snapshot) and combat exit (reassessment).
     /// </summary>
@@ -997,10 +1036,48 @@ public class BoidsManager : MonoBehaviour
         int baseline = _initialCountSet ? _initialBoidCount : aliveCount;
         float strengthRatio = baseline > 0 ? (float)aliveCount / baseline : 0f;
 
-        float score = healthRatio * settings.healthWeight + strengthRatio * settings.strengthWeight;
+        float weightSum = settings.healthWeight + settings.strengthWeight;
+        float score = weightSum > 0f
+            ? (healthRatio * settings.healthWeight + strengthRatio * settings.strengthWeight) / weightSum
+            : 1f;
+
+        // Fleet morale contagion: blend toward fleet average
+        if (_fleet != null && settings.fleetMoraleInfluence > 0f)
+        {
+            float fleetScore = _fleet.GetFleetMoraleScore();
+            score = Mathf.Lerp(score, fleetScore, settings.fleetMoraleInfluence);
+        }
+
         CurrentMoraleScore = score;
 
         ApplyMoraleThresholds(score);
+    }
+
+    /// <summary>
+    /// Compute a live health-based score from current flock state.
+    /// Used as a floor during combat so heavy damage is visible without waiting for deaths.
+    /// </summary>
+    private float ComputeHealthFloor()
+    {
+        int totalHP = 0, totalMaxHP = 0, aliveCount = 0;
+        for (int i = 0; i < boids.Count; i++)
+        {
+            if (boids[i] == null) continue;
+            aliveCount++;
+            VehicleBase vehicle = i < _boidVehicles.Count ? _boidVehicles[i] : null;
+            if (vehicle != null)
+            {
+                totalHP += vehicle.HitPoints + vehicle.ArmorPoints + vehicle.ShieldPoints;
+                totalMaxHP += vehicle.MaxHitPoints + vehicle.MaxArmorPoints + vehicle.MaxShieldPoints;
+            }
+        }
+        float healthRatio = (aliveCount == 0) ? 0f : (totalMaxHP > 0 ? (float)totalHP / totalMaxHP : 1f);
+        int baseline = _initialCountSet ? _initialBoidCount : Mathf.Max(aliveCount + _deathsDuringCombat, 1);
+        float strengthRatio = baseline > 0 ? (float)aliveCount / baseline : 0f;
+        float weightSum = settings.healthWeight + settings.strengthWeight;
+        return weightSum > 0f
+            ? (healthRatio * settings.healthWeight + strengthRatio * settings.strengthWeight) / weightSum
+            : 1f;
     }
 
     /// <summary>
@@ -1012,15 +1089,22 @@ public class BoidsManager : MonoBehaviour
     {
         int baseline = _initialCountSet ? _initialBoidCount : Mathf.Max(boids.Count + _deathsDuringCombat, 1);
         float deathPenalty = (float)_deathsDuringCombat / baseline;
-        float score = Mathf.Clamp01(_combatEntryMoraleScore - deathPenalty);
+        float deathScore = Mathf.Clamp01(_combatEntryMoraleScore - deathPenalty);
+
+        // Also compute a live health floor so heavy damage is visible mid-combat
+        float healthFloor = ComputeHealthFloor();
+
+        // Take the worse of death-penalty score and health floor (can only push down, never up)
+        float score = Mathf.Min(deathScore, healthFloor);
+
         CurrentMoraleScore = score;
 
         // During combat, morale can only decrease — never transition upward
         CombatMorale newMorale = _currentMorale;
 
-        if (score <= settings.brokenThreshold)
+        if (score <= EffectiveBrokenThreshold)
             newMorale = CombatMorale.Broken;
-        else if (score <= settings.confidentThreshold && _currentMorale == CombatMorale.Confident)
+        else if (score <= EffectiveConfidentThreshold && _currentMorale == CombatMorale.Confident)
             newMorale = CombatMorale.Cautious;
 
         if (newMorale > _currentMorale) // higher enum = worse morale
@@ -1040,16 +1124,18 @@ public class BoidsManager : MonoBehaviour
     {
         CombatMorale newMorale = _currentMorale;
         float hyst = settings.moraleHysteresis;
+        float brokenTh = EffectiveBrokenThreshold;
+        float confidentTh = EffectiveConfidentThreshold;
 
-        if (score <= settings.brokenThreshold)
+        if (score <= brokenTh)
         {
             newMorale = CombatMorale.Broken;
         }
-        else if (score > settings.confidentThreshold + (_currentMorale < CombatMorale.Confident ? hyst : 0f))
+        else if (score > confidentTh + (_currentMorale < CombatMorale.Confident ? hyst : 0f))
         {
             newMorale = CombatMorale.Confident;
         }
-        else if (score > settings.brokenThreshold + (_currentMorale == CombatMorale.Broken ? hyst : 0f))
+        else if (score > brokenTh + (_currentMorale == CombatMorale.Broken ? hyst : 0f))
         {
             newMorale = CombatMorale.Cautious;
         }
@@ -1511,11 +1597,7 @@ public class BoidsManager : MonoBehaviour
         AssignFormationPositions();
         OnFlockChanged?.Invoke();
 
-        if (!_initialCountSet && boids.Count > 0)
-        {
-            _initialBoidCount = boids.Count;
-            _initialCountSet = true;
-        }
+        TrySetBaseline(boids.Count);
 
         _isLaunching = false;
     }

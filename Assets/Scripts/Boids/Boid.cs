@@ -915,14 +915,14 @@ public class Boid : MonoBehaviour
                 return CalculateFormationAcceleration();
         }
 
+        // Broken morale: always flee regardless of IsInCombat state
+        if (_settings.useAdaptiveMorale && CurrentMorale == CombatMorale.Broken)
+        {
+            return CalculateFleeAcceleration();
+        }
+
         if (IsInCombat)
         {
-            // Broken morale: flee regardless of attack profile
-            if (_settings.useAdaptiveMorale && CurrentMorale == CombatMorale.Broken)
-            {
-                return CalculateFleeAcceleration();
-            }
-
             // Confident morale: blend formation into combat
             if (_settings.useAdaptiveMorale && CurrentMorale == CombatMorale.Confident
                 && _settings.useFormation && FormationLeader != null && FormationIndex > 0
@@ -949,14 +949,18 @@ public class Boid : MonoBehaviour
         Vector3 acceleration = Vector3.zero;
         Vector3 fleeDir = Vector3.zero;
 
-        // Flee from current target
-        if (_target != null)
+        // Flee from nearest known enemy (not _target, which may be fallback/leader)
+        Vector3? nearestEnemy = _targetManager?.GetNearestEnemyPosition(position);
+        if (nearestEnemy.HasValue)
+        {
+            fleeDir = (position - nearestEnemy.Value).normalized;
+        }
+        else if (_target != null)
         {
             fleeDir = (position - _target.position).normalized;
         }
         else
         {
-            // No target — flee in current forward direction
             fleeDir = forward;
         }
 
@@ -1036,6 +1040,14 @@ public class Boid : MonoBehaviour
 
         float slackRadius = Mathf.Max(0f, _settings.combatAnchorSlackRadius);
         float leashRadius = Mathf.Max(slackRadius, _settings.combatLeashRadius);
+
+        // Cautious morale: tighten engagement range
+        if (_settings.useAdaptiveMorale && CurrentMorale == CombatMorale.Cautious)
+        {
+            slackRadius *= _settings.cautiousEngageRangeMult;
+            leashRadius *= _settings.cautiousEngageRangeMult;
+        }
+
         float hysteresis = Mathf.Max(0f, _settings.combatRegroupHysteresis);
         float distanceToAnchor = Vector3.Distance(position, anchorPosition);
 
@@ -1258,7 +1270,11 @@ public class Boid : MonoBehaviour
                     alignMult = 0f;
                     cohesionMult = 0f;
                     break;
-                // Cautious: uses default combat multipliers (already set above)
+                case CombatMorale.Cautious:
+                    // Loosen up — less cohesion, keep some alignment
+                    alignMult = _settings.combatAlignmentMultiplier * 0.5f;
+                    cohesionMult = _settings.combatCohesionMultiplier * 0.5f;
+                    break;
             }
         }
 
@@ -1284,7 +1300,11 @@ public class Boid : MonoBehaviour
         {
             float sepWeight = _settings.separateWeight;
             if (IsInCombat)
+            {
                 sepWeight *= _settings.combatSeparationMultiplier;
+                if (_settings.useAdaptiveMorale && CurrentMorale == CombatMorale.Cautious)
+                    sepWeight *= _settings.cautiousSeparationMult;
+            }
             acceleration += SteerTowards(boidSeparation) * sepWeight;
         }
 
