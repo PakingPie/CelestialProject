@@ -96,6 +96,12 @@ public class BoidsManager : MonoBehaviour
     private const float FormationReassignDelay = 0.1f; // Small delay to batch changes
     private bool _formationDeferredUntilCombatEnd = false; // Defers reformation during combat
 
+    // Moorage pool — boids removed from active list while docked/parked
+    private List<Boid> _dockedPool = new List<Boid>();
+    private List<VehicleBase> _dockedVehicles = new List<VehicleBase>();
+    private Coroutine _launchCoroutine;
+    private bool _isLaunching = false;
+
     // Events for external listeners
     public System.Action<Boid> OnBoidAdded;
     public System.Action<Boid> OnBoidRemoved;
@@ -136,12 +142,49 @@ public class BoidsManager : MonoBehaviour
             {
                 foreach (GameObject boidObj in spawner.SpawnedObjects)
                 {
-                    RegisterBoidInternal(boidObj);
+                    if (settings.startDocked && settings.moorageType == MoorageType.CarrierDocking)
+                    {
+                        // CarrierDocking: instant hide
+                        var boid = boidObj.GetComponent<Boid>();
+                        if (boid != null)
+                        {
+                            boid.SetHeightRange(HeightRange);
+                            boid.Initialize(settings, target);
+                            DockBoidImmediate(boid);
+                        }
+                    }
+                    else
+                    {
+                        // StationParking + normal: register as Active
+                        RegisterBoidInternal(boidObj);
+                    }
                 }
             }
         }
 
-        AssignFormationPositions();
+        if (!(settings.startDocked && settings.moorageType == MoorageType.CarrierDocking))
+        {
+            AssignFormationPositions();
+        }
+
+        // Ensure _initialBoidCount is set even if OnSpawnerComplete fired before subscription
+        // (happens with Instant spawn mode where spawning occurs in Awake)
+        if (!_initialCountSet)
+        {
+            int total = boids.Count + _dockedPool.Count;
+            if (total > 0)
+            {
+                _initialBoidCount = total;
+                _initialCountSet = true;
+            }
+        }
+
+        // StationParking: if OnSpawnerComplete missed (Instant spawn), trigger parking now
+        if (settings.startDocked && settings.moorageType == MoorageType.StationParking
+            && boids.Count > 0 && _dockedPool.Count == 0)
+        {
+            ParkAllBoidsToSlots();
+        }
 
         _lastFormationType = settings.formationType;
         _lastUseFormation = settings.useFormation;
@@ -173,17 +216,47 @@ public class BoidsManager : MonoBehaviour
     {
         if (boid == null) return;
 
+        // CarrierDocking: instant hide into pool
+        if (settings.startDocked && settings.moorageType == MoorageType.CarrierDocking)
+        {
+            boid.SetHeightRange(HeightRange);
+            boid.Initialize(settings, target);
+            DockBoidImmediate(boid);
+            return;
+        }
+
+        // StationParking: register as Active (parking triggered in OnSpawnerComplete)
+
         RegisterBoidInternal(boid.gameObject);
         MarkFormationDirty();
     }
 
     private void OnSpawnerComplete()
     {
+        if (settings.startDocked && settings.moorageType == MoorageType.CarrierDocking)
+        {
+            // Boids are in the docked pool, count them as initial
+            if (!_initialCountSet && _dockedPool.Count > 0)
+            {
+                _initialBoidCount = _dockedPool.Count;
+                _initialCountSet = true;
+            }
+            return;
+        }
+
         AssignFormationPositions();
+
         if (!_initialCountSet && boids.Count > 0)
         {
             _initialBoidCount = boids.Count;
             _initialCountSet = true;
+        }
+
+        // StationParking: now that all boids are spawned and formation assigned,
+        // send each boid to fly to its parked formation slot
+        if (settings.startDocked && settings.moorageType == MoorageType.StationParking)
+        {
+            ParkAllBoidsToSlots();
         }
     }
 
@@ -584,6 +657,22 @@ public class BoidsManager : MonoBehaviour
             CleanupDestroyedBoids();
         }
 
+        // Auto-scramble: launch docked defence flock when enemies detected
+        if (CheckAutoScramble())
+        {
+            LaunchAllBoids();
+        }
+
+        // Update parked boids' drift (they're not in the active boids list)
+        if (settings.moorageType == MoorageType.StationParking && _dockedPool.Count > 0)
+        {
+            for (int i = 0; i < _dockedPool.Count; i++)
+            {
+                if (_dockedPool[i] != null && _dockedPool[i].IsParked)
+                    _dockedPool[i].UpdateBoid();
+            }
+        }
+
         int numBoids = boids.Count;
         if (numBoids <= 0)
             return;
@@ -632,6 +721,12 @@ public class BoidsManager : MonoBehaviour
                 // Flush any deferred formation changes from mid-combat leader deaths
                 _formationDeferredUntilCombatEnd = false;
                 AssignFormationPositions();
+
+                // Auto-redock defence flocks after combat ends
+                if (CheckAutoRedock())
+                {
+                    DockAllBoids();
+                }
             }
             _wasAnyInCombat = anyInCombat;
 
@@ -1169,6 +1264,9 @@ public class BoidsManager : MonoBehaviour
     public BoidFlockTargetManager TargetManager => _targetManager;
     public int SubFlockCount => _subFlocks?.Count ?? 0;
     public IReadOnlyList<List<Boid>> SubFlocks => _subFlocks;
+    public int DockedCount => _dockedPool?.Count ?? 0;
+    public IReadOnlyList<Boid> DockedBoids => _dockedPool;
+    public bool IsLaunching => _isLaunching;
 
     public Vector3 FlockCenter
     {
@@ -1188,6 +1286,313 @@ public class BoidsManager : MonoBehaviour
             return count > 0 ? sum / count : transform.position;
         }
     }
+
+    #region Moorage
+
+    /// <summary>
+    /// Get the current dock point position (manager position).
+    /// </summary>
+    public Vector3 GetDockPoint()
+    {
+        return transform.position;
+    }
+
+    /// <summary>
+    /// Dock all active boids. Boids steer to dock point, then are pooled.
+    /// For carrier docking: deactivated. For station parking: idle visible.
+    /// </summary>
+    public void DockAllBoids()
+    {
+        if (settings.moorageType == MoorageType.None) return;
+
+        // Stop any active launch
+        if (_launchCoroutine != null)
+        {
+            StopCoroutine(_launchCoroutine);
+            _launchCoroutine = null;
+            _isLaunching = false;
+        }
+
+        Vector3 dockPoint = GetDockPoint();
+        bool isCarrier = settings.moorageType == MoorageType.CarrierDocking;
+
+        for (int i = boids.Count - 1; i >= 0; i--)
+        {
+            Boid boid = boids[i];
+            if (boid == null || boid.IsMoored || boid.IsTransitioning) continue;
+
+            if (isCarrier)
+            {
+                boid.BeginMoorage(BoidMode.Docking, dockPoint, () => OnBoidMoorageArrived(boid, true));
+            }
+            else
+            {
+                boid.BeginMoorage(BoidMode.Parking, dockPoint, () => OnBoidMoorageArrived(boid, false));
+            }
+        }
+    }
+
+    private void OnBoidMoorageArrived(Boid boid, bool deactivate, Quaternion? parkedRotation = null)
+    {
+        if (boid == null) return;
+
+        // Remove from active list
+        _targetManager.UnregisterBoid(boid);
+        int index = boids.IndexOf(boid);
+        boids.Remove(boid);
+        if (index >= 0 && index < _boidVehicles.Count)
+        {
+            _dockedVehicles.Add(_boidVehicles[index]);
+            _boidVehicles.RemoveAt(index);
+        }
+        else
+        {
+            _dockedVehicles.Add(boid.GetComponent<VehicleBase>());
+        }
+
+        // Remove weapons from active tracking
+        var weapons = boid.GetComponentsInChildren<WeaponBase>();
+        foreach (var weapon in weapons)
+            _boidWeapons.Remove(weapon);
+
+        // Clean from sub-flock list
+        for (int sf = _subFlocks.Count - 1; sf >= 0; sf--)
+        {
+            _subFlocks[sf].Remove(boid);
+            if (_subFlocks[sf].Count == 0)
+                _subFlocks.RemoveAt(sf);
+        }
+
+        if (deactivate)
+        {
+            boid.SetDocked();
+            boid.gameObject.SetActive(false);
+        }
+        else
+        {
+            Quaternion targetRot = parkedRotation ?? boid.transform.rotation;
+            boid.SetParked(settings.parkedDriftSpeed, targetRot);
+        }
+
+        _dockedPool.Add(boid);
+
+        MarkFormationDirty();
+        OnFlockChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Launch all docked/parked boids. Instant for defence flocks, staggered for carrier.
+    /// </summary>
+    public void LaunchAllBoids()
+    {
+        if (_dockedPool.Count == 0) return;
+
+        if (_launchCoroutine != null)
+        {
+            StopCoroutine(_launchCoroutine);
+            _launchCoroutine = null;
+        }
+
+        // Defence flocks (startDocked) launch all at once
+        if (settings.startDocked)
+        {
+            LaunchAllBoidsImmediate();
+        }
+        else
+        {
+            _launchCoroutine = StartCoroutine(LaunchBoidsStaggered());
+        }
+    }
+
+    /// <summary>
+    /// Activate all pooled boids simultaneously. Used for defence flock scramble.
+    /// </summary>
+    private void LaunchAllBoidsImmediate()
+    {
+        _isLaunching = true;
+
+        while (_dockedPool.Count > 0)
+        {
+            Boid boid = _dockedPool[0];
+            _dockedPool.RemoveAt(0);
+
+            VehicleBase vehicle = _dockedVehicles.Count > 0 ? _dockedVehicles[0] : null;
+            if (_dockedVehicles.Count > 0)
+                _dockedVehicles.RemoveAt(0);
+
+            if (boid == null) continue;
+
+            ActivateBoidFromPool(boid, vehicle);
+        }
+
+        FinalizeLaunch();
+    }
+
+    private System.Collections.IEnumerator LaunchBoidsStaggered()
+    {
+        _isLaunching = true;
+        float interval = settings.launchInterval;
+
+        while (_dockedPool.Count > 0)
+        {
+            Boid boid = _dockedPool[0];
+            _dockedPool.RemoveAt(0);
+
+            VehicleBase vehicle = _dockedVehicles.Count > 0 ? _dockedVehicles[0] : null;
+            if (_dockedVehicles.Count > 0)
+                _dockedVehicles.RemoveAt(0);
+
+            if (boid == null) continue;
+
+            ActivateBoidFromPool(boid, vehicle);
+
+            yield return new WaitForSeconds(interval);
+        }
+
+        FinalizeLaunch();
+        _launchCoroutine = null;
+    }
+
+    private void ActivateBoidFromPool(Boid boid, VehicleBase vehicle)
+    {
+        // Reactivate
+        boid.gameObject.SetActive(true);
+
+        // Re-register into active list
+        boids.Add(boid);
+        _boidVehicles.Add(vehicle);
+
+        // Initialize at current position (formation slot)
+        Vector3 savedPos = boid.transform.position;
+        Quaternion savedRot = boid.transform.rotation;
+        boid.Initialize(settings, target);
+        boid.transform.position = savedPos;
+        boid.transform.rotation = savedRot;
+        boid.position = savedPos;
+        boid.forward = savedRot * Vector3.forward;
+
+        boid.SetTargetManager(_targetManager);
+        boid.SetHeightRange(HeightRange);
+        _targetManager.RegisterBoid(boid);
+
+        // Re-register weapons
+        var weapons = boid.GetComponentsInChildren<WeaponBase>(); 
+        foreach (var weapon in weapons)
+        {
+            if (!_boidWeapons.Contains(weapon))
+            {
+                weapon.UseManagedUpdates = false;
+                CombatManager.Instance?.UnregisterTurret(weapon);
+                _boidWeapons.Add(weapon);
+            }
+        }
+
+        // Go directly to Active — boids are already at formation positions
+        boid.Launch(boid.forward * settings.minSpeed);
+
+        OnBoidAdded?.Invoke(boid);
+    }
+
+    private void FinalizeLaunch()
+    {
+        AssignFormationPositions();
+        OnFlockChanged?.Invoke();
+
+        if (!_initialCountSet && boids.Count > 0)
+        {
+            _initialBoidCount = boids.Count;
+            _initialCountSet = true;
+        }
+
+        _isLaunching = false;
+    }
+
+    /// <summary>
+    /// Immediately dock a boid into the pool (used for startDocked carrier spawns).
+    /// </summary>
+    private void DockBoidImmediate(Boid boid)
+    {
+        if (boid == null) return;
+
+        var vehicle = boid.GetComponent<VehicleBase>();
+
+        boid.SetDocked();
+        boid.gameObject.SetActive(false);
+
+        _dockedPool.Add(boid);
+        _dockedVehicles.Add(vehicle);
+    }
+
+    /// <summary>
+    /// Send a boid to fly to a parked formation slot, then enter Parked state on arrival.
+    /// </summary>
+    private void ParkBoidToSlot(Boid boid, int slotIndex)
+    {
+        Vector3 dockPoint = GetDockPoint();
+        // Use sub-flock spacing when sub-flocks are enabled, otherwise a fraction of main spacing
+        float parkedSpacing = settings.useSubFlocks
+            ? settings.subFlockFormationSpacing
+            : settings.formationSpacing * 0.15f;
+        FormationType parkFormation = settings.useSubFlocks
+            ? settings.subFlockFormationType
+            : settings.formationType;
+        // Offset by 1 so no boid gets index 0 (which returns Vector3.zero)
+        Vector3 formationOffset = Boid.CalculateFormationOffset(slotIndex + 1, parkFormation, parkedSpacing);
+        Vector3 worldOffset = transform.rotation * formationOffset;
+        Vector3 targetPos = dockPoint + worldOffset;
+
+        Quaternion targetRot = transform.rotation;
+
+        boid.BeginMoorage(BoidMode.Parking, targetPos, () =>
+        {
+            // Snap position on arrival, rotation handled gradually in parked state
+            boid.transform.position = targetPos;
+            boid.position = targetPos;
+            OnBoidMoorageArrived(boid, false, targetRot);
+        });
+    }
+
+    /// <summary>
+    /// Send all active boids to their parked formation slots.
+    /// </summary>
+    private void ParkAllBoidsToSlots()
+    {
+        for (int i = 0; i < boids.Count; i++)
+        {
+            ParkBoidToSlot(boids[i], i);
+        }
+    }
+
+    /// <summary>
+    /// Check if the flock has enemies in detection range and should auto-scramble.
+    /// Called from Update when flock is fully docked and startDocked is true.
+    /// </summary>
+    private bool CheckAutoScramble()
+    {
+        if (!settings.startDocked) return false;
+        if (settings.moorageType == MoorageType.None) return false;
+        if (_isLaunching) return false;
+        if (_dockedPool.Count == 0) return false;
+
+        return _targetManager != null && _targetManager.HasDetectedEnemies();
+    }
+
+    /// <summary>
+    /// Check if all active boids should auto-redock after combat ends.
+    /// </summary>
+    private bool CheckAutoRedock()
+    {
+        if (!settings.startDocked) return false;
+        if (settings.moorageType == MoorageType.None) return false;
+        if (_isLaunching) return false;
+        if (boids.Count == 0) return false;
+        if (_wasAnyInCombat) return false; // Still in combat
+
+        // All boids are active and combat has ended
+        return true;
+    }
+
+    #endregion
 
     public struct BoidData
     {

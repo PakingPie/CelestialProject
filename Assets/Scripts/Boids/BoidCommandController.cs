@@ -235,6 +235,16 @@ public class BoidCommandController : MonoBehaviour
 
         _boidsManager.SetUseFormation(false);
 
+        // If moorage is enabled, dock instead of despawn+destroy
+        if (_boidsManager.settings.moorageType != MoorageType.None)
+        {
+            _boidsManager.DockAllBoids();
+            _isReturningToBase = false;
+            ClearCommand();
+            return;
+        }
+
+        // Legacy path: no moorage — despawn and destroy
         ForEachBoid(boid =>
         {
             if (boid.IsDespawning)
@@ -289,6 +299,15 @@ public class BoidCommandController : MonoBehaviour
 
     private void ExecuteSpawn()
     {
+        // If there are docked boids, launch from pool first
+        if (_boidsManager.DockedCount > 0)
+        {
+            _boidsManager.LaunchAllBoids();
+            Debug.Log($"[{_boidsManager.name}] Launching {_boidsManager.DockedCount} docked boids");
+            ClearCommand();
+            return;
+        }
+
         // Spawn command is a one-time action, execute once then clear
         int count = (int)_currentCommand.Radius;
 

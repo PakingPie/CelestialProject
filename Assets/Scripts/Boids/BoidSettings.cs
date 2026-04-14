@@ -141,6 +141,16 @@ public class BoidSettings : ScriptableObject
     [Range(0.5f, 0.99f)] public float leashSoftEdge = 0.85f;
     [Tooltip("Strength of the leash pull-back force.")]
     [Range(0.5f, 5f)] public float leashStrength = 2f;
+
+    [Header("Moorage")]
+    [Tooltip("Type of moorage for this flock.")]
+    public MoorageType moorageType = MoorageType.None;
+    [Tooltip("If true, boids start in docked/parked state and must be launched.")]
+    public bool startDocked = false;
+    [Tooltip("Time between each boid launch (staggered launch).")]
+    public float launchInterval = 0.5f;
+    [Tooltip("Drift speed for parked boids (station parking only).")]
+    public float parkedDriftSpeed = 0.5f;
 }
 
 public enum CombatMorale
@@ -161,4 +171,11 @@ public enum FormationType
     Sphere,
     Helix,
     Wall
+}
+
+public enum MoorageType
+{
+    None,
+    CarrierDocking,
+    StationParking
 }

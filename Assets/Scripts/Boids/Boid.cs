@@ -1,6 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static GlobalHelper;
+
+public enum BoidMode
+{
+    Active,
+    Docking,
+    Docked,
+    Parking,
+    Parked,
+    Launching
+}
+
 public class Boid : MonoBehaviour
 {
 
@@ -12,6 +23,13 @@ public class Boid : MonoBehaviour
     private Vector3 _spawnPosition;
     private bool _isDespawning = false;
     private System.Action _onDespawnArrived;
+
+    // Moorage state
+    private BoidMode _mode = BoidMode.Active;
+    private Vector3 _moorageTarget;
+    private System.Action _onMoorageArrived;
+    private Vector3 _parkedDriftVelocity;
+    private Quaternion _parkedTargetRotation;
 
     [Header("Debug")]
     [SerializeField] private Transform _target;
@@ -128,12 +146,6 @@ public class Boid : MonoBehaviour
             _material = meshRenderer.material;
     }
 
-    void Start()
-    {
-        // Debug.Log($"Boid '{name}')");
-        // Debug.Log($"ObstacleMask: {_settings.obstacleMask}");
-    }
-
     void OnEnable()
     {
         if (BoidRegistry.Instance != null)
@@ -148,8 +160,6 @@ public class Boid : MonoBehaviour
 
     public void Initialize(BoidSettings settings, Transform fallbackTarget)
     {
-        // if (fallbackTarget == null)
-        //    Debug.LogWarning($"Boid '{name}': fallbackTarget is null!");
         _settings = settings;
         _fallbackTarget = fallbackTarget;  // Store the fallback separately
         _target = fallbackTarget;
@@ -188,6 +198,11 @@ public class Boid : MonoBehaviour
 
     public Vector3 SpawnPosition => _spawnPosition;
     public bool IsDespawning => _isDespawning;
+    public BoidMode Mode => _mode;
+    public bool IsDocked => _mode == BoidMode.Docked;
+    public bool IsParked => _mode == BoidMode.Parked;
+    public bool IsMoored => _mode == BoidMode.Docked || _mode == BoidMode.Parked;
+    public bool IsTransitioning => _mode == BoidMode.Docking || _mode == BoidMode.Parking || _mode == BoidMode.Launching;
 
     public void BeginDespawn(System.Action onArrived = null)
     {
@@ -202,6 +217,74 @@ public class Boid : MonoBehaviour
         _isDespawning = false;
         _onDespawnArrived = null;
     }
+
+    #region Moorage
+
+    /// <summary>
+    /// Begin moorage approach toward target point.
+    /// For carrier docking: callback fires for deactivation.
+    /// For station parking: steers to target, then enters idle parked state.
+    /// </summary>
+    public void BeginMoorage(BoidMode mode, Vector3 targetPoint, System.Action onArrived = null)
+    {
+        _mode = mode;
+        _moorageTarget = targetPoint;
+        _onMoorageArrived = onArrived;
+        IsInCombat = false;
+        ClearPriorityTarget();
+    }
+
+    /// <summary>
+    /// Immediately set boid into docked state (used for startDocked spawns).
+    /// </summary>
+    public void SetDocked()
+    {
+        _mode = BoidMode.Docked;
+        IsInCombat = false;
+        _velocity = Vector3.zero;
+    }
+
+    /// <summary>
+    /// Immediately set boid into parked state (used for startDocked spawns).
+    /// </summary>
+    public void SetParked(float driftSpeed, Quaternion targetRotation)
+    {
+        _mode = BoidMode.Parked;
+        IsInCombat = false;
+        _velocity = Vector3.zero;
+        _parkedDriftVelocity = Random.insideUnitSphere * driftSpeed;
+        _parkedTargetRotation = targetRotation;
+    }
+
+    /// <summary>
+    /// Launch from docked/parked state. Enters Launching mode briefly, then Active.
+    /// </summary>
+    public void Launch(Vector3 launchVelocity)
+    {
+        _mode = BoidMode.Launching;
+        gameObject.SetActive(true);
+        _velocity = launchVelocity;
+        _smoothedSpeed = launchVelocity.magnitude;
+        if (launchVelocity.sqrMagnitude > 0.01f)
+        {
+            forward = launchVelocity.normalized;
+            _cachedTransform.rotation = Quaternion.LookRotation(forward);
+        }
+    }
+
+    /// <summary>
+    /// Abort docking/parking approach (e.g., attacked during approach) and return to active.
+    /// </summary>
+    public void AbortMoorage()
+    {
+        if (_mode == BoidMode.Docking || _mode == BoidMode.Parking)
+        {
+            _mode = BoidMode.Active;
+            _onMoorageArrived = null;
+        }
+    }
+
+    #endregion
 
     private void UpdateRegistryPosition()
     {
@@ -331,9 +414,6 @@ public class Boid : MonoBehaviour
 
         _combatTimer += Time.deltaTime;
 
-        // Debug this
-        // Debug.Log($"Combat timer: {_combatTimer} / {_settings.returnToFormationDelay}");
-
         if (_combatTimer >= _settings.returnToFormationDelay)
         {
             IsInCombat = false;
@@ -376,7 +456,7 @@ public class Boid : MonoBehaviour
         }
     }
 
-    private Vector3 CalculateFormationOffset(int index, FormationType type, float spacing)
+    public static Vector3 CalculateFormationOffset(int index, FormationType type, float spacing)
     {
         switch (type)
         {
@@ -403,7 +483,7 @@ public class Boid : MonoBehaviour
         }
     }
 
-    private Vector3 GetVFormationOffset(int index, float spacing)
+    private static Vector3 GetVFormationOffset(int index, float spacing)
     {
         if (index == 0) return Vector3.zero;
 
@@ -416,7 +496,7 @@ public class Boid : MonoBehaviour
         return new Vector3(side * row * spacing, yOffset, -row * spacing);
     }
 
-    private Vector3 GetLineFormationOffset(int index, float spacing)
+    private static Vector3 GetLineFormationOffset(int index, float spacing)
     {
         if (index == 0) return Vector3.zero;
 
@@ -429,7 +509,7 @@ public class Boid : MonoBehaviour
         return new Vector3(side * pos * spacing, yOffset, 0f);
     }
 
-    private Vector3 GetWedgeFormationOffset(int index, float spacing)
+    private static Vector3 GetWedgeFormationOffset(int index, float spacing)
     {
         if (index == 0) return Vector3.zero;
 
@@ -441,7 +521,7 @@ public class Boid : MonoBehaviour
         return new Vector3(side * row * spacing * 0.5f, yOffset, -row * spacing);
     }
 
-    private Vector3 GetBoxFormationOffset(int index, float spacing)
+    private static Vector3 GetBoxFormationOffset(int index, float spacing)
     {
         if (index == 0) return Vector3.zero;
 
@@ -465,7 +545,7 @@ public class Boid : MonoBehaviour
         return new Vector3(offsetX, offsetY, offsetZ);
     }
 
-    private Vector3 GetCircleFormationOffset(int index, float spacing)
+    private static Vector3 GetCircleFormationOffset(int index, float spacing)
     {
         if (index == 0) return Vector3.zero;
 
@@ -494,7 +574,7 @@ public class Boid : MonoBehaviour
         );
     }
 
-    private Vector3 GetEchelonFormationOffset(int index, float spacing)
+    private static Vector3 GetEchelonFormationOffset(int index, float spacing)
     {
         if (index == 0) return Vector3.zero;
 
@@ -504,7 +584,7 @@ public class Boid : MonoBehaviour
         return new Vector3(index * spacing * 0.7f, yOffset, -index * spacing);
     }
 
-    private Vector3 GetSphereFormationOffset(int index, float spacing)
+    private static Vector3 GetSphereFormationOffset(int index, float spacing)
     {
         if (index == 0) return Vector3.zero;
 
@@ -522,7 +602,7 @@ public class Boid : MonoBehaviour
         );
     }
 
-    private Vector3 GetHelixFormationOffset(int index, float spacing)
+    private static Vector3 GetHelixFormationOffset(int index, float spacing)
     {
         if (index == 0) return Vector3.zero;
 
@@ -537,7 +617,7 @@ public class Boid : MonoBehaviour
         );
     }
 
-    private Vector3 GetWallFormationOffset(int index, float spacing)
+    private static Vector3 GetWallFormationOffset(int index, float spacing)
     {
         if (index == 0) return Vector3.zero;
 
@@ -554,6 +634,39 @@ public class Boid : MonoBehaviour
 
     public void UpdateBoid()
     {
+        // Handle moorage states first
+        if (_mode == BoidMode.Parked)
+        {
+            UpdateParkedDrift();
+            return;
+        }
+        if (_mode == BoidMode.Docked)
+            return; // Shouldn't be called, but safety check
+
+        if (_mode == BoidMode.Docking || _mode == BoidMode.Parking)
+        {
+            // Update combat detection so boids can abort approach if attacked
+            UpdateTarget();
+            UpdateCombatState();
+
+            if (IsInCombat)
+            {
+                AbortMoorage();
+                // Fall through to normal active behavior below
+            }
+            else
+            {
+                if (TryHandleMoorageApproach())
+                    return;
+            }
+        }
+
+        if (_mode == BoidMode.Launching)
+        {
+            UpdateLaunching();
+            return;
+        }
+
         UpdateTarget();
         UpdateCombatState();
 
@@ -574,6 +687,75 @@ public class Boid : MonoBehaviour
         ApplyMovement(acceleration);
 
         UpdateRegistryPosition();
+    }
+
+    private bool TryHandleMoorageApproach()
+    {
+        float dist = Vector3.Distance(position, _moorageTarget);
+        if (dist < 50f)
+        {
+            _onMoorageArrived?.Invoke();
+            _onMoorageArrived = null;
+            return true;
+        }
+
+        Vector3 acceleration = SteerTowards(_moorageTarget - position) * _settings.targetWeight * 2f;
+        Vector3 obstacleAvoidance = CalculateObstacleAvoidance();
+        if (obstacleAvoidance.sqrMagnitude > 0.01f)
+        {
+            acceleration += SteerTowards(obstacleAvoidance) * _settings.obstacleAvoidanceWeight;
+        }
+
+        ApplyHeightBoundaryRecovery(ref acceleration);
+
+        _velocity += acceleration * Time.deltaTime;
+
+        float effectiveDrag = _settings.linearDrag * _dragMultiplier;
+        if (effectiveDrag > 0f)
+            _velocity *= 1f / (1f + effectiveDrag * Time.deltaTime);
+
+        float speed = _velocity.magnitude;
+        if (speed > 0.001f)
+        {
+            float targetSpeed = Mathf.Clamp(speed, _settings.minSpeed, _settings.maxSpeed);
+            if (speed > targetSpeed * 1.5f)
+                _velocity = _velocity / speed * targetSpeed * 1.5f;
+
+            _smoothedSpeed = _velocity.magnitude;
+
+            Vector3 direction = _velocity.normalized;
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            ApplyRotationalPhysics(targetRotation, Time.deltaTime);
+            ApplyVelocityCoupling(Time.deltaTime);
+
+            Vector3 newPos = _cachedTransform.position + _velocity * Time.deltaTime;
+            ClampPositionToHeightRange(ref newPos);
+            _cachedTransform.position = newPos;
+            position = newPos;
+            forward = _cachedTransform.forward;
+        }
+
+        UpdateRegistryPosition();
+        return true;
+    }
+
+    private void UpdateParkedDrift()
+    {
+        // Gentle random drift while parked
+        Vector3 newPos = _cachedTransform.position + _parkedDriftVelocity * Time.deltaTime;
+        ClampPositionToHeightRange(ref newPos);
+        _cachedTransform.position = newPos;
+        position = newPos;
+
+        // Smoothly rotate toward parked orientation
+        _cachedTransform.rotation = Quaternion.Slerp(_cachedTransform.rotation, _parkedTargetRotation, Time.deltaTime * 0.5f);
+        forward = _cachedTransform.forward;
+    }
+
+    private void UpdateLaunching()
+    {
+        // Immediately transition to Active — boids already have velocity from Launch()
+        _mode = BoidMode.Active;
     }
 
     private bool TryHandleDespawnMovement()
@@ -1710,8 +1892,6 @@ public class Boid : MonoBehaviour
             Gizmos.color = Color.magenta;
             Gizmos.DrawWireCube(rawTarget, Vector3.one * 8f);
         }
-
-        // Debug.Log("IsTargetInfo Valid: " + (_targetManager != null && _targetManager.GetTargetInfo(this) != null && _targetManager.GetTargetInfo(this).IsValid));
 
         // Combat state indicator
         if (IsInCombat)

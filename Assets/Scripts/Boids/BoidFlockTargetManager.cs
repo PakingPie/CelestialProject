@@ -96,6 +96,15 @@ public class BoidFlockTargetManager : MonoBehaviour
     public IReadOnlyDictionary<Boid, BoidTargetInfo> BoidAssignments => _boidAssignments;
 
     /// <summary>
+    /// Returns true if there are any detected enemies within detection radius.
+    /// Used by BoidsManager for auto-scramble of docked defence flocks.
+    /// </summary>
+    public bool HasDetectedEnemies()
+    {
+        return _knownTargets.Count > 0;
+    }
+
+    /// <summary>
     /// Called by FleetController to push shared targets from other flocks.
     /// </summary>
     public void SetFleetTargetPool(List<BoidTargetInfo> pool)
