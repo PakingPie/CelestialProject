@@ -692,6 +692,10 @@ public class BoidsManager : MonoBehaviour
                 }
             }
 
+            // Broken flock stays "in combat" until enemies leave detection range
+            if (_currentMorale == CombatMorale.Broken && _targetManager.HasDetectedEnemies())
+                anyInCombat = true;
+
             if (syncCombatState && anyInCombat && !_wasAnyInCombat)
             {
                 // Entering combat — snapshot morale and reset death counter
@@ -1006,7 +1010,7 @@ public class BoidsManager : MonoBehaviour
     /// </summary>
     private void ApplyCombatMoraleDeathPenalty()
     {
-        int baseline = _initialCountSet ? _initialBoidCount : 1;
+        int baseline = _initialCountSet ? _initialBoidCount : Mathf.Max(boids.Count + _deathsDuringCombat, 1);
         float deathPenalty = (float)_deathsDuringCombat / baseline;
         float score = Mathf.Clamp01(_combatEntryMoraleScore - deathPenalty);
         CurrentMoraleScore = score;
@@ -1023,6 +1027,9 @@ public class BoidsManager : MonoBehaviour
         {
             _currentMorale = newMorale;
             SetMoraleOnAllBoids(newMorale);
+
+            if (newMorale == CombatMorale.Broken)
+                _targetManager.ClearAllAssignments();
         }
     }
 
@@ -1047,6 +1054,10 @@ public class BoidsManager : MonoBehaviour
             newMorale = CombatMorale.Cautious;
         }
 
+        // Recovery from Broken caps at Cautious per reassessment
+        if (_currentMorale == CombatMorale.Broken && newMorale == CombatMorale.Confident)
+            newMorale = CombatMorale.Cautious;
+
         if (newMorale != _currentMorale)
         {
             _currentMorale = newMorale;
@@ -1061,6 +1072,8 @@ public class BoidsManager : MonoBehaviour
             if (boids[i] != null)
                 boids[i].CurrentMorale = morale;
         }
+
+        _targetManager.SuppressAssignments = (morale == CombatMorale.Broken);
     }
 
     /// <summary>

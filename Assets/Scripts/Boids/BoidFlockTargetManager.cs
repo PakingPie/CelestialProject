@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 using static GlobalHelper;
@@ -87,6 +88,11 @@ public class BoidFlockTargetManager : MonoBehaviour
 
     // Fleet-level shared target pool (set by FleetController)
     private List<BoidTargetInfo> _fleetTargetPool;
+
+    /// <summary>
+    /// When true, all target assignments are suppressed and cleared (e.g. flock morale is Broken).
+    /// </summary>
+    [NonSerialized] public bool SuppressAssignments;
 
     /// <summary>
     /// Effective combat engage radius: uses explicit value if set, otherwise 0.7x detection radius.
@@ -457,11 +463,17 @@ public class BoidFlockTargetManager : MonoBehaviour
 
     private void AssignTargets()
     {
+        if (SuppressAssignments)
+        {
+            ClearAllAssignments();
+            return;
+        }
+
         BuildCandidateTargets();
 
         if (_candidateTargets.Count == 0)
         {
-            ClearAssignments();
+            ClearAllAssignments();
             return;
         }
 
@@ -695,7 +707,7 @@ public class BoidFlockTargetManager : MonoBehaviour
         return true;
     }
 
-    private void ClearAssignments()
+    public void ClearAllAssignments()
     {
         for (int i = 0; i < _managedBoids.Count; i++)
         {
