@@ -111,6 +111,7 @@ public class AAMissile : MonoBehaviour
 
     // Applied by external forces (e.g. black hole gravity). Accumulates as a velocity (m/s).
     private Vector3 _externalVelocity = Vector3.zero;
+    private Vector3 _previousPosition;
 
     // Used to prevent lead markers from getting huge when missiles are very slow.
     private const float MINIMUM_GUIDE_SPEED = 1.0f;
@@ -160,15 +161,70 @@ public class AAMissile : MonoBehaviour
 
     private void Update()
     {
+        _previousPosition = transform.position;
+
         if (missileActive && target != null)// && targetUpdateCycle == UpdateType.Update)
             MissileGuidance();
 
         // if (movementUpdateCycle == UpdateType.Update)
         RunMissile();
 
+        if (!isLaunched || !missileActive)
+            return;
+
+        // Swept collision: raycast travel path against all nearby targets (not just assigned target)
+        Vector3 currentPos = transform.position;
+        Vector3 travelDir = currentPos - _previousPosition;
+        float travelDist = travelDir.magnitude;
+
+        if (travelDist > 0.001f)
+        {
+            Vector3 sweepDir = travelDir / travelDist;
+            float queryRange = travelDist * 0.5f + DetonationRadius + 50f;
+            Vector3 queryCenter = (_previousPosition + currentPos) * 0.5f;
+
+            // Determine hostile factions
+            GlobalHelper.Faction targetFactions;
+            if ((SourceFaction & (GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally)) != 0)
+                targetFactions = GlobalHelper.Faction.Foe;
+            else
+                targetFactions = GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally;
+
+            GlobalHelper.Faction combinedFactions = targetFactions;
+            if (CanDamageAsteroids)
+                combinedFactions |= GlobalHelper.Faction.Neutral;
+
+            List<VehicleBase> sweepTargets = new List<VehicleBase>(16);
+            CombatRegistry.GetNearbyEnemies(queryCenter, queryRange, combinedFactions, sweepTargets, true);
+
+            float bestHitDist = float.MaxValue;
+            bool swept = false;
+
+            for (int i = 0; i < sweepTargets.Count; i++)
+            {
+                VehicleBase vehicle = sweepTargets[i];
+                if (vehicle == null) continue;
+
+                if (vehicle.RaycastBounds(_previousPosition, sweepDir, out Vector3 hitPt, out float hitDist))
+                {
+                    if (hitDist <= travelDist + DetonationRadius && hitDist < bestHitDist)
+                    {
+                        bestHitDist = hitDist;
+                        swept = true;
+                    }
+                }
+            }
+
+            if (swept)
+            {
+                HitTarget();
+                return;
+            }
+        }
+
+        // Fallback: proximity check against assigned target
         if (target != null)
         {
-            // Bounds-aware detonation: check distance to target surface, not center
             VehicleBase targetVehicle = target.GetComponent<VehicleBase>();
             float distToSurface;
             if (targetVehicle != null)

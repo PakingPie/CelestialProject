@@ -135,25 +135,13 @@ public class LaserLauncher : WeaponBase
 
                 if (targetVehicle != null)
                 {
-                    Vector3 sphereCenter = targetVehicle.BoundsCenter;
-                    float radius = targetVehicle.BoundsRadius;
-
-                    Vector3 oc = startPos - sphereCenter;
-                    float b = Vector3.Dot(oc, fireDir);
-                    float c = Vector3.Dot(oc, oc) - radius * radius;
-                    float discriminant = b * b - c;
-
-                    if (discriminant >= 0f)
+                    if (targetVehicle.RaycastBounds(startPos, fireDir, out Vector3 hitPt, out float hitDist))
                     {
-                        float t = -b - Mathf.Sqrt(discriminant);
-                        if (t > 0f)
-                            endPosition = startPos + fireDir * t;
-                        else
-                            endPosition = Targeted.position;
+                        endPosition = hitPt;
                     }
                     else
                     {
-                        // Beam missed sphere — project to target distance along barrel
+                        // Beam missed OBB — project to target distance along barrel
                         float dist = Vector3.Distance(startPos, Targeted.position);
                         endPosition = startPos + fireDir * dist;
                     }

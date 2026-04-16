@@ -36,7 +36,7 @@ public abstract class VehicleBase : MonoBehaviour
         }
     }
 
-    // Cached bounding sphere radius (half-diagonal of combined renderer bounds)
+    // Cached bounding radius (half-diagonal of OBB extents, used for broad-phase)
     private float _boundsRadius = -1f;
     private WeaponPlatform[] _childWeaponPlatforms;
     private VehicleModule[] _childVehicleModules;
@@ -51,52 +51,55 @@ public abstract class VehicleBase : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// World-space center of this vehicle's bounding sphere (accounts for rotation).
-    /// </summary>
-    public Vector3 BoundsCenter
-    {
-        get
-        {
-            if (_boundsRadius < 0f)
-                RecalculateBounds();
-            return CachedTransform.position + CachedTransform.TransformVector(_localBoundsOffset);
-        }
-    }
-
     private Vector3 _localBoundsOffset;
+    private Vector3 _localBoundsExtents;
 
     public void RecalculateBounds()
     {
-        // Only use mesh renderers — exclude trails, particles, VFX which skew bounds
-        Bounds combined = default;
+        // Compute bounds in local space for a tight oriented bounding box (OBB)
+        Bounds localCombined = default;
         bool hasAny = false;
         foreach (var r in GetComponentsInChildren<Renderer>())
         {
             if (r is MeshRenderer || r is SkinnedMeshRenderer)
             {
-                if (!hasAny)
+                // Transform each renderer's 8 local-bounds corners into vehicle local space
+                Bounds lb = r.localBounds;
+                Vector3 bMin = lb.min;
+                Vector3 bMax = lb.max;
+                for (int i = 0; i < 8; i++)
                 {
-                    combined = r.bounds;
-                    hasAny = true;
-                }
-                else
-                {
-                    combined.Encapsulate(r.bounds);
+                    Vector3 corner = new Vector3(
+                        (i & 1) == 0 ? bMin.x : bMax.x,
+                        (i & 2) == 0 ? bMin.y : bMax.y,
+                        (i & 4) == 0 ? bMin.z : bMax.z
+                    );
+                    Vector3 worldPt = r.transform.TransformPoint(corner);
+                    Vector3 localPt = CachedTransform.InverseTransformPoint(worldPt);
+
+                    if (!hasAny)
+                    {
+                        localCombined = new Bounds(localPt, Vector3.zero);
+                        hasAny = true;
+                    }
+                    else
+                    {
+                        localCombined.Encapsulate(localPt);
+                    }
                 }
             }
         }
 
         if (hasAny)
         {
-            // Store offset in local space so it rotates correctly with the ship
-            Vector3 worldOffset = combined.center - CachedTransform.position;
-            _localBoundsOffset = CachedTransform.InverseTransformVector(worldOffset);
-            _boundsRadius = combined.extents.magnitude;
+            _localBoundsOffset = localCombined.center;
+            _localBoundsExtents = localCombined.extents;
+            _boundsRadius = localCombined.extents.magnitude; // keep for broad-phase
         }
         else
         {
             _localBoundsOffset = Vector3.zero;
+            _localBoundsExtents = CachedTransform.localScale * 0.5f;
             _boundsRadius = CachedTransform.localScale.magnitude * 0.5f;
         }
 
@@ -175,34 +178,96 @@ public abstract class VehicleBase : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns the closest point on this vehicle's bounding sphere to the given position.
+    /// Returns the closest point on this vehicle's oriented bounding box to the given world position.
     /// </summary>
     public Vector3 ClosestBoundsPoint(Vector3 position)
     {
-        Vector3 center = BoundsCenter;
-        Vector3 toPosition = position - center;
-        float dist = toPosition.magnitude;
-
-        if (dist <= BoundsRadius || dist < 0.001f)
-            return position; // inside the sphere
-
-        return center + toPosition * (BoundsRadius / dist);
+        // Transform query point into vehicle local space, clamp to local AABB, transform back
+        Vector3 localPos = CachedTransform.InverseTransformPoint(position);
+        Vector3 clamped = new Vector3(
+            Mathf.Clamp(localPos.x, _localBoundsOffset.x - _localBoundsExtents.x, _localBoundsOffset.x + _localBoundsExtents.x),
+            Mathf.Clamp(localPos.y, _localBoundsOffset.y - _localBoundsExtents.y, _localBoundsOffset.y + _localBoundsExtents.y),
+            Mathf.Clamp(localPos.z, _localBoundsOffset.z - _localBoundsExtents.z, _localBoundsOffset.z + _localBoundsExtents.z)
+        );
+        return CachedTransform.TransformPoint(clamped);
     }
 
     /// <summary>
-    /// Returns the squared distance from a position to the surface of this vehicle's bounding sphere.
-    /// Returns 0 if the position is inside the sphere.
+    /// Returns the squared distance from a world position to the surface of this vehicle's oriented bounding box.
+    /// Returns 0 if the position is inside the box.
     /// </summary>
     public float SqrDistanceToBounds(Vector3 position)
     {
-        Vector3 center = BoundsCenter;
-        float dist = (position - center).magnitude;
-        float surfaceDist = dist - BoundsRadius;
+        Vector3 closest = ClosestBoundsPoint(position);
+        return (position - closest).sqrMagnitude;
+    }
 
-        if (surfaceDist <= 0f)
-            return 0f; // inside the sphere
+    /// <summary>
+    /// Raycasts against this vehicle's oriented bounding box.
+    /// Returns true if the ray hits, with the world-space hit point and distance.
+    /// </summary>
+    public bool RaycastBounds(Vector3 rayOrigin, Vector3 rayDirection, out Vector3 hitPoint, out float hitDistance)
+    {
+        if (_boundsRadius < 0f)
+            RecalculateBounds();
 
-        return surfaceDist * surfaceDist;
+        // Transform ray into vehicle local space
+        Vector3 localOrigin = CachedTransform.InverseTransformPoint(rayOrigin);
+        Vector3 localDir = CachedTransform.InverseTransformVector(rayDirection);
+
+        Vector3 bMin = _localBoundsOffset - _localBoundsExtents;
+        Vector3 bMax = _localBoundsOffset + _localBoundsExtents;
+
+        // Slab method for ray-AABB intersection
+        float tMin = float.NegativeInfinity;
+        float tMax = float.PositiveInfinity;
+
+        for (int i = 0; i < 3; i++)
+        {
+            float ori = localOrigin[i];
+            float dir = localDir[i];
+            float mn = bMin[i];
+            float mx = bMax[i];
+
+            if (Mathf.Abs(dir) < 1e-8f)
+            {
+                // Ray parallel to slab — miss if origin outside
+                if (ori < mn || ori > mx)
+                {
+                    hitPoint = default;
+                    hitDistance = 0f;
+                    return false;
+                }
+            }
+            else
+            {
+                float t1 = (mn - ori) / dir;
+                float t2 = (mx - ori) / dir;
+                if (t1 > t2) { float tmp = t1; t1 = t2; t2 = tmp; }
+                if (t1 > tMin) tMin = t1;
+                if (t2 < tMax) tMax = t2;
+                if (tMin > tMax)
+                {
+                    hitPoint = default;
+                    hitDistance = 0f;
+                    return false;
+                }
+            }
+        }
+
+        if (tMin < 0f)
+            tMin = tMax; // ray starts inside, use exit point
+        if (tMin < 0f)
+        {
+            hitPoint = default;
+            hitDistance = 0f;
+            return false; // box is behind the ray
+        }
+
+        Vector3 localHit = localOrigin + localDir * tMin;
+        hitPoint = CachedTransform.TransformPoint(localHit);
+        hitDistance = Vector3.Distance(rayOrigin, hitPoint);
+        return true;
     }
 
     private int _lastDamageFrame = -1;

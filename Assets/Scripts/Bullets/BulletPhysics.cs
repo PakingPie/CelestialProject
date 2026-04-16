@@ -39,14 +39,11 @@ public class BulletPhysics : MonoBehaviour
     [Tooltip("Only check for hits every N frames. 1 = every frame.")]
     [Min(1)] public int HitCheckIntervalFrames = 2;
 
-    public Transform TargetObject;
-
     // Cached
     private Transform _cachedTransform;
     private float _lifeTimer;
     private float _fuseDistSqr;
     private float _explosionRadiusSqr;
-    private RaycastHit _hit;
 
     // Velocity-based movement
     private Vector3 _velocity;
@@ -140,61 +137,93 @@ public class BulletPhysics : MonoBehaviour
             return;
 
         Vector3 myPosition = _cachedTransform.position;
-        float queryRange = ExplosionRadius + MAX_BOUNDS_PADDING;
+        Vector3 travelDir = myPosition - _previousPosition;
+        float travelDist = travelDir.magnitude;
+
+        // Query from midpoint of travel segment, with range covering both endpoints + padding
+        Vector3 queryCenter = (myPosition + _previousPosition) * 0.5f;
+        float queryRange = travelDist * 0.5f + ExplosionRadius + MAX_BOUNDS_PADDING;
 
         // Get targets based on FireTarget faction (padded range to catch large ships)
         if (UseSpatialGrid)
-            CombatRegistry.FindEnemiesInRange(myPosition, queryRange, FireTarget, _nearbyTargets);
+            CombatRegistry.FindEnemiesInRange(queryCenter, queryRange, FireTarget, _nearbyTargets);
         else
-            CombatRegistry.GetNearbyEnemies(myPosition, queryRange, FireTarget, _nearbyTargets, true);
+            CombatRegistry.GetNearbyEnemies(queryCenter, queryRange, FireTarget, _nearbyTargets, true);
 
         // Also check neutrals if we can damage asteroids
         if (CanDamageAsteroids)
         {
             if (UseSpatialGrid)
-                CombatRegistry.FindEnemiesInRange(myPosition, queryRange, Faction.Neutral, _nearbyNeutrals);
+                CombatRegistry.FindEnemiesInRange(queryCenter, queryRange, Faction.Neutral, _nearbyNeutrals);
             else
-                CombatRegistry.GetNearbyEnemies(myPosition, queryRange, Faction.Neutral, _nearbyNeutrals, true);
+                CombatRegistry.GetNearbyEnemies(queryCenter, queryRange, Faction.Neutral, _nearbyNeutrals, true);
 
             if (_nearbyNeutrals.Count > 0)
                 _nearbyTargets.AddRange(_nearbyNeutrals);
         }
 
-        // Find closest target within fuse distance (using bounds-aware distance)
+        // Swept collision: raycast along travel path to find first hit
+        Vector3 sweepImpact = myPosition;
         bool fuseTriggered = false;
 
-        for (int i = 0; i < _nearbyTargets.Count; i++)
+        if (travelDist > 0.001f)
         {
-            VehicleBase target = _nearbyTargets[i];
-            if (target == null) continue;
+            Vector3 sweepDir = travelDir / travelDist; // normalized
+            float bestHitDist = float.MaxValue;
 
-            // Distance to the surface of the target's bounding sphere
-            float distSqr = target.SqrDistanceToBounds(myPosition);
-            if (distSqr <= _fuseDistSqr)
+            for (int i = 0; i < _nearbyTargets.Count; i++)
             {
-                fuseTriggered = true;
-                break;
+                VehicleBase target = _nearbyTargets[i];
+                if (target == null) continue;
+
+                // Raycast the travel segment against target's OBB
+                if (target.RaycastBounds(_previousPosition, sweepDir, out Vector3 hitPt, out float hitDist))
+                {
+                    if (hitDist <= travelDist + FuseDetonationDistance && hitDist < bestHitDist)
+                    {
+                        bestHitDist = hitDist;
+                        sweepImpact = hitPt;
+                        fuseTriggered = true;
+                    }
+                }
             }
         }
 
-        // Check if closest target is within fuse distance
-        if (fuseTriggered)
+        // Fallback: also check current position proximity (for slow bullets or targets overlapping)
+        if (!fuseTriggered)
         {
-            // Collect all targets in explosion radius (bounds-aware)
-            _targetsInExplosion.Clear();
             for (int i = 0; i < _nearbyTargets.Count; i++)
             {
                 VehicleBase target = _nearbyTargets[i];
                 if (target == null) continue;
 
                 float distSqr = target.SqrDistanceToBounds(myPosition);
+                if (distSqr <= _fuseDistSqr)
+                {
+                    sweepImpact = target.ClosestBoundsPoint(myPosition);
+                    fuseTriggered = true;
+                    break;
+                }
+            }
+        }
+
+        if (fuseTriggered)
+        {
+            // Collect all targets in explosion radius from the impact point
+            _targetsInExplosion.Clear();
+            for (int i = 0; i < _nearbyTargets.Count; i++)
+            {
+                VehicleBase target = _nearbyTargets[i];
+                if (target == null) continue;
+
+                float distSqr = target.SqrDistanceToBounds(sweepImpact);
                 if (distSqr <= _explosionRadiusSqr)
                 {
                     _targetsInExplosion.Add(target);
                 }
             }
 
-            DestroyBulletWithDamage(myPosition, _targetsInExplosion);
+            DestroyBulletWithDamage(sweepImpact, _targetsInExplosion);
         }
     }
 
