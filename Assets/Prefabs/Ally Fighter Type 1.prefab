@@ -449,7 +449,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.2
+  SequentialFiringInterval: 0.05
   FirePoints:
   - {fileID: 6528210914579297316}
   - {fileID: 3734917714810795797}
@@ -470,7 +470,7 @@ MonoBehaviour:
   _firePitchMin: 0.96
   _firePitchMax: 1.04
   MaxHeat: 100
-  HeatPerShot: 5
+  HeatPerShot: 1
   HeatDissipationRate: 10
   CooldownTime: 5
   UseAmmo: 0
@@ -1004,6 +1004,8 @@ MonoBehaviour:
   flockmatesCenter: {x: 0, y: 0, z: 0}
   numPerceivedFlockmates: 0
   HeightRange: {x: -2500, y: 2500}
+  LeashCenter: {x: 0, y: 0, z: 0}
+  UseLeash: 0
   _EnableDebugLogs: 0
   _EnableDebugGizmos: 0
   IsInCombat: 0

@@ -16,8 +16,11 @@ public class BulletPhysics : MonoBehaviour
     public bool CanDamageAsteroids = true;  // Keep this flag for Gun.cs to check
 
     [Header("Motion")]
-    public float Speed = 50f;
+    [HideInInspector] public float Speed;
     public float LifeTime = 5f;
+    [Range(0f, 0.3f)]
+    [Tooltip("Random range variance per bullet (0.1 = ±10%).")]
+    public float RangeVariance = 0.1f;
     public int FuseDetonationDistance = 1;
     public int ExplosionRadius = 5;
 
@@ -42,6 +45,7 @@ public class BulletPhysics : MonoBehaviour
     // Cached
     private Transform _cachedTransform;
     private float _lifeTimer;
+    private float _randomizedLifeTime;
     private float _fuseDistSqr;
     private float _explosionRadiusSqr;
 
@@ -75,6 +79,7 @@ public class BulletPhysics : MonoBehaviour
         _inheritedVelocity = shooterVelocity * velocityInheritance;
         _velocity = _cachedTransform.forward * Speed + _inheritedVelocity;
         _previousPosition = _cachedTransform.position;
+        _randomizedLifeTime = LifeTime * Random.Range(1f - RangeVariance, 1f + RangeVariance);
         _initialized = true;
     }
 
@@ -84,6 +89,7 @@ public class BulletPhysics : MonoBehaviour
         _inheritedVelocity = shooterVelocity * velocityInheritance;
         _velocity = direction.normalized * Speed + _inheritedVelocity;
         _previousPosition = _cachedTransform.position;
+        _randomizedLifeTime = LifeTime * Random.Range(1f - RangeVariance, 1f + RangeVariance);
         _initialized = true;
     }
 
@@ -93,6 +99,7 @@ public class BulletPhysics : MonoBehaviour
         {
             _velocity = _cachedTransform.forward * Speed;
             _previousPosition = _cachedTransform.position;
+            _randomizedLifeTime = LifeTime * Random.Range(1f - RangeVariance, 1f + RangeVariance);
             _initialized = true;
         }
 
@@ -113,9 +120,9 @@ public class BulletPhysics : MonoBehaviour
             );
         }
 
-        // Lifetime check
+        // Lifetime check — primary destruction trigger
         _lifeTimer += Time.deltaTime;
-        if (_lifeTimer >= LifeTime)
+        if (_lifeTimer >= _randomizedLifeTime)
         {
             DestroyBullet();
             return;
@@ -316,6 +323,7 @@ public class BulletPhysics : MonoBehaviour
         _lifeTimer = 0f;
         _velocity = Vector3.zero;
         _inheritedVelocity = Vector3.zero;
+        _randomizedLifeTime = 0f;
         _initialized = false;
     }
 

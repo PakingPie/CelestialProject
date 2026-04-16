@@ -310,7 +310,7 @@ public class EnemyPredictionManager : MonoBehaviour
         Vector3 playerVelocity = _playerShipMovement != null ? _playerShipMovement.Velocity : Vector3.zero;
 
         float bulletSpeed = _referenceGun != null
-            ? _referenceGun.BulletPrefab.Speed
+            ? _referenceGun.BulletSpeed
             : 200f;
 
         Vector3 predictedPos = LeadCalculator.CalculateInterceptPoint(

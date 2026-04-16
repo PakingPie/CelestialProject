@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f79a97a8f3d566438e5fbb617fd1c0f, type: 3}
   m_Name: Ally Fighter Setting
   m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
-  minSpeed: 40
-  maxSpeed: 60
+  minSpeed: 50
+  maxSpeed: 80
   perceptionRadius: 500
   maxSteerForce: 5
   alignWeight: 0.5
@@ -74,7 +74,14 @@ MonoBehaviour:
   strengthWeight: 0.4
   fleeSpeedMultiplier: 1.5
   confidentFormationWeight: 0.75
+  cautiousSeparationMult: 1.5
+  cautiousEngageRangeMult: 0.6
+  fleetMoraleInfluence: 0.15
   useLeash: 1
   leashRadius: 5000
   leashSoftEdge: 0.85
   leashStrength: 2
+  moorageType: 0
+  startDocked: 0
+  launchInterval: 0.5
+  parkedDriftSpeed: 0.5

@@ -192,9 +192,12 @@ public class Gun : WeaponBase
                 RegisterRecoilingBarrel(barrel);
         }
 
-        ActiveRange.y = BulletPrefab.Speed * BulletPrefab.LifeTime;
+        ActiveRange.y = Mathf.Max(ActiveRange.y, 1f);
         ConfigureFireAudio();
     }
+
+    /// <summary>Bullet speed derived from gun range and bullet lifetime.</summary>
+    public float BulletSpeed => ActiveRange.y / Mathf.Max(BulletPrefab.LifeTime, 0.001f);
 
     private void ConfigureFireAudio()
     {
@@ -509,7 +512,7 @@ public class Gun : WeaponBase
             ? LeadCalculator.CalculateGravityCompensatedIntercept(
                 resolvedFirePoint.position,
                 shipVelocity,
-                BulletPrefab.Speed,
+                BulletSpeed,
                 Targeted.position,
                 targetVelocity,
                 BulletPrefab.velocityInheritance,
@@ -519,7 +522,7 @@ public class Gun : WeaponBase
             ? LeadCalculator.CalculateInterceptPointWithAcceleration(
                 resolvedFirePoint.position,
                 shipVelocity,
-                BulletPrefab.Speed,
+                BulletSpeed,
                 Targeted.position,
                 targetVelocity,
                 acceleration,
@@ -529,7 +532,7 @@ public class Gun : WeaponBase
             : LeadCalculator.CalculateInterceptPoint(
                 resolvedFirePoint.position,
                 shipVelocity,
-                BulletPrefab.Speed,
+                BulletSpeed,
                 Targeted.position,
                 targetVelocity,
                 BulletPrefab.velocityInheritance,
@@ -546,7 +549,7 @@ public class Gun : WeaponBase
             resolvedFirePoint.position,
             Targeted.position,
             targetVelocity,
-            BulletPrefab.Speed,
+            BulletSpeed,
             shipVelocity,
             BulletPrefab.velocityInheritance,
             BulletPrefab.LifeTime
@@ -611,6 +614,7 @@ public class Gun : WeaponBase
         var bullet = Instantiate(prefab, firePoint.transform.position, firePoint.transform.rotation);
         var bulletPhysics = bullet.GetComponent<BulletPhysics>();
         bulletPhysics.FireTarget = FireTarget;
+        bulletPhysics.Speed = BulletSpeed;
 
         // Start with the fire point's forward direction
         Vector3 fireDirection = GetResolvedFireDirection(firePoint);
@@ -625,10 +629,6 @@ public class Gun : WeaponBase
             );
             fireDirection = Quaternion.Euler(randomSpread) * fireDirection;
         }
-
-        // // Override bullet speed with gun's muzzle velocity
-        // bulletPhysics.Speed = MuzzleVelocity;
-        // bulletPhysics.LifeTime = SelfDestructionTime;
 
         // Initialize bullet with direction and inherited velocity
         if (AutoInheritVelocity)
@@ -772,7 +772,7 @@ public class Gun : WeaponBase
     public void SetAmmoType(GameObject ammoPrefab)
     {
         BulletPrefab = ammoPrefab.GetComponent<BulletPhysics>();
-        ActiveRange.y = BulletPrefab.Speed * BulletPrefab.LifeTime * 0.8f;
+        ActiveRange.y = Mathf.Max(ActiveRange.y, 1f);
     }
 
 #if UNITY_EDITOR

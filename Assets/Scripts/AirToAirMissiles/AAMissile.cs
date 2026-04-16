@@ -23,6 +23,8 @@ public class AAMissile : MonoBehaviour
     // new Rigidbody rigidbody;
     // new CapsuleCollider collider;
 
+    private static readonly List<VehicleBase> _sweepTargetsReusable = new List<VehicleBase>(16);
+
     [Header("General Parameters:")]
     // [Tooltip("Run movement code in fixed update versus update.\n\nIf you notice jittery movement, try changing this. Fixed Update is typically used for rigidbody based projects.")]
     // public UpdateType movementUpdateCycle = UpdateType.Update;
@@ -194,15 +196,15 @@ public class AAMissile : MonoBehaviour
             if (CanDamageAsteroids)
                 combinedFactions |= GlobalHelper.Faction.Neutral;
 
-            List<VehicleBase> sweepTargets = new List<VehicleBase>(16);
-            CombatRegistry.GetNearbyEnemies(queryCenter, queryRange, combinedFactions, sweepTargets, true);
+            _sweepTargetsReusable.Clear();
+            CombatRegistry.GetNearbyEnemies(queryCenter, queryRange, combinedFactions, _sweepTargetsReusable, true);
 
             float bestHitDist = float.MaxValue;
             bool swept = false;
 
-            for (int i = 0; i < sweepTargets.Count; i++)
+            for (int i = 0; i < _sweepTargetsReusable.Count; i++)
             {
-                VehicleBase vehicle = sweepTargets[i];
+                VehicleBase vehicle = _sweepTargetsReusable[i];
                 if (vehicle == null) continue;
 
                 if (vehicle.RaycastBounds(_previousPosition, sweepDir, out Vector3 hitPt, out float hitDist))

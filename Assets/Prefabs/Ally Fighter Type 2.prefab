@@ -1358,12 +1358,12 @@ MonoBehaviour:
   TurretBase: {fileID: 1469855246839215147}
   Barrels: {fileID: 8673968047497250288}
   _elevationSpeed: 30
-  MaxElevation: 60
-  MaxDepression: 60
+  MaxElevation: 5
+  MaxDepression: 5
   _traverseSpeed: 60
   HasLimitedTraverse: 1
-  LeftLimit: 60
-  RightLimit: 60
+  LeftLimit: 5
+  RightLimit: 5
   IsIdle: 0
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 5
@@ -1391,7 +1391,7 @@ MonoBehaviour:
   EnableDebug: 1
   ShowGunAngles: 0
   UseManagedUpdates: 1
-  _fireDelay: 1
+  _fireDelay: 0.4
   Deviation: 0.2
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -1399,7 +1399,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.5
+  SequentialFiringInterval: 0.05
   FirePoints:
   - {fileID: 7983893329875665523}
   - {fileID: 8061424306153988899}
@@ -1420,7 +1420,7 @@ MonoBehaviour:
   _firePitchMin: 0.96
   _firePitchMax: 1.04
   MaxHeat: 100
-  HeatPerShot: 10
+  HeatPerShot: 1
   HeatDissipationRate: 20
   CooldownTime: 2
   UseAmmo: 0
@@ -1494,6 +1494,8 @@ MonoBehaviour:
   flockmatesCenter: {x: 0, y: 0, z: 0}
   numPerceivedFlockmates: 0
   HeightRange: {x: -2500, y: 2500}
+  LeashCenter: {x: 0, y: 0, z: 0}
+  UseLeash: 0
   _EnableDebugLogs: 0
   _EnableDebugGizmos: 0
   IsInCombat: 0

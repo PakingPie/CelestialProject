@@ -182,6 +182,9 @@ public abstract class VehicleBase : MonoBehaviour
     /// </summary>
     public Vector3 ClosestBoundsPoint(Vector3 position)
     {
+        if (_boundsRadius < 0f)
+            RecalculateBounds();
+
         // Transform query point into vehicle local space, clamp to local AABB, transform back
         Vector3 localPos = CachedTransform.InverseTransformPoint(position);
         Vector3 clamped = new Vector3(
