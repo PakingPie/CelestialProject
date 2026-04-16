@@ -26,7 +26,6 @@ public class LaserLauncher : WeaponBase
     private bool _isOnCooldown = false;
 
     private RaycastHit _hit;
-    private bool _laserActiveThisFrame = false;
     private bool _laserVFXPlaying = false;
 
     public bool ReadyToFire => !_isOnCooldown;
@@ -71,7 +70,6 @@ public class LaserLauncher : WeaponBase
 
         if (IsFiring && Targeted != null)
         {
-            _laserActiveThisFrame = true;
             if (LaserVFX != null && !_laserVFXPlaying)
             {
                 LaserVFX.Play();
@@ -123,27 +121,63 @@ public class LaserLauncher : WeaponBase
 
     void LateUpdate()
     {
-        // Update beam geometry after all movement is resolved
-        if (_laserActiveThisFrame && Targeted != null)
+        // Always update beam positions while VFX is playing, not just when firing
+        if (_laserVFXPlaying && LaserVFX != null)
         {
-            if (LaserVFX != null)
+            Vector3 startPos = LaserOrigin.position;
+            Vector3 endPosition;
+
+            if (Targeted != null)
             {
-                Vector3 endPosition = Targeted.position;
+                // Use barrel forward direction, not direction-to-target, so beam follows actual aim
+                Vector3 fireDir = LaserOrigin.forward;
                 var targetVehicle = Targeted.GetComponent<VehicleBase>();
+
                 if (targetVehicle != null)
-                    endPosition = targetVehicle.ClosestBoundsPoint(LaserOrigin.position);
+                {
+                    Vector3 sphereCenter = targetVehicle.BoundsCenter;
+                    float radius = targetVehicle.BoundsRadius;
 
-                LaserVFX.SetVector3("StartPosition", LaserOrigin.position);
-                LaserVFX.SetVector3("EndPosition", endPosition);
+                    Vector3 oc = startPos - sphereCenter;
+                    float b = Vector3.Dot(oc, fireDir);
+                    float c = Vector3.Dot(oc, oc) - radius * radius;
+                    float discriminant = b * b - c;
 
-                float distance = Vector3.Distance(LaserOrigin.position, endPosition);
-                LaserVFX.SetVector2("NoiseUVScale", new Vector2(
-                    1.0f,
-                    Mathf.Max(1f, distance)
-                ));
+                    if (discriminant >= 0f)
+                    {
+                        float t = -b - Mathf.Sqrt(discriminant);
+                        if (t > 0f)
+                            endPosition = startPos + fireDir * t;
+                        else
+                            endPosition = Targeted.position;
+                    }
+                    else
+                    {
+                        // Beam missed sphere — project to target distance along barrel
+                        float dist = Vector3.Distance(startPos, Targeted.position);
+                        endPosition = startPos + fireDir * dist;
+                    }
+                }
+                else
+                {
+                    endPosition = Targeted.position;
+                }
             }
+            else
+            {
+                // Target lost — extend beam forward along barrel a fixed distance
+                endPosition = startPos + LaserOrigin.forward * 100f;
+            }
+
+            LaserVFX.SetVector3("StartPosition", startPos);
+            LaserVFX.SetVector3("EndPosition", endPosition);
+
+            float distance = Vector3.Distance(startPos, endPosition);
+            LaserVFX.SetVector2("NoiseUVScale", new Vector2(
+                1.0f,
+                Mathf.Max(1f, distance)
+            ));
         }
-        _laserActiveThisFrame = false;
     }
 
     public void Shoot()

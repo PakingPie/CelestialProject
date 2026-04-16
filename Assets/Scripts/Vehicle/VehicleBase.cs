@@ -38,7 +38,6 @@ public abstract class VehicleBase : MonoBehaviour
 
     // Cached bounding sphere radius (half-diagonal of combined renderer bounds)
     private float _boundsRadius = -1f;
-    private Bounds _worldBounds;
     private WeaponPlatform[] _childWeaponPlatforms;
     private VehicleModule[] _childVehicleModules;
 
@@ -52,15 +51,16 @@ public abstract class VehicleBase : MonoBehaviour
         }
     }
 
-    public Bounds WorldBounds
+    /// <summary>
+    /// World-space center of this vehicle's bounding sphere (accounts for rotation).
+    /// </summary>
+    public Vector3 BoundsCenter
     {
         get
         {
             if (_boundsRadius < 0f)
                 RecalculateBounds();
-            // Update center to current position (size stays the same)
-            _worldBounds.center = CachedTransform.position + _localBoundsOffset;
-            return _worldBounds;
+            return CachedTransform.position + CachedTransform.TransformVector(_localBoundsOffset);
         }
     }
 
@@ -68,21 +68,35 @@ public abstract class VehicleBase : MonoBehaviour
 
     public void RecalculateBounds()
     {
-        Renderer[] renderers = GetComponentsInChildren<Renderer>();
-        if (renderers.Length > 0)
+        // Only use mesh renderers — exclude trails, particles, VFX which skew bounds
+        Bounds combined = default;
+        bool hasAny = false;
+        foreach (var r in GetComponentsInChildren<Renderer>())
         {
-            Bounds combined = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++)
-                combined.Encapsulate(renderers[i].bounds);
+            if (r is MeshRenderer || r is SkinnedMeshRenderer)
+            {
+                if (!hasAny)
+                {
+                    combined = r.bounds;
+                    hasAny = true;
+                }
+                else
+                {
+                    combined.Encapsulate(r.bounds);
+                }
+            }
+        }
 
-            _localBoundsOffset = combined.center - CachedTransform.position;
-            _worldBounds = combined;
+        if (hasAny)
+        {
+            // Store offset in local space so it rotates correctly with the ship
+            Vector3 worldOffset = combined.center - CachedTransform.position;
+            _localBoundsOffset = CachedTransform.InverseTransformVector(worldOffset);
             _boundsRadius = combined.extents.magnitude;
         }
         else
         {
             _localBoundsOffset = Vector3.zero;
-            _worldBounds = new Bounds(CachedTransform.position, Vector3.one);
             _boundsRadius = CachedTransform.localScale.magnitude * 0.5f;
         }
 
@@ -161,21 +175,34 @@ public abstract class VehicleBase : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns the closest point on this vehicle's bounding box to the given position.
+    /// Returns the closest point on this vehicle's bounding sphere to the given position.
     /// </summary>
     public Vector3 ClosestBoundsPoint(Vector3 position)
     {
-        return WorldBounds.ClosestPoint(position);
+        Vector3 center = BoundsCenter;
+        Vector3 toPosition = position - center;
+        float dist = toPosition.magnitude;
+
+        if (dist <= BoundsRadius || dist < 0.001f)
+            return position; // inside the sphere
+
+        return center + toPosition * (BoundsRadius / dist);
     }
 
     /// <summary>
-    /// Returns the squared distance from a position to the surface of this vehicle's bounds.
-    /// Returns 0 if the position is inside the bounds.
+    /// Returns the squared distance from a position to the surface of this vehicle's bounding sphere.
+    /// Returns 0 if the position is inside the sphere.
     /// </summary>
     public float SqrDistanceToBounds(Vector3 position)
     {
-        Vector3 closest = WorldBounds.ClosestPoint(position);
-        return (closest - position).sqrMagnitude;
+        Vector3 center = BoundsCenter;
+        float dist = (position - center).magnitude;
+        float surfaceDist = dist - BoundsRadius;
+
+        if (surfaceDist <= 0f)
+            return 0f; // inside the sphere
+
+        return surfaceDist * surfaceDist;
     }
 
     private int _lastDamageFrame = -1;
