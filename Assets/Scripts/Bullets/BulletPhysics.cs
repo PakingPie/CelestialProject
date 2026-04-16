@@ -59,7 +59,9 @@ public class BulletPhysics : MonoBehaviour
     private static List<VehicleBase> _nearbyTargets = new List<VehicleBase>(64);
     private static List<VehicleBase> _targetsInExplosion = new List<VehicleBase>(16);
     private static List<VehicleBase> _nearbyNeutrals = new List<VehicleBase>(32);
-    private static HashSet<VehicleBase> _damagedParents = new HashSet<VehicleBase>(64);
+
+    // Maximum expected bounds radius for query range padding
+    private const float MAX_BOUNDS_PADDING = 50f;
 
     void Awake()
     {
@@ -138,26 +140,27 @@ public class BulletPhysics : MonoBehaviour
             return;
 
         Vector3 myPosition = _cachedTransform.position;
+        float queryRange = ExplosionRadius + MAX_BOUNDS_PADDING;
 
-        // Get targets based on FireTarget faction
+        // Get targets based on FireTarget faction (padded range to catch large ships)
         if (UseSpatialGrid)
-            CombatRegistry.FindEnemiesInRange(myPosition, ExplosionRadius, FireTarget, _nearbyTargets);
+            CombatRegistry.FindEnemiesInRange(myPosition, queryRange, FireTarget, _nearbyTargets);
         else
-            CombatRegistry.GetNearbyEnemies(myPosition, ExplosionRadius, FireTarget, _nearbyTargets, true);
+            CombatRegistry.GetNearbyEnemies(myPosition, queryRange, FireTarget, _nearbyTargets, true);
 
         // Also check neutrals if we can damage asteroids
         if (CanDamageAsteroids)
         {
             if (UseSpatialGrid)
-                CombatRegistry.FindEnemiesInRange(myPosition, ExplosionRadius, Faction.Neutral, _nearbyNeutrals);
+                CombatRegistry.FindEnemiesInRange(myPosition, queryRange, Faction.Neutral, _nearbyNeutrals);
             else
-                CombatRegistry.GetNearbyEnemies(myPosition, ExplosionRadius, Faction.Neutral, _nearbyNeutrals, true);
+                CombatRegistry.GetNearbyEnemies(myPosition, queryRange, Faction.Neutral, _nearbyNeutrals, true);
 
             if (_nearbyNeutrals.Count > 0)
                 _nearbyTargets.AddRange(_nearbyNeutrals);
         }
 
-        // Find closest target within fuse distance
+        // Find closest target within fuse distance (using bounds-aware distance)
         bool fuseTriggered = false;
 
         for (int i = 0; i < _nearbyTargets.Count; i++)
@@ -165,7 +168,8 @@ public class BulletPhysics : MonoBehaviour
             VehicleBase target = _nearbyTargets[i];
             if (target == null) continue;
 
-            float distSqr = (target.CachedTransform.position - myPosition).sqrMagnitude;
+            // Distance to the surface of the target's bounding sphere
+            float distSqr = target.SqrDistanceToBounds(myPosition);
             if (distSqr <= _fuseDistSqr)
             {
                 fuseTriggered = true;
@@ -176,14 +180,14 @@ public class BulletPhysics : MonoBehaviour
         // Check if closest target is within fuse distance
         if (fuseTriggered)
         {
-            // Collect all targets in explosion radius
+            // Collect all targets in explosion radius (bounds-aware)
             _targetsInExplosion.Clear();
             for (int i = 0; i < _nearbyTargets.Count; i++)
             {
                 VehicleBase target = _nearbyTargets[i];
                 if (target == null) continue;
 
-                float distSqr = (target.CachedTransform.position - myPosition).sqrMagnitude;
+                float distSqr = target.SqrDistanceToBounds(myPosition);
                 if (distSqr <= _explosionRadiusSqr)
                 {
                     _targetsInExplosion.Add(target);
@@ -196,73 +200,13 @@ public class BulletPhysics : MonoBehaviour
 
     private void DestroyBulletWithDamage(Vector3 impactPoint, List<VehicleBase> targets)
     {
-        // Group VehicleModules and WeaponPlatforms by their parent vehicle to prevent multiple damage from same parent
-        _damagedParents.Clear();
-
         for (int i = 0; i < targets.Count; i++)
         {
             VehicleBase target = targets[i];
             if (target == null) continue;
 
-            // Determine the actual vehicle to damage
-            VehicleBase vehicleToDamage = null;
-
-            if (target is VehicleModule vehicleModule)
-            {
-                // For VehicleModule, get its parent vehicle
-                vehicleToDamage = vehicleModule.OwnerShip != null ? vehicleModule.OwnerShip.GetComponent<VehicleBase>() : null;
-            }
-            else if (target is WeaponPlatform weaponPlatform)
-            {
-                VehicleBase parentVehicle = weaponPlatform.OwnerShip != null
-                    ? weaponPlatform.OwnerShip.GetComponent<VehicleBase>()
-                    : null;
-
-                if (parentVehicle != null && !_damagedParents.Contains(parentVehicle))
-                {
-                    parentVehicle.TakeDamage(Damage, DamageType);
-                    _damagedParents.Add(parentVehicle);
-                }
-
-                if (!_damagedParents.Contains(weaponPlatform))
-                {
-                    weaponPlatform.TakeSelfDamage(Damage, DamageType);
-                    _damagedParents.Add(weaponPlatform);
-                }
-
-                continue;
-            }
-            else
-            {
-                // For other vehicles, damage directly
-                vehicleToDamage = target;
-            }
-
-            // Only damage if we haven't already damaged this parent
-            if (vehicleToDamage != null && !_damagedParents.Contains(vehicleToDamage))
-            {
-                vehicleToDamage.TakeDamage(Damage, DamageType);
-                _damagedParents.Add(vehicleToDamage);
-            }
-
-            // if (ownerShip != null && ownerShip.ShieldPoints > 0)
-            // {
-            //     Vector3 targetPos = ownerShip.CachedTransform.position;
-            //     Vector3 dir = (targetPos - impactPoint).normalized;
-
-            //     float targetRadius = GetTargetRadius(ownerShip);
-            //     float rayStartOffset = targetRadius * 2f;
-            //     float rayDistance = targetRadius * 3f;
-
-            //     Vector3 rayStart = targetPos - dir * rayStartOffset;
-
-            //     if (Physics.Raycast(rayStart, dir, out _hit, rayDistance, LayerMask.GetMask("Shield")))
-            //     {
-            //         ShieldHitEffect shieldEffect = _hit.collider.GetComponent<ShieldHitEffect>();
-            //         if (shieldEffect != null)
-            //             shieldEffect.GetHit(_hit);
-            //     }
-            // }
+            // Use bounds-aware impact: find closest surface point on target for VFX and damage routing
+            target.TakeDamageAtPoint(Damage, DamageType, impactPoint);
         }
 
         if (ExplodeOnImpact && _explodeFXPrefab != null)
@@ -309,21 +253,7 @@ public class BulletPhysics : MonoBehaviour
         }
     }
 
-    private float GetTargetRadius(VehicleBase target)
-    {
-        Renderer[] renderers = target.GetComponentsInChildren<Renderer>();
-        if (renderers.Length > 0)
-        {
-            Bounds bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++)
-            {
-                bounds.Encapsulate(renderers[i].bounds);
-            }
-            return bounds.extents.magnitude;
-        }
 
-        return target.CachedTransform.localScale.magnitude * 5f;
-    }
 
     private void DestroyBullet()
     {

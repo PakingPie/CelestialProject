@@ -60,14 +60,12 @@ public class EnemyVehicle : VehicleBase
 
     void OnEnable()
     {
-        if (!EnableModuleHits)
-            CombatRegistry.Register(this, FactionType);
+        CombatRegistry.Register(this, FactionType);
     }
 
     void OnDisable()
     {
-        if (!EnableModuleHits)
-            CombatRegistry.Unregister(this, FactionType);
+        CombatRegistry.Unregister(this, FactionType);
     }
 
     void OnDestroy()

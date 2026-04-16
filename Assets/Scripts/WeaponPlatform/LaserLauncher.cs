@@ -128,10 +128,15 @@ public class LaserLauncher : WeaponBase
         {
             if (LaserVFX != null)
             {
-                LaserVFX.SetVector3("StartPosition", LaserOrigin.position);
-                LaserVFX.SetVector3("EndPosition", Targeted.position);
+                Vector3 endPosition = Targeted.position;
+                var targetVehicle = Targeted.GetComponent<VehicleBase>();
+                if (targetVehicle != null)
+                    endPosition = targetVehicle.ClosestBoundsPoint(LaserOrigin.position);
 
-                float distance = Vector3.Distance(LaserOrigin.position, Targeted.position);
+                LaserVFX.SetVector3("StartPosition", LaserOrigin.position);
+                LaserVFX.SetVector3("EndPosition", endPosition);
+
+                float distance = Vector3.Distance(LaserOrigin.position, endPosition);
                 LaserVFX.SetVector2("NoiseUVScale", new Vector2(
                     1.0f,
                     Mathf.Max(1f, distance)
@@ -172,10 +177,11 @@ public class LaserLauncher : WeaponBase
             {
                 _laserDamageTimer = 0f;
 
+                Vector3 impactPoint = enemyVehicle.ClosestBoundsPoint(LaserOrigin.position);
+
                 if (enemyVehicle.ShieldPoints > 0)
                 {
-                    var ownerShip = enemyVehicle.OwnerShip.GetComponent<VehicleBase>();
-                    Vector3 dir = (ownerShip.transform.position - transform.position).normalized;
+                    Vector3 dir = (impactPoint - transform.position).normalized;
                     Physics.Raycast(transform.position, dir, out _hit);
 
                     if (_hit.collider != null && _hit.collider.GetComponent<ShieldHitEffect>())
@@ -183,7 +189,7 @@ public class LaserLauncher : WeaponBase
                         _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
                     }
                 }
-                enemyVehicle.TakeDamage(LaserDPS, LaserType);
+                enemyVehicle.TakeDamageAtPoint(LaserDPS, LaserType, impactPoint);
             }
         }
         else

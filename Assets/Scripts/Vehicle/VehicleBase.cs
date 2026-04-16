@@ -36,6 +36,148 @@ public abstract class VehicleBase : MonoBehaviour
         }
     }
 
+    // Cached bounding sphere radius (half-diagonal of combined renderer bounds)
+    private float _boundsRadius = -1f;
+    private Bounds _worldBounds;
+    private WeaponPlatform[] _childWeaponPlatforms;
+    private VehicleModule[] _childVehicleModules;
+
+    public float BoundsRadius
+    {
+        get
+        {
+            if (_boundsRadius < 0f)
+                RecalculateBounds();
+            return _boundsRadius;
+        }
+    }
+
+    public Bounds WorldBounds
+    {
+        get
+        {
+            if (_boundsRadius < 0f)
+                RecalculateBounds();
+            // Update center to current position (size stays the same)
+            _worldBounds.center = CachedTransform.position + _localBoundsOffset;
+            return _worldBounds;
+        }
+    }
+
+    private Vector3 _localBoundsOffset;
+
+    public void RecalculateBounds()
+    {
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        if (renderers.Length > 0)
+        {
+            Bounds combined = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+                combined.Encapsulate(renderers[i].bounds);
+
+            _localBoundsOffset = combined.center - CachedTransform.position;
+            _worldBounds = combined;
+            _boundsRadius = combined.extents.magnitude;
+        }
+        else
+        {
+            _localBoundsOffset = Vector3.zero;
+            _worldBounds = new Bounds(CachedTransform.position, Vector3.one);
+            _boundsRadius = CachedTransform.localScale.magnitude * 0.5f;
+        }
+
+        // Cache child weapon platforms and modules for damage routing
+        _childWeaponPlatforms = GetComponentsInChildren<WeaponPlatform>();
+        _childVehicleModules = GetComponentsInChildren<VehicleModule>();
+    }
+
+    /// <summary>
+    /// Takes damage and routes to the nearest child WeaponPlatform/VehicleModule at the impact point.
+    /// </summary>
+    public virtual bool TakeDamageAtPoint(int damage, AmmoType ammoType, Vector3 impactPoint)
+    {
+        // Track whether a VehicleModule handled damage (it forwards to parent internally)
+        bool moduleHandledDamage = false;
+
+        // Route to closest child VehicleModule if near impact
+        // Check this first because VehicleModule.TakeDamage forwards to the root vehicle
+        if (_childVehicleModules != null)
+        {
+            float bestDistSqr = float.MaxValue;
+            VehicleModule closest = null;
+            for (int i = 0; i < _childVehicleModules.Length; i++)
+            {
+                var vm = _childVehicleModules[i];
+                if (vm == null) continue;
+                float distSqr = (vm.CachedTransform.position - impactPoint).sqrMagnitude;
+                if (distSqr < bestDistSqr)
+                {
+                    bestDistSqr = distSqr;
+                    closest = vm;
+                }
+            }
+            if (closest != null)
+            {
+                float moduleRadius = closest.BoundsRadius;
+                if (bestDistSqr <= moduleRadius * moduleRadius * 4f)
+                {
+                    // VehicleModule.TakeDamage already forwards damage to the root vehicle
+                    closest.TakeDamage(damage, ammoType);
+                    moduleHandledDamage = true;
+                }
+            }
+        }
+
+        // Only damage root directly if no VehicleModule already forwarded the damage
+        if (!moduleHandledDamage)
+            TakeDamage(damage, ammoType);
+
+        // Route to closest child WeaponPlatform if near impact
+        if (_childWeaponPlatforms != null)
+        {
+            float bestDistSqr = float.MaxValue;
+            WeaponPlatform closest = null;
+            for (int i = 0; i < _childWeaponPlatforms.Length; i++)
+            {
+                var wp = _childWeaponPlatforms[i];
+                if (wp == null || wp.HitPoints <= 0) continue;
+                float distSqr = (wp.CachedTransform.position - impactPoint).sqrMagnitude;
+                if (distSqr < bestDistSqr)
+                {
+                    bestDistSqr = distSqr;
+                    closest = wp;
+                }
+            }
+            if (closest != null)
+            {
+                // Only damage turret if impact is reasonably close to it
+                float turretRadius = closest.BoundsRadius;
+                if (bestDistSqr <= turretRadius * turretRadius * 4f) // within 2x turret radius
+                    closest.TakeSelfDamage(damage, ammoType);
+            }
+        }
+
+        return HitPoints > 0;
+    }
+
+    /// <summary>
+    /// Returns the closest point on this vehicle's bounding box to the given position.
+    /// </summary>
+    public Vector3 ClosestBoundsPoint(Vector3 position)
+    {
+        return WorldBounds.ClosestPoint(position);
+    }
+
+    /// <summary>
+    /// Returns the squared distance from a position to the surface of this vehicle's bounds.
+    /// Returns 0 if the position is inside the bounds.
+    /// </summary>
+    public float SqrDistanceToBounds(Vector3 position)
+    {
+        Vector3 closest = WorldBounds.ClosestPoint(position);
+        return (closest - position).sqrMagnitude;
+    }
+
     private int _lastDamageFrame = -1;
     private HashSet<int> _damageSourcesThisFrame = new HashSet<int>();
 

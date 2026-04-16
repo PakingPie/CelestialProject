@@ -168,17 +168,19 @@ public class AAMissile : MonoBehaviour
 
         if (target != null)
         {
-            Vector3 dir = target.position - transform.position;
+            // Bounds-aware detonation: check distance to target surface, not center
+            VehicleBase targetVehicle = target.GetComponent<VehicleBase>();
+            float distToSurface;
+            if (targetVehicle != null)
+            {
+                distToSurface = Mathf.Sqrt(targetVehicle.SqrDistanceToBounds(transform.position));
+            }
+            else
+            {
+                distToSurface = Vector3.Distance(target.position, transform.position);
+            }
 
-            // RaycastHit hit;
-            // Physics.Raycast(transform.position, Vector3.Normalize(dir), out hit);
-            // if (hit.collider != null)
-            // {
-            //     if (hit.collider.GetComponent<ShieldHitEffect>())
-            //         hit.collider.GetComponent<ShieldHitEffect>().GetHit(hit);
-            // }
-
-            if (dir.magnitude <= DetonationRadius)
+            if (distToSurface <= DetonationRadius)
             {
                 HitTarget();
             }
@@ -288,10 +290,11 @@ public class AAMissile : MonoBehaviour
 
     void HitTarget()
     {
+        Vector3 impactPoint = transform.position;
+
         if (ExplodeRadius > 0)
         {
             // Get hostile factions based on who fired the missile
-            // Use bitwise check since Faction is a flags enum
             GlobalHelper.Faction targetFactions;
             if ((SourceFaction & (GlobalHelper.Faction.Player | GlobalHelper.Faction.Ally)) != 0)
             {
@@ -306,47 +309,21 @@ public class AAMissile : MonoBehaviour
             GlobalHelper.Faction combinedFactions = targetFactions;
             if (CanDamageAsteroids)
                 combinedFactions |= GlobalHelper.Faction.Neutral;
-            CombatRegistry.GetNearbyEnemies(transform.position, ExplodeRadius, combinedFactions, nearbyTargets, true);
 
-            // Group VehicleModules and WeaponPlatforms by their parent vehicle to prevent multiple damage from same parent
-            HashSet<VehicleBase> damagedParents = new HashSet<VehicleBase>();
+            // Pad query range to catch large ships whose surface is within explosion radius
+            float queryRange = ExplodeRadius + 50f;
+            CombatRegistry.GetNearbyEnemies(impactPoint, queryRange, combinedFactions, nearbyTargets, true);
 
-            foreach (VehicleBase vehicle in nearbyTargets)
+            for (int i = 0; i < nearbyTargets.Count; i++)
             {
-                if (vehicle is VehicleModule vehicleModule)
-                {
-                    // For VehicleModule, get its parent vehicle
-                    VehicleBase parentVehicle = vehicleModule.OwnerShip?.GetComponent<VehicleBase>();
-                    if (parentVehicle != null && !damagedParents.Contains(parentVehicle))
-                    {
-                        parentVehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
-                        damagedParents.Add(parentVehicle);
-                    }
-                }
-                else if (vehicle is WeaponPlatform weaponPlatform)
-                {
-                    // For WeaponPlatform, get its parent vehicle
-                    VehicleBase parentVehicle = weaponPlatform.OwnerShip != null ? weaponPlatform.OwnerShip.GetComponent<VehicleBase>() : null;
-                    if (parentVehicle != null && !damagedParents.Contains(parentVehicle))
-                    {
-                        parentVehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
-                        damagedParents.Add(parentVehicle);
-                    }
+                VehicleBase vehicle = nearbyTargets[i];
+                if (vehicle == null) continue;
 
-                    if (!damagedParents.Contains(vehicle))
-                    {
-                        weaponPlatform.TakeSelfDamage(Damage, GlobalHelper.AmmoType.Explosive);
-                        damagedParents.Add(vehicle);
-                    }
-                }
-                else
+                // Bounds-aware explosion radius check
+                float distSqr = vehicle.SqrDistanceToBounds(impactPoint);
+                if (distSqr <= (float)ExplodeRadius * ExplodeRadius)
                 {
-                    // For other vehicles, damage directly if not already damaged
-                    if (!damagedParents.Contains(vehicle))
-                    {
-                        vehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
-                        damagedParents.Add(vehicle);
-                    }
+                    vehicle.TakeDamageAtPoint(Damage, GlobalHelper.AmmoType.Explosive, impactPoint);
                 }
             }
         }
@@ -355,7 +332,7 @@ public class AAMissile : MonoBehaviour
             VehicleBase targetVehicle = target.GetComponent<VehicleBase>();
             if (targetVehicle != null)
             {
-                targetVehicle.TakeDamage(Damage, GlobalHelper.AmmoType.Explosive);
+                targetVehicle.TakeDamageAtPoint(Damage, GlobalHelper.AmmoType.Explosive, impactPoint);
             }
         }
 

@@ -23,18 +23,29 @@ public class WeaponPlatform : VehicleBase
     private float _armorRegenTimer = 0f;
     private float _lastDamageTime = 0f;
 
+    private bool _registeredWithCombat = false;
+
     void OnEnable()
     {
-        // Register with CombatRegistry
-        if (Application.isPlaying)
+        if (!Application.isPlaying) return;
+
+        // Only register if this is a standalone weapon (no parent vehicle to route damage through)
+        if (OwnerShip == null || OwnerShip == gameObject || OwnerShip.GetComponent<VehicleBase>() == null)
+        {
             CombatRegistry.Register(this, FactionType);
+            _registeredWithCombat = true;
+        }
     }
 
     void OnDisable()
     {
-        // Unregister from CombatRegistry
-        if (Application.isPlaying)
+        if (!Application.isPlaying) return;
+
+        if (_registeredWithCombat)
+        {
             CombatRegistry.Unregister(this, FactionType);
+            _registeredWithCombat = false;
+        }
     }
 
     void Start()

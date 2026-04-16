@@ -9,18 +9,29 @@ public class VehicleModule : VehicleBase
     [Header("Damage Multiplier")]
     public float DamageMultiplier = 1f;
 
+    private bool _registeredWithCombat = false;
+
     void OnEnable()
     {
-        // Register with CombatRegistry
-        if (Application.isPlaying)
+        if (!Application.isPlaying) return;
+
+        // Only register if this is standalone (no parent vehicle to route damage through)
+        if (OwnerShip == null || OwnerShip == gameObject || OwnerShip.GetComponent<VehicleBase>() == null)
+        {
             CombatRegistry.Register(this, FactionType);
+            _registeredWithCombat = true;
+        }
     }
 
     void OnDisable()
     {
-        // Unregister from CombatRegistry
-        if (Application.isPlaying)
+        if (!Application.isPlaying) return;
+
+        if (_registeredWithCombat)
+        {
             CombatRegistry.Unregister(this, FactionType);
+            _registeredWithCombat = false;
+        }
     }
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
