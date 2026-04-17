@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f79a97a8f3d566438e5fbb617fd1c0f, type: 3}
   m_Name: Enemy Boid Setting 1
   m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
-  minSpeed: 20
-  maxSpeed: 40
+  minSpeed: 30
+  maxSpeed: 50
   perceptionRadius: 500
-  maxSteerForce: 1
+  maxSteerForce: 2
   alignWeight: 0.5
   cohesionWeight: 0.3
   separateWeight: 10
@@ -74,11 +74,14 @@ MonoBehaviour:
   strengthWeight: 0.3
   fleeSpeedMultiplier: 1.5
   confidentFormationWeight: 0.5
+  cautiousSeparationMult: 1.5
+  cautiousEngageRangeMult: 0.6
+  fleetMoraleInfluence: 0.15
   useLeash: 1
   leashRadius: 5000
   leashSoftEdge: 0.85
   leashStrength: 2
-  moorageType: 2
-  startDocked: 1
+  moorageType: 0
+  startDocked: 0
   launchInterval: 0.5
   parkedDriftSpeed: 0.5

@@ -2897,6 +2897,7 @@ MonoBehaviour:
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 0}
   HeightRange: {x: -2500, y: 2500}
+  LeashCenter: {fileID: 0}
   syncCombatState: 1
   _targetManager: {fileID: 0}
   _targetPriorityMatrix: {fileID: 0}
@@ -5820,7 +5821,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 735672076}
-  m_Mesh: {fileID: -2432090755550338912, guid: fef1d3afdd6ddca45a898e94c849dc01, type: 3}
+  m_Mesh: {fileID: -2432090755550338912, guid: 7f1d94331d510fc43863349038f683c6, type: 3}
 --- !u!4 &735672080
 Transform:
   m_ObjectHideFlags: 0
@@ -7996,13 +7997,14 @@ GameObject:
   m_Component:
   - component: {fileID: 1041029948}
   - component: {fileID: 1041029949}
+  - component: {fileID: 1041029950}
   m_Layer: 0
   m_Name: Asteroids
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1041029948
 Transform:
   m_ObjectHideFlags: 0
@@ -8025,7 +8027,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1041029947}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b5d1c8d1e085ae74788c0b37f7fe2bb9, type: 3}
   m_Name: 
@@ -8035,7 +8037,7 @@ MonoBehaviour:
   outerRadius: 10000
   ringThickness: 200
   planetCenter: {fileID: 1041029948}
-  asteroidCount: 1000
+  asteroidCount: 2000
   seed: 42
   scaleRange: {x: 5, y: 20}
   asteroidMaterial: {fileID: 2011843522}
@@ -8054,6 +8056,28 @@ MonoBehaviour:
   lowResolution: 4
   meshVariantCount: 4
   showDebugInfo: 1
+--- !u!114 &1041029950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1041029947}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: feff91e2a25e7bf43bfd54e833fc03d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AsteroidSpawner
+  asteroidCount: 10
+  spawnAreaSize: {x: 100, y: 100, z: 100}
+  minDistanceBetweenAsteroids: 10
+  asteroidPrefabs: []
+  scaleRange: {x: 2, y: 8}
+  asteroidMaterials: []
+  destructionFXPrefab: {fileID: 0}
+  vfxScaleFactor: 1
+  healthRange: {x: 5, y: 20}
+  spawnedAsteroids: []
 --- !u!1 &1041950082
 GameObject:
   m_ObjectHideFlags: 0
@@ -9889,6 +9913,7 @@ MonoBehaviour:
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 7103346325574244501}
   HeightRange: {x: -2500, y: 2500}
+  LeashCenter: {fileID: 0}
   syncCombatState: 1
   _targetManager: {fileID: 0}
   _targetPriorityMatrix: {fileID: 0}
@@ -11387,7 +11412,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1456225715
 Transform:
   m_ObjectHideFlags: 0
@@ -12283,7 +12308,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1556059681
 Transform:
   m_ObjectHideFlags: 0
@@ -16744,6 +16769,7 @@ MonoBehaviour:
   computeShader: {fileID: 7200000, guid: aeeb2b9395aaa9646b4a883539e0bcc3, type: 3}
   target: {fileID: 7103346325574244501}
   HeightRange: {x: -2500, y: 2500}
+  LeashCenter: {fileID: 0}
   syncCombatState: 1
   _targetManager: {fileID: 0}
   _targetPriorityMatrix: {fileID: 0}
