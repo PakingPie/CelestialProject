@@ -16,7 +16,12 @@ public class AsteroidSpawner : MonoBehaviour
     [Tooltip("Drag asteroid prefabs here. A random one is chosen per spawn.")]
     [SerializeField] private GameObject[] asteroidPrefabs;
     [SerializeField] private Vector2 scaleRange = new Vector2(2f, 8f);
+    [SerializeField] private List<Material> asteroidMaterials;
     [SerializeField] private VisualEffect destructionFXPrefab;
+    [SerializeField, Range(0.01f, 2f)] private float vfxScaleFactor = 1f;
+    
+    [Header("Health Settings")]
+    [SerializeField] private Vector2Int healthRange = new Vector2Int(5, 20);
     
     [SerializeField, HideInInspector]
     private List<GameObject> spawnedAsteroids = new List<GameObject>();
@@ -101,6 +106,19 @@ public class AsteroidSpawner : MonoBehaviour
         float scale = Random.Range(scaleRange.x, scaleRange.y);
         asteroidRoot.transform.localScale = Vector3.one * scale;
 
+        if (asteroidMaterials != null && asteroidMaterials.Count > 0)
+        {
+            Material mat = asteroidMaterials[Random.Range(0, asteroidMaterials.Count)];
+            Renderer[] renderers = asteroidRoot.GetComponentsInChildren<Renderer>();
+            foreach (Renderer renderer in renderers)
+            {
+                Material[] mats = renderer.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++)
+                    mats[i] = mat;
+                renderer.sharedMaterials = mats;
+            }
+        }
+
         // Add gameplay components if not already on the prefab
         if (asteroidRoot.GetComponent<ObstacleEntity>() == null)
             asteroidRoot.AddComponent<ObstacleEntity>();
@@ -111,6 +129,13 @@ public class AsteroidSpawner : MonoBehaviour
 
         if (destructionFXPrefab != null)
             asteroid.SetDestructionFX(destructionFXPrefab);
+
+        asteroid.SetVFXScaleFactor(vfxScaleFactor);
+
+        // Scale health based on asteroid size
+        float t = Mathf.InverseLerp(scaleRange.x, scaleRange.y, scale);
+        int health = Mathf.RoundToInt(Mathf.Lerp(healthRange.x, healthRange.y, t));
+        asteroid.Initialize(health);
 
         spawnedAsteroids.Add(asteroidRoot);
     }

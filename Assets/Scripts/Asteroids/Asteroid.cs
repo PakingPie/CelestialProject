@@ -32,6 +32,9 @@ public class Asteroid : VehicleBase
     private Color _originalColor;
     private float _hitFlashTimer;
     private const float HIT_FLASH_DURATION = 0.1f;
+    
+    // VFX scale
+    private float _vfxScaleFactor = 1f;
 
     // Velocity tracking
     private Vector3 _lastPosition;
@@ -120,6 +123,14 @@ public class Asteroid : VehicleBase
     {
         _destructionFXPrefab = fxPrefab;
     }
+
+    /// <summary>
+    /// Set the scale factor applied to the destruction VFX
+    /// </summary>
+    public void SetVFXScaleFactor(float factor)
+    {
+        _vfxScaleFactor = factor;
+    }
     
     /// <summary>
     /// Handle damage from bullets
@@ -196,7 +207,9 @@ public class Asteroid : VehicleBase
         if (_destructionFXPrefab != null)
         {
             VisualEffect fx = Instantiate(_destructionFXPrefab, transform.position, Quaternion.identity);
-            fx.transform.localScale = transform.localScale;
+            fx.Stop();
+            fx.transform.localScale = Vector3.one * _vfxScaleFactor;
+            fx.Reinit();
             fx.Play();
         }
         
