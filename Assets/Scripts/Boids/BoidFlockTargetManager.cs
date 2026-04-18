@@ -22,7 +22,7 @@ public class BoidFlockTargetManager : MonoBehaviour
     [SerializeField] private float _detectionRadius = 5000f;
     [Tooltip("Ratio of combat engage radius to detection radius (used when Combat Engage Radius is 0).")]
     [Range(0.1f, 1f)]
-    [SerializeField] private float _combatRadiusRatio = 0.7f;
+    [SerializeField] private float _combatRadiusRatio = 0.5f;
     [Tooltip("Max range at which boids engage targets. Tracked targets disengage at detection radius (hysteresis). Set to 0 to use Detection Radius × Combat Radius Ratio.")]
     [SerializeField] private float _combatEngageRadius = 0f;
     [SerializeField] private float _detectionInterval = 0.2f;
