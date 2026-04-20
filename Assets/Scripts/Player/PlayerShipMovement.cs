@@ -13,6 +13,8 @@ public class PlayerShipMovement : MonoBehaviour
     [Tooltip("Reverse thrust multiplier (0.5 = 50% of forward thrust)")]
     [Range(0.1f, 1f)]
     public float reverseThrustRatio = 0.5f;
+    [Tooltip("How quickly target speed changes when pressing Shift/Ctrl (units/s per second)")]
+    public float speedChangeRate = 40f;
 
     [Header("Speed Limiter")]
     [Tooltip("Enable speed limiter (cruise control)")]
@@ -35,9 +37,9 @@ public class PlayerShipMovement : MonoBehaviour
     [Tooltip("Linear drag (0 = no drag, realistic space)")]
     [Range(0f, 1f)]
     public float linearDrag = 0f;
-    [Tooltip("Optional space friction for game feel (not realistic but useful)")]
+    [Tooltip("Optional space friction for game feel (not realistic but useful). Set 0 for true Newtonian.")]
     [Range(0f, 0.5f)]
-    public float spaceFriction = 0.02f;
+    public float spaceFriction = 0f;
 
     [Header("Vertical Thrust")]
     [Tooltip("Enable direct vertical thrust")]
@@ -79,14 +81,11 @@ public class PlayerShipMovement : MonoBehaviour
     public bool autoKillRotation = true;
 
     [Header("Flight Assist")]
-    [Tooltip("Enable flight assist (auto-counters drift and maintains forward speed)")]
+    [Tooltip("Enable flight assist (auto-counters lateral drift)")]
     public bool flightAssist = false;
     [Tooltip("Flight assist strength")]
     [Range(0f, 1f)]
     public float flightAssistStrength = 0.5f;
-    [Tooltip("How aggressively flight assist maintains forward speed (units/s² as fraction of max thrust)")]
-    [Range(0.1f, 1f)]
-    public float speedMaintenanceStrength = 0.5f;
 
     [Header("Velocity Coupling")]
     [Tooltip("How much velocity rotates with the ship (0 = full drift, 1 = full coupling)")]
@@ -133,15 +132,18 @@ public class PlayerShipMovement : MonoBehaviour
     
     private Quaternion previousRotation;
 
-    // Flight assist: maintained forward speed
-    private float maintainedForwardSpeed = 0f;
+    // Target speed model
+    private float targetSpeed = 0f;
+    private float autoThrottleAmount = 0f; // -1 to 1, computed each frame for VFX/HUD
+    private bool isFullStopping = false;
 
 
     // Properties for external access
     public Vector3 Velocity => velocity;
     public float Speed => velocity.magnitude;
     public float SpeedLimit => speedLimit;
-    public float ThrottlePercent => smoothedThrottleInput;
+    public float TargetSpeed => targetSpeed;
+    public float ThrottlePercent => autoThrottleAmount;
     public Vector3 AngularVelocity => angularVelocity;
 
     // Useful for UI - shows velocity relative to ship orientation
@@ -168,6 +170,7 @@ public class PlayerShipMovement : MonoBehaviour
         ReadRawInput();
         SmoothInput();
         UpdateSpeedLimit(deltaTime);
+        UpdateTargetSpeed(deltaTime);
         ApplyThrust(deltaTime);
         ApplyRotationalPhysics(deltaTime);
 
@@ -244,7 +247,7 @@ public class PlayerShipMovement : MonoBehaviour
             rawRollInput -= kb.eKey.isPressed ? 1f : 0f;
             rawRollInput = Mathf.Clamp(rawRollInput, -1f, 1f);
 
-            // Shift/Ctrl: Throttle (now controls thrust, not speed directly)
+            // Shift/Ctrl: Adjust target speed
             rawThrottleInput += kb.leftShiftKey.isPressed ? 1f : 0f;
             rawThrottleInput -= kb.leftCtrlKey.isPressed ? 1f : 0f;
             rawThrottleInput = Mathf.Clamp(rawThrottleInput, -1f, 1f);
@@ -276,10 +279,14 @@ public class PlayerShipMovement : MonoBehaviour
                 flightAssist = !flightAssist;
             }
 
-            // B: Full stop (kill all velocity)
+            // B: Full stop (gradual deceleration to zero)
             if (kb.bKey.isPressed)
             {
                 ApplyFullStop();
+            }
+            else if (kb.bKey.wasReleasedThisFrame)
+            {
+                isFullStopping = false;
             }
         }
 
@@ -308,67 +315,73 @@ public class PlayerShipMovement : MonoBehaviour
         }
     }
 
+    private void UpdateTargetSpeed(float deltaTime)
+    {
+        // Throttle input adjusts target speed
+        if (Mathf.Abs(smoothedThrottleInput) > 0.01f)
+        {
+            isFullStopping = false; // Manual input cancels full stop
+            targetSpeed += smoothedThrottleInput * speedChangeRate * deltaTime;
+        }
+
+        // Clamp target speed: can go negative (reverse) up to reverse ratio of speed limit
+        float maxReverse = speedLimit * reverseThrustRatio;
+        targetSpeed = Mathf.Clamp(targetSpeed, -maxReverse, speedLimit);
+
+        // Snap to zero if very close
+        if (Mathf.Abs(targetSpeed) < 0.5f && Mathf.Abs(smoothedThrottleInput) < 0.01f)
+        {
+            targetSpeed = 0f;
+        }
+    }
+
     private void ApplyThrust(float deltaTime)
     {
         Vector3 thrustAcceleration = Vector3.zero;
 
-        // Forward/Backward thrust
-        if (Mathf.Abs(smoothedThrottleInput) > 0.01f)
+        // Auto-throttle: compute thrust to reach target speed along ship forward
+        float currentForwardSpeed = Vector3.Dot(velocity, transform.forward);
+        float speedError = targetSpeed - currentForwardSpeed;
+
+        if (Mathf.Abs(speedError) > 0.1f)
         {
             float thrustMagnitude;
-            if (smoothedThrottleInput > 0f)
+            if (speedError > 0f)
             {
-                // Forward thrust
-                thrustMagnitude = smoothedThrottleInput * maxThrustForce;
+                // Need to speed up
+                thrustMagnitude = Mathf.Min(speedError / deltaTime, maxThrustForce);
+                autoThrottleAmount = thrustMagnitude / maxThrustForce;
             }
             else
             {
-                // Reverse thrust (reduced power)
-                thrustMagnitude = smoothedThrottleInput * maxThrustForce * reverseThrustRatio;
+                // Need to slow down
+                float maxBrake = maxThrustForce * reverseThrustRatio;
+                // Full stop uses full braking power
+                if (isFullStopping) maxBrake = maxThrustForce * 0.8f;
+                thrustMagnitude = Mathf.Max(speedError / deltaTime, -maxBrake);
+                autoThrottleAmount = thrustMagnitude / maxThrustForce;
             }
             thrustAcceleration += transform.forward * thrustMagnitude;
         }
+        else
+        {
+            autoThrottleAmount = 0f;
+        }
 
-        // Vertical thrust
+        // Vertical thrust (still direct manual control)
         if (enableVerticalThrust && Mathf.Abs(smoothedVerticalInput) > 0.01f)
         {
             thrustAcceleration += transform.up * smoothedVerticalInput * verticalThrustForce;
         }
 
-        // Strafe thrust
+        // Strafe thrust (still direct manual control)
         if (enableStrafe && Mathf.Abs(smoothedStrafeInput) > 0.01f)
         {
             thrustAcceleration += transform.right * smoothedStrafeInput * strafeThrustForce;
         }
 
-        // Apply acceleration to velocity (F = ma, assuming m = 1)
-        // Projected thrust clamping: allow direction change at speed limit, block speed increase
-        if (enableSpeedLimiter && velocity.magnitude >= speedLimit)
-        {
-            Vector3 deltaV = thrustAcceleration * deltaTime;
-            Vector3 newVelocity = velocity + deltaV;
-            // Only allow the component that doesn't increase speed
-            if (newVelocity.magnitude > velocity.magnitude)
-            {
-                // Project deltaV onto velocity direction and remove the positive (speed-increasing) part
-                Vector3 velocityDir = velocity.normalized;
-                float speedIncreasing = Vector3.Dot(deltaV, velocityDir);
-                if (speedIncreasing > 0f)
-                {
-                    deltaV -= velocityDir * speedIncreasing;
-                }
-            }
-            velocity += deltaV;
-            // Clamp to speed limit in case of floating point drift
-            if (velocity.magnitude > speedLimit)
-            {
-                velocity = velocity.normalized * speedLimit;
-            }
-        }
-        else
-        {
-            velocity += thrustAcceleration * deltaTime;
-        }
+        // Apply acceleration to velocity
+        velocity += thrustAcceleration * deltaTime;
 
         // Absolute max speed cap (safety net)
         if (velocity.sqrMagnitude > 0.01f)
@@ -376,16 +389,16 @@ public class PlayerShipMovement : MonoBehaviour
             velocity = Vector3.ClampMagnitude(velocity, maxSpeedLimit * 2f);
         }
 
-        // Update engine visuals based on throttle, the VFX has EngineParticleLifeTime(float) and EngineParticleSize(Vector2)
+        // Update engine visuals based on auto-throttle effort
         if (EngineObjects != null)
         {
+            float vfxThrottle = Mathf.Clamp01(autoThrottleAmount);
             foreach (var engine in EngineObjects)
             {
                 var vfx = engine.GetComponent<UnityEngine.VFX.VisualEffect>();
                 if (vfx != null)
                 {
-                    vfx.SetFloat("EngineParticleLifeTime", Mathf.Lerp(0.1f, 1f, smoothedThrottleInput));
-                    // vfx.SetVector2("EngineParticleSize", new Vector2(Mathf.Lerp(0.1f, 1f, smoothedThrottleInput), Mathf.Lerp(0.1f, 1f, smoothedThrottleInput)));
+                    vfx.SetFloat("EngineParticleLifeTime", Mathf.Lerp(0.1f, 1f, vfxThrottle));
                 }
             }
         }
@@ -514,7 +527,8 @@ public class PlayerShipMovement : MonoBehaviour
     {
         if (!flightAssist || flightAssistStrength <= 0f) return;
 
-        // Flight assist: kill lateral drift + maintain forward speed
+        // Flight assist: kill lateral drift only
+        // Forward speed is now managed by the target speed system
 
         Vector3 forwardVelocity = Vector3.Project(velocity, transform.forward);
         Vector3 lateralVelocity = velocity - forwardVelocity;
@@ -530,23 +544,6 @@ public class PlayerShipMovement : MonoBehaviour
         {
             Vector3 upDrift = Vector3.Project(lateralVelocity, transform.up);
             velocity -= upDrift * flightAssistStrength * deltaTime * 2f;
-        }
-
-        // Update maintained speed: manual throttle input overrides the maintained speed
-        if (Mathf.Abs(smoothedThrottleInput) > 0.1f)
-        {
-            // Player is actively thrusting — update maintained speed to current forward speed
-            maintainedForwardSpeed = Vector3.Dot(velocity, transform.forward);
-        }
-
-        // Auto-thrust to maintain forward speed when no throttle input
-        if (Mathf.Abs(smoothedThrottleInput) < 0.1f && Mathf.Abs(maintainedForwardSpeed) > 0.5f)
-        {
-            float currentForwardSpeed = Vector3.Dot(velocity, transform.forward);
-            float speedError = maintainedForwardSpeed - currentForwardSpeed;
-            float correctionForce = maxThrustForce * speedMaintenanceStrength;
-            float correction = Mathf.Clamp(speedError, -correctionForce * deltaTime, correctionForce * deltaTime);
-            velocity += transform.forward * correction;
         }
     }
 
@@ -583,30 +580,30 @@ public class PlayerShipMovement : MonoBehaviour
         currentVelocity = velocity;
         currentSpeed = velocity.magnitude;
         currentAngularVelocity = angularVelocity;
-        throttlePercent = smoothedThrottleInput;
+        throttlePercent = autoThrottleAmount;
     }
 
     private void ApplyFullStop()
     {
-        // Reset maintained speed so flight assist doesn't re-accelerate
-        maintainedForwardSpeed = 0f;
+        // Gradual deceleration — handled by setting targetSpeed = 0
+        // and letting auto-throttle brake. Also kill lateral velocity.
+        targetSpeed = 0f;
+        isFullStopping = true;
 
-        // Apply braking thrust opposite to current velocity
-        if (velocity.sqrMagnitude > 0.1f)
+        // Also brake lateral velocity (not just forward)
+        Vector3 forwardComponent = Vector3.Project(velocity, transform.forward);
+        Vector3 lateralVelocity = velocity - forwardComponent;
+        if (lateralVelocity.sqrMagnitude > 0.1f)
         {
-            Vector3 brakeDirection = -velocity.normalized;
             float brakeForce = maxThrustForce * 0.8f;
-            velocity += brakeDirection * brakeForce * Time.deltaTime;
-
-            // Snap to zero if very slow
-            if (velocity.sqrMagnitude < 1f)
-            {
-                velocity = Vector3.zero;
-            }
+            velocity -= lateralVelocity.normalized * Mathf.Min(brakeForce * Time.deltaTime, lateralVelocity.magnitude);
         }
-        else
+
+        // Snap to zero if very slow
+        if (velocity.sqrMagnitude < 0.5f)
         {
             velocity = Vector3.zero;
+            isFullStopping = false;
         }
     }
 
@@ -644,9 +641,9 @@ public class PlayerShipMovement : MonoBehaviour
     {
         float currentSpeed = velocity.magnitude;
         if (currentSpeed >= speedLimit) return 0f;
-        if (smoothedThrottleInput <= 0f) return float.PositiveInfinity;
+        if (targetSpeed <= currentSpeed) return float.PositiveInfinity;
 
-        float acceleration = smoothedThrottleInput * maxThrustForce;
+        float acceleration = maxThrustForce;
         float remainingSpeed = speedLimit - currentSpeed;
         return remainingSpeed / acceleration;
     }
@@ -692,15 +689,12 @@ public class PlayerShipMovement : MonoBehaviour
 
         GUI.Label(new Rect(x, y, w, lineH), $"Speed: {speed:F1} / {speedLimit:F0}", labelStyle);
         y += lineH;
-        GUI.Label(new Rect(x, y, w, lineH), $"Fwd Speed: {fwdSpeed:F1}", labelStyle);
+        GUI.Label(new Rect(x, y, w, lineH), $"Target: {targetSpeed:F1}", labelStyle);
         y += lineH;
-        GUI.Label(new Rect(x, y, w, lineH), $"Throttle: {smoothedThrottleInput * 100f:F0}%", labelStyle);
+        GUI.Label(new Rect(x, y, w, lineH), $"Throttle: {autoThrottleAmount * 100f:F0}%", labelStyle);
         y += lineH;
         GUI.Label(new Rect(x, y, w, lineH), $"Flight Assist: {(flightAssist ? "ON" : "OFF")}", labelStyle);
         y += lineH;
-        if (flightAssist && Mathf.Abs(maintainedForwardSpeed) > 0.5f)
-            GUI.Label(new Rect(x, y, w, lineH), $"Cruise: {maintainedForwardSpeed:F1}", labelStyle);
-        else
-            GUI.Label(new Rect(x, y, w, lineH), "Cruise: --", labelStyle);
+        GUI.Label(new Rect(x, y, w, lineH), isFullStopping ? "FULL STOP" : "", labelStyle);
     }
 }
