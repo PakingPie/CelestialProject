@@ -265,11 +265,11 @@ public class PlayerShipMovement : MonoBehaviour
             rawThrottleInput -= kb.leftCtrlKey.isPressed ? 1f : 0f;
             rawThrottleInput = Mathf.Clamp(rawThrottleInput, -1f, 1f);
 
-            // Space/C: Vertical thrust
+            // Up/Down Arrow: Vertical thrust
             if (enableVerticalThrust)
             {
-                rawVerticalInput += kb.spaceKey.isPressed ? 1f : 0f;
-                rawVerticalInput -= kb.cKey.isPressed ? 1f : 0f;
+                rawVerticalInput += kb.upArrowKey.isPressed ? 1f : 0f;
+                rawVerticalInput -= kb.downArrowKey.isPressed ? 1f : 0f;
                 rawVerticalInput = Mathf.Clamp(rawVerticalInput, -1f, 1f);
             }
 

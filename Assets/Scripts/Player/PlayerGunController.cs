@@ -22,30 +22,38 @@ public class PlayerGunController : MonoBehaviour
     [Tooltip("Secondary weapons - Also fires with Left Mouse Button")]
     [SerializeField] private List<WeaponBase> secondaryWeapons = new List<WeaponBase>();
 
-    [Tooltip("Tertiary weapons - Fire with Middle Mouse Button")]
-    [SerializeField] private List<WeaponBase> tertiaryWeapons = new List<WeaponBase>();
+    [Header("Missile Weapons")]
+    [SerializeField] private List<MissileSalvo> missileWeapons = new List<MissileSalvo>();
 
     [Header("Firing Settings")]
     [SerializeField] private FiringMode firingMode = FiringMode.Manual;
     [SerializeField] private float aimDistance = 5000f;
 
-    [Header("Input Keys (for keyboard control)")]
+    [Header("Missile Lock-On")]
+    [Tooltip("Screen-space radius (pixels) for proximity target picking")]
+    [SerializeField] private float lockOnScreenRadius = 300f;
+    [Tooltip("Maximum lock-on range in world units")]
+    [SerializeField] private float lockOnMaxRange = 3000f;
+
+    [Header("Input Keys")]
     [SerializeField] private Key primaryFireKey = Key.None;
     [SerializeField] private Key secondaryFireKey = Key.None;
-    [SerializeField] private Key tertiaryFireKey = Key.None;
+    [SerializeField] private Key missileLaunchKey = Key.Space;
     [SerializeField] private Key toggleModeKey = Key.T;
 
     // Current aim position in world space
     public Vector3 AimWorldPosition { get; private set; }
     public bool IsManualMode => firingMode == FiringMode.Manual;
 
+    // Missile lock-on state
+    public Transform LockedTarget { get; private set; }
+
     private bool isPrimaryFiring = false;
     private bool isSecondaryFiring = false;
-    private bool isTertiaryFiring = false;
+    private bool isMissileFiring = false;
 
     public List<WeaponBase> PrimaryWeapons => primaryWeapons;
     public List<WeaponBase> SecondaryWeapons => secondaryWeapons;
-    public List<WeaponBase> TertiaryWeapons => tertiaryWeapons;
 
     private void Awake()
     {
@@ -65,13 +73,18 @@ public class PlayerGunController : MonoBehaviour
     {
         primaryWeapons.Clear();
         secondaryWeapons.Clear();
-        tertiaryWeapons.Clear();
+        missileWeapons.Clear();
 
         WeaponBase[] allWeapons = GetComponentsInChildren<WeaponBase>();
 
         foreach (var weapon in allWeapons)
         {
-            // Only include guns in weapon groups; missiles use separate lock-on
+            if (weapon is MissileSalvo salvo)
+            {
+                missileWeapons.Add(salvo);
+                continue;
+            }
+
             if (weapon.WeaponCategory != WeaponType.Gun)
                 continue;
 
@@ -81,10 +94,8 @@ public class PlayerGunController : MonoBehaviour
                     primaryWeapons.Add(weapon);
                     break;
                 case WeaponSize.Medium:
-                    secondaryWeapons.Add(weapon);
-                    break;
                 case WeaponSize.Small:
-                    tertiaryWeapons.Add(weapon);
+                    secondaryWeapons.Add(weapon);
                     break;
             }
         }
@@ -96,6 +107,8 @@ public class PlayerGunController : MonoBehaviour
         UpdateAimPosition();
         HandleInput();
         UpdateWeapons();
+        UpdateMissileLockOn();
+        UpdateMissileWeapons();
     }
 
     private void HandleModeToggle()
@@ -131,11 +144,21 @@ public class PlayerGunController : MonoBehaviour
         var mouse = Mouse.current;
         var kb = Keyboard.current;
 
+        isPrimaryFiring = false;
+        isSecondaryFiring = false;
+        isMissileFiring = false;
+
         if (mouse != null)
         {
             isPrimaryFiring = mouse.leftButton.isPressed;
             isSecondaryFiring = mouse.leftButton.isPressed;
-            isTertiaryFiring = mouse.middleButton.isPressed;
+
+            // Middle click: lock-on
+            if (mouse.middleButton.wasPressedThisFrame)
+            {
+                TryLockOnTarget();
+
+            }
         }
 
         if (kb != null)
@@ -146,8 +169,8 @@ public class PlayerGunController : MonoBehaviour
             if (secondaryFireKey != Key.None)
                 isSecondaryFiring |= kb[secondaryFireKey].isPressed;
 
-            if (tertiaryFireKey != Key.None)
-                isTertiaryFiring |= kb[tertiaryFireKey].isPressed;
+            if (missileLaunchKey != Key.None)
+                isMissileFiring = kb[missileLaunchKey].isPressed;
         }
     }
 
@@ -157,15 +180,113 @@ public class PlayerGunController : MonoBehaviour
         {
             UpdateWeaponGroup(primaryWeapons, isPrimaryFiring, AimWorldPosition);
             UpdateWeaponGroup(secondaryWeapons, isSecondaryFiring, AimWorldPosition);
-            UpdateWeaponGroup(tertiaryWeapons, isTertiaryFiring, AimWorldPosition);
         }
         else
         {
             SetGroupAutomatic(primaryWeapons);
             SetGroupAutomatic(secondaryWeapons);
-            SetGroupAutomatic(tertiaryWeapons);
         }
     }
+
+    // ── Missile lock-on system ──
+
+    private void TryLockOnTarget()
+    {
+        Transform picked = PickTargetNearCursor();
+        if (picked != null)
+        {
+            LockedTarget = picked;
+        }
+        else
+        {
+            // Click on empty space → clear lock
+            LockedTarget = null;
+        }
+    }
+
+    private Transform PickTargetNearCursor()
+    {
+        if (mainCamera == null || Mouse.current == null) return null;
+
+        Vector2 mouseScreen = Mouse.current.position.ReadValue();
+        Vector3 shipPos = ship.position;
+        float maxRangeSqr = lockOnMaxRange * lockOnMaxRange;
+
+        // Get all potential enemies from CombatRegistry
+        List<VehicleBase> enemies = new List<VehicleBase>(32);
+        CombatRegistry.GetNearbyEnemies(shipPos, lockOnMaxRange, Faction.Foe, enemies, false);
+
+        Transform bestTarget = null;
+        float bestScreenDist = lockOnScreenRadius;
+
+        for (int i = 0; i < enemies.Count; i++)
+        {
+            VehicleBase enemy = enemies[i];
+            if (enemy == null) continue;
+
+            Transform enemyTransform = enemy.transform;
+
+            // Range check
+            float distSqr = (enemyTransform.position - shipPos).sqrMagnitude;
+            if (distSqr > maxRangeSqr) continue;
+
+            // Project to screen
+            Vector3 screenPos = mainCamera.WorldToScreenPoint(enemyTransform.position);
+            if (screenPos.z <= 0) continue; // Behind camera
+
+            // Screen-space distance
+            float screenDist = Vector2.Distance(mouseScreen, new Vector2(screenPos.x, screenPos.y));
+            if (screenDist < bestScreenDist)
+            {
+                bestScreenDist = screenDist;
+                bestTarget = enemyTransform;
+            }
+        }
+
+        return bestTarget;
+    }
+
+    private void UpdateMissileLockOn()
+    {
+        // Clear lock if target is destroyed or out of range
+        if (LockedTarget != null)
+        {
+            if (LockedTarget.gameObject == null || !LockedTarget.gameObject.activeInHierarchy)
+            {
+                LockedTarget = null;
+                return;
+            }
+
+            float distSqr = (LockedTarget.position - ship.position).sqrMagnitude;
+            if (distSqr > lockOnMaxRange * lockOnMaxRange)
+            {
+                LockedTarget = null;
+            }
+        }
+    }
+
+    private void UpdateMissileWeapons()
+    {
+        for (int i = 0; i < missileWeapons.Count; i++)
+        {
+            MissileSalvo salvo = missileWeapons[i];
+            if (salvo == null) continue;
+
+            if (LockedTarget != null)
+            {
+                // Override the salvo's target to the locked target
+                salvo.Targeted = LockedTarget;
+                salvo.SetManualFiring(isMissileFiring, LockedTarget.position);
+            }
+            else
+            {
+                // No lock — stay in manual mode but don't fire
+                salvo.SetManualFiring(false, Vector3.zero);
+            }
+        }
+    }
+
+    // ── Gun group helpers ──
 
     private void UpdateWeaponGroup(List<WeaponBase> weapons, bool isFiring, Vector3 aimPosition)
     {
@@ -177,10 +298,6 @@ public class PlayerGunController : MonoBehaviour
             if (weapon is Gun gun)
             {
                 gun.SetManualFiring(isFiring, aimPosition);
-            }
-            else if (weapon is MissileSalvo salvo)
-            {
-                salvo.SetManualFiring(isFiring, aimPosition);
             }
         }
     }
@@ -196,10 +313,6 @@ public class PlayerGunController : MonoBehaviour
             {
                 gun.SetAutomaticMode();
             }
-            else if (weapon is MissileSalvo salvo)
-            {
-                salvo.SetAutomaticMode();
-            }
         }
     }
 
@@ -212,7 +325,6 @@ public class PlayerGunController : MonoBehaviour
         {
             case 0: primaryWeapons.Add(weapon); break;
             case 1: secondaryWeapons.Add(weapon); break;
-            case 2: tertiaryWeapons.Add(weapon); break;
         }
     }
 
@@ -224,17 +336,57 @@ public class PlayerGunController : MonoBehaviour
         firingMode = mode;
     }
 
-    private void OnDrawGizmos()
+    private void OnGUI()
     {
-        if (!Application.isPlaying) return;
+        if (!Application.isPlaying || mainCamera == null) return;
 
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(AimWorldPosition, 2f);
-
-        if (ship != null)
+        if (LockedTarget != null)
         {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(ship.position, AimWorldPosition);
+            Vector3 viewportPos = mainCamera.WorldToViewportPoint(LockedTarget.position);
+            if (viewportPos.z > 0)
+            {
+                float guiX = viewportPos.x * Screen.width;
+                float guiY = (1f - viewportPos.y) * Screen.height;
+                float dist = Vector3.Distance(ship.position, LockedTarget.position);
+
+                DrawLockOnReticle(guiX, guiY, Color.green, 24f);
+
+                GUI.color = Color.green;
+                GUI.Label(new Rect(guiX + 30f, guiY - 10f, 300f, 20f),
+                    $"LOCKED: {LockedTarget.name}  [{dist:F0}m]");
+            }
         }
+
+        GUI.color = Color.white;
+    }
+
+    private static void DrawLockOnReticle(float x, float y, Color color, float size)
+    {
+        Color prev = GUI.color;
+        GUI.color = color;
+
+        // Crosshair
+        float h = size;
+        GUI.DrawTexture(new Rect(x - 1, y - h, 2, h * 2), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(x - h, y - 1, h * 2, 2), Texture2D.whiteTexture);
+
+        // Corner brackets
+        float b = size * 0.7f;
+        float t = 2f;
+        float arm = b * 0.4f;
+        // Top-left
+        GUI.DrawTexture(new Rect(x - b, y - b, arm, t), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(x - b, y - b, t, arm), Texture2D.whiteTexture);
+        // Top-right
+        GUI.DrawTexture(new Rect(x + b - arm, y - b, arm, t), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(x + b - t, y - b, t, arm), Texture2D.whiteTexture);
+        // Bottom-left
+        GUI.DrawTexture(new Rect(x - b, y + b - t, arm, t), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(x - b, y + b - arm, t, arm), Texture2D.whiteTexture);
+        // Bottom-right
+        GUI.DrawTexture(new Rect(x + b - arm, y + b - t, arm, t), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(x + b - t, y + b - arm, t, arm), Texture2D.whiteTexture);
+
+        GUI.color = prev;
     }
 }

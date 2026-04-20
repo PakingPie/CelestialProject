@@ -150,6 +150,10 @@ public class MissileSalvo : WeaponBase
     /// </summary>
     private Transform GetNextMissileTarget()
     {
+        // In manual mode, always fire at the assigned target (player's locked target)
+        if (IsManualMode)
+            return Targeted;
+
         if (!DistributeTargetsPerMissile)
             return Targeted;
 
