@@ -1,12 +1,29 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+public enum CameraMode
+{
+    FreeOrbit,      // Full manual orbit control (capital ships)
+    FollowBehind    // Auto-follows behind ship, right-click to freelook (fighters)
+}
+
 /// <summary>
 /// Orbit camera controller for ship. Camera orbits around the ship
 /// while the ship moves independently via keyboard.
 /// </summary>
 public class PlayerMovementController : MonoBehaviour
 {
+    [Header("Camera Mode")]
+    [SerializeField]
+    [Tooltip("FreeOrbit: full manual orbit (capital ships). FollowBehind: auto-follows ship rear, right-click to freelook (fighters).")]
+    private CameraMode cameraMode = CameraMode.FollowBehind;
+
+    [Header("Follow Behind Settings")]
+    [Tooltip("How quickly camera returns behind ship (higher = snappier)")]
+    [SerializeField] private float followBehindSpeed = 6f;
+    [Tooltip("Default pitch angle when following behind ship")]
+    [SerializeField] private float followBehindPitch = 15f;
+
     [Header("Components")]
     [SerializeField]
     [Tooltip("Transform of the ship the camera follows")]
@@ -25,7 +42,7 @@ public class PlayerMovementController : MonoBehaviour
     private float targetOrbitDistance;
 
     [Header("Look Settings")]
-    [SerializeField] private float mouseSensitivity = 2f;
+    [SerializeField] private float mouseSensitivity = 0.15f;
     [SerializeField] private float gamepadSensitivity = 100f;
     [SerializeField] private bool invertY = false;
     [SerializeField] private float minVerticalAngle = -80f;
@@ -96,6 +113,9 @@ public class PlayerMovementController : MonoBehaviour
     // Speed zoom state (separate from manual zoom)
     private float currentSpeedZoomOffset = 0f;
 
+    // Freelook state (FollowBehind mode)
+    private bool isFreelooking = false;
+
     public Vector3 MouseAimPos => transform.position + transform.forward * aimDistance;
     public Vector3 BoresightPos => ship != null ? ship.position + ship.forward * aimDistance : MouseAimPos;
 
@@ -129,7 +149,7 @@ public class PlayerMovementController : MonoBehaviour
         collisionAdjustedDistance = orbitDistance;
 
         // Initialize orbit angles behind the ship
-        orbitYaw = ship.eulerAngles.y + 180f;
+        orbitYaw = ship.eulerAngles.y;
         orbitPitch = 20f;
 
         smoothRotation = transform.rotation;
@@ -171,7 +191,7 @@ public class PlayerMovementController : MonoBehaviour
 
     private void ValidateAndResetNaN()
     {
-        if (float.IsNaN(orbitYaw)) orbitYaw = ship.eulerAngles.y + 180f;
+        if (float.IsNaN(orbitYaw)) orbitYaw = ship.eulerAngles.y;
         if (float.IsNaN(orbitPitch)) orbitPitch = 20f;
         if (float.IsNaN(currentOrbitDistance)) currentOrbitDistance = orbitDistance;
         if (float.IsNaN(collisionAdjustedDistance)) collisionAdjustedDistance = orbitDistance;
@@ -184,14 +204,28 @@ public class PlayerMovementController : MonoBehaviour
     {
         if (isResettingView) return;
 
+        // In FollowBehind mode, only accept look input when right mouse is held
+        if (cameraMode == CameraMode.FollowBehind)
+        {
+            var mouse = Mouse.current;
+            isFreelooking = mouse != null && mouse.rightButton.isPressed;
+
+            if (!isFreelooking)
+            {
+                // Not freelooking — auto-follow handles orbit angles
+                timeSinceLookInput += Time.deltaTime;
+                return;
+            }
+        }
+
         Vector2 lookInput = Vector2.zero;
 
         // Mouse input
-        var mouse = Mouse.current;
-        if (mouse != null)
+        var mouseDev = Mouse.current;
+        if (mouseDev != null)
         {
-            lookInput.x = mouse.delta.x.ReadValue() * mouseSensitivity;
-            lookInput.y = mouse.delta.y.ReadValue() * mouseSensitivity;
+            lookInput.x = mouseDev.delta.x.ReadValue() * mouseSensitivity;
+            lookInput.y = mouseDev.delta.y.ReadValue() * mouseSensitivity;
         }
 
         // Gamepad right stick
@@ -261,6 +295,17 @@ public class PlayerMovementController : MonoBehaviour
 
     private void HandleAutoReset()
     {
+        // In FollowBehind mode, always auto-follow when not freelooking
+        if (cameraMode == CameraMode.FollowBehind)
+        {
+            if (!isFreelooking && !isResettingView)
+            {
+                ResetViewToShipBehind(followBehindSpeed);
+            }
+            return;
+        }
+
+        // FreeOrbit mode: optional auto-reset after delay
         if (!autoResetView || isResettingView) return;
 
         if (timeSinceLookInput > autoResetDelay)
@@ -271,8 +316,8 @@ public class PlayerMovementController : MonoBehaviour
 
     private void ResetViewToShipBehind(float speed)
     {
-        float targetYaw = ship.eulerAngles.y + 180f;
-        float targetPitch = 20f;
+        float targetYaw = ship.eulerAngles.y;
+        float targetPitch = cameraMode == CameraMode.FollowBehind ? followBehindPitch : 20f;
 
         orbitYaw = Mathf.LerpAngle(orbitYaw, targetYaw, speed * Time.deltaTime);
         orbitPitch = Mathf.Lerp(orbitPitch, targetPitch, speed * Time.deltaTime);
@@ -435,7 +480,7 @@ public class PlayerMovementController : MonoBehaviour
     /// </summary>
     public void SnapBehindShip()
     {
-        orbitYaw = ship.eulerAngles.y + 180f;
+        orbitYaw = ship.eulerAngles.y;
         orbitPitch = 20f;
         smoothFollowPosition = ship.position;
         currentLeadOffset = Vector3.zero;

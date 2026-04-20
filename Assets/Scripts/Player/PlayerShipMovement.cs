@@ -79,11 +79,14 @@ public class PlayerShipMovement : MonoBehaviour
     public bool autoKillRotation = true;
 
     [Header("Flight Assist")]
-    [Tooltip("Enable flight assist (auto-counters drift)")]
+    [Tooltip("Enable flight assist (auto-counters drift and maintains forward speed)")]
     public bool flightAssist = false;
     [Tooltip("Flight assist strength")]
     [Range(0f, 1f)]
     public float flightAssistStrength = 0.5f;
+    [Tooltip("How aggressively flight assist maintains forward speed (units/s² as fraction of max thrust)")]
+    [Range(0.1f, 1f)]
+    public float speedMaintenanceStrength = 0.5f;
 
     [Header("Velocity Coupling")]
     [Tooltip("How much velocity rotates with the ship (0 = full drift, 1 = full coupling)")]
@@ -95,6 +98,7 @@ public class PlayerShipMovement : MonoBehaviour
     public List<GameObject> EngineObjects;
 
     [Header("Debug")]
+    [SerializeField] private bool showDebugHUD = true;
     [SerializeField] private Vector3 currentVelocity = Vector3.zero;
     [SerializeField] private float currentSpeed = 0f;
     [SerializeField] private Vector3 currentAngularVelocity = Vector3.zero;
@@ -128,6 +132,9 @@ public class PlayerShipMovement : MonoBehaviour
     private float timeSinceRotationInput = 0f;
     
     private Quaternion previousRotation;
+
+    // Flight assist: maintained forward speed
+    private float maintainedForwardSpeed = 0f;
 
 
     // Properties for external access
@@ -335,10 +342,38 @@ public class PlayerShipMovement : MonoBehaviour
         }
 
         // Apply acceleration to velocity (F = ma, assuming m = 1)
-        velocity += thrustAcceleration * deltaTime;
-        if(velocity.sqrMagnitude > 0.01f)
+        // Projected thrust clamping: allow direction change at speed limit, block speed increase
+        if (enableSpeedLimiter && velocity.magnitude >= speedLimit)
         {
-            velocity = Vector3.ClampMagnitude(velocity, maxSpeedLimit * 2f); // Absolute max speed cap
+            Vector3 deltaV = thrustAcceleration * deltaTime;
+            Vector3 newVelocity = velocity + deltaV;
+            // Only allow the component that doesn't increase speed
+            if (newVelocity.magnitude > velocity.magnitude)
+            {
+                // Project deltaV onto velocity direction and remove the positive (speed-increasing) part
+                Vector3 velocityDir = velocity.normalized;
+                float speedIncreasing = Vector3.Dot(deltaV, velocityDir);
+                if (speedIncreasing > 0f)
+                {
+                    deltaV -= velocityDir * speedIncreasing;
+                }
+            }
+            velocity += deltaV;
+            // Clamp to speed limit in case of floating point drift
+            if (velocity.magnitude > speedLimit)
+            {
+                velocity = velocity.normalized * speedLimit;
+            }
+        }
+        else
+        {
+            velocity += thrustAcceleration * deltaTime;
+        }
+
+        // Absolute max speed cap (safety net)
+        if (velocity.sqrMagnitude > 0.01f)
+        {
+            velocity = Vector3.ClampMagnitude(velocity, maxSpeedLimit * 2f);
         }
 
         // Update engine visuals based on throttle, the VFX has EngineParticleLifeTime(float) and EngineParticleSize(Vector2)
@@ -479,13 +514,12 @@ public class PlayerShipMovement : MonoBehaviour
     {
         if (!flightAssist || flightAssistStrength <= 0f) return;
 
-        // Flight assist tries to kill lateral velocity (drift)
-        // It automatically applies thrust to keep you moving in the direction you're pointing
+        // Flight assist: kill lateral drift + maintain forward speed
 
         Vector3 forwardVelocity = Vector3.Project(velocity, transform.forward);
         Vector3 lateralVelocity = velocity - forwardVelocity;
 
-        // Only counter drift, don't affect intentional strafe/vertical thrust
+        // Counter lateral drift (only when player isn't intentionally strafing/thrusting vertically)
         if (Mathf.Abs(smoothedStrafeInput) < 0.1f)
         {
             Vector3 rightDrift = Vector3.Project(lateralVelocity, transform.right);
@@ -496,6 +530,23 @@ public class PlayerShipMovement : MonoBehaviour
         {
             Vector3 upDrift = Vector3.Project(lateralVelocity, transform.up);
             velocity -= upDrift * flightAssistStrength * deltaTime * 2f;
+        }
+
+        // Update maintained speed: manual throttle input overrides the maintained speed
+        if (Mathf.Abs(smoothedThrottleInput) > 0.1f)
+        {
+            // Player is actively thrusting — update maintained speed to current forward speed
+            maintainedForwardSpeed = Vector3.Dot(velocity, transform.forward);
+        }
+
+        // Auto-thrust to maintain forward speed when no throttle input
+        if (Mathf.Abs(smoothedThrottleInput) < 0.1f && Mathf.Abs(maintainedForwardSpeed) > 0.5f)
+        {
+            float currentForwardSpeed = Vector3.Dot(velocity, transform.forward);
+            float speedError = maintainedForwardSpeed - currentForwardSpeed;
+            float correctionForce = maxThrustForce * speedMaintenanceStrength;
+            float correction = Mathf.Clamp(speedError, -correctionForce * deltaTime, correctionForce * deltaTime);
+            velocity += transform.forward * correction;
         }
     }
 
@@ -537,6 +588,9 @@ public class PlayerShipMovement : MonoBehaviour
 
     private void ApplyFullStop()
     {
+        // Reset maintained speed so flight assist doesn't re-accelerate
+        maintainedForwardSpeed = 0f;
+
         // Apply braking thrust opposite to current velocity
         if (velocity.sqrMagnitude > 0.1f)
         {
@@ -609,5 +663,44 @@ public class PlayerShipMovement : MonoBehaviour
         float brakeAcceleration = maxThrustForce * reverseThrustRatio;
         // v² = 2as, so s = v²/2a
         return (currentSpeed * currentSpeed) / (2f * brakeAcceleration);
+    }
+
+    private void OnGUI()
+    {
+        if (!showDebugHUD) return;
+
+        float w = 260f;
+        float h = 130f;
+        float margin = 10f;
+        Rect boxRect = new Rect(Screen.width - w - margin, margin, w, h);
+
+        GUI.Box(boxRect, "");
+
+        GUIStyle labelStyle = new GUIStyle(GUI.skin.label)
+        {
+            fontSize = 14,
+            fontStyle = FontStyle.Bold,
+            normal = { textColor = Color.white }
+        };
+
+        float x = boxRect.x + 8f;
+        float y = boxRect.y + 6f;
+        float lineH = 20f;
+
+        float speed = velocity.magnitude;
+        float fwdSpeed = Vector3.Dot(velocity, transform.forward);
+
+        GUI.Label(new Rect(x, y, w, lineH), $"Speed: {speed:F1} / {speedLimit:F0}", labelStyle);
+        y += lineH;
+        GUI.Label(new Rect(x, y, w, lineH), $"Fwd Speed: {fwdSpeed:F1}", labelStyle);
+        y += lineH;
+        GUI.Label(new Rect(x, y, w, lineH), $"Throttle: {smoothedThrottleInput * 100f:F0}%", labelStyle);
+        y += lineH;
+        GUI.Label(new Rect(x, y, w, lineH), $"Flight Assist: {(flightAssist ? "ON" : "OFF")}", labelStyle);
+        y += lineH;
+        if (flightAssist && Mathf.Abs(maintainedForwardSpeed) > 0.5f)
+            GUI.Label(new Rect(x, y, w, lineH), $"Cruise: {maintainedForwardSpeed:F1}", labelStyle);
+        else
+            GUI.Label(new Rect(x, y, w, lineH), "Cruise: --", labelStyle);
     }
 }
