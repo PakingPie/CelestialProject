@@ -118,6 +118,20 @@ public class PlayerMovementController : MonoBehaviour
 
     public Vector3 MouseAimPos => transform.position + transform.forward * aimDistance;
     public Vector3 BoresightPos => ship != null ? ship.position + ship.forward * aimDistance : MouseAimPos;
+    public bool IsFreelooking => isFreelooking;
+
+    /// <summary>
+    /// World position where the mouse cursor is pointing, projected from the camera.
+    /// </summary>
+    public Vector3 GetMouseAimWorldPosition()
+    {
+        if (cam == null || Mouse.current == null)
+            return ship != null ? ship.position + ship.forward * aimDistance : transform.position + transform.forward * aimDistance;
+
+        Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
+        Ray ray = cam.ScreenPointToRay(mouseScreenPos);
+        return ray.GetPoint(aimDistance);
+    }
 
     private void Awake()
     {

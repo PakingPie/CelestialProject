@@ -92,6 +92,15 @@ public class PlayerShipMovement : MonoBehaviour
     [Range(0f, 1f)]
     public float velocityCoupling = 0.8f;
 
+    [Header("Mouse Aim (Instructor)")]
+    [Tooltip("Ship auto-steers toward mouse cursor position when no WASD input")]
+    public bool mouseAimEnabled = true;
+    [Tooltip("Response strength - higher values make the ship track the mouse faster")]
+    [Range(0.01f, 0.3f)]
+    public float mouseAimResponse = 0.1f;
+    [Tooltip("Angular deadzone in degrees - errors below this are ignored")]
+    public float mouseAimDeadzone = 0.5f;
+
     [Header("Engine Visuals")]
     [Tooltip("List of engine objects that has a Visual Effect component attached for thrust visuals")]
     public List<GameObject> EngineObjects;
@@ -137,6 +146,9 @@ public class PlayerShipMovement : MonoBehaviour
     private float autoThrottleAmount = 0f; // -1 to 1, computed each frame for VFX/HUD
     private bool isFullStopping = false;
 
+    // Mouse aim state
+    private Vector3 mouseAimWorldPos = Vector3.zero;
+
 
     // Properties for external access
     public Vector3 Velocity => velocity;
@@ -168,6 +180,7 @@ public class PlayerShipMovement : MonoBehaviour
         if (deltaTime <= 0f) return;
 
         ReadRawInput();
+        ComputeMouseAimInput();
         SmoothInput();
         UpdateSpeedLimit(deltaTime);
         UpdateTargetSpeed(deltaTime);
@@ -291,6 +304,35 @@ public class PlayerShipMovement : MonoBehaviour
         }
 
         currentInputs = new Vector3(rawPitchInput, rawYawInput, rawRollInput);
+    }
+
+    private void ComputeMouseAimInput()
+    {
+        if (!mouseAimEnabled || cameraController == null) return;
+
+        // Don't steer via mouse during freelook
+        if (cameraController.IsFreelooking) return;
+
+        // Only use mouse aim when no manual pitch/yaw input (QE roll is independent)
+        bool hasManualPitchYaw = Mathf.Abs(rawPitchInput) > 0.01f ||
+                                  Mathf.Abs(rawYawInput) > 0.01f;
+        if (hasManualPitchYaw) return;
+
+        mouseAimWorldPos = cameraController.GetMouseAimWorldPosition();
+        Vector3 toAim = (mouseAimWorldPos - transform.position).normalized;
+        Vector3 localAim = transform.InverseTransformDirection(toAim);
+
+        // Angular errors in degrees
+        float yawError = Mathf.Atan2(localAim.x, localAim.z) * Mathf.Rad2Deg;
+        float pitchError = -Mathf.Atan2(localAim.y, localAim.z) * Mathf.Rad2Deg;
+
+        // Apply deadzone
+        if (Mathf.Abs(yawError) < mouseAimDeadzone) yawError = 0f;
+        if (Mathf.Abs(pitchError) < mouseAimDeadzone) pitchError = 0f;
+
+        // Convert error to input command (clamped to [-1, 1])
+        rawPitchInput = Mathf.Clamp(pitchError * mouseAimResponse, -1f, 1f);
+        rawYawInput = Mathf.Clamp(yawError * mouseAimResponse, -1f, 1f);
     }
 
     private void SmoothInput()
@@ -667,7 +709,7 @@ public class PlayerShipMovement : MonoBehaviour
         if (!showDebugHUD) return;
 
         float w = 260f;
-        float h = 130f;
+        float h = 150f;
         float margin = 10f;
         Rect boxRect = new Rect(Screen.width - w - margin, margin, w, h);
 
@@ -695,6 +737,41 @@ public class PlayerShipMovement : MonoBehaviour
         y += lineH;
         GUI.Label(new Rect(x, y, w, lineH), $"Flight Assist: {(flightAssist ? "ON" : "OFF")}", labelStyle);
         y += lineH;
+        GUI.Label(new Rect(x, y, w, lineH), mouseAimEnabled ? "Mouse Aim: ON" : "Mouse Aim: OFF", labelStyle);
+        y += lineH;
         GUI.Label(new Rect(x, y, w, lineH), isFullStopping ? "FULL STOP" : "", labelStyle);
+
+        // Mouse aim debug crosshairs
+        if (mouseAimEnabled)
+        {
+            Camera cam = Camera.main;
+            var mouse = Mouse.current;
+
+            if (cam != null && mouse != null)
+            {
+                // Green crosshair at mouse position (aim reticle)
+                Vector2 mousePos = mouse.position.ReadValue();
+                float mouseGuiY = Screen.height - mousePos.y;
+                DrawDebugCrosshair(mousePos.x, mouseGuiY, Color.green, 15f);
+
+                // Yellow crosshair at boresight (where ship nose points)
+                Vector3 boresightWorld = transform.position + transform.forward * 500f;
+                Vector3 boresightScreen = cam.WorldToScreenPoint(boresightWorld);
+                if (boresightScreen.z > 0)
+                {
+                    float boreGuiY = Screen.height - boresightScreen.y;
+                    DrawDebugCrosshair(boresightScreen.x, boreGuiY, Color.yellow, 10f);
+                }
+            }
+        }
+    }
+
+    private void DrawDebugCrosshair(float x, float y, Color color, float size)
+    {
+        Color prevColor = GUI.color;
+        GUI.color = color;
+        GUI.DrawTexture(new Rect(x - 1, y - size, 2, size * 2), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(x - size, y - 1, size * 2, 2), Texture2D.whiteTexture);
+        GUI.color = prevColor;
     }
 }

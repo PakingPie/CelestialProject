@@ -358,7 +358,7 @@ GameObject:
   - component: {fileID: 26229198}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -17188,7 +17188,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1503629324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19247,7 +19247,7 @@ MonoBehaviour:
   followBehindSpeed: 6
   followBehindPitch: 15
   ship: {fileID: 7963449685609278610}
-  shipMovement: {fileID: 0}
+  shipMovement: {fileID: 7963449685609278612}
   orbitDistance: 30
   minOrbitDistance: 10
   maxOrbitDistance: 100
@@ -19286,7 +19286,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   aimDistance: 500
-  showDebugInfo: 0
+  showDebugInfo: 1
 --- !u!1 &1698610166
 GameObject:
   m_ObjectHideFlags: 0
@@ -23989,7 +23989,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2046028405
 Transform:
   m_ObjectHideFlags: 0
@@ -25537,7 +25537,7 @@ GameObject:
   - component: {fileID: 7963449685609278613}
   m_Layer: 0
   m_Name: Visual
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -27647,7 +27647,7 @@ MonoBehaviour:
   EnableDebug: 0
   ShowGunAngles: 0
   UseManagedUpdates: 1
-  _fireDelay: 0.4
+  _fireDelay: 0.2
   Deviation: 0.1
   AutoInheritVelocity: 1
   UseGimballedAiming: 0
@@ -27655,7 +27655,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.05
+  SequentialFiringInterval: 0.1
   FirePoints:
   - {fileID: 8933769439291434403}
   - {fileID: 1348499447716980370}
@@ -27675,7 +27675,7 @@ MonoBehaviour:
   _fireMaxDistance: 250
   _firePitchMin: 0.96
   _firePitchMax: 1.04
-  MaxHeat: 100
+  MaxHeat: 1000
   HeatPerShot: 1
   HeatDissipationRate: 10
   CooldownTime: 5
@@ -28606,6 +28606,9 @@ MonoBehaviour:
   flightAssist: 0
   flightAssistStrength: 0.5
   velocityCoupling: 0.8
+  mouseAimEnabled: 1
+  mouseAimResponse: 0.1
+  mouseAimDeadzone: 0.5
   EngineObjects: []
   showDebugHUD: 1
   currentVelocity: {x: 0, y: 0, z: 0}
@@ -28625,7 +28628,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29e68f896a6572b44b4b5b543dea9e29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVehicle
-  OwnerShip: {fileID: 0}
+  OwnerShip: {fileID: 196978644491112265}
   IsShowHitpointBar: 0
   HitPoints: 1000
   MaxHitPoints: 1000
@@ -28634,13 +28637,13 @@ MonoBehaviour:
   ShieldPoints: 1000
   MaxShieldPoints: 1000
   BoidManager: {fileID: 0}
-  Type: 10
-  HullPoint: {fileID: 0}
-  ArmorBar: {fileID: 0}
-  ShieldBar: {fileID: 0}
-  HullPointShader: {fileID: 0}
-  EnergyShieldShader: {fileID: 0}
-  ShieldEffect: {fileID: 0}
+  Type: 1
+  HullPoint: {fileID: 2038505447169736282}
+  ArmorBar: {fileID: 2916175849674628719}
+  ShieldBar: {fileID: 7254535075710064280}
+  HullPointShader: {fileID: -6465566751694194690, guid: 7d61a5a8515e1f1479746c8e2b0518ba, type: 3}
+  EnergyShieldShader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
+  ShieldEffect: {fileID: 2366977910765853555}
   HullPointColor1: {r: 0, g: 1, b: 0, a: 1}
   HullPointColor2: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   HullPointColor3: {r: 1, g: 0, b: 0, a: 1}
