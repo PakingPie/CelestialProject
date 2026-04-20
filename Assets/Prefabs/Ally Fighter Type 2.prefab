@@ -203,6 +203,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2814747840485351918}
+  - {fileID: 5283880172269737606}
   m_Father: {fileID: 5755628403890371861}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6008305788819091727
@@ -219,18 +220,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AAHardpoint
   ownShip: {fileID: 1510646433887854243}
   missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 813451ea6599d264bb3e402704bf932a, type: 3}
-  missileCount: 1
-  fireDelay: 50
+  missileCount: 2
+  fireDelay: 40
   launchPoints:
   - {fileID: 2814747840485351918}
+  - {fileID: 5283880172269737606}
   mixerGroup: {fileID: 0}
   fireClip: {fileID: 8300000, guid: a8a51cd9a54ff1c4f8d8578ca479fa03, type: 3}
   fireVolume: 1
   minDistance: 10
   maxDistance: 200
   FireOnFullyReload: 0
-  SalvoInterval: 10
-  ReloadAfterSalvo: 0
+  SalvoInterval: 1
+  ReloadAfterSalvo: 1
 --- !u!114 &6176316515846398791
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -528,7 +530,7 @@ Transform:
   m_GameObject: {fileID: 1438557695432987180}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -2, z: 0}
+  m_LocalPosition: {x: 1, y: -2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -751,6 +753,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8673968047497250288}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2263067847640536523
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5283880172269737606}
+  m_Layer: 0
+  m_Name: MissileHardPoint_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5283880172269737606
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2263067847640536523}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1, y: -2, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2061259644040192498}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2487265418746251100
 GameObject:

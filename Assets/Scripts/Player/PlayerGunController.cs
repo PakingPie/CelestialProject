@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using static GlobalHelper;
 using System.Linq;
 
-public class GunController : MonoBehaviour
+public class PlayerGunController : MonoBehaviour
 {
     public enum FiringMode
     {

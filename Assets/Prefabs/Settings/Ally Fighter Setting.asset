@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f79a97a8f3d566438e5fbb617fd1c0f, type: 3}
   m_Name: Ally Fighter Setting
   m_EditorClassIdentifier: Assembly-CSharp::BoidSettings
-  minSpeed: 50
-  maxSpeed: 80
+  minSpeed: 40
+  maxSpeed: 100
   perceptionRadius: 500
-  maxSteerForce: 5
+  maxSteerForce: 9
   alignWeight: 0.5
   cohesionWeight: 0.3
   separateWeight: 10
@@ -48,20 +48,20 @@ MonoBehaviour:
   returnToFormationDelay: 3
   combatAnchorMode: 1
   combatAnchorWeight: 1.25
-  combatAnchorSlackRadius: 150
-  combatLeashRadius: 400
+  combatAnchorSlackRadius: 225
+  combatLeashRadius: 600
   combatLeashWeight: 3
   combatSlotRetention: 0.35
   combatRegroupHysteresis: 75
   combatTargetPursuitWeight: 1.5
-  linearDrag: 0.3
-  rotationalDrag: 4
-  torqueStrength: 12
-  maxAngularSpeed: 80
-  velocityCoupling: 0.75
-  rcsAuthority: 0.15
-  reverseThrustRatio: 0.35
-  combatRcsBoost: 3
+  linearDrag: 0.6
+  rotationalDrag: 5.5
+  torqueStrength: 23
+  maxAngularSpeed: 135
+  velocityCoupling: 0.85
+  rcsAuthority: 0.4
+  reverseThrustRatio: 0.55
+  combatRcsBoost: 2.2
   capitalTorqueMultiplier: 0.3
   capitalDragMultiplier: 0.6
   escortTorqueMultiplier: 0.6

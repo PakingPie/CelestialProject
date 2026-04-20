@@ -9,7 +9,7 @@ public class PlayerHud : MonoBehaviour
     [Header("Components")]
     [SerializeField] private PlayerMovementController _cameraController = null;
     [SerializeField] private PlayerShipMovement _shipMovement = null;
-    [SerializeField] private GunController _gunController = null;
+    [SerializeField] private PlayerGunController _gunController = null;
 
     [Header("HUD Elements")]
     [SerializeField] private RectTransform _boresight = null;

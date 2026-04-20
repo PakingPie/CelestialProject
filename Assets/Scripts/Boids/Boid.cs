@@ -96,6 +96,7 @@ public class Boid : MonoBehaviour
     private const float FlockDataSmoothSpeed = 15f;
     private const float FormationTargetSmoothSpeed = 4f;
     private const float AccelerationSmoothSpeed = 8f;
+    private const float LateralDragBoost = 2.5f;
     private const float FormationDeadZone = 10f;
     private const float FormationUrgencyRange = 100f;
     private const float TargetSmoothSpeed = 10f;
@@ -1415,6 +1416,12 @@ public class Boid : MonoBehaviour
         float effectiveDrag = _settings.linearDrag * _dragMultiplier;
         if (effectiveDrag > 0f)
             _velocity *= 1f / (1f + effectiveDrag * dt);
+
+        // Extra lateral drag — RCS thrusters arrest drift slower than main engines
+        Vector3 fwd = _cachedTransform.forward;
+        float fwdSpeed = Vector3.Dot(_velocity, fwd);
+        Vector3 lateralVel = _velocity - fwd * fwdSpeed;
+        _velocity = fwd * fwdSpeed + lateralVel * (1f / (1f + LateralDragBoost * dt));
 
         float speed = _velocity.magnitude;
         if (speed <= 0.001f)
