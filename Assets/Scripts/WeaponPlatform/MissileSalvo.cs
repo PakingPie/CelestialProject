@@ -16,6 +16,9 @@ public class MissileSalvo : WeaponBase
     [Tooltip("Maximum missiles to fire at a single target before switching")]
     public int MaxMissilesPerTarget = 1;
 
+    [Header("Manual Control")]
+    [Tooltip("When true, missile salvo is in manual firing mode controlled by player")]
+    public bool IsManualMode = false;
 
     [Header("Debug Settings")]
     public bool EnableDebugGizmos = false;
@@ -30,6 +33,10 @@ public class MissileSalvo : WeaponBase
     private int _currentTargetIndex = 0;
     private Transform _lastLaunchedTarget;
 
+    // Manual mode state
+    private bool _isManualFiring = false;
+    private Vector3 _manualAimPosition = Vector3.zero;
+
     private void Start()
     {
         _launcher = GetComponentInChildren<AALauncher>();
@@ -37,70 +44,105 @@ public class MissileSalvo : WeaponBase
 
     private void Update()
     {
-        if (Targeted != null)
+        if (_fireTimer > 0f)
+            _fireTimer -= Time.deltaTime;
+
+        if (Targeted == null)
+            return;
+
+        // Cone check — skip firing if target is outside seeker cone
+        float seekerHalfAngle = GetSeekerHalfAngle();
+        if (!IsWithinCone(Targeted, seekerHalfAngle))
+            return;
+
+        // In manual mode, only fire when player is pressing the fire button
+        if (IsManualMode && !_isManualFiring)
+            return;
+
+        // Distance check
+        float distanceSqr = (Targeted.position - transform.position).sqrMagnitude;
+        if (distanceSqr > _maxRangeSqr || _fireTimer > 0f)
+            return;
+
+        // Determine the actual target for this missile
+        Transform missileTarget = GetNextMissileTarget();
+
+        if (missileTarget != null)
         {
-            // Get Relative angles to target 
-            Vector2 relativeAngles = CalcuateRelativeAngles(Targeted);
-            // Get seeker cone angle from launcher's prebab
-            float seekerCone = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone;
-            if (Mathf.Abs(relativeAngles.x) > seekerCone / 2f || Mathf.Abs(relativeAngles.y) > seekerCone / 2f)
-                return;
+            _launcher.Launch(missileTarget);
+            _lastLaunchedTarget = missileTarget;
 
-            // Distance
-            float distanceToTarget = Vector3.Distance(transform.position, Targeted.position);
-            if (distanceToTarget < ActiveRange.y && _fireTimer <= 0.0f)
+            // Track missiles fired at this target
+            if (DistributeTargetsPerMissile)
             {
-                // Determine the actual target for this missile
-                Transform missileTarget = GetNextMissileTarget();
-
-                if (missileTarget != null)
+                TargetDistributor distributor = UseTargetDistribution ? TargetDistributor.Instance : null;
+                if (distributor != null)
                 {
-                    _launcher.Launch(missileTarget);
-                    _lastLaunchedTarget = missileTarget;
-
-                    // Track missiles fired at this target
-                    if (DistributeTargetsPerMissile)
-                    {
-                        TargetDistributor distributor = UseTargetDistribution ? TargetDistributor.Instance : null;
-                        if (distributor != null)
-                        {
-                            distributor.RegisterOrdnanceReservation(missileTarget);
-                        }
-                        else
-                        {
-                            if (!_missilesFiredAtTarget.ContainsKey(missileTarget))
-                                _missilesFiredAtTarget[missileTarget] = 0;
-                            _missilesFiredAtTarget[missileTarget]++;
-                        }
-                    }
-                }
-
-                // Check if using salvo mode (FireOnFullyReload)
-                AAHardpoint hardpoint = _launcher as AAHardpoint;
-                if (hardpoint != null && hardpoint.FireOnFullyReload)
-                {
-                    // In salvo mode: use SalvoInterval between shots
-                    _fireTimer = hardpoint.SalvoInterval;
-
-                    // Reset tracking when salvo completes (all missiles fired)
-                    if (hardpoint.MagazineCount <= 0)
-                    {
-                        _missilesFiredAtTarget.Clear();
-                        _currentTargetIndex = 0;
-                    }
+                    distributor.RegisterOrdnanceReservation(missileTarget);
                 }
                 else
                 {
-                    // Normal mode: use FireInterval between shots
-                    _fireTimer = FireInterval;
-                    // Reset tracking after each shot in normal mode
-                    _missilesFiredAtTarget.Clear();
+                    if (!_missilesFiredAtTarget.ContainsKey(missileTarget))
+                        _missilesFiredAtTarget[missileTarget] = 0;
+                    _missilesFiredAtTarget[missileTarget]++;
                 }
             }
-
-            if (_fireTimer > 0.0f)
-                _fireTimer -= Time.deltaTime;
         }
+
+        // Check if using salvo mode (FireOnFullyReload)
+        AAHardpoint hardpoint = _launcher as AAHardpoint;
+        if (hardpoint != null && hardpoint.FireOnFullyReload)
+        {
+            _fireTimer = hardpoint.SalvoInterval;
+
+            if (hardpoint.MagazineCount <= 0)
+            {
+                _missilesFiredAtTarget.Clear();
+                _currentTargetIndex = 0;
+            }
+        }
+        else
+        {
+            _fireTimer = FireInterval;
+            _missilesFiredAtTarget.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Get the cached seeker half-angle from the launcher's missile prefab.
+    /// </summary>
+    private float GetSeekerHalfAngle()
+    {
+        return _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone * 0.5f;
+    }
+
+    /// <summary>
+    /// Check if a target is within the seeker cone (circular, not square).
+    /// </summary>
+    private bool IsWithinCone(Transform target, float halfAngle)
+    {
+        Vector2 angles = CalcuateRelativeAngles(target);
+        float offBoresight = Mathf.Sqrt(angles.x * angles.x + angles.y * angles.y);
+        return offBoresight <= halfAngle;
+    }
+
+    /// <summary>
+    /// Called by PlayerGunController to set manual firing state.
+    /// </summary>
+    public void SetManualFiring(bool isFiring, Vector3 aimPosition)
+    {
+        IsManualMode = true;
+        _isManualFiring = isFiring;
+        _manualAimPosition = aimPosition;
+    }
+
+    /// <summary>
+    /// Switch back to automatic mode.
+    /// </summary>
+    public void SetAutomaticMode()
+    {
+        IsManualMode = false;
+        _isManualFiring = false;
     }
 
     /// <summary>
@@ -179,9 +221,7 @@ public class MissileSalvo : WeaponBase
             // Get nearby enemies
             CombatRegistry.GetNearbyEnemies(transform.position, ActiveRange.y, FireTarget, _nearbyEnemies, CanTargetMissiles);
 
-            float seekerCone = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone;
-            float maxRangeSqr = ActiveRange.y * ActiveRange.y;
-            float minRangeSqr = ActiveRange.x * ActiveRange.x;
+            float seekerHalfAngle = GetSeekerHalfAngle();
             Vector3 myPosition = transform.position;
 
             foreach (var enemy in _nearbyEnemies)
@@ -192,12 +232,11 @@ public class MissileSalvo : WeaponBase
 
                 // Check distance first to avoid expensive angle math
                 float distanceSqr = (enemyTransform.position - myPosition).sqrMagnitude;
-                if (distanceSqr > maxRangeSqr || distanceSqr < minRangeSqr)
+                if (distanceSqr > _maxRangeSqr || distanceSqr < _minRangeSqr)
                     continue;
 
-                // Check seeker cone
-                Vector2 angles = CalcuateRelativeAngles(enemyTransform);
-                if (Mathf.Abs(angles.x) > seekerCone / 2f || Mathf.Abs(angles.y) > seekerCone / 2f)
+                // Check seeker cone (circular)
+                if (!IsWithinCone(enemyTransform, seekerHalfAngle))
                     continue;
 
                 _availableTargets.Add(enemyTransform);
@@ -220,16 +259,16 @@ public class MissileSalvo : WeaponBase
 
             Vector2 relativeAngles = CalcuateRelativeAngles(Targeted);
 
-            float seekerCone = TestSeekerCone;
+            float seekerHalfAngle = TestSeekerCone * 0.5f;
             if (_launcher != null && _launcher.missilePrefabToLaunch != null)
             {
                 var missile = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>();
                 if (missile != null)
-                    seekerCone = missile.seekerCone;
+                    seekerHalfAngle = missile.seekerCone * 0.5f;
             }
 
-            bool withinCone = Mathf.Abs(relativeAngles.x) <= seekerCone / 2f &&
-                              Mathf.Abs(relativeAngles.y) <= seekerCone / 2f;
+            float offBoresight = Mathf.Sqrt(relativeAngles.x * relativeAngles.x + relativeAngles.y * relativeAngles.y);
+            bool withinCone = offBoresight <= seekerHalfAngle;
 
             Gizmos.color = withinCone ? Color.green : Color.red;
             Gizmos.DrawWireSphere(Targeted.position, 1f);
@@ -243,8 +282,8 @@ public class MissileSalvo : WeaponBase
             int reservationCount = TargetDistributor.Instance != null ? TargetDistributor.Instance.GetReservedOrdnanceCount(Targeted) : 0;
 
             UnityEditor.Handles.Label(Targeted.position + Vector3.up * 2f,
-                $"Azimuth: {relativeAngles.x:F1}°  Elev: {relativeAngles.y:F1}°\n" +
-                $"Seeker Cone: {seekerCone}°  In Cone: {withinCone}\n" +
+                $"Azimuth: {relativeAngles.x:F1}°  Elev: {relativeAngles.y:F1}°  Off-bore: {offBoresight:F1}°\n" +
+                $"Seeker Half-Angle: {seekerHalfAngle:F1}°  In Cone: {withinCone}\n" +
                 $"Primary Target Reservations: {reservationCount}");
         }
 

@@ -21,8 +21,8 @@ public class PlayerHud : MonoBehaviour
     [SerializeField] private TMPro.TextMeshProUGUI _throttleText = null;
 
     [Header("Weapon Reload Display")]
-    private List<Gun> _mainGuns;
-    private List<Gun> _secondaryGuns;
+    private List<Gun> _mainGuns = new List<Gun>();
+    private List<Gun> _secondaryGuns = new List<Gun>();
     [SerializeField] private GameObject _reloadIndicatorPrefab;
     [SerializeField] private Transform _reloadIndicatorContainerForMainGuns;
     [SerializeField] private Transform _reloadIndicatorContainerForSecondaryGuns;
@@ -54,8 +54,8 @@ public class PlayerHud : MonoBehaviour
 
     private void Start()
     {
-        _mainGuns = _gunController.PrimaryGuns;
-        _secondaryGuns = _gunController.SecondaryGuns;
+        _mainGuns = FilterGuns(_gunController.PrimaryWeapons);
+        _secondaryGuns = FilterGuns(_gunController.SecondaryWeapons);
         CreateReloadIndicators();
     }
 
@@ -159,11 +159,25 @@ public class PlayerHud : MonoBehaviour
     }
 
     /// <summary>
+    /// Extract Gun instances from a weapon group list.
+    /// </summary>
+    private static List<Gun> FilterGuns(List<WeaponBase> weapons)
+    {
+        var guns = new List<Gun>(weapons.Count);
+        for (int i = 0; i < weapons.Count; i++)
+        {
+            if (weapons[i] is Gun gun)
+                guns.Add(gun);
+        }
+        return guns;
+    }
+
+    /// <summary>
     /// Call this if guns change at runtime
     /// </summary>
-    public void RefreshGuns(List<Gun> guns)
+    public void RefreshGuns(List<WeaponBase> weapons)
     {
-        _mainGuns = guns;
+        _mainGuns = FilterGuns(weapons);
         CreateReloadIndicators();
     }
 }

@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using static GlobalHelper;
-using System.Linq;
 
 public class PlayerGunController : MonoBehaviour
 {
@@ -16,20 +15,19 @@ public class PlayerGunController : MonoBehaviour
     [SerializeField] private Camera mainCamera;
     [SerializeField] private Transform ship;
 
-    [Header("Gun Groups")]
+    [Header("Weapon Groups")]
     [Tooltip("Primary weapons - Fire with Left Mouse Button")]
-    [SerializeField] private List<Gun> primaryGuns = new List<Gun>();
+    [SerializeField] private List<WeaponBase> primaryWeapons = new List<WeaponBase>();
 
-    [Tooltip("Secondary weapons - Fire with Right Mouse Button")]
-    [SerializeField] private List<Gun> secondaryGuns = new List<Gun>();
+    [Tooltip("Secondary weapons - Also fires with Left Mouse Button")]
+    [SerializeField] private List<WeaponBase> secondaryWeapons = new List<WeaponBase>();
 
     [Tooltip("Tertiary weapons - Fire with Middle Mouse Button")]
-    [SerializeField] private List<Gun> tertiaryGuns = new List<Gun>();
+    [SerializeField] private List<WeaponBase> tertiaryWeapons = new List<WeaponBase>();
 
     [Header("Firing Settings")]
     [SerializeField] private FiringMode firingMode = FiringMode.Manual;
-    [SerializeField] private float aimDistance = 500f;
-    [SerializeField] private LayerMask aimLayerMask = ~0; // Everything by default
+    [SerializeField] private float aimDistance = 5000f;
 
     [Header("Input Keys (for keyboard control)")]
     [SerializeField] private Key primaryFireKey = Key.None;
@@ -45,9 +43,9 @@ public class PlayerGunController : MonoBehaviour
     private bool isSecondaryFiring = false;
     private bool isTertiaryFiring = false;
 
-    public List<Gun> PrimaryGuns => primaryGuns;
-    public List<Gun> SecondaryGuns => secondaryGuns;
-    public List<Gun> TertiaryGuns => tertiaryGuns;
+    public List<WeaponBase> PrimaryWeapons => primaryWeapons;
+    public List<WeaponBase> SecondaryWeapons => secondaryWeapons;
+    public List<WeaponBase> TertiaryWeapons => tertiaryWeapons;
 
     private void Awake()
     {
@@ -60,34 +58,34 @@ public class PlayerGunController : MonoBehaviour
 
     void Start()
     {
-        InitializeGunGroup();
+        InitializeWeaponGroups();
     }
 
-    public void InitializeGunGroup()
+    public void InitializeWeaponGroups()
     {
-        // PrimaryGuns are find by looking for children with componentWeaponPlatform that has attribute WeaponType = Gun, WeaponSize = Large
-        primaryGuns.Clear();
-        secondaryGuns.Clear();
-        tertiaryGuns.Clear();
-        // The Gun that would be found here should have WeaponPlatform component
-        Gun[] allGuns = GetComponentsInChildren<Gun>().Where(g => g.GetComponent<WeaponPlatform>() != null).ToArray();
-        
-        foreach (var gun in allGuns)
+        primaryWeapons.Clear();
+        secondaryWeapons.Clear();
+        tertiaryWeapons.Clear();
+
+        WeaponBase[] allWeapons = GetComponentsInChildren<WeaponBase>();
+
+        foreach (var weapon in allWeapons)
         {
-            if (gun.GetComponent<WeaponPlatform>().PlatformWeaponCategory == WeaponType.Gun)
+            // Only include guns in weapon groups; missiles use separate lock-on
+            if (weapon.WeaponCategory != WeaponType.Gun)
+                continue;
+
+            switch (weapon.WeaponSizeClass)
             {
-                switch (gun.GetComponent<WeaponPlatform>().PlatformWeaponType)
-                {
-                    case WeaponSize.Large:
-                        primaryGuns.Add(gun);
-                        break;
-                    case WeaponSize.Medium:
-                        secondaryGuns.Add(gun);
-                        break;
-                    case WeaponSize.Small:
-                        tertiaryGuns.Add(gun);
-                        break;
-                }
+                case WeaponSize.Large:
+                    primaryWeapons.Add(weapon);
+                    break;
+                case WeaponSize.Medium:
+                    secondaryWeapons.Add(weapon);
+                    break;
+                case WeaponSize.Small:
+                    tertiaryWeapons.Add(weapon);
+                    break;
             }
         }
     }
@@ -97,7 +95,7 @@ public class PlayerGunController : MonoBehaviour
         HandleModeToggle();
         UpdateAimPosition();
         HandleInput();
-        UpdateGuns();
+        UpdateWeapons();
     }
 
     private void HandleModeToggle()
@@ -106,7 +104,6 @@ public class PlayerGunController : MonoBehaviour
         if (kb != null && kb[toggleModeKey].wasPressedThisFrame)
         {
             firingMode = firingMode == FiringMode.Automatic ? FiringMode.Manual : FiringMode.Automatic;
-            // Debug.Log($"Firing Mode: {firingMode}");
         }
     }
 
@@ -126,8 +123,6 @@ public class PlayerGunController : MonoBehaviour
         Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
         Ray ray = mainCamera.ScreenPointToRay(mouseScreenPos);
 
-        // Simply return a point along the ray at aim distance
-        // No raycast needed - just aim where the mouse is pointing
         return ray.GetPoint(aimDistance);
     }
 
@@ -138,13 +133,11 @@ public class PlayerGunController : MonoBehaviour
 
         if (mouse != null)
         {
-            // Mouse button input
             isPrimaryFiring = mouse.leftButton.isPressed;
             isSecondaryFiring = mouse.leftButton.isPressed;
             isTertiaryFiring = mouse.middleButton.isPressed;
         }
 
-        // Keyboard override (if keys are assigned)
         if (kb != null)
         {
             if (primaryFireKey != Key.None)
@@ -158,52 +151,73 @@ public class PlayerGunController : MonoBehaviour
         }
     }
 
-    private void UpdateGuns()
+    private void UpdateWeapons()
     {
         if (firingMode == FiringMode.Manual)
         {
-            // Always update aim position for all guns, pass firing state separately
-            UpdateGunGroup(primaryGuns, isPrimaryFiring, AimWorldPosition);
-            UpdateGunGroup(secondaryGuns, isSecondaryFiring, AimWorldPosition);
-            UpdateGunGroup(tertiaryGuns, isTertiaryFiring, AimWorldPosition);
+            UpdateWeaponGroup(primaryWeapons, isPrimaryFiring, AimWorldPosition);
+            UpdateWeaponGroup(secondaryWeapons, isSecondaryFiring, AimWorldPosition);
+            UpdateWeaponGroup(tertiaryWeapons, isTertiaryFiring, AimWorldPosition);
         }
         else
         {
-            // Automatic mode
-            foreach (var gun in primaryGuns)
-                gun.SetAutomaticMode();
-            foreach (var gun in secondaryGuns)
-                gun.SetAutomaticMode();
-            foreach (var gun in tertiaryGuns)
-                gun.SetAutomaticMode();
+            SetGroupAutomatic(primaryWeapons);
+            SetGroupAutomatic(secondaryWeapons);
+            SetGroupAutomatic(tertiaryWeapons);
         }
     }
 
-    private void UpdateGunGroup(List<Gun> guns, bool isFiring, Vector3 aimPosition)
+    private void UpdateWeaponGroup(List<WeaponBase> weapons, bool isFiring, Vector3 aimPosition)
     {
-        foreach (var gun in guns)
+        for (int i = 0; i < weapons.Count; i++)
         {
-            if (gun == null) continue;
-            // Always pass aim position, regardless of firing state
-            gun.SetManualFiring(isFiring, aimPosition);
+            WeaponBase weapon = weapons[i];
+            if (weapon == null) continue;
+
+            if (weapon is Gun gun)
+            {
+                gun.SetManualFiring(isFiring, aimPosition);
+            }
+            else if (weapon is MissileSalvo salvo)
+            {
+                salvo.SetManualFiring(isFiring, aimPosition);
+            }
+        }
+    }
+
+    private void SetGroupAutomatic(List<WeaponBase> weapons)
+    {
+        for (int i = 0; i < weapons.Count; i++)
+        {
+            WeaponBase weapon = weapons[i];
+            if (weapon == null) continue;
+
+            if (weapon is Gun gun)
+            {
+                gun.SetAutomaticMode();
+            }
+            else if (weapon is MissileSalvo salvo)
+            {
+                salvo.SetAutomaticMode();
+            }
         }
     }
 
     /// <summary>
-    /// Add a gun to a specific group at runtime
+    /// Add a weapon to a specific group at runtime.
     /// </summary>
-    public void AddGunToGroup(Gun gun, int groupIndex)
+    public void AddWeaponToGroup(WeaponBase weapon, int groupIndex)
     {
         switch (groupIndex)
         {
-            case 0: primaryGuns.Add(gun); break;
-            case 1: secondaryGuns.Add(gun); break;
-            case 2: tertiaryGuns.Add(gun); break;
+            case 0: primaryWeapons.Add(weapon); break;
+            case 1: secondaryWeapons.Add(weapon); break;
+            case 2: tertiaryWeapons.Add(weapon); break;
         }
     }
 
     /// <summary>
-    /// Set firing mode for all guns
+    /// Set firing mode for all weapons.
     /// </summary>
     public void SetFiringMode(FiringMode mode)
     {
@@ -214,11 +228,9 @@ public class PlayerGunController : MonoBehaviour
     {
         if (!Application.isPlaying) return;
 
-        // Draw aim position
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(AimWorldPosition, 2f);
 
-        // Draw line from ship to aim
         if (ship != null)
         {
             Gizmos.color = Color.yellow;

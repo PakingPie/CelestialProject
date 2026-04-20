@@ -5,9 +5,6 @@ using static GlobalHelper;
 [RequireComponent(typeof(WeaponBase))]
 public class WeaponPlatform : VehicleBase
 {
-    [Header("Weapon Platform Stats")]
-    public WeaponType PlatformWeaponCategory = WeaponType.Gun;
-    public WeaponSize PlatformWeaponType = WeaponSize.Medium;
     [Header("Regeneration")]
     public int HitPointsRegenerationRate = 1;
     public float HitPointsRegenerationDelay = 5f;

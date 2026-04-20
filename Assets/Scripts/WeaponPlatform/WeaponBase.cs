@@ -10,6 +10,14 @@ public class WeaponBase : MonoBehaviour
     private static readonly ProfilerMarker ManagedUpdateTargetMarker = new ProfilerMarker("WeaponBase.ManagedUpdateTarget");
     private static readonly ProfilerMarker SelectTargetByPriorityMarker = new ProfilerMarker("WeaponBase.SelectTargetByPriority");
     private static readonly ProfilerMarker SelectNearestTargetMarker = new ProfilerMarker("WeaponBase.SelectNearestTarget");
+    [Header("Weapon Classification")]
+    [Tooltip("What type of weapon this is (Gun, MissileLauncher, etc).")]
+    public WeaponType WeaponCategory = WeaponType.Gun;
+    [Tooltip("Size class of this weapon (Large, Medium, Small).")]
+    public WeaponSize WeaponSizeClass = WeaponSize.Medium;
+    [Tooltip("When true, this weapon is fixed to the hull and does not use turret rotation.")]
+    public bool IsFixedMount = false;
+
     [Header("Turret")]
     [Tooltip("Transform of the turret's azimuthal rotations.")]
     public Transform TurretBase = null;
@@ -651,8 +659,11 @@ public class WeaponBase : MonoBehaviour
     // Calculate the relative angles needed to aim at the target.
     public Vector2 CalcuateRelativeAngles(Transform target)
     {
+        // Use transform as fallback when TurretBase is null (fixed mounts, missiles, etc.)
+        Transform referenceBase = TurretBase != null ? TurretBase : transform;
+
         // Azimuth calculation
-        Vector3 vecToTarget = target.position - TurretBase.position;
+        Vector3 vecToTarget = target.position - referenceBase.position;
         Vector3 flattenedVecForBase = Vector3.ProjectOnPlane(vecToTarget, transform.up);
         float azimuth = Vector3.SignedAngle(transform.forward, flattenedVecForBase, transform.up);
 
@@ -660,11 +671,22 @@ public class WeaponBase : MonoBehaviour
         float elevation = 0f;
         if (_hasBarrels && Barrels != null)
         {
-            Vector3 localTargetPos = TurretBase.InverseTransformDirection(target.position - Barrels.position);
+            Vector3 localTargetPos = referenceBase.InverseTransformDirection(target.position - Barrels.position);
             Vector3 flattenedVecForBarrels = Vector3.ProjectOnPlane(localTargetPos, Vector3.up);
 
             elevation = Vector3.Angle(flattenedVecForBarrels, localTargetPos);
             elevation *= Mathf.Sign(localTargetPos.y);
+        }
+        else
+        {
+            // No barrels — compute elevation from the reference base directly
+            Vector3 localTargetPos = referenceBase.InverseTransformDirection(target.position - referenceBase.position);
+            Vector3 flattenedVec = Vector3.ProjectOnPlane(localTargetPos, Vector3.up);
+            if (flattenedVec.sqrMagnitude > 0.001f)
+            {
+                elevation = Vector3.Angle(flattenedVec, localTargetPos);
+                elevation *= Mathf.Sign(localTargetPos.y);
+            }
         }
 
         return new Vector2(azimuth, elevation);

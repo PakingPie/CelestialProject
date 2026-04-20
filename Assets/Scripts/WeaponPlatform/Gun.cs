@@ -254,13 +254,16 @@ public class Gun : WeaponBase
         {
             if (_manualAimPosition != Vector3.zero)
             {
-                RotateBaseToFaceTarget(_manualAimPosition);
+                if (!IsFixedMount)
+                {
+                    RotateBaseToFaceTarget(_manualAimPosition);
 
-                if (HasBarrels)
-                    RotateBarrelsToFaceTarget(_manualAimPosition);
+                    if (HasBarrels)
+                        RotateBarrelsToFaceTarget(_manualAimPosition);
 
-                GimbalTarget = _manualAimPosition;
-                UseGimballedAiming = true;
+                    GimbalTarget = _manualAimPosition;
+                    UseGimballedAiming = true;
+                }
 
                 IsBarrelAtRest = false;
                 IsBaseAtRest = false;
@@ -305,10 +308,13 @@ public class Gun : WeaponBase
                     GimbalTarget = resolvedAimPosition;
                 }
 
-                RotateBaseToFaceTarget(aimPosition);
+                if (!IsFixedMount)
+                {
+                    RotateBaseToFaceTarget(aimPosition);
 
-                if (HasBarrels)
-                    RotateBarrelsToFaceTarget(aimPosition);
+                    if (HasBarrels)
+                        RotateBarrelsToFaceTarget(aimPosition);
+                }
 
                 // Turret is considered "aimed" when it's pointed at the target.
                 AngleToTarget = GetTurretAngleToTarget(aimPosition);
@@ -568,6 +574,11 @@ public class Gun : WeaponBase
     private Vector3 GetResolvedFireDirection(Transform firePoint)
     {
         Vector3 fireDirection = firePoint.forward;
+
+        // Fixed mount guns always fire straight ahead (deviation is applied separately)
+        if (IsFixedMount)
+            return fireDirection;
+
         Vector3 targetPoint = GimbalTarget != Vector3.zero
             ? GimbalTarget
             : firePoint.position + firePoint.forward * 100f;
@@ -718,8 +729,13 @@ public class Gun : WeaponBase
     /// </summary>
     public bool IsTargetWithinTraverseLimits(Vector3 targetPosition)
     {
+        if (IsFixedMount)
+            return true;
+
+        Transform referenceBase = TurretBase != null ? TurretBase : transform;
+
         // Calculate direction to target
-        Vector3 vecToTarget = targetPosition - TurretBase.position;
+        Vector3 vecToTarget = targetPosition - referenceBase.position;
         Vector3 flattenedVecForBase = Vector3.ProjectOnPlane(vecToTarget, transform.up);
 
         // Calculate azimuth (horizontal angle)
@@ -735,7 +751,7 @@ public class Gun : WeaponBase
         // Calculate elevation (vertical angle)
         if (HasBarrels && Barrels != null)
         {
-            Vector3 localTargetPos = TurretBase.InverseTransformDirection(targetPosition - Barrels.position);
+            Vector3 localTargetPos = referenceBase.InverseTransformDirection(targetPosition - Barrels.position);
             Vector3 flattenedVecForBarrels = Vector3.ProjectOnPlane(localTargetPos, Vector3.up);
 
             float elevation = Vector3.Angle(flattenedVecForBarrels, localTargetPos);

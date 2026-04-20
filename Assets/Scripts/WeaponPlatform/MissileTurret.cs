@@ -35,11 +35,11 @@ public class MissileTurret : WeaponBase
     {
         if (IsAimed && Targeted != null)
         {
-            // Get Relative angles to target 
+            // Check if target is within seeker cone
             Vector2 relativeAngles = CalcuateRelativeAngles(Targeted);
-            // Get seeker cone angle from launcher's prebab
-            float seekerCone = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone;
-            if (Mathf.Abs(relativeAngles.x) > seekerCone / 2f || Mathf.Abs(relativeAngles.y) > seekerCone / 2f)
+            float seekerHalfAngle = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone * 0.5f;
+            float offBoresight = Mathf.Sqrt(relativeAngles.x * relativeAngles.x + relativeAngles.y * relativeAngles.y);
+            if (offBoresight > seekerHalfAngle)
                 return;
 
             // Distance
@@ -176,7 +176,7 @@ public class MissileTurret : WeaponBase
         // Get nearby enemies
         CombatRegistry.GetNearbyEnemies(transform.position, ActiveRange.y, FireTarget, _nearbyEnemies, CanTargetMissiles);
 
-        float seekerCone = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone;
+        float seekerHalfAngle = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>().seekerCone * 0.5f;
 
         foreach (var enemy in _nearbyEnemies)
         {
@@ -184,9 +184,10 @@ public class MissileTurret : WeaponBase
 
             Transform enemyTransform = enemy.transform;
 
-            // Check seeker cone
+            // Check seeker cone (circular)
             Vector2 angles = CalcuateRelativeAngles(enemyTransform);
-            if (Mathf.Abs(angles.x) > seekerCone / 2f || Mathf.Abs(angles.y) > seekerCone / 2f)
+            float offBoresight = Mathf.Sqrt(angles.x * angles.x + angles.y * angles.y);
+            if (offBoresight > seekerHalfAngle)
                 continue;
 
             // Check distance
@@ -211,16 +212,16 @@ public class MissileTurret : WeaponBase
 
             Vector2 relativeAngles = CalcuateRelativeAngles(Targeted);
 
-            float seekerCone = TestSeekerCone;
+            float seekerHalfAngle = TestSeekerCone * 0.5f;
             if (_launcher != null && _launcher.missilePrefabToLaunch != null)
             {
                 var missile = _launcher.missilePrefabToLaunch.GetComponent<AAMissile>();
                 if (missile != null)
-                    seekerCone = missile.seekerCone;
+                    seekerHalfAngle = missile.seekerCone * 0.5f;
             }
 
-            bool withinCone = Mathf.Abs(relativeAngles.x) <= seekerCone / 2f &&
-                              Mathf.Abs(relativeAngles.y) <= seekerCone / 2f;
+            float offBoresight = Mathf.Sqrt(relativeAngles.x * relativeAngles.x + relativeAngles.y * relativeAngles.y);
+            bool withinCone = offBoresight <= seekerHalfAngle;
 
             Gizmos.color = withinCone ? Color.green : Color.red;
             Gizmos.DrawWireSphere(Targeted.position, 1f);
@@ -234,8 +235,8 @@ public class MissileTurret : WeaponBase
             int reservationCount = TargetDistributor.Instance != null ? TargetDistributor.Instance.GetReservedOrdnanceCount(Targeted) : 0;
 
             UnityEditor.Handles.Label(Targeted.position + Vector3.up * 2f,
-                $"Azimuth: {relativeAngles.x:F1}°  Elev: {relativeAngles.y:F1}°\n" +
-                $"Seeker Cone: {seekerCone}°  In Cone: {withinCone}\n" +
+                $"Azimuth: {relativeAngles.x:F1}°  Elev: {relativeAngles.y:F1}°  Off-bore: {offBoresight:F1}°\n" +
+                $"Seeker Half-Angle: {seekerHalfAngle:F1}°  In Cone: {withinCone}\n" +
                 $"Primary Target Reservations: {reservationCount}");
         }
 
