@@ -52,7 +52,7 @@ public class AAMissile : MonoBehaviour
     [Tooltip("How far off boresight the missile can see the target. Also restricts how far the missile can lead.")]
     public float seekerRange = 5000.0f;
 
-    [Tooltip("When true, initial speed will be taken from either the velocity passed into the Launch function, or from the forward velocity of the missile after a drop launch if a drop delay is used. This is useful for missiles that you want to inherit their start speed from their launchers.")]
+    [Tooltip("When true, initial speed will be raised to the inherited forward launch speed when that speed is higher than the missile's configured initialSpeed. This is useful for missiles that should preserve launcher speed without slowing down slower missiles.")]
     public bool overrideInitialSpeed = false;
 
     [Tooltip("Velocity that the missile has immediately on ignition.")]
@@ -595,18 +595,23 @@ public class AAMissile : MonoBehaviour
     {
         if (overrideInitialSpeed)
         {
+            float inheritedForwardSpeed;
+
             if (dropDelay > 0.0f)
             {
                 // When dropping, use the forward speed component of inherited velocity
                 // Project the launch velocity onto the missile's forward direction
-                float localForwardSpeed = Vector3.Dot(launchVelocity, transform.forward);
-                initialSpeed = Mathf.Max(0f, localForwardSpeed); // Don't allow negative initial speed
+                inheritedForwardSpeed = Mathf.Max(0f, Vector3.Dot(launchVelocity, transform.forward));
             }
             else
             {
                 // When launching off the rail, use forward speed of the launcher's given speed.
-                float localForwardSpeed = transform.InverseTransformDirection(launchVelocity).z;
-                initialSpeed = localForwardSpeed;
+                inheritedForwardSpeed = transform.InverseTransformDirection(launchVelocity).z;
+            }
+
+            if (inheritedForwardSpeed > initialSpeed)
+            {
+                initialSpeed = inheritedForwardSpeed;
             }
         }
 
