@@ -95,16 +95,26 @@ public class WeaponPlatform : VehicleBase
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
     {
+        return TakeDamage(DamageContext.Legacy(damage, ammoType, VehicleType));
+    }
+
+    public override bool TakeDamage(DamageContext damageContext)
+    {
         if (OwnerShip != null)
         {
             var ownerVehicle = OwnerShip.GetComponent<VehicleBase>();
             if (ownerVehicle != null)
             {
-                ownerVehicle.TakeDamage(damage, ammoType);
+                ownerVehicle.TakeDamage(damageContext);
             }
         }
 
-        return TakeSelfDamage(damage, ammoType);
+        return TakeSelfDamage(damageContext);
+    }
+
+    public bool TakeSelfDamage(DamageContext damageContext)
+    {
+        return TakeSelfDamage(damageContext.ResolvedDamage, damageContext.AmmoType);
     }
 
     public bool TakeSelfDamage(int damage, AmmoType ammoType)

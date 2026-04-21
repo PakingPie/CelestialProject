@@ -36,14 +36,19 @@ public class VehicleModule : VehicleBase
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
     {
+        return TakeDamage(DamageContext.Legacy(damage, ammoType, VehicleType));
+    }
+
+    public override bool TakeDamage(DamageContext damageContext)
+    {
         if (OwnerShip == null) return false;
 
         var ownerVehicle = OwnerShip.GetComponent<VehicleBase>();
         if (ownerVehicle == null) return false;
 
-        int finalDamage = (int)(damage * DamageMultiplier);
+        int finalDamage = Mathf.RoundToInt(damageContext.ResolvedDamage * DamageMultiplier);
 
-        ownerVehicle.TakeDamage(finalDamage, ammoType);
+        ownerVehicle.TakeDamage(damageContext.WithResolvedDamage(finalDamage));
 
         // // Try to use source-tracked damage to prevent duplicates, not working, will do in BulletPhysics.cs and AAMissiles.cs
         // if (ownerVehicle is EnemyVehicle enemyVehicle)

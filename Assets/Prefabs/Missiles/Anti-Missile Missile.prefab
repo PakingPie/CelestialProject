@@ -592,21 +592,26 @@ MonoBehaviour:
   ownShip: {fileID: 0}
   attachPoint: {fileID: 0}
   guidanceType: 1
-  seekerCone: 240
-  seekerRange: 7500
+  seekerCone: 360
+  seekerRange: 3000
   overrideInitialSpeed: 1
   initialSpeed: 100
-  motorLifetime: 5
-  acceleration: 10
-  turnRate: 90
-  timeToLive: 20
+  motorLifetime: 2
+  acceleration: 25
+  turnRate: 150
+  timeToLive: 10
   dropDelay: 0
-  ejectVelocity: {x: 0, y: -5, z: 0}
+  ejectVelocity: {x: 0, y: 0, z: 0}
   gravity: 0
-  ActiveRange: 5000
+  ActiveRange: 3000
   Damage: 150
-  ExplodeRadius: 10
-  DetonationRadius: 5
+  WarheadProfile:
+    DefaultMultiplier: 0.5
+    TargetTypeModifiers:
+    - TargetType: 0
+      Multiplier: 2
+  ExplodeRadius: 5
+  DetonationRadius: 1
   CanDamageAsteroids: 1
   MissileScale: {x: 1, y: 1, z: 1}
   SourceFaction: 3

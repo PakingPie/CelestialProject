@@ -362,7 +362,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &26229198
 Transform:
   m_ObjectHideFlags: 0
@@ -533,7 +533,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &30324697
 Transform:
   m_ObjectHideFlags: 0
@@ -1653,7 +1653,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &94674489
 Transform:
   m_ObjectHideFlags: 0
@@ -11977,7 +11977,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1001119329
 Transform:
   m_ObjectHideFlags: 0
@@ -16047,7 +16047,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!20 &1312769389
 Camera:
   m_ObjectHideFlags: 0
@@ -19687,7 +19687,7 @@ MonoBehaviour:
   maxOrbitDistance: 100
   zoomSpeed: 10
   zoomSmoothness: 12
-  mouseSensitivity: 0.1
+  mouseSensitivity: 0.05
   gamepadSensitivity: 100
   invertY: 1
   minVerticalAngle: -80
@@ -24280,12 +24280,12 @@ GameObject:
   - component: {fileID: 2013781280}
   - component: {fileID: 2013781279}
   m_Layer: 0
-  m_Name: IronDome_2
+  m_Name: IronDome_Enemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2013781278
 Transform:
   m_ObjectHideFlags: 0
@@ -24295,7 +24295,7 @@ Transform:
   m_GameObject: {fileID: 2013781277}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 42, y: 1, z: 0}
+  m_LocalPosition: {x: 3000, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -25689,7 +25689,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2113835125
 Transform:
   m_ObjectHideFlags: 0
@@ -25784,7 +25784,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 4
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 6000}
+  ActiveRange: {x: 5, y: 2000}
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 0}
@@ -25796,8 +25796,8 @@ MonoBehaviour:
   _noTargetSearchRange: 400
   _fullRangeCheckInterval: 10
   CanTargetMissiles: 1
-  PrioritizeMissiles: 0
-  MissileDetectionRange: 3000
+  PrioritizeMissiles: 1
+  MissileDetectionRange: 2000
   Effectiveness: 1
   IsFunctional: 1
   IsManualTargeting: 0
@@ -25823,9 +25823,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAPod
   ownShip: {fileID: 2113835125}
-  missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 320402d965573044784610737200c308, type: 3}
-  missileCount: 1
-  fireDelay: 2
+  missilePrefabToLaunch: {fileID: 5355222595161521942, guid: 7e7a553042bee8e47a0d8872b0b1bbbe, type: 3}
+  missileCount: 10
+  fireDelay: 0.5
   launchPoints:
   - {fileID: 1216511674}
   mixerGroup: {fileID: 0}

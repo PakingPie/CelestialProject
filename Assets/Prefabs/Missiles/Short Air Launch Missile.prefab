@@ -591,7 +591,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AAMissile
   target: {fileID: 0}
   ownShip: {fileID: 0}
-  attachPoint: {fileID: 0}
+  attachPoint: {fileID: 2894712143793051609}
   guidanceType: 1
   seekerCone: 240
   seekerRange: 7500
@@ -606,6 +606,13 @@ MonoBehaviour:
   gravity: 0
   ActiveRange: 5000
   Damage: 150
+  WarheadProfile:
+    DefaultMultiplier: 1
+    TargetTypeModifiers:
+    - TargetType: 1
+      Multiplier: 2
+    - TargetType: 2
+      Multiplier: 2
   ExplodeRadius: 10
   DetonationRadius: 5
   CanDamageAsteroids: 1

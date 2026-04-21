@@ -31,6 +31,8 @@ public class LaserLauncher : WeaponBase
     public bool ReadyToFire => !_isOnCooldown;
 
     public AmmoType LaserType = AmmoType.Energy;
+    [Tooltip("Source-owned damage multipliers applied before the target processes ammo-type defense rules.")]
+    public DamageProfile BeamDamageProfile = new DamageProfile();
 
     void Start()
     {
@@ -211,7 +213,7 @@ public class LaserLauncher : WeaponBase
                         _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
                     }
                 }
-                enemyVehicle.TakeDamageAtPoint(LaserDPS, LaserType, impactPoint);
+                    enemyVehicle.TakeDamageAtPoint(BeamDamageProfile.CreateContext(this, LaserDPS, LaserType, enemyVehicle, impactPoint));
             }
         }
         else

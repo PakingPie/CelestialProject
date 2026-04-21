@@ -31,6 +31,8 @@ public class BulletPhysics : MonoBehaviour
     public float alignmentSpeed = 5f;
 
     public AmmoType DamageType = AmmoType.Kinetic;
+    [Tooltip("Source-owned damage multipliers applied before the target processes ammo-type defense rules.")]
+    public DamageProfile ImpactDamageProfile = new DamageProfile();
     public Faction FireTarget = Faction.Foe;
 
     [Header("Explosions")]
@@ -242,7 +244,7 @@ public class BulletPhysics : MonoBehaviour
             if (target == null) continue;
 
             // Use bounds-aware impact: find closest surface point on target for VFX and damage routing
-            target.TakeDamageAtPoint(Damage, DamageType, impactPoint);
+            target.TakeDamageAtPoint(ImpactDamageProfile.CreateContext(this, Damage, DamageType, target, impactPoint));
         }
 
         if (ExplodeOnImpact && _explodeFXPrefab != null)

@@ -85,6 +85,8 @@ public class AAMissile : MonoBehaviour
     public float ActiveRange = 5000f;
     [Header("Warhead parameters:")]
     public int Damage = 100;
+    [Tooltip("Source-owned damage modifiers applied before the target processes explosive shield, armor, and hull rules. Use this for specialized warheads such as anti-missile missiles.")]
+    public DamageProfile WarheadProfile = new DamageProfile();
     public int ExplodeRadius = 5;
     public int DetonationRadius = 3;
     public bool CanDamageAsteroids = true;
@@ -381,7 +383,7 @@ public class AAMissile : MonoBehaviour
                 float distSqr = vehicle.SqrDistanceToBounds(impactPoint);
                 if (distSqr <= (float)ExplodeRadius * ExplodeRadius)
                 {
-                    vehicle.TakeDamageAtPoint(Damage, GlobalHelper.AmmoType.Explosive, impactPoint);
+                    vehicle.TakeDamageAtPoint(WarheadProfile.CreateContext(this, Damage, GlobalHelper.AmmoType.Explosive, vehicle, impactPoint));
                 }
             }
         }
@@ -390,7 +392,7 @@ public class AAMissile : MonoBehaviour
             VehicleBase targetVehicle = target.GetComponent<VehicleBase>();
             if (targetVehicle != null)
             {
-                targetVehicle.TakeDamageAtPoint(Damage, GlobalHelper.AmmoType.Explosive, impactPoint);
+                targetVehicle.TakeDamageAtPoint(WarheadProfile.CreateContext(this, Damage, GlobalHelper.AmmoType.Explosive, targetVehicle, impactPoint));
             }
         }
 

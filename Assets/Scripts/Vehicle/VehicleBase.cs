@@ -113,6 +113,13 @@ public abstract class VehicleBase : MonoBehaviour
     /// </summary>
     public virtual bool TakeDamageAtPoint(int damage, AmmoType ammoType, Vector3 impactPoint)
     {
+        return TakeDamageAtPoint(DamageContext.Legacy(damage, ammoType, VehicleType, impactPoint));
+    }
+
+    public virtual bool TakeDamageAtPoint(DamageContext damageContext)
+    {
+        Vector3 impactPoint = damageContext.HasImpactPoint ? damageContext.ImpactPoint : CachedTransform.position;
+
         // Track whether a VehicleModule handled damage (it forwards to parent internally)
         bool moduleHandledDamage = false;
 
@@ -139,7 +146,7 @@ public abstract class VehicleBase : MonoBehaviour
                 if (bestDistSqr <= moduleRadius * moduleRadius * 4f)
                 {
                     // VehicleModule.TakeDamage already forwards damage to the root vehicle
-                    closest.TakeDamage(damage, ammoType);
+                    closest.TakeDamage(damageContext);
                     moduleHandledDamage = true;
                 }
             }
@@ -147,7 +154,7 @@ public abstract class VehicleBase : MonoBehaviour
 
         // Only damage root directly if no VehicleModule already forwarded the damage
         if (!moduleHandledDamage)
-            TakeDamage(damage, ammoType);
+            TakeDamage(damageContext);
 
         // Route to closest child WeaponPlatform if near impact
         if (_childWeaponPlatforms != null)
@@ -170,7 +177,7 @@ public abstract class VehicleBase : MonoBehaviour
                 // Only damage turret if impact is reasonably close to it
                 float turretRadius = closest.BoundsRadius;
                 if (bestDistSqr <= turretRadius * turretRadius * 4f) // within 2x turret radius
-                    closest.TakeSelfDamage(damage, ammoType);
+                    closest.TakeSelfDamage(damageContext);
             }
         }
 
@@ -276,6 +283,32 @@ public abstract class VehicleBase : MonoBehaviour
     private int _lastDamageFrame = -1;
     private HashSet<int> _damageSourcesThisFrame = new HashSet<int>();
 
+    private bool CanProcessDamageSource(int sourceId)
+    {
+        if (sourceId == 0)
+            return true;
+
+        if (Time.frameCount != _lastDamageFrame)
+        {
+            _lastDamageFrame = Time.frameCount;
+            _damageSourcesThisFrame.Clear();
+        }
+
+        if (_damageSourcesThisFrame.Contains(sourceId))
+            return false;
+
+        _damageSourcesThisFrame.Add(sourceId);
+        return true;
+    }
+
+
+    public virtual bool TakeDamage(DamageContext damageContext)
+    {
+        if (!CanProcessDamageSource(damageContext.SourceId))
+            return HitPoints > 0;
+
+        return TakeDamage(damageContext.ResolvedDamage, damageContext.AmmoType);
+    }
 
     public virtual bool TakeDamage(int damage, AmmoType ammoType)
     {
@@ -504,18 +537,6 @@ public abstract class VehicleBase : MonoBehaviour
 
     public bool TakeDamageFromSource(int damage, AmmoType ammoType, int sourceId)
     {
-        if (Time.frameCount != _lastDamageFrame)
-        {
-            _lastDamageFrame = Time.frameCount;
-            _damageSourcesThisFrame.Clear();
-        }
-
-        if (_damageSourcesThisFrame.Contains(sourceId))
-        {
-            return HitPoints > 0;
-        }
-
-        _damageSourcesThisFrame.Add(sourceId);
-        return TakeDamage(damage, ammoType);
+        return TakeDamage(DamageContext.Legacy(damage, ammoType, VehicleType, sourceId));
     }
 }
