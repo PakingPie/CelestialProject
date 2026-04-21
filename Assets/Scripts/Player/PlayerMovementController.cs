@@ -330,8 +330,30 @@ public class PlayerMovementController : MonoBehaviour
 
     private void ResetViewToShipBehind(float speed)
     {
-        float targetYaw = ship.eulerAngles.y;
-        float targetPitch = cameraMode == CameraMode.FollowBehind ? followBehindPitch : 20f;
+        // Drive camera orbit from aim direction so the crosshair stays near screen center
+        Vector3 aimWorldPos = GetMouseAimWorldPosition();
+        Vector3 toAim = aimWorldPos - ship.position;
+
+        // Compute target yaw from aim direction (horizontal)
+        float targetYaw;
+        Vector3 toAimHorizontal = new Vector3(toAim.x, 0f, toAim.z);
+        if (toAimHorizontal.sqrMagnitude > 0.001f)
+        {
+            targetYaw = Mathf.Atan2(toAimHorizontal.x, toAimHorizontal.z) * Mathf.Rad2Deg;
+        }
+        else
+        {
+            targetYaw = ship.eulerAngles.y;
+        }
+
+        // Compute target pitch: base elevation + aim pitch
+        float basePitch = cameraMode == CameraMode.FollowBehind ? followBehindPitch : 20f;
+        float aimPitch = 0f;
+        if (toAim.sqrMagnitude > 0.001f)
+        {
+            aimPitch = Mathf.Asin(Mathf.Clamp(toAim.normalized.y, -1f, 1f)) * Mathf.Rad2Deg;
+        }
+        float targetPitch = Mathf.Clamp(basePitch + aimPitch, minVerticalAngle, maxVerticalAngle);
 
         orbitYaw = Mathf.LerpAngle(orbitYaw, targetYaw, speed * Time.deltaTime);
         orbitPitch = Mathf.Lerp(orbitPitch, targetPitch, speed * Time.deltaTime);

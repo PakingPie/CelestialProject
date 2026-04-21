@@ -47,6 +47,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 1940098549741017431}
   Barrels: {fileID: 2920902154728742831}
   _elevationSpeed: 30
@@ -60,7 +63,7 @@ MonoBehaviour:
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 10
   Targeted: {fileID: 0}
-  FireTarget: 12
+  FireTarget: 4
   GuidanceType: 1
   ActiveRange: {x: 20, y: 3000}
   UseTargetDistribution: 1
@@ -147,8 +150,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -384,6 +385,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 3312125367669413249}
   Barrels: {fileID: 7765632108354470758}
   _elevationSpeed: 150
@@ -397,7 +401,7 @@ MonoBehaviour:
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 5
   Targeted: {fileID: 0}
-  FireTarget: 12
+  FireTarget: 4
   GuidanceType: 1
   ActiveRange: {x: 10, y: 1000}
   UseTargetDistribution: 1
@@ -491,8 +495,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 2
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 20
   ArmorRegenerationRate: 1
@@ -1286,6 +1288,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1db5bcea85ac7604abda9a00766f20dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAFire
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 1187111806497339808}
   Barrels: {fileID: 1187111806497339808}
   _elevationSpeed: 60
@@ -1325,6 +1330,7 @@ MonoBehaviour:
   FireInterval: 10
   DistributeTargetsPerMissile: 1
   MaxMissilesPerTarget: 1
+  IsManualMode: 0
   EnableDebugGizmos: 0
   TestSeekerCone: 30
 --- !u!1 &2434107863947663747
@@ -1590,6 +1596,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 5966658106965175989}
   Barrels: {fileID: 3928674108413664426}
   _elevationSpeed: 150
@@ -1603,7 +1612,7 @@ MonoBehaviour:
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 5
   Targeted: {fileID: 0}
-  FireTarget: 12
+  FireTarget: 4
   GuidanceType: 1
   ActiveRange: {x: 10, y: 1000}
   UseTargetDistribution: 1
@@ -1697,8 +1706,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 2
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 20
   ArmorRegenerationRate: 1
@@ -3812,6 +3819,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 4026418781290104048}
   Barrels: {fileID: 8224349080661307098}
   _elevationSpeed: 30
@@ -3825,7 +3835,7 @@ MonoBehaviour:
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 10
   Targeted: {fileID: 0}
-  FireTarget: 12
+  FireTarget: 4
   GuidanceType: 1
   ActiveRange: {x: 20, y: 3000}
   UseTargetDistribution: 1
@@ -3912,8 +3922,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -4173,6 +4181,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1db5bcea85ac7604abda9a00766f20dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAFire
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 3853289461019015073}
   Barrels: {fileID: 3853289461019015073}
   _elevationSpeed: 60
@@ -4212,6 +4223,7 @@ MonoBehaviour:
   FireInterval: 10
   DistributeTargetsPerMissile: 1
   MaxMissilesPerTarget: 1
+  IsManualMode: 0
   EnableDebugGizmos: 0
   TestSeekerCone: 30
 --- !u!1 &6101111224961113884
@@ -4351,6 +4363,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 6956217224851155960}
   Barrels: {fileID: 6581697170985007373}
   _elevationSpeed: 150
@@ -4364,7 +4379,7 @@ MonoBehaviour:
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 5
   Targeted: {fileID: 0}
-  FireTarget: 12
+  FireTarget: 4
   GuidanceType: 1
   ActiveRange: {x: 10, y: 1000}
   UseTargetDistribution: 1
@@ -4458,8 +4473,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 2
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 20
   ArmorRegenerationRate: 1
@@ -4762,6 +4775,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 2887053746151539717}
   Barrels: {fileID: 2599348394548574204}
   _elevationSpeed: 30
@@ -4775,7 +4791,7 @@ MonoBehaviour:
   AimPosition: {x: 0, y: 0, z: 0}
   AimedThreshold: 10
   Targeted: {fileID: 0}
-  FireTarget: 12
+  FireTarget: 4
   GuidanceType: 1
   ActiveRange: {x: 20, y: 3000}
   UseTargetDistribution: 1
@@ -4862,8 +4878,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
