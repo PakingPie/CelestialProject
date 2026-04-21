@@ -136,6 +136,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 9174078863373420440}
   Barrels: {fileID: 4294426569776576730}
   _elevationSpeed: 30
@@ -234,8 +237,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -743,6 +744,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 175830176495284897}
   Barrels: {fileID: 6812559359757970798}
   _elevationSpeed: 30
@@ -841,8 +845,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -3058,6 +3060,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 011ea27b80252f74691662dd60e3ad74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LaserTest
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 8175989320198819942}
   Barrels: {fileID: 559696869472109672}
   _elevationSpeed: 30
@@ -3124,8 +3129,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -3288,6 +3291,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 4368125393534630930}
   Barrels: {fileID: 8663812768487978742}
   _elevationSpeed: 30
@@ -3386,8 +3392,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -3502,6 +3506,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1db5bcea85ac7604abda9a00766f20dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAFire
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 8113122000649533670}
   Barrels: {fileID: 8113122000649533670}
   _elevationSpeed: 60
@@ -3541,6 +3548,7 @@ MonoBehaviour:
   FireInterval: 0.5
   DistributeTargetsPerMissile: 1
   MaxMissilesPerTarget: 1
+  IsManualMode: 0
   EnableDebugGizmos: 0
   TestSeekerCone: 30
 --- !u!114 &5987118773523783008
@@ -3670,6 +3678,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 5986097204719692294}
   Barrels: {fileID: 5111012172455502396}
   _elevationSpeed: 30
@@ -3768,8 +3779,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -4869,6 +4878,8 @@ MonoBehaviour:
   flockmatesCenter: {x: 0, y: 0, z: 0}
   numPerceivedFlockmates: 0
   HeightRange: {x: -10000, y: 10000}
+  LeashCenter: {x: 0, y: 0, z: 0}
+  UseLeash: 0
   _EnableDebugLogs: 0
   _EnableDebugGizmos: 0
   IsInCombat: 0
@@ -4892,12 +4903,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
   OwnerShip: {fileID: 4103674997823826176}
   IsShowHitpointBar: 0
-  HitPoints: 1000
-  MaxHitPoints: 1000
+  HitPoints: 2000
+  MaxHitPoints: 2000
   ArmorPoints: 1000
   MaxArmorPoints: 1000
-  ShieldPoints: 3000
-  MaxShieldPoints: 3000
+  ShieldPoints: 4000
+  MaxShieldPoints: 4000
   BoidManager: {fileID: 0}
   VehicleFaction: 4
   Type: 10
@@ -6301,6 +6312,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 709981082798235328}
   Barrels: {fileID: 6324970279799800659}
   _elevationSpeed: 30
@@ -6399,8 +6413,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -7093,6 +7105,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 011ea27b80252f74691662dd60e3ad74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LaserTest
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 4573764174952170787}
   Barrels: {fileID: 3599350194460076398}
   _elevationSpeed: 30
@@ -7159,8 +7174,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -8322,6 +8335,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 011ea27b80252f74691662dd60e3ad74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LaserTest
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 3133390674055474395}
   Barrels: {fileID: 4254300555046372254}
   _elevationSpeed: 30
@@ -8388,8 +8404,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -8618,6 +8632,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 011ea27b80252f74691662dd60e3ad74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LaserTest
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 4717901539935772521}
   Barrels: {fileID: 8537692440902023995}
   _elevationSpeed: 30
@@ -8684,8 +8701,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -9176,6 +9191,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 873578171282709057}
   Barrels: {fileID: 3729599200554083293}
   _elevationSpeed: 30
@@ -9274,8 +9292,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 0
-  PlatformWeaponType: 1
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
