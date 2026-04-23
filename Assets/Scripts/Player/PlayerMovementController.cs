@@ -330,33 +330,37 @@ public class PlayerMovementController : MonoBehaviour
 
     private void ResetViewToShipBehind(float speed)
     {
-        // Drive camera orbit from aim direction so the crosshair stays near screen center
-        Vector3 aimWorldPos = GetMouseAimWorldPosition();
-        Vector3 toAim = aimWorldPos - ship.position;
+        // Camera follows ship's heading: yaw from rotation, pitch from VELOCITY direction.
+        //
+        // Why velocity (not rotation) for pitch?
+        //   - Velocity has linear inertia: small instructor pitch corrections don't
+        //     immediately change it, so cursor world-projection stays stable.
+        //   - Avoids the feedback loop: rotation -> camera -> cursor target -> rotation.
+        //   - Sustained climb/dive (or vertical thrust) naturally tilts the camera.
+        //
+        // For transient aim adjustments at slightly off-axis targets, the cursor
+        // moves the ship via the instructor — camera doesn't need to tilt for small angles.
+        // For aggressive vertical tracking, the player sustains the maneuver (camera follows)
+        // or uses right-mouse freelook for instant override.
+        float targetYaw = ship.eulerAngles.y;
 
-        // Compute target yaw from aim direction (horizontal)
-        float targetYaw;
-        Vector3 toAimHorizontal = new Vector3(toAim.x, 0f, toAim.z);
-        if (toAimHorizontal.sqrMagnitude > 0.001f)
-        {
-            targetYaw = Mathf.Atan2(toAimHorizontal.x, toAimHorizontal.z) * Mathf.Rad2Deg;
-        }
-        else
-        {
-            targetYaw = ship.eulerAngles.y;
-        }
-
-        // Compute target pitch: base elevation + aim pitch
         float basePitch = cameraMode == CameraMode.FollowBehind ? followBehindPitch : 20f;
-        float aimPitch = 0f;
-        if (toAim.sqrMagnitude > 0.001f)
+        float velocityPitch = 0f;
+        if (shipMovement != null)
         {
-            aimPitch = Mathf.Asin(Mathf.Clamp(toAim.normalized.y, -1f, 1f)) * Mathf.Rad2Deg;
+            Vector3 v = shipMovement.Velocity;
+            float speedMag = v.magnitude;
+            // Deadzone: ignore tiny vertical drift (< 5% of total speed)
+            if (speedMag > 1f && Mathf.Abs(v.y / speedMag) > 0.05f)
+            {
+                velocityPitch = Mathf.Asin(Mathf.Clamp(v.y / speedMag, -1f, 1f)) * Mathf.Rad2Deg;
+            }
         }
-        float targetPitch = Mathf.Clamp(basePitch + aimPitch, minVerticalAngle, maxVerticalAngle);
+        float targetPitch = Mathf.Clamp(basePitch + velocityPitch, minVerticalAngle, maxVerticalAngle);
 
         orbitYaw = Mathf.LerpAngle(orbitYaw, targetYaw, speed * Time.deltaTime);
-        orbitPitch = Mathf.Lerp(orbitPitch, targetPitch, speed * Time.deltaTime);
+        // Slow pitch lerp (1/3 of yaw speed) so velocity changes settle gently
+        orbitPitch = Mathf.Lerp(orbitPitch, targetPitch, speed * 0.33f * Time.deltaTime);
     }
 
     private void UpdateVelocityEffects()

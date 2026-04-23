@@ -95,9 +95,12 @@ public class PlayerShipMovement : MonoBehaviour
     [Header("Mouse Aim (Instructor)")]
     [Tooltip("Ship auto-steers toward mouse cursor position when no WASD input")]
     public bool mouseAimEnabled = true;
-    [Tooltip("Response strength - higher values make the ship track the mouse faster")]
-    [Range(0.01f, 0.3f)]
-    public float mouseAimResponse = 0.1f;
+    [Tooltip("How aggressively desired turn rate scales with angular error (deg/s per deg of error)")]
+    [Range(0.5f, 10f)]
+    public float mouseAimRateGain = 3f;
+    [Tooltip("How aggressively the controller brakes when current rate overshoots desired (higher = less overshoot)")]
+    [Range(0.01f, 0.5f)]
+    public float mouseAimDamping = 0.08f;
     [Tooltip("Angular deadzone in degrees - errors below this are ignored")]
     public float mouseAimDeadzone = 0.5f;
 
@@ -246,19 +249,20 @@ public class PlayerShipMovement : MonoBehaviour
 
         if (kb != null)
         {
-            // WASD: Pitch and Yaw
+            // WASD: Pitch and Roll (A/D = roll, like flight sims)
             rawPitchInput += kb.sKey.isPressed ? 1f : 0f;
             rawPitchInput -= kb.wKey.isPressed ? 1f : 0f;
             rawPitchInput = Mathf.Clamp(rawPitchInput, -1f, 1f);
 
-            rawYawInput += kb.dKey.isPressed ? 1f : 0f;
-            rawYawInput -= kb.aKey.isPressed ? 1f : 0f;
-            rawYawInput = Mathf.Clamp(rawYawInput, -1f, 1f);
-
-            // Q/E: Roll
-            rawRollInput += kb.qKey.isPressed ? 1f : 0f;
-            rawRollInput -= kb.eKey.isPressed ? 1f : 0f;
+            // A/D: Roll (A = roll left, D = roll right)
+            rawRollInput -= kb.aKey.isPressed ? 1f : 0f;
+            rawRollInput += kb.dKey.isPressed ? 1f : 0f;
             rawRollInput = Mathf.Clamp(rawRollInput, -1f, 1f);
+
+            // Q/E: Yaw (left/right)
+            rawYawInput += kb.eKey.isPressed ? 1f : 0f;
+            rawYawInput -= kb.qKey.isPressed ? 1f : 0f;
+            rawYawInput = Mathf.Clamp(rawYawInput, -1f, 1f);
 
             // Shift/Ctrl: Adjust target speed
             rawThrottleInput += kb.leftShiftKey.isPressed ? 1f : 0f;
@@ -313,7 +317,7 @@ public class PlayerShipMovement : MonoBehaviour
         // Don't steer via mouse during freelook
         if (cameraController.IsFreelooking) return;
 
-        // Only use mouse aim when no manual pitch/yaw input (QE roll is independent)
+        // Only use mouse aim when no manual pitch/yaw input (roll is independent)
         bool hasManualPitchYaw = Mathf.Abs(rawPitchInput) > 0.01f ||
                                   Mathf.Abs(rawYawInput) > 0.01f;
         if (hasManualPitchYaw) return;
@@ -322,7 +326,7 @@ public class PlayerShipMovement : MonoBehaviour
         Vector3 toAim = (mouseAimWorldPos - transform.position).normalized;
         Vector3 localAim = transform.InverseTransformDirection(toAim);
 
-        // Angular errors in degrees
+        // Angular errors in degrees (how far off-boresight the cursor is)
         float yawError = Mathf.Atan2(localAim.x, localAim.z) * Mathf.Rad2Deg;
         float pitchError = -Mathf.Atan2(localAim.y, localAim.z) * Mathf.Rad2Deg;
 
@@ -330,9 +334,18 @@ public class PlayerShipMovement : MonoBehaviour
         if (Mathf.Abs(yawError) < mouseAimDeadzone) yawError = 0f;
         if (Mathf.Abs(pitchError) < mouseAimDeadzone) pitchError = 0f;
 
-        // Convert error to input command (clamped to [-1, 1])
-        rawPitchInput = Mathf.Clamp(pitchError * mouseAimResponse, -1f, 1f);
-        rawYawInput = Mathf.Clamp(yawError * mouseAimResponse, -1f, 1f);
+        // PD controller: convert error to a desired angular velocity, then
+        // command input proportional to (desiredRate - currentRate). This gives
+        // strong push when far away AND brakes early to prevent overshoot.
+        float desiredYawRate = yawError * mouseAimRateGain;
+        float desiredPitchRate = pitchError * mouseAimRateGain;
+
+        // currentAngularVelocity components are in deg/s (x=pitch, y=yaw)
+        float yawRateError = desiredYawRate - angularVelocity.y;
+        float pitchRateError = desiredPitchRate - angularVelocity.x;
+
+        rawPitchInput = Mathf.Clamp(pitchRateError * mouseAimDamping, -1f, 1f);
+        rawYawInput = Mathf.Clamp(yawRateError * mouseAimDamping, -1f, 1f);
     }
 
     private void SmoothInput()
