@@ -35,6 +35,18 @@ public class PlayerGunController : MonoBehaviour
     [Tooltip("Maximum lock-on range in world units")]
     [SerializeField] private float lockOnMaxRange = 3000f;
 
+    [Header("Debug Off-Screen Indicators")]
+    [Tooltip("Maximum range used when scanning for off-screen indicators")]
+    [SerializeField] private float offscreenIndicatorRange = 3000f;
+    [Tooltip("Screen edge margin used when placing off-screen indicators")]
+    [SerializeField] private float offscreenIndicatorEdgeMargin = 36f;
+    [Tooltip("Rendered triangle size for off-screen indicators")]
+    [SerializeField] private float offscreenIndicatorSize = 28f;
+    [Tooltip("Maximum number of off-screen indicators rendered per faction")]
+    [SerializeField] private int maxOffscreenIndicatorsPerFaction = 8;
+    [SerializeField] private Color offscreenEnemyColor = new Color(1f, 0.2f, 0.2f, 0.65f);
+    [SerializeField] private Color offscreenAllyColor = new Color(0.2f, 1f, 1f, 0.6f);
+
     [Header("Input Keys")]
     [SerializeField] private Key primaryFireKey = Key.None;
     [SerializeField] private Key secondaryFireKey = Key.None;
@@ -52,6 +64,11 @@ public class PlayerGunController : MonoBehaviour
     private bool isSecondaryFiring = false;
     private bool isMissileFiring = false;
 
+    private readonly List<VehicleBase> offscreenEnemyBuffer = new List<VehicleBase>(32);
+    private readonly List<VehicleBase> offscreenAllyBuffer = new List<VehicleBase>(32);
+
+    private static Texture2D offscreenIndicatorTexture;
+
     public List<WeaponBase> PrimaryWeapons => primaryWeapons;
     public List<WeaponBase> SecondaryWeapons => secondaryWeapons;
 
@@ -62,6 +79,8 @@ public class PlayerGunController : MonoBehaviour
 
         if (ship == null)
             ship = transform;
+
+        EnsureOffscreenIndicatorTexture();
     }
 
     void Start()
@@ -340,6 +359,9 @@ public class PlayerGunController : MonoBehaviour
     {
         if (!Application.isPlaying || mainCamera == null) return;
 
+        DrawOffscreenIndicators(offscreenEnemyBuffer, Faction.Foe, offscreenEnemyColor);
+        DrawOffscreenIndicators(offscreenAllyBuffer, Faction.Ally, offscreenAllyColor);
+
         if (LockedTarget != null)
         {
             Vector3 viewportPos = mainCamera.WorldToViewportPoint(LockedTarget.position);
@@ -358,6 +380,138 @@ public class PlayerGunController : MonoBehaviour
         }
 
         GUI.color = Color.white;
+    }
+
+    private void DrawOffscreenIndicators(List<VehicleBase> buffer, Faction faction, Color indicatorColor)
+    {
+        float queryRange = offscreenIndicatorRange > 0f ? offscreenIndicatorRange : lockOnMaxRange;
+        if (queryRange <= 0f || maxOffscreenIndicatorsPerFaction <= 0)
+            return;
+
+        CombatRegistry.GetNearbyEnemies(ship.position, queryRange, faction, buffer, false);
+        if (buffer.Count == 0)
+            return;
+
+        float safeHalfWidth = Mathf.Max(0f, (Screen.width * 0.5f) - offscreenIndicatorEdgeMargin);
+        float safeHalfHeight = Mathf.Max(0f, (Screen.height * 0.5f) - offscreenIndicatorEdgeMargin);
+        if (safeHalfWidth <= 0f || safeHalfHeight <= 0f)
+            return;
+
+        int drawnCount = 0;
+
+        for (int i = 0; i < buffer.Count; i++)
+        {
+            if (drawnCount >= maxOffscreenIndicatorsPerFaction)
+                break;
+
+            VehicleBase vehicle = buffer[i];
+            if (vehicle == null)
+                continue;
+
+            Transform target = vehicle.transform;
+            if (target == null || target == ship || !target.gameObject.activeInHierarchy)
+                continue;
+
+            Vector3 viewportPos = mainCamera.WorldToViewportPoint(target.position);
+            if (IsTargetVisibleOnScreen(viewportPos))
+                continue;
+
+            Vector2 indicatorPosition;
+            Vector2 direction;
+            if (!TryGetOffscreenIndicatorPosition(viewportPos, safeHalfWidth, safeHalfHeight, out indicatorPosition, out direction))
+                continue;
+
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg + 90f;
+            DrawRotatedTriangle(indicatorPosition, angle, offscreenIndicatorSize, indicatorColor);
+            drawnCount++;
+        }
+    }
+
+    private static bool IsTargetVisibleOnScreen(Vector3 viewportPos)
+    {
+        return viewportPos.z > 0f &&
+               viewportPos.x >= 0f && viewportPos.x <= 1f &&
+               viewportPos.y >= 0f && viewportPos.y <= 1f;
+    }
+
+    private static bool TryGetOffscreenIndicatorPosition(Vector3 viewportPos,
+                                                         float safeHalfWidth,
+                                                         float safeHalfHeight,
+                                                         out Vector2 indicatorPosition,
+                                                         out Vector2 direction)
+    {
+        Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+        Vector2 screenPoint = new Vector2(viewportPos.x * Screen.width, (1f - viewportPos.y) * Screen.height);
+
+        direction = screenPoint - screenCenter;
+
+        if (viewportPos.z <= 0f)
+        {
+            direction = -direction;
+        }
+
+        if (direction.sqrMagnitude < 0.0001f)
+        {
+            indicatorPosition = screenCenter;
+            return false;
+        }
+
+        float scaleX = Mathf.Abs(direction.x) > 0.001f ? safeHalfWidth / Mathf.Abs(direction.x) : float.PositiveInfinity;
+        float scaleY = Mathf.Abs(direction.y) > 0.001f ? safeHalfHeight / Mathf.Abs(direction.y) : float.PositiveInfinity;
+        float scale = Mathf.Min(scaleX, scaleY);
+
+        indicatorPosition = screenCenter + direction * scale;
+        direction.Normalize();
+        return true;
+    }
+
+    private static void EnsureOffscreenIndicatorTexture()
+    {
+        if (offscreenIndicatorTexture != null)
+            return;
+
+        const int textureSize = 32;
+        offscreenIndicatorTexture = new Texture2D(textureSize, textureSize, TextureFormat.ARGB32, false)
+        {
+            hideFlags = HideFlags.HideAndDontSave,
+            filterMode = FilterMode.Bilinear,
+            wrapMode = TextureWrapMode.Clamp
+        };
+
+        Color clear = new Color(1f, 1f, 1f, 0f);
+        Color fill = Color.white;
+        int baseY = textureSize - 3;
+        int tipY = 2;
+        float centerX = (textureSize - 1) * 0.5f;
+
+        for (int y = 0; y < textureSize; y++)
+        {
+            float t = Mathf.InverseLerp(baseY, tipY, y);
+            float halfWidth = Mathf.Lerp((textureSize - 4) * 0.5f, 0.5f, t);
+
+            for (int x = 0; x < textureSize; x++)
+            {
+                bool inside = y >= tipY && y <= baseY && Mathf.Abs(x - centerX) <= halfWidth;
+                offscreenIndicatorTexture.SetPixel(x, y, inside ? fill : clear);
+            }
+        }
+
+        offscreenIndicatorTexture.Apply(false, true);
+    }
+
+    private static void DrawRotatedTriangle(Vector2 center, float angle, float size, Color color)
+    {
+        EnsureOffscreenIndicatorTexture();
+
+        Color previousColor = GUI.color;
+        Matrix4x4 previousMatrix = GUI.matrix;
+
+        GUI.color = color;
+        GUIUtility.RotateAroundPivot(angle, center);
+        GUI.DrawTexture(new Rect(center.x - size * 0.5f, center.y - size * 0.5f, size, size), offscreenIndicatorTexture);
+
+        GUI.matrix = previousMatrix;
+        GUI.color = previousColor;
     }
 
     private static void DrawLockOnReticle(float x, float y, Color color, float size)

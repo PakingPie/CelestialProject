@@ -106,10 +106,10 @@ MonoBehaviour:
   _impactFXPrefab: {fileID: 7712910556444932483, guid: d4570ccc75b64494482d7be034ef5db5, type: 3}
   _explodeFXPrefab: {fileID: 7712910556444932483, guid: d4570ccc75b64494482d7be034ef5db5, type: 3}
   _childTrails: []
-  Damage: 20
+  Damage: 10
   CanDamagePlanet: 0
   CanDamageAsteroids: 1
-  EffectiveRange: 1000
+  Speed: 0
   LifeTime: 5
   RangeVariance: 0.1
   FuseDetonationDistance: 2
@@ -118,6 +118,9 @@ MonoBehaviour:
   alignToVelocity: 1
   alignmentSpeed: 5
   DamageType: 0
+  ImpactDamageProfile:
+    DefaultMultiplier: 1
+    TargetTypeModifiers: []
   FireTarget: 12
   ExplodeOnImpact: 1
   UseSpatialGrid: 1

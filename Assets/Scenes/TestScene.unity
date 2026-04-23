@@ -362,7 +362,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &26229198
 Transform:
   m_ObjectHideFlags: 0
@@ -376,10 +376,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1685564146}
+  - {fileID: 1782781685}
   - {fileID: 387310615949886877}
   - {fileID: 1061926679452243751}
-  - {fileID: 7963449685609278610}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &28075758
@@ -533,7 +532,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &30324697
 Transform:
   m_ObjectHideFlags: 0
@@ -3324,7 +3323,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.01
+  SequentialFiringInterval: 0.03
   FirePoints:
   - {fileID: 477608964}
   - {fileID: 1530160557}
@@ -8963,7 +8962,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &764762349
 Transform:
   m_ObjectHideFlags: 0
@@ -11978,7 +11977,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1001119329
 Transform:
   m_ObjectHideFlags: 0
@@ -16048,7 +16047,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!20 &1312769389
 Camera:
   m_ObjectHideFlags: 0
@@ -17713,7 +17712,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1503629324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19765,7 +19764,7 @@ GameObject:
   - component: {fileID: 1685564146}
   - component: {fileID: 1685564147}
   m_Layer: 0
-  m_Name: PlayerCameraRig
+  m_Name: FighterCameraRig
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19779,13 +19778,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1685564145}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 713550162}
-  m_Father: {fileID: 26229198}
+  m_Father: {fileID: 1782781685}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1685564147
 MonoBehaviour:
@@ -21643,6 +21642,39 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1777943415}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1782781684
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1782781685}
+  m_Layer: 0
+  m_Name: Fighter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1782781685
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1782781684}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1685564146}
+  - {fileID: 7963449685609278610}
+  m_Father: {fileID: 26229198}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1792308774
 GameObject:
   m_ObjectHideFlags: 0
@@ -24886,7 +24918,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2046028405
 Transform:
   m_ObjectHideFlags: 0
@@ -26540,10 +26572,10 @@ VisualEffect:
       m_Array: []
     m_Int:
       m_Array:
-      - m_Value: 10
+      - m_Value: 5
         m_Name: ElectricArcSpawnCount
         m_Overridden: 1
-      - m_Value: 2000
+      - m_Value: 4000
         m_Name: Size
         m_Overridden: 1
     m_Matrix4x4f:
@@ -26683,7 +26715,7 @@ GameObject:
   - component: {fileID: 7963449685609278615}
   - component: {fileID: 7963449685609278614}
   m_Layer: 0
-  m_Name: Visual
+  m_Name: FighterVisual
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -28808,7 +28840,7 @@ MonoBehaviour:
   GimbalRange: 10
   GimbalTarget: {x: 0, y: 0, z: 0}
   IsSequentialFiring: 1
-  SequentialFiringInterval: 0.01
+  SequentialFiringInterval: 0.03
   FirePoints:
   - {fileID: 8933769439291434403}
   - {fileID: 1348499447716980370}
@@ -29694,7 +29726,7 @@ Transform:
   - {fileID: 258738676}
   - {fileID: 4465550461641584757}
   - {fileID: 3231267542051739216}
-  m_Father: {fileID: 26229198}
+  m_Father: {fileID: 1782781685}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7963449685609278611
 MonoBehaviour:
@@ -29717,6 +29749,12 @@ MonoBehaviour:
   aimDistance: 5000
   lockOnScreenRadius: 300
   lockOnMaxRange: 5000
+  offscreenIndicatorRange: 5000
+  offscreenIndicatorEdgeMargin: 36
+  offscreenIndicatorSize: 28
+  maxOffscreenIndicatorsPerFaction: 16
+  offscreenEnemyColor: {r: 1, g: 0.2, b: 0.2, a: 0.65}
+  offscreenAllyColor: {r: 0.2, g: 1, b: 1, a: 0.6}
   primaryFireKey: 0
   secondaryFireKey: 0
   missileLaunchKey: 1
@@ -29738,8 +29776,8 @@ MonoBehaviour:
   reverseThrustRatio: 0.5
   speedChangeRate: 40
   enableSpeedLimiter: 1
-  speedLimit: 150
-  maxSpeedLimit: 250
+  speedLimit: 100
+  maxSpeedLimit: 150
   minSpeedLimit: 10
   speedLimitAdjustRate: 20
   autoBrakeAtLimit: 1
