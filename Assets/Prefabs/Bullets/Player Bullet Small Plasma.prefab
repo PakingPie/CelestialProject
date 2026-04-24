@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1324292948685452850}
   - component: {fileID: -3295528032157664246}
   m_Layer: 11
-  m_Name: Enemy Small Calibre Bullet Type AP
+  m_Name: Player Bullet Small Plasma
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29,7 +29,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.2, y: 0.2, z: 16}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 12}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: d5cc0a274e8583749877e79e6096a6fb, type: 2}
+  - {fileID: 2100000, guid: 106e0aa59f19ab747885c8cd3841bfe0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -106,22 +106,26 @@ MonoBehaviour:
   _impactFXPrefab: {fileID: 7712910556444932483, guid: d4570ccc75b64494482d7be034ef5db5, type: 3}
   _explodeFXPrefab: {fileID: 7712910556444932483, guid: d4570ccc75b64494482d7be034ef5db5, type: 3}
   _childTrails: []
-  Damage: 20
+  Damage: 10
   CanDamagePlanet: 0
   CanDamageAsteroids: 1
   Speed: 200
   LifeTime: 5
   RangeVariance: 0.1
   FuseDetonationDistance: 2
-  ExplosionRadius: 5
+  ExplosionRadius: 10
   velocityInheritance: 1
   alignToVelocity: 1
   alignmentSpeed: 5
-  DamageType: 0
+  DamageType: 4
   ImpactDamageProfile:
     DefaultMultiplier: 1
-    TargetTypeModifiers: []
-  FireTarget: 11
+    TargetTypeModifiers:
+    - TargetType: 1
+      Multiplier: 2
+    - TargetType: 2
+      Multiplier: 2
+  FireTarget: 12
   ExplodeOnImpact: 0
   UseSpatialGrid: 1
   HitCheckIntervalFrames: 2

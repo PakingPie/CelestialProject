@@ -109,8 +109,8 @@ MonoBehaviour:
   Damage: 80
   CanDamagePlanet: 0
   CanDamageAsteroids: 1
-  EffectiveRange: 2500
-  LifeTime: 10
+  Speed: 0
+  LifeTime: 8
   RangeVariance: 0.1
   FuseDetonationDistance: 5
   ExplosionRadius: 20
@@ -118,6 +118,9 @@ MonoBehaviour:
   alignToVelocity: 1
   alignmentSpeed: 5
   DamageType: 0
+  ImpactDamageProfile:
+    DefaultMultiplier: 1
+    TargetTypeModifiers: []
   FireTarget: 12
   ExplodeOnImpact: 1
   UseSpatialGrid: 1

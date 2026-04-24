@@ -192,7 +192,7 @@ public class ShieldHitEffect : MonoBehaviour
 
     public void RegisterImpact(ShieldImpactData impact)
     {
-        if (!_isInitialized) Init();
+        // if (!_isInitialized) Init();
 
         if (!TryProjectImpactToUv(impact, out Vector2 uv))
             return;

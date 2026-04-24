@@ -27542,7 +27542,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -5}
-  m_LocalScale: {x: 20, y: 20, z: 20}
+  m_LocalScale: {x: 30, y: 30, z: 30}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 7963449685609278610}
@@ -29483,7 +29483,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2366977910765853555}
-  m_Mesh: {fileID: -2432090755550338912, guid: bc5acef59d258d24388280e2c58ba81e, type: 3}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!64 &6139067174240873416
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -29505,7 +29505,7 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: -2432090755550338912, guid: bc5acef59d258d24388280e2c58ba81e, type: 3}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &6160669893683406031
 Transform:
   m_ObjectHideFlags: 0
@@ -30119,17 +30119,17 @@ MonoBehaviour:
   verticalThrustForce: 30
   enableStrafe: 1
   strafeThrustForce: 30
-  pitchTorque: 90
-  yawTorque: 60
-  rollTorque: 120
-  maxRotationSpeed: 180
-  rotationalDrag: 2
+  pitchTorque: 180
+  yawTorque: 120
+  rollTorque: 240
+  maxRotationSpeed: 360
+  rotationalDrag: 1
   inputSmoothSpeed: 8
   autoLevelRoll: 1
   autoLevelSpeed: 1
   autoLevelDelay: 0.5
   autoKillRotation: 1
-  flightAssist: 0
+  flightAssist: 1
   flightAssistStrength: 0.5
   velocityCoupling: 0.8
   mouseAimEnabled: 1
