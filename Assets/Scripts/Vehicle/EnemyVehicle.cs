@@ -14,7 +14,6 @@ public class EnemyVehicle : VehicleBase
     private static readonly int _damageID = Shader.PropertyToID("_Damage");
     private static readonly int _damageFlashSpeedID = Shader.PropertyToID("_DamageFlashSpeed");
     private static readonly int _damageFlashColorID = Shader.PropertyToID("_DamageFlashColor");
-    private static readonly int _legacyDamageFlashColorID = Shader.PropertyToID("_DamgeFlashColor");
 
     public Faction VehicleFaction = Faction.Foe;
     public VehicleType Type = VehicleType.Frigate;
@@ -572,9 +571,6 @@ public class EnemyVehicle : VehicleBase
     {
         if (barMat == null)
             return;
-
-        if (barMat.HasProperty(_legacyDamageFlashColorID))
-            barMat.SetColor(_legacyDamageFlashColorID, color);
 
         if (barMat.HasProperty(_damageFlashColorID))
             barMat.SetColor(_damageFlashColorID, color);

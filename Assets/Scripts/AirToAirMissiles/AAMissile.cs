@@ -202,6 +202,8 @@ public class AAMissile : MonoBehaviour
             CombatRegistry.GetNearbyEnemies(queryCenter, queryRange, combinedFactions, _sweepTargetsReusable, true);
 
             float bestHitDist = float.MaxValue;
+              VehicleBase directHitVehicle = null;
+              Vector3 directHitPoint = currentPos;
             bool swept = false;
 
             for (int i = 0; i < _sweepTargetsReusable.Count; i++)
@@ -214,6 +216,8 @@ public class AAMissile : MonoBehaviour
                     if (hitDist <= travelDist + DetonationRadius && hitDist < bestHitDist)
                     {
                         bestHitDist = hitDist;
+                        directHitVehicle = vehicle;
+                        directHitPoint = hitPt;
                         swept = true;
                     }
                 }
@@ -221,7 +225,7 @@ public class AAMissile : MonoBehaviour
 
             if (swept)
             {
-                HitTarget();
+                HitTarget(directHitVehicle, directHitPoint);
                 return;
             }
         }
@@ -242,7 +246,10 @@ public class AAMissile : MonoBehaviour
 
             if (distToSurface <= DetonationRadius)
             {
-                HitTarget();
+                Vector3 impactPoint = targetVehicle != null
+                    ? targetVehicle.ClosestBoundsPoint(transform.position)
+                    : transform.position;
+                HitTarget(targetVehicle, impactPoint);
             }
         }
         else if (isLaunched && missileActive)
@@ -348,9 +355,13 @@ public class AAMissile : MonoBehaviour
     //     }
     // }
 
-    void HitTarget()
+    void HitTarget(VehicleBase directHitTarget, Vector3 impactPoint)
     {
-        Vector3 impactPoint = transform.position;
+        if (directHitTarget == null && target != null)
+            directHitTarget = target.GetComponent<VehicleBase>();
+
+        if (directHitTarget != null)
+            directHitTarget.TakeDamageAtPoint(WarheadProfile.CreateContext(this, Damage, GlobalHelper.AmmoType.Explosive, directHitTarget, impactPoint));
 
         if (ExplodeRadius > 0)
         {
@@ -370,14 +381,14 @@ public class AAMissile : MonoBehaviour
             if (CanDamageAsteroids)
                 combinedFactions |= GlobalHelper.Faction.Neutral;
 
-            // Pad query range to catch large ships whose surface is within explosion radius
+            // Pad the center-based registry query so large nearby ships still get considered for splash.
             float queryRange = ExplodeRadius + 50f;
             CombatRegistry.GetNearbyEnemies(impactPoint, queryRange, combinedFactions, nearbyTargets, true);
 
             for (int i = 0; i < nearbyTargets.Count; i++)
             {
                 VehicleBase vehicle = nearbyTargets[i];
-                if (vehicle == null) continue;
+                if (vehicle == null || vehicle == directHitTarget) continue;
 
                 // Bounds-aware explosion radius check
                 float distSqr = vehicle.SqrDistanceToBounds(impactPoint);
@@ -385,14 +396,6 @@ public class AAMissile : MonoBehaviour
                 {
                     vehicle.TakeDamageAtPoint(WarheadProfile.CreateContext(this, Damage, GlobalHelper.AmmoType.Explosive, vehicle, impactPoint));
                 }
-            }
-        }
-        else if (target != null)
-        {
-            VehicleBase targetVehicle = target.GetComponent<VehicleBase>();
-            if (targetVehicle != null)
-            {
-                targetVehicle.TakeDamageAtPoint(WarheadProfile.CreateContext(this, Damage, GlobalHelper.AmmoType.Explosive, targetVehicle, impactPoint));
             }
         }
 

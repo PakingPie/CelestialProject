@@ -3447,7 +3447,7 @@ GameObject:
   - component: {fileID: 6778090082383042176}
   - component: {fileID: 3142640013902721095}
   - component: {fileID: 8015267476549228092}
-  - component: {fileID: 5987118773523783008}
+  - component: {fileID: 4166131715227886625}
   m_Layer: 0
   m_Name: MissileHive
   m_TagString: Ally
@@ -3557,7 +3557,7 @@ MonoBehaviour:
   IsManualMode: 0
   EnableDebugGizmos: 0
   TestSeekerCone: 30
---- !u!114 &5987118773523783008
+--- !u!114 &4166131715227886625
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3566,53 +3566,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 2780323000524414989}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5fd111861f695545934d2f021080e53, type: 3}
+  m_Script: {fileID: 11500000, guid: 21e4b56739012964db35c65fb0ef42ee, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
-  OwnerShip: {fileID: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponPlatform
+  OwnerShip: {fileID: 4103674997823826176}
   IsShowHitpointBar: 0
-  HitPoints: 1000
-  MaxHitPoints: 1000
-  ArmorPoints: 1000
-  MaxArmorPoints: 1000
+  HitPoints: 500
+  MaxHitPoints: 500
+  ArmorPoints: 500
+  MaxArmorPoints: 500
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  VehicleFaction: 4
-  Type: 31
-  HitpointBarCanvas: {fileID: 0}
-  HealthBar: {fileID: 0}
-  ArmorBar: {fileID: 0}
-  ShieldBar: {fileID: 0}
-  HealthBarShader: {fileID: 0}
-  ArmorBarShader: {fileID: 0}
-  ShieldBarShader: {fileID: 0}
-  HealthBarMaterialTemplate: {fileID: 0}
-  ArmorBarMaterialTemplate: {fileID: 0}
-  ShieldBarMaterialTemplate: {fileID: 0}
-  DamageFlashSpeed: 2
-  DamageFlashHoldDuration: 0.35
-  ArmorDamageFlashColor: {r: 1, g: 1, b: 1, a: 1}
-  ShieldDamageFlashColor: {r: 1, g: 1, b: 1, a: 1}
-  EnergyShieldShader: {fileID: 0}
-  ShieldEffect: {fileID: 0}
-  ExplodeEffect: {fileID: 0}
-  DamagedPoint: {fileID: 0}
-  EnableChaosDeath: 1
-  ChaosDeathChance: 0.3
-  ChaosFlyDurationRange: {x: 0.5, y: 1}
-  ChaosForwardSpeedMultiplier: 0.85
-  ChaosMinimumDriftSpeed: 15
-  ChaosDriftJitter: 10
-  ChaosAngularSpeedRange: {x: 180, y: 540}
   HitPointsRegenerationRate: 1
-  HitPointsRegenerationDelay: 40
+  HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
-  ArmorRegenerationDelay: 40
-  ShieldRegenerationRate: 1
-  ShieldRegenerationDelay: 20
-  EnableIndication: 0
-  EnableModuleHits: 0
+  ArmorRegenerationDelay: 5
+  VehicleFaction: 4
 --- !u!1 &2795664321829053759
 GameObject:
   m_ObjectHideFlags: 0
@@ -4845,7 +4815,6 @@ GameObject:
   - component: {fileID: 1510646433887854243}
   - component: {fileID: 3109858766895225120}
   - component: {fileID: -2094783752960322070}
-  - component: {fileID: 6621555047069784344}
   m_Layer: 9
   m_Name: Enemy Frigate Type 1
   m_TagString: Foe
@@ -4960,32 +4929,6 @@ MonoBehaviour:
   ShieldRegenerationDelay: 20
   EnableIndication: 1
   EnableModuleHits: 1
---- !u!114 &6621555047069784344
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4103674997823826176}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a413cac27f96b0d4db5adc212e01cf6f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
-  ShieldGO: {fileID: 124679239445400308}
-  TextureSize: 64
-  HitImpactScale: 0.2
-  HitImpactDuration: 1
-  MaxActiveRipples: 32
-  MergeUvDistanceThreshold: 0.01
-  MergeTimeThreshold: 0.02
-  DecayPerSecond: 0.9
-  MinDecayThreshold: 0.02
-  ForceClearInterval: 3
-  HitEffectShader: {fileID: 4800000, guid: 9d4680f053a4c804784f0d8d0d3302d7, type: 3}
-  CumulativeShader: {fileID: 4800000, guid: a63a745ff69d80e46a11d9e8f34dd690, type: 3}
-  EnableDebugMode: 0
-  DebugQuad: {fileID: 0}
 --- !u!1 &4146379743526935370
 GameObject:
   m_ObjectHideFlags: 0
