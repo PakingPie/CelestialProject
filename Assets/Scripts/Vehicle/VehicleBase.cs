@@ -40,6 +40,7 @@ public abstract class VehicleBase : MonoBehaviour
     private float _boundsRadius = -1f;
     private WeaponPlatform[] _childWeaponPlatforms;
     private VehicleModule[] _childVehicleModules;
+    private ShieldHitEffect _shieldHitEffect;
 
     public float BoundsRadius
     {
@@ -182,6 +183,21 @@ public abstract class VehicleBase : MonoBehaviour
         }
 
         return HitPoints > 0;
+    }
+
+    public ShieldHitEffect GetShieldHitEffect()
+    {
+        if (OwnerShip != null && OwnerShip != gameObject)
+        {
+            VehicleBase ownerVehicle = OwnerShip.GetComponent<VehicleBase>();
+            if (ownerVehicle != null && ownerVehicle != this)
+                return ownerVehicle.GetShieldHitEffect();
+        }
+
+        if (_shieldHitEffect == null)
+            _shieldHitEffect = GetComponentInChildren<ShieldHitEffect>(true);
+
+        return _shieldHitEffect;
     }
 
     /// <summary>

@@ -8,13 +8,51 @@ using UnityEditor;
 [ExecuteInEditMode]
 public class ShieldHitEffect : MonoBehaviour
 {
+    public readonly struct ShieldImpactData
+    {
+        public readonly Vector3 WorldImpactPoint;
+        public readonly Vector3 IncomingDirection;
+        public readonly bool HasIncomingDirection;
+
+        public ShieldImpactData(Vector3 worldImpactPoint)
+        {
+            WorldImpactPoint = worldImpactPoint;
+            IncomingDirection = Vector3.zero;
+            HasIncomingDirection = false;
+        }
+
+        public ShieldImpactData(Vector3 worldImpactPoint, Vector3 incomingDirection)
+        {
+            WorldImpactPoint = worldImpactPoint;
+
+            if (incomingDirection.sqrMagnitude > 1e-6f)
+            {
+                IncomingDirection = incomingDirection.normalized;
+                HasIncomingDirection = true;
+            }
+            else
+            {
+                IncomingDirection = Vector3.zero;
+                HasIncomingDirection = false;
+            }
+        }
+    }
+
     private static Texture2D s_blackTex;
+    private const float UVWrapHalfRange = 0.5f;
+    private const float MinDirectionSqrMagnitude = 1e-6f;
 
     public GameObject ShieldGO;
     [Header("Settings")]
     public int TextureSize = 64;
     public float HitImpactScale = 0.1f;
     public float HitImpactDuration = 1.0f;
+    [Range(1, 128)]
+    public int MaxActiveRipples = 32;
+    [Range(0.0f, 0.05f)]
+    public float MergeUvDistanceThreshold = 0.01f;
+    [Range(0.0f, 0.1f)]
+    public float MergeTimeThreshold = 0.02f;
 
     [Header("Decay Settings")]
     [Range(0.1f, 0.99f)]
@@ -42,6 +80,8 @@ public class ShieldHitEffect : MonoBehaviour
 
     private MaterialPropertyBlock _shieldPropBlock;
     private MeshRenderer _shieldRenderer;
+    private Collider _shieldCollider;
+    private MeshFilter _shieldMeshFilter;
 
     private List<ActiveRipple> _activeRipples = new List<ActiveRipple>();
     private bool _isInitialized = false;
@@ -52,6 +92,11 @@ public class ShieldHitEffect : MonoBehaviour
         public Vector2 uv;
         public float timer;
     }
+
+    private Transform ShieldTransform => ShieldGO != null ? ShieldGO.transform : transform;
+    private Vector3 ShieldLocalCenter => _shieldMeshFilter != null && _shieldMeshFilter.sharedMesh != null
+        ? _shieldMeshFilter.sharedMesh.bounds.center
+        : Vector3.zero;
 
 
     private RenderTexture CreateRT()
@@ -98,7 +143,12 @@ public class ShieldHitEffect : MonoBehaviour
         }
 
         if (_shieldPropBlock == null) _shieldPropBlock = new MaterialPropertyBlock();
-        if (ShieldGO != null) _shieldRenderer = ShieldGO.GetComponent<MeshRenderer>();
+        if (ShieldGO != null)
+        {
+            _shieldRenderer = ShieldGO.GetComponent<MeshRenderer>();
+            _shieldCollider = ShieldGO.GetComponent<Collider>();
+            _shieldMeshFilter = ShieldGO.GetComponent<MeshFilter>();
+        }
 
         _cumulativeMat.SetTexture("_MainTex", _cumulativeRT);
 
@@ -118,6 +168,8 @@ public class ShieldHitEffect : MonoBehaviour
         _hitEffectMat = null;
         _cumulativeMat = null;
         _shieldRenderer = null;
+        _shieldCollider = null;
+        _shieldMeshFilter = null;
         _shieldPropBlock = null;
         _blackTex = null;
         _activeRipples.Clear();
@@ -138,18 +190,175 @@ public class ShieldHitEffect : MonoBehaviour
         }
     }
 
+    public void RegisterImpact(ShieldImpactData impact)
+    {
+        if (!TryProjectImpactToUv(impact, out Vector2 uv))
+            return;
+
+        RegisterImpactUv(uv);
+    }
+
+    // Debug-only path when a true shield-surface raycast hit is already available.
     public void GetHit(RaycastHit hit)
+    {
+        RegisterImpactUv(hit.textureCoord);
+    }
+
+    private void RegisterImpactUv(Vector2 uv)
     {
         if (!_isInitialized) Init();
 
+        if (TryMergeRipple(uv))
+        {
+            _forceClearTimer = 0f;
+            enabled = true;
+            return;
+        }
+
+        EnforceRippleCap();
+
         _activeRipples.Add(new ActiveRipple
         {
-            uv = hit.textureCoord,
+            uv = uv,
             timer = 0.0f
         });
 
         _forceClearTimer = 0f;
         enabled = true;
+    }
+
+    private bool TryProjectImpactToUv(ShieldImpactData impact, out Vector2 uv)
+    {
+        Transform shieldTransform = ShieldTransform;
+        Vector3 localImpactPoint = shieldTransform.InverseTransformPoint(impact.WorldImpactPoint) - ShieldLocalCenter;
+
+        bool hasPointDirection = localImpactPoint.sqrMagnitude > MinDirectionSqrMagnitude;
+        Vector3 pointDirection = hasPointDirection ? localImpactPoint.normalized : Vector3.zero;
+        Vector3 resolvedDirection = pointDirection;
+
+        if (impact.HasIncomingDirection)
+        {
+            Vector3 incomingLocal = shieldTransform.InverseTransformDirection(impact.IncomingDirection);
+            if (incomingLocal.sqrMagnitude > MinDirectionSqrMagnitude)
+            {
+                Vector3 desiredHemisphereNormal = -incomingLocal.normalized;
+
+                if (!hasPointDirection)
+                {
+                    resolvedDirection = desiredHemisphereNormal;
+                }
+                else if (Vector3.Dot(pointDirection, desiredHemisphereNormal) < 0f)
+                {
+                    resolvedDirection = Vector3.Reflect(pointDirection, desiredHemisphereNormal);
+                }
+            }
+        }
+
+        if (resolvedDirection.sqrMagnitude <= MinDirectionSqrMagnitude)
+        {
+            uv = default;
+            return false;
+        }
+
+        return TryResolveUvFromCollider(resolvedDirection.normalized, out uv)
+            || TryResolveUvAnalytically(resolvedDirection.normalized, out uv);
+    }
+
+    private bool TryResolveUvFromCollider(Vector3 localDirection, out Vector2 uv)
+    {
+        if (_shieldCollider == null)
+        {
+            uv = default;
+            return false;
+        }
+
+        Vector3 worldDirection = ShieldTransform.TransformDirection(localDirection).normalized;
+        if (worldDirection.sqrMagnitude <= MinDirectionSqrMagnitude)
+        {
+            uv = default;
+            return false;
+        }
+
+        Bounds bounds = _shieldCollider.bounds;
+        float rayOffset = Mathf.Max(bounds.extents.magnitude * 2f, 0.1f);
+        Vector3 worldCenter = ShieldTransform.TransformPoint(ShieldLocalCenter);
+        Vector3 rayOrigin = worldCenter + worldDirection * rayOffset;
+        Ray ray = new Ray(rayOrigin, -worldDirection);
+
+        if (_shieldCollider.Raycast(ray, out RaycastHit hit, rayOffset * 2f))
+        {
+            uv = hit.textureCoord;
+            return true;
+        }
+
+        uv = default;
+        return false;
+    }
+
+    private static bool TryResolveUvAnalytically(Vector3 localDirection, out Vector2 uv)
+    {
+        uv = DirectionToUv(localDirection);
+        return true;
+    }
+
+    private static Vector2 DirectionToUv(Vector3 localDirection)
+    {
+        float u = Mathf.Atan2(localDirection.z, localDirection.x) / (2f * Mathf.PI) + 0.5f;
+        float v = Mathf.Asin(Mathf.Clamp(localDirection.y, -1f, 1f)) / Mathf.PI + 0.5f;
+        return new Vector2(u, v);
+    }
+
+    private bool TryMergeRipple(Vector2 uv)
+    {
+        float mergeDistanceSqr = MergeUvDistanceThreshold * MergeUvDistanceThreshold;
+
+        for (int i = 0; i < _activeRipples.Count; i++)
+        {
+            ActiveRipple ripple = _activeRipples[i];
+            if (ripple.timer > MergeTimeThreshold)
+                continue;
+
+            if (WrappedUvDistanceSqr(ripple.uv, uv) > mergeDistanceSqr)
+                continue;
+
+            ripple.uv = uv;
+            ripple.timer = 0.0f;
+            return true;
+        }
+
+        return false;
+    }
+
+    private void EnforceRippleCap()
+    {
+        if (MaxActiveRipples < 1)
+            MaxActiveRipples = 1;
+
+        if (_activeRipples.Count < MaxActiveRipples)
+            return;
+
+        int oldestIndex = 0;
+        float oldestTimer = float.MinValue;
+        for (int i = 0; i < _activeRipples.Count; i++)
+        {
+            if (_activeRipples[i].timer <= oldestTimer)
+                continue;
+
+            oldestTimer = _activeRipples[i].timer;
+            oldestIndex = i;
+        }
+
+        _activeRipples.RemoveAt(oldestIndex);
+    }
+
+    private static float WrappedUvDistanceSqr(Vector2 a, Vector2 b)
+    {
+        float du = Mathf.Abs(a.x - b.x);
+        if (du > UVWrapHalfRange)
+            du = 1f - du;
+
+        float dv = Mathf.Abs(a.y - b.y);
+        return du * du + dv * dv;
     }
 
 

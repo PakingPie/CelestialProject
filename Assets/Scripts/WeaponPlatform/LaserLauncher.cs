@@ -205,13 +205,10 @@ public class LaserLauncher : WeaponBase
 
                 if (enemyVehicle.ShieldPoints > 0)
                 {
-                    Vector3 dir = (impactPoint - transform.position).normalized;
-                    Physics.Raycast(transform.position, dir, out _hit);
-
-                    if (_hit.collider != null && _hit.collider.GetComponent<ShieldHitEffect>())
-                    {
-                        _hit.collider.GetComponent<ShieldHitEffect>().GetHit(_hit);
-                    }
+                    Vector3 incomingDirection = (impactPoint - LaserOrigin.position).normalized;
+                    ShieldHitEffect shieldHitEffect = enemyVehicle.GetShieldHitEffect();
+                    if (shieldHitEffect != null)
+                        shieldHitEffect.RegisterImpact(new ShieldHitEffect.ShieldImpactData(impactPoint, incomingDirection));
                 }
                     enemyVehicle.TakeDamageAtPoint(BeamDamageProfile.CreateContext(this, LaserDPS, LaserType, enemyVehicle, impactPoint));
             }

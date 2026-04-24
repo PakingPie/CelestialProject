@@ -238,10 +238,21 @@ public class BulletPhysics : MonoBehaviour
 
     private void DestroyBulletWithDamage(Vector3 impactPoint, List<VehicleBase> targets)
     {
+        Vector3 incomingDirection = _previousPosition == _cachedTransform.position
+            ? _velocity.normalized
+            : (_cachedTransform.position - _previousPosition).normalized;
+
         for (int i = 0; i < targets.Count; i++)
         {
             VehicleBase target = targets[i];
             if (target == null) continue;
+
+            if (target.ShieldPoints > 0)
+            {
+                ShieldHitEffect shieldHitEffect = target.GetShieldHitEffect();
+                if (shieldHitEffect != null)
+                    shieldHitEffect.RegisterImpact(new ShieldHitEffect.ShieldImpactData(impactPoint, incomingDirection));
+            }
 
             // Use bounds-aware impact: find closest surface point on target for VFX and damage routing
             target.TakeDamageAtPoint(ImpactDamageProfile.CreateContext(this, Damage, DamageType, target, impactPoint));
@@ -290,8 +301,6 @@ public class BulletPhysics : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
-
 
     private void DestroyBullet()
     {

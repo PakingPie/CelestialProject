@@ -100,10 +100,10 @@ public class WeaponPlatform : VehicleBase
 
     public override bool TakeDamage(DamageContext damageContext)
     {
-        if (OwnerShip != null)
+        if (OwnerShip != null && OwnerShip != gameObject)
         {
             var ownerVehicle = OwnerShip.GetComponent<VehicleBase>();
-            if (ownerVehicle != null)
+            if (ownerVehicle != null && ownerVehicle != this)
             {
                 ownerVehicle.TakeDamage(damageContext);
             }
