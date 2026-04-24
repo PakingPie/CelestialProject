@@ -3206,7 +3206,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 316.875, y: -551.25}
+  m_AnchoredPosition: {x: 296.5, y: -648}
   m_SizeDelta: {x: 500, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &470678891
@@ -4551,6 +4551,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 011ea27b80252f74691662dd60e3ad74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LaserTest
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 665570402}
   Barrels: {fileID: 1218004834}
   _elevationSpeed: 30
@@ -4596,6 +4599,9 @@ MonoBehaviour:
   LaserOrigin: {fileID: 725396406}
   LaserVFX: {fileID: 0}
   LaserType: 1
+  BeamDamageProfile:
+    DefaultMultiplier: 1
+    TargetTypeModifiers: []
 --- !u!120 &619725935
 LineRenderer:
   serializedVersion: 3
@@ -4727,8 +4733,6 @@ MonoBehaviour:
   ShieldPoints: 0
   MaxShieldPoints: 0
   BoidManager: {fileID: 0}
-  PlatformWeaponCategory: 2
-  PlatformWeaponType: 0
   HitPointsRegenerationRate: 1
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 1
@@ -8916,7 +8920,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 1030.625, y: -551.25}
+  m_AnchoredPosition: {x: 969.5, y: -648}
   m_SizeDelta: {x: 700, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1184364225
@@ -13446,7 +13450,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1711496705
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17240,6 +17244,7 @@ MonoBehaviour:
   cameraController: {fileID: 7868929882183927213}
   maxThrustForce: 50
   reverseThrustRatio: 0.5
+  speedChangeRate: 40
   enableSpeedLimiter: 1
   speedLimit: 50
   maxSpeedLimit: 100
@@ -17266,11 +17271,16 @@ MonoBehaviour:
   flightAssist: 0
   flightAssistStrength: 0.5
   velocityCoupling: 0.8
+  mouseAimEnabled: 1
+  mouseAimRateGain: 3
+  mouseAimDamping: 0.08
+  mouseAimDeadzone: 0.5
   EngineObjects:
   - {fileID: 1216336676}
   - {fileID: 738109170}
   - {fileID: 857814629}
   - {fileID: 1616208971}
+  showDebugHUD: 1
   currentVelocity: {x: 0, y: 0, z: 0}
   currentSpeed: 0
   currentAngularVelocity: {x: 0, y: 0, z: 0}
@@ -17818,6 +17828,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1ab2a9f0d20cf644802032b06469801, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovementController
+  cameraMode: 1
+  followBehindSpeed: 6
+  followBehindPitch: 15
   ship: {fileID: 7103346325574244501}
   shipMovement: {fileID: 2840843351104990238}
   orbitDistance: 350
@@ -17978,6 +17991,7 @@ MonoBehaviour:
   ArmorRegenerationDelay: 5
   ShieldRegenerationRate: 5
   ShieldRegenerationDelay: 10
+  VehicleFaction: 1
 --- !u!114 &8671210974142505000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17992,17 +18006,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GunController
   mainCamera: {fileID: 5948636715277846842}
   ship: {fileID: 7103346325574244501}
-  primaryGuns: []
-  secondaryGuns: []
-  tertiaryGuns: []
+  primaryWeapons: []
+  secondaryWeapons: []
+  missileWeapons: []
   firingMode: 0
   aimDistance: 5000
-  aimLayerMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
+  lockOnScreenRadius: 300
+  lockOnMaxRange: 3000
+  offscreenIndicatorRange: 3000
+  offscreenIndicatorEdgeMargin: 36
+  offscreenIndicatorSize: 28
+  maxOffscreenIndicatorsPerFaction: 8
+  offscreenEnemyColor: {r: 1, g: 0.2, b: 0.2, a: 0.65}
+  offscreenAllyColor: {r: 0.2, g: 1, b: 1, a: 0.6}
   primaryFireKey: 0
   secondaryFireKey: 0
-  tertiaryFireKey: 0
+  missileLaunchKey: 1
   toggleModeKey: 34
 --- !u!1 &8725837447588398855
 GameObject:

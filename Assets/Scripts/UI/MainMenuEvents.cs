@@ -24,16 +24,16 @@ public class MainMenuEvents : MonoBehaviour
         _settingsButton = root.Q<Button>("SettingsButton");
 
         _instructionLabel = root.Q<Label>("InstructionsLabel");
-        _instructionLabel.text = "Instructions:  \n" + 
-                "W/S: Pitch \n" + 
-                "A/D: Roll \n" + 
-                "Q/E: Yaw \n" + 
-                "Shift: Accelerates  \n" + 
-                "Left Ctil: Deccerlates   \n" + 
-                "T: Maunal Control Main Gun \n" + 
-                "Switch Ammunition: Click the 'AP'/'HE' Button \n"+
-                "Lock Target: Click an enemy on the screen \n" + 
-                "Esc: Main Menu";
+        // _instructionLabel.text = "Instructions:  \n" + 
+        //         "W/S: Pitch \n" + 
+        //         "A/D: Roll \n" + 
+        //         "Q/E: Yaw \n" + 
+        //         "Shift: Accelerates  \n" + 
+        //         "Left Ctil: Deccerlates   \n" + 
+        //         "T: Maunal Control Main Gun \n" + 
+        //         "Switch Ammunition: Click the 'AP'/'HE' Button \n"+
+        //         "Lock Target: Click an enemy on the screen \n" + 
+        //         "Esc: Main Menu";
     }
 
     private void Start()

@@ -19,7 +19,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &3449610485239219872
 Transform:
   m_ObjectHideFlags: 0
@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 10, y: 10, z: 10}
+  m_LocalScale: {x: 50, y: 50, z: 50}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1510646433887854243}
@@ -105,7 +105,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShieldHitEffect
   ShieldGO: {fileID: 124679239445400308}
-  TextureSize: 16
+  TextureSize: 32
   HitImpactScale: 0.1
   HitImpactDuration: 0.5
   DecayPerSecond: 0.9
@@ -411,6 +411,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1db5bcea85ac7604abda9a00766f20dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAFire
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 8757955895291735407}
   Barrels: {fileID: 8757955895291735407}
   _elevationSpeed: 60
@@ -450,6 +453,7 @@ MonoBehaviour:
   FireInterval: 20
   DistributeTargetsPerMissile: 1
   MaxMissilesPerTarget: 1
+  IsManualMode: 0
   EnableDebugGizmos: 0
   TestSeekerCone: 30
 --- !u!1 &1521133606170650114
@@ -1132,6 +1136,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 011ea27b80252f74691662dd60e3ad74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LaserTest
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 6479099775052220487}
   Barrels: {fileID: 2744290769066952287}
   _elevationSpeed: 30
@@ -1177,6 +1184,9 @@ MonoBehaviour:
   LaserOrigin: {fileID: 3797698479965022482}
   LaserVFX: {fileID: 4279287325252703058, guid: 278f9885a52749b42960553bae6825c3, type: 3}
   LaserType: 1
+  BeamDamageProfile:
+    DefaultMultiplier: 1
+    TargetTypeModifiers: []
 --- !u!120 &513743168064813939
 LineRenderer:
   serializedVersion: 3

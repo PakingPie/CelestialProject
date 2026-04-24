@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
+[ExecuteInEditMode]
 public class ShieldHitEffect : MonoBehaviour
 {
     private static Texture2D s_blackTex;
@@ -62,7 +63,7 @@ public class ShieldHitEffect : MonoBehaviour
         return rt;
     }
 
-    private void Init()
+    public void Init()
     {
         if (_isInitialized)
             return;
@@ -345,6 +346,11 @@ public class ShieldHitEffectEditor : Editor
         DrawDefaultInspector();
 
         ShieldHitEffect shieldHitEffect = (ShieldHitEffect)target;
+        if(GUILayout.Button("Initialize"))
+        {
+            shieldHitEffect.Init();
+        }
+
         if (GUILayout.Button("Clear All"))
         {
             shieldHitEffect.ClearAll();
