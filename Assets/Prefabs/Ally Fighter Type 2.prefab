@@ -29,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 124679239445400308}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -5}
+  m_LocalPosition: {x: 0, y: 0, z: -8}
   m_LocalScale: {x: 15, y: 15, z: 15}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -108,6 +108,9 @@ MonoBehaviour:
   TextureSize: 16
   HitImpactScale: 0.1
   HitImpactDuration: 0.5
+  MaxActiveRipples: 32
+  MergeUvDistanceThreshold: 0.01
+  MergeTimeThreshold: 0.02
   DecayPerSecond: 0.9
   MinDecayThreshold: 0.02
   ForceClearInterval: 3
@@ -245,6 +248,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1db5bcea85ac7604abda9a00766f20dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AAFire
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 2061259644040192498}
   Barrels: {fileID: 2061259644040192498}
   _elevationSpeed: 60
@@ -284,6 +290,7 @@ MonoBehaviour:
   FireInterval: 10
   DistributeTargetsPerMissile: 1
   MaxMissilesPerTarget: 1
+  IsManualMode: 0
   EnableDebugGizmos: 0
   TestSeekerCone: 30
 --- !u!1 &1007471231402458588
@@ -896,6 +903,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 011ea27b80252f74691662dd60e3ad74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LaserLauncher
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 2459493354116066828}
   Barrels: {fileID: 40168404649523904}
   _elevationSpeed: 30
@@ -941,6 +951,9 @@ MonoBehaviour:
   LaserOrigin: {fileID: 8377757515836515200}
   LaserVFX: {fileID: 0}
   LaserType: 1
+  BeamDamageProfile:
+    DefaultMultiplier: 1
+    TargetTypeModifiers: []
 --- !u!120 &7450076484807357624
 LineRenderer:
   serializedVersion: 3
@@ -1388,6 +1401,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17891a84740244e4aae13ac0313e1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gun
+  WeaponCategory: 0
+  WeaponSizeClass: 1
+  IsFixedMount: 0
   TurretBase: {fileID: 1469855246839215147}
   Barrels: {fileID: 8673968047497250288}
   _elevationSpeed: 30
@@ -1566,6 +1582,15 @@ MonoBehaviour:
   ArmorBar: {fileID: 656281697264504808}
   ShieldBar: {fileID: 5030111709581805343}
   HealthBarShader: {fileID: -6465566751694194690, guid: 4a53868445a75a246b83a1f930cbdccd, type: 3}
+  ArmorBarShader: {fileID: -6465566751694194690, guid: 2b30f76745154dd786dd9bb1cf5af901, type: 3}
+  ShieldBarShader: {fileID: -6465566751694194690, guid: d20d03af8d3c42dcb9e0521e79dff868, type: 3}
+  HealthBarMaterialTemplate: {fileID: 2100000, guid: 5ad2662db7276ce4f9c86a90102e4a62, type: 2}
+  ArmorBarMaterialTemplate: {fileID: 2100000, guid: 24487710af6c15c4fb11fd871c745178, type: 2}
+  ShieldBarMaterialTemplate: {fileID: 2100000, guid: 4b63a9247172207429f8bab1a90bcc53, type: 2}
+  DamageFlashSpeed: 3
+  DamageFlashHoldDuration: 1.5
+  ArmorDamageFlashColor: {r: 1, g: 0.50400037, b: 0, a: 1}
+  ShieldDamageFlashColor: {r: 1, g: 0.8356227, b: 0.8283019, a: 1}
   EnergyShieldShader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
   ShieldEffect: {fileID: 124679239445400308}
   ExplodeEffect: {fileID: 5729205090524001833, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}

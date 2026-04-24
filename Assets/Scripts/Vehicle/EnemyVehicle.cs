@@ -4,10 +4,18 @@ using System.Collections;
 using System.Collections.Generic;
 using static GlobalHelper;
 using UnityEngine.UI;
+using UnityEngine.Serialization;
 
 [ExecuteAlways]
 public class EnemyVehicle : VehicleBase
 {
+    private static readonly int _maxHitPointsID = Shader.PropertyToID("_MaxHitPoints");
+    private static readonly int _currentHitPointsID = Shader.PropertyToID("_CurrentHitPoints");
+    private static readonly int _damageID = Shader.PropertyToID("_Damage");
+    private static readonly int _damageFlashSpeedID = Shader.PropertyToID("_DamageFlashSpeed");
+    private static readonly int _damageFlashColorID = Shader.PropertyToID("_DamageFlashColor");
+    private static readonly int _legacyDamageFlashColorID = Shader.PropertyToID("_DamgeFlashColor");
+
     public Faction VehicleFaction = Faction.Foe;
     public VehicleType Type = VehicleType.Frigate;
     public GameObject HitpointBarCanvas;
@@ -15,6 +23,16 @@ public class EnemyVehicle : VehicleBase
     public Image ArmorBar;
     public Image ShieldBar;
     public Shader HealthBarShader;
+    public Shader ArmorBarShader;
+    public Shader ShieldBarShader;
+    public Material HealthBarMaterialTemplate;
+    public Material ArmorBarMaterialTemplate;
+    public Material ShieldBarMaterialTemplate;
+    [FormerlySerializedAs("DamageFlashTime")]
+    [Min(0f)] public float DamageFlashSpeed = 2f;
+    [Min(0f)] public float DamageFlashHoldDuration = 0.35f;
+    public Color ArmorDamageFlashColor = Color.white;
+    public Color ShieldDamageFlashColor = Color.white;
     public Shader EnergyShieldShader;
     public GameObject ShieldEffect;
     public VisualEffect ExplodeEffect;
@@ -53,10 +71,20 @@ public class EnemyVehicle : VehicleBase
     private Coroutine _deathRoutine;
     private Faction _deathFaction = Faction.None;
     private bool _hitBarVisible = false;
+    private int _recentHullDamage;
+    private int _recentArmorDamage;
+    private int _recentShieldDamage;
+    private float _recentHullDamageTimer;
+    private float _recentArmorDamageTimer;
+    private float _recentShieldDamageTimer;
     private Material _healthBarMat;
     private Material _armorBarMat;
     private Material _shieldBarMat;
     private Material _shieldEffectMat;
+
+    public int RecentHullDamage => _recentHullDamage;
+    public int RecentArmorDamage => _recentArmorDamage;
+    public int RecentShieldDamage => _recentShieldDamage;
 
     void OnEnable()
     {
@@ -75,6 +103,11 @@ public class EnemyVehicle : VehicleBase
             if (FactionType == Faction.Foe) _predictionManager.UnregisterEnemy(this);
             else if (FactionType == Faction.Ally) _predictionManager.UnregisterAlly(this);
         }
+
+        ReleaseMaterial(ref _healthBarMat);
+        ReleaseMaterial(ref _armorBarMat);
+        ReleaseMaterial(ref _shieldBarMat);
+        ReleaseMaterial(ref _shieldEffectMat);
     }
 
     void Start()
@@ -89,38 +122,7 @@ public class EnemyVehicle : VehicleBase
             else if (FactionType == Faction.Ally) _predictionManager.RegisterAlly(this);
         }
 
-        if (HealthBar)
-        {
-            _healthBarMat = new Material(HealthBarShader);
-            HealthBar.GetComponent<Image>().material = _healthBarMat;
-            _healthBarMat.SetInt("_MaxHitPoints", MaxHitPoints);
-            _healthBarMat.SetInt("_CurrentHitPoints", HitPoints);
-            _healthBarMat.SetVector("_Color1", Color.green);
-            _healthBarMat.SetVector("_Color2", Color.yellow);
-            _healthBarMat.SetVector("_Color3", Color.red);
-        }
-
-        if (ArmorBar)
-        {
-            _armorBarMat = new Material(HealthBarShader);
-            ArmorBar.GetComponent<Image>().material = _armorBarMat;
-            _armorBarMat.SetInt("_MaxHitPoints", MaxArmorPoints);
-            _armorBarMat.SetInt("_CurrentHitPoints", ArmorPoints);
-            _armorBarMat.SetVector("_Color1", Color.yellow);
-            _armorBarMat.SetVector("_Color2", Color.yellow);
-            _armorBarMat.SetVector("_Color3", Color.yellow);
-        }
-
-        if (ShieldBar)
-        {
-            _shieldBarMat = new Material(HealthBarShader);
-            ShieldBar.GetComponent<Image>().material = _shieldBarMat;
-            _shieldBarMat.SetInt("_MaxHitPoints", MaxShieldPoints);
-            _shieldBarMat.SetInt("_CurrentHitPoints", ShieldPoints);
-            _shieldBarMat.SetVector("_Color1", Color.cyan);
-            _shieldBarMat.SetVector("_Color2", Color.cyan);
-            _shieldBarMat.SetVector("_Color3", Color.cyan);
-        }
+        InitializeHitpointBarMaterials();
 
         if (ShieldEffect)
         {
@@ -143,14 +145,20 @@ public class EnemyVehicle : VehicleBase
 
     void Update()
     {
-        _velocity = (transform.position - _lastPosition) / Time.deltaTime;
+        float deltaTime = Time.deltaTime;
+        if (deltaTime > 0f)
+            _velocity = (transform.position - _lastPosition) / deltaTime;
+        else
+            _velocity = Vector3.zero;
 
         _lastPosition = transform.position;
+
+        UpdateDamageFlashTimers();
 
         // Handle shield regeneration
         if (ShieldPoints < MaxShieldPoints || ArmorPoints < MaxArmorPoints || HitPoints < MaxHitPoints)
         {
-            _lastDamageTime += Time.deltaTime;
+            _lastDamageTime += deltaTime;
 
             if (_lastDamageTime >= ShieldRegenerationDelay && ShieldPoints < MaxShieldPoints)
             {
@@ -192,27 +200,17 @@ public class EnemyVehicle : VehicleBase
 
     public override void RestoreHitPoints()
     {
-        if (_healthBarMat != null)
-            RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer, 0.1f, _healthBarMat, "_CurrentHitPoints");
-        else
-            RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer);
+        RegenerateAttributtes(ref HitPoints, ref MaxHitPoints, ref HitPointsRegenerationRate, ref _hitPointsRegenTimer, 0.1f, _healthBarMat);
     }
     public override void RestoreArmor()
     {
-        if (_armorBarMat != null)
-            RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer, 0.1f, _armorBarMat, "_CurrentHitPoints");
-        else
-            RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer);
-
+        RegenerateAttributtes(ref ArmorPoints, ref MaxArmorPoints, ref ArmorRegenerationRate, ref _armorRegenTimer, 0.1f, _armorBarMat);
     }
     public override void RestoreShield()
     {
-        if (_shieldBarMat != null)
-            RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer, 0.1f, _shieldBarMat, "_CurrentHitPoints", true);
-        else
-            RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer);
+        RegenerateAttributtes(ref ShieldPoints, ref MaxShieldPoints, ref ShieldRegenerationRate, ref _shieldRegenTimer, 0.1f, _shieldBarMat, true);
     }
-    private void RegenerateAttributtes(ref int currentAmount, ref int maxAmount, ref int regenerationRate, ref float regenTimer, float delay, Material barMat = null, string matKeyword = "", bool isShield = false)
+    private void RegenerateAttributtes(ref int currentAmount, ref int maxAmount, ref int regenerationRate, ref float regenTimer, float delay, Material barMat = null, bool isShield = false)
     {
         regenTimer += Time.deltaTime;
         if (regenTimer >= delay && currentAmount < maxAmount)
@@ -221,24 +219,7 @@ public class EnemyVehicle : VehicleBase
             if (currentAmount > maxAmount)
                 currentAmount = maxAmount;
 
-            barMat.SetInt(matKeyword, currentAmount);
-            if (isShield && _shieldBarMat != null)
-            {
-                _shieldEffectMat.SetFloat("_Strength", currentAmount / (float)maxAmount);
-            }
-            regenTimer = 0f;
-        }
-    }
-
-    private void RegenerateAttributtes(ref int currentAmount, ref int maxAmount, ref int regenerationRate, ref float regenTimer, float delay = 0.1f, bool isShield = false)
-    {
-        regenTimer += Time.deltaTime;
-        if (regenTimer >= delay && currentAmount < maxAmount)
-        {
-            currentAmount += regenerationRate;
-            if (currentAmount > maxAmount)
-                currentAmount = maxAmount;
-
+            UpdateCurrentHitPointValue(barMat, currentAmount);
             if (isShield && _shieldEffectMat != null)
             {
                 _shieldEffectMat.SetFloat("_Strength", currentAmount / (float)maxAmount);
@@ -253,6 +234,10 @@ public class EnemyVehicle : VehicleBase
         {
             return false;
         }
+
+        int previousHitPoints = HitPoints;
+        int previousArmorPoints = ArmorPoints;
+        int previousShieldPoints = ShieldPoints;
 
         // Simple damage calculation; can be expanded based on ammoType and armor/shield
         switch (ammoType)
@@ -278,13 +263,18 @@ public class EnemyVehicle : VehicleBase
                 break;
         }
 
-        HitPoints -= damage;
-        // Debug.Log($"EnemyVehicle took {damage} damage, remaining HP: {HitPoints}");
-        if (_healthBarMat != null) _healthBarMat.SetInt("_CurrentHitPoints", HitPoints);
-        if (_armorBarMat != null) _armorBarMat.SetInt("_CurrentHitPoints", ArmorPoints);
-        if (_shieldBarMat != null) _shieldBarMat.SetInt("_CurrentHitPoints", ShieldPoints);
+        HitPoints = Mathf.Clamp(HitPoints - damage, 0, MaxHitPoints);
 
-        if (_shieldEffectMat != null) _shieldEffectMat.SetFloat("_Strength", ShieldPoints / (float)MaxShieldPoints);
+        RegisterRecentDamage(previousHitPoints - HitPoints, ref _recentHullDamage, ref _recentHullDamageTimer, _healthBarMat);
+        RegisterRecentDamage(previousArmorPoints - ArmorPoints, ref _recentArmorDamage, ref _recentArmorDamageTimer, _armorBarMat);
+        RegisterRecentDamage(previousShieldPoints - ShieldPoints, ref _recentShieldDamage, ref _recentShieldDamageTimer, _shieldBarMat);
+
+        UpdateCurrentHitPointValue(_healthBarMat, HitPoints);
+        UpdateCurrentHitPointValue(_armorBarMat, ArmorPoints);
+        UpdateCurrentHitPointValue(_shieldBarMat, ShieldPoints);
+
+        if (_shieldEffectMat != null)
+            _shieldEffectMat.SetFloat("_Strength", MaxShieldPoints > 0 ? ShieldPoints / (float)MaxShieldPoints : 0f);
 
         if (HitPoints <= 0)
         {
@@ -473,5 +463,133 @@ public class EnemyVehicle : VehicleBase
         _hitBarVisible = enable;
         if (HitpointBarCanvas)
             HitpointBarCanvas.SetActive(enable);
+    }
+
+    private void InitializeHitpointBarMaterials()
+    {
+        ReleaseMaterial(ref _healthBarMat);
+        ReleaseMaterial(ref _armorBarMat);
+        ReleaseMaterial(ref _shieldBarMat);
+
+        _healthBarMat = CreateHitpointBarMaterial(HealthBar, HealthBarMaterialTemplate, HealthBarShader);
+        _armorBarMat = CreateHitpointBarMaterial(ArmorBar, ArmorBarMaterialTemplate, ArmorBarShader != null ? ArmorBarShader : HealthBarShader);
+        _shieldBarMat = CreateHitpointBarMaterial(ShieldBar, ShieldBarMaterialTemplate, ShieldBarShader != null ? ShieldBarShader : HealthBarShader);
+
+        ConfigureHitpointBarMaterial(_healthBarMat, MaxHitPoints, HitPoints, _recentHullDamage, DamageFlashSpeed, null);
+        ConfigureHitpointBarMaterial(_armorBarMat, MaxArmorPoints, ArmorPoints, _recentArmorDamage, DamageFlashSpeed, ArmorDamageFlashColor);
+        ConfigureHitpointBarMaterial(_shieldBarMat, MaxShieldPoints, ShieldPoints, _recentShieldDamage, DamageFlashSpeed, ShieldDamageFlashColor);
+    }
+
+    private Material CreateHitpointBarMaterial(Image image, Material materialTemplate, Shader shader)
+    {
+        if (image == null)
+            return null;
+
+        Material materialInstance = null;
+        if (materialTemplate != null)
+            materialInstance = new Material(materialTemplate);
+        else if (shader != null)
+            materialInstance = new Material(shader);
+
+        if (materialInstance != null)
+            image.material = materialInstance;
+
+        return materialInstance;
+    }
+
+    private void ConfigureHitpointBarMaterial(Material barMat, int maxAmount, int currentAmount, int recentDamage, float damageFlashSpeed, Color? damageFlashColor)
+    {
+        if (barMat == null)
+            return;
+
+        barMat.SetFloat(_maxHitPointsID, maxAmount);
+        barMat.SetFloat(_currentHitPointsID, currentAmount);
+        barMat.SetFloat(_damageID, recentDamage);
+
+        if (barMat.HasProperty(_damageFlashSpeedID))
+            barMat.SetFloat(_damageFlashSpeedID, damageFlashSpeed);
+
+        if (damageFlashColor.HasValue)
+            SetDamageFlashColor(barMat, damageFlashColor.Value);
+    }
+
+    private void UpdateCurrentHitPointValue(Material barMat, int currentAmount)
+    {
+        if (barMat == null)
+            return;
+
+        barMat.SetFloat(_currentHitPointsID, currentAmount);
+    }
+
+    private void RegisterRecentDamage(int damageAmount, ref int recentDamage, ref float recentDamageTimer, Material barMat)
+    {
+        if (damageAmount <= 0)
+            return;
+
+        float holdDuration = Mathf.Max(0f, DamageFlashHoldDuration);
+        if (holdDuration <= 0f)
+        {
+            recentDamage = 0;
+            recentDamageTimer = 0f;
+
+            if (barMat != null)
+                barMat.SetFloat(_damageID, 0f);
+
+            return;
+        }
+
+        recentDamage = recentDamageTimer > 0f ? recentDamage + damageAmount : damageAmount;
+        recentDamageTimer = holdDuration;
+
+        if (barMat != null)
+            barMat.SetFloat(_damageID, recentDamage);
+    }
+
+    private void UpdateDamageFlashTimers()
+    {
+        UpdateDamageFlashTimer(ref _recentHullDamage, ref _recentHullDamageTimer, _healthBarMat);
+        UpdateDamageFlashTimer(ref _recentArmorDamage, ref _recentArmorDamageTimer, _armorBarMat);
+        UpdateDamageFlashTimer(ref _recentShieldDamage, ref _recentShieldDamageTimer, _shieldBarMat);
+    }
+
+    private void UpdateDamageFlashTimer(ref int recentDamage, ref float recentDamageTimer, Material barMat)
+    {
+        if (recentDamageTimer <= 0f)
+            return;
+
+        recentDamageTimer -= Time.deltaTime;
+        if (recentDamageTimer > 0f)
+            return;
+
+        recentDamageTimer = 0f;
+        recentDamage = 0;
+
+        if (barMat != null)
+            barMat.SetFloat(_damageID, 0f);
+    }
+
+    private void SetDamageFlashColor(Material barMat, Color color)
+    {
+        if (barMat == null)
+            return;
+
+        if (barMat.HasProperty(_legacyDamageFlashColorID))
+            barMat.SetColor(_legacyDamageFlashColorID, color);
+
+        if (barMat.HasProperty(_damageFlashColorID))
+            barMat.SetColor(_damageFlashColorID, color);
+    }
+
+    private void ReleaseMaterial(ref Material material)
+    {
+        if (material == null)
+            return;
+
+        if (Application.isPlaying)
+            Destroy(material);
+        else
+            DestroyImmediate(material);
+
+        material = null;
     }
 }

@@ -108,6 +108,9 @@ MonoBehaviour:
   TextureSize: 32
   HitImpactScale: 0.1
   HitImpactDuration: 0.5
+  MaxActiveRipples: 32
+  MergeUvDistanceThreshold: 0.01
+  MergeTimeThreshold: 0.02
   DecayPerSecond: 0.9
   MinDecayThreshold: 0.02
   ForceClearInterval: 3
@@ -727,6 +730,15 @@ MonoBehaviour:
   ArmorBar: {fileID: 656281697264504808}
   ShieldBar: {fileID: 5030111709581805343}
   HealthBarShader: {fileID: -6465566751694194690, guid: 4a53868445a75a246b83a1f930cbdccd, type: 3}
+  ArmorBarShader: {fileID: -6465566751694194690, guid: 2b30f76745154dd786dd9bb1cf5af901, type: 3}
+  ShieldBarShader: {fileID: -6465566751694194690, guid: d20d03af8d3c42dcb9e0521e79dff868, type: 3}
+  HealthBarMaterialTemplate: {fileID: 2100000, guid: 5ad2662db7276ce4f9c86a90102e4a62, type: 2}
+  ArmorBarMaterialTemplate: {fileID: 2100000, guid: 24487710af6c15c4fb11fd871c745178, type: 2}
+  ShieldBarMaterialTemplate: {fileID: 2100000, guid: 4b63a9247172207429f8bab1a90bcc53, type: 2}
+  DamageFlashSpeed: 3
+  DamageFlashHoldDuration: 1.5
+  ArmorDamageFlashColor: {r: 1, g: 0.50400037, b: 0, a: 1}
+  ShieldDamageFlashColor: {r: 1, g: 0.8356227, b: 0.8283019, a: 1}
   EnergyShieldShader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
   ShieldEffect: {fileID: 124679239445400308}
   ExplodeEffect: {fileID: 5729205090524001833, guid: 6e1f8bd2569e8254a8187f0aac3784d5, type: 3}

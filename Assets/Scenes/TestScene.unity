@@ -3349,10 +3349,9 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   _ammoBeltTypes:
-  - {fileID: -3295528032157664246, guid: ef4b6b9a634cf0e4e99150ff7b1472f8, type: 3}
-  - {fileID: -3295528032157664246, guid: 57d5d7426e7f05346b8dbfc9e67be577, type: 3}
-  - {fileID: -3295528032157664246, guid: 912aed142c8077344b54c7d00393b3e7, type: 3}
-  _ammoBeltPattern: 01112
+  - {fileID: -3295528032157664246, guid: 933ad824c5d806540a368873edeeb09f, type: 3}
+  - {fileID: -3295528032157664246, guid: 215041d66fb51704695e4fcb952f9e5a, type: 3}
+  _ammoBeltPattern: 01
   _useAccelerationPrediction: 0
   _accelerationSmoothingAlpha: 0.3
   _minAccelerationMagnitude: 2
@@ -5701,7 +5700,8 @@ Material:
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -5724,10 +5724,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _CurrentHitPoints: 0
+    - _CurrentHitPoints: 1000
+    - _Damage: 10
+    - _DamageFlashTime: 2
     - _Grid_Size: 40
-    - _MaxHitPoints: 0
-    - _QueueControl: -1
+    - _MaxHitPoints: 1000
+    - _QueueControl: 0
     - _QueueOffset: 0
     - _SWITCHDIRECTION: 1
     m_Colors:
@@ -5735,6 +5737,7 @@ Material:
     - _Color2: {r: 0, g: 1, b: 1, a: 1}
     - _Color3: {r: 0, g: 1, b: 1, a: 1}
     - _ColorChangeThreshold: {r: 0.5, g: 0.2, b: 0, a: 0}
+    - _DamgeFlashColor: {r: 0.5, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!1 &458587310
@@ -8378,6 +8381,15 @@ MonoBehaviour:
   ArmorBar: {fileID: 0}
   ShieldBar: {fileID: 0}
   HealthBarShader: {fileID: 0}
+  ArmorBarShader: {fileID: 0}
+  ShieldBarShader: {fileID: 0}
+  HealthBarMaterialTemplate: {fileID: 0}
+  ArmorBarMaterialTemplate: {fileID: 0}
+  ShieldBarMaterialTemplate: {fileID: 0}
+  DamageFlashSpeed: 2
+  DamageFlashHoldDuration: 0.35
+  ArmorDamageFlashColor: {r: 1, g: 1, b: 1, a: 1}
+  ShieldDamageFlashColor: {r: 1, g: 1, b: 1, a: 1}
   EnergyShieldShader: {fileID: 0}
   ShieldEffect: {fileID: 0}
   ExplodeEffect: {fileID: 0}
@@ -8878,6 +8890,15 @@ MonoBehaviour:
   ArmorBar: {fileID: 0}
   ShieldBar: {fileID: 0}
   HealthBarShader: {fileID: 0}
+  ArmorBarShader: {fileID: 0}
+  ShieldBarShader: {fileID: 0}
+  HealthBarMaterialTemplate: {fileID: 0}
+  ArmorBarMaterialTemplate: {fileID: 0}
+  ShieldBarMaterialTemplate: {fileID: 0}
+  DamageFlashSpeed: 2
+  DamageFlashHoldDuration: 0.35
+  ArmorDamageFlashColor: {r: 1, g: 1, b: 1, a: 1}
+  ShieldDamageFlashColor: {r: 1, g: 1, b: 1, a: 1}
   EnergyShieldShader: {fileID: 0}
   ShieldEffect: {fileID: 0}
   ExplodeEffect: {fileID: 0}
@@ -11003,7 +11024,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefabs:
   - {fileID: 3109858766895225120, guid: 68eb5e34b6a2ab44889d17cccd714b3d, type: 3}
-  spawnCount: 12
+  spawnCount: 10
   color: {r: 0, g: 0, b: 0, a: 0}
   HeightRange: {x: 0, y: 10000}
   spawnMode: 0
@@ -12133,7 +12154,7 @@ Transform:
   m_GameObject: {fileID: 1001119328}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1500, z: -3000}
+  m_LocalPosition: {x: 0, y: 1500, z: -2000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -21232,7 +21253,8 @@ Material:
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -21256,9 +21278,11 @@ Material:
     m_Ints: []
     m_Floats:
     - _CurrentHitPoints: 400
+    - _Damage: 10
+    - _DamageFlashTime: 2
     - _Grid_Size: 40
     - _MaxHitPoints: 400
-    - _QueueControl: -1
+    - _QueueControl: 0
     - _QueueOffset: 0
     - _SWITCHDIRECTION: 1
     m_Colors:
@@ -21266,6 +21290,7 @@ Material:
     - _Color2: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
     - _Color3: {r: 1, g: 0, b: 0, a: 1}
     - _ColorChangeThreshold: {r: 0.5, g: 0.2, b: 0, a: 0}
+    - _DamgeFlashColor: {r: 0.5, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!21 &1742163804
@@ -21287,7 +21312,8 @@ Material:
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -21311,9 +21337,11 @@ Material:
     m_Ints: []
     m_Floats:
     - _CurrentHitPoints: 200
+    - _Damage: 10
+    - _DamageFlashTime: 2
     - _Grid_Size: 40
     - _MaxHitPoints: 200
-    - _QueueControl: -1
+    - _QueueControl: 0
     - _QueueOffset: 0
     - _SWITCHDIRECTION: 1
     m_Colors:
@@ -21321,6 +21349,7 @@ Material:
     - _Color2: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
     - _Color3: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
     - _ColorChangeThreshold: {r: 0.5, g: 0.2, b: 0, a: 0}
+    - _DamgeFlashColor: {r: 0.5, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!1 &1752589408
@@ -22088,7 +22117,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1802494801
 Transform:
   m_ObjectHideFlags: 0
@@ -25244,7 +25273,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2046028405
 Transform:
   m_ObjectHideFlags: 0
@@ -25254,7 +25283,7 @@ Transform:
   m_GameObject: {fileID: 2046028404}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 1500, z: 3000}
+  m_LocalPosition: {x: 0, y: 1500, z: 2000}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -26400,6 +26429,15 @@ MonoBehaviour:
   ArmorBar: {fileID: 0}
   ShieldBar: {fileID: 0}
   HealthBarShader: {fileID: 0}
+  ArmorBarShader: {fileID: 0}
+  ShieldBarShader: {fileID: 0}
+  HealthBarMaterialTemplate: {fileID: 0}
+  ArmorBarMaterialTemplate: {fileID: 0}
+  ShieldBarMaterialTemplate: {fileID: 0}
+  DamageFlashSpeed: 2
+  DamageFlashHoldDuration: 0.35
+  ArmorDamageFlashColor: {r: 1, g: 1, b: 1, a: 1}
+  ShieldDamageFlashColor: {r: 1, g: 1, b: 1, a: 1}
   EnergyShieldShader: {fileID: 0}
   ShieldEffect: {fileID: 0}
   ExplodeEffect: {fileID: 0}
@@ -26945,8 +26983,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -22}
-  m_SizeDelta: {x: 100, y: 8}
+  m_AnchoredPosition: {x: 50, y: -24}
+  m_SizeDelta: {x: 100, y: 2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!65 &73535961492339753
 BoxCollider:
@@ -29175,10 +29213,9 @@ MonoBehaviour:
   UseAmmo: 0
   MaxAmmo: 10000
   _ammoBeltTypes:
-  - {fileID: -3295528032157664246, guid: ef4b6b9a634cf0e4e99150ff7b1472f8, type: 3}
-  - {fileID: -3295528032157664246, guid: 57d5d7426e7f05346b8dbfc9e67be577, type: 3}
-  - {fileID: -3295528032157664246, guid: 912aed142c8077344b54c7d00393b3e7, type: 3}
-  _ammoBeltPattern: 01112
+  - {fileID: -3295528032157664246, guid: 933ad824c5d806540a368873edeeb09f, type: 3}
+  - {fileID: -3295528032157664246, guid: 215041d66fb51704695e4fcb952f9e5a, type: 3}
+  _ammoBeltPattern: 01
   _useAccelerationPrediction: 0
   _accelerationSmoothingAlpha: 0.3
   _minAccelerationMagnitude: 2
@@ -29392,7 +29429,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5780782797420671265
 Transform:
   m_ObjectHideFlags: 0
@@ -29441,8 +29478,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -30.5}
-  m_SizeDelta: {x: 100, y: 3}
+  m_AnchoredPosition: {x: 50, y: -26.5}
+  m_SizeDelta: {x: 100, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!4 &5996466599119150551
 Transform:
@@ -29950,8 +29987,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -27.5}
-  m_SizeDelta: {x: 100, y: 3}
+  m_AnchoredPosition: {x: 50, y: -25.5}
+  m_SizeDelta: {x: 100, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!4 &7745705582848630054
 Transform:
@@ -30107,7 +30144,7 @@ MonoBehaviour:
   reverseThrustRatio: 0.5
   speedChangeRate: 40
   enableSpeedLimiter: 1
-  speedLimit: 100
+  speedLimit: 120
   maxSpeedLimit: 150
   minSpeedLimit: 10
   speedLimitAdjustRate: 20
@@ -30123,14 +30160,14 @@ MonoBehaviour:
   yawTorque: 120
   rollTorque: 240
   maxRotationSpeed: 360
-  rotationalDrag: 1
+  rotationalDrag: 0.5
   inputSmoothSpeed: 8
   autoLevelRoll: 1
   autoLevelSpeed: 1
   autoLevelDelay: 0.5
   autoKillRotation: 1
   flightAssist: 1
-  flightAssistStrength: 0.5
+  flightAssistStrength: 1
   velocityCoupling: 0.8
   mouseAimEnabled: 1
   mouseAimRateGain: 3
