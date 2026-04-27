@@ -51,6 +51,9 @@ public class EnemyVehicle : VehicleBase
     public float ArmorRegenerationDelay = 40f;
     public int ShieldRegenerationRate = 1;
     public float ShieldRegenerationDelay = 20f;
+    [Header("Debug")]
+    public bool ShowObbGizmo = false;
+    public Color ObbGizmoColor = new Color(1f, 0.8f, 0.2f, 1f);
 
     private float _hitPointsRegenTimer = 0f;
     private float _armorRegenTimer = 0f;
@@ -586,5 +589,13 @@ public class EnemyVehicle : VehicleBase
             DestroyImmediate(material);
 
         material = null;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!ShowObbGizmo)
+            return;
+
+        DrawBoundsGizmo(ObbGizmoColor, !Application.isPlaying);
     }
 }

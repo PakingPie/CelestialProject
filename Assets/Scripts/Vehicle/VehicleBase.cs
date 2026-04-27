@@ -46,14 +46,34 @@ public abstract class VehicleBase : MonoBehaviour
     {
         get
         {
-            if (_boundsRadius < 0f)
-                RecalculateBounds();
+            EnsureBoundsInitialized();
             return _boundsRadius;
         }
     }
 
     private Vector3 _localBoundsOffset;
     private Vector3 _localBoundsExtents;
+
+    protected void EnsureBoundsInitialized(bool forceRecalculate = false)
+    {
+        if (forceRecalculate || _boundsRadius < 0f)
+            RecalculateBounds();
+    }
+
+    protected void DrawBoundsGizmo(Color color, bool forceRecalculate = false)
+    {
+        EnsureBoundsInitialized(forceRecalculate);
+
+        UnityEngine.Matrix4x4 previousMatrix = Gizmos.matrix;
+        Color previousColor = Gizmos.color;
+
+        Gizmos.matrix = CachedTransform.localToWorldMatrix;
+        Gizmos.color = color;
+        Gizmos.DrawWireCube(_localBoundsOffset, _localBoundsExtents * 2f);
+
+        Gizmos.matrix = previousMatrix;
+        Gizmos.color = previousColor;
+    }
 
     public void RecalculateBounds()
     {
@@ -205,8 +225,7 @@ public abstract class VehicleBase : MonoBehaviour
     /// </summary>
     public Vector3 ClosestBoundsPoint(Vector3 position)
     {
-        if (_boundsRadius < 0f)
-            RecalculateBounds();
+        EnsureBoundsInitialized();
 
         // Transform query point into vehicle local space, clamp to local AABB, transform back
         Vector3 localPos = CachedTransform.InverseTransformPoint(position);
@@ -234,8 +253,7 @@ public abstract class VehicleBase : MonoBehaviour
     /// </summary>
     public bool RaycastBounds(Vector3 rayOrigin, Vector3 rayDirection, out Vector3 hitPoint, out float hitDistance)
     {
-        if (_boundsRadius < 0f)
-            RecalculateBounds();
+        EnsureBoundsInitialized();
 
         // Transform ray into vehicle local space
         Vector3 localOrigin = CachedTransform.InverseTransformPoint(rayOrigin);

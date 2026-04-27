@@ -159,7 +159,17 @@ MonoBehaviour:
   Damage: 400
   WarheadProfile:
     DefaultMultiplier: 1
-    TargetTypeModifiers: []
+    TargetTypeModifiers:
+    - TargetType: 10
+      Multiplier: 2
+    - TargetType: 11
+      Multiplier: 2
+    - TargetType: 20
+      Multiplier: 2
+    - TargetType: 21
+      Multiplier: 2
+    - TargetType: 22
+      Multiplier: 2
   ExplodeRadius: 10
   DetonationRadius: 2
   CanDamageAsteroids: 1

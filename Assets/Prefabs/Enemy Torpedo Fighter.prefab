@@ -432,7 +432,7 @@ MonoBehaviour:
   Targeted: {fileID: 0}
   FireTarget: 3
   GuidanceType: 1
-  ActiveRange: {x: 5, y: 2000}
+  ActiveRange: {x: 200, y: 3000}
   UseTargetDistribution: 1
   AvoidOverTargeting: 1
   PriorityConfig: {fileID: 0}
@@ -716,12 +716,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyVehicle
   OwnerShip: {fileID: 4103674997823826176}
   IsShowHitpointBar: 0
-  HitPoints: 400
-  MaxHitPoints: 400
+  HitPoints: 200
+  MaxHitPoints: 200
   ArmorPoints: 200
   MaxArmorPoints: 200
-  ShieldPoints: 800
-  MaxShieldPoints: 800
+  ShieldPoints: 600
+  MaxShieldPoints: 600
   BoidManager: {fileID: 0}
   VehicleFaction: 4
   Type: 2
@@ -756,6 +756,8 @@ MonoBehaviour:
   ArmorRegenerationDelay: 40
   ShieldRegenerationRate: 1
   ShieldRegenerationDelay: 5
+  ShowObbGizmo: 0
+  ObbGizmoColor: {r: 1, g: 0.8, b: 0.2, a: 1}
   EnableIndication: 1
   EnableModuleHits: 0
 --- !u!1 &4262406418400434559
