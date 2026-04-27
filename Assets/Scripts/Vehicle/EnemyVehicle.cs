@@ -250,9 +250,8 @@ public class EnemyVehicle : VehicleBase
             case AmmoType.Explosive:
                 damage = ProcessExplosiveDamage(damage);
                 break;
-            case AmmoType.EMP:
-                ShieldPoints = 0;
-                damage = 0;
+            case AmmoType.Ion:
+                damage = ProcessIonDamage(damage);
                 break;
             case AmmoType.Plasma:
                 damage = ProcessPlasmaDamage(damage);

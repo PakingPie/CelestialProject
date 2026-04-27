@@ -52,12 +52,12 @@ public static class GlobalHelper
 
     public enum AmmoType
     {
-        Kinetic,
-        Energy,
-        Explosive,
-        EMP,
-        Plasma,
-        Pierce
+        Kinetic,    // Physical projectiles like shells and bullets. Effective against energy shields, but have weaker damage on armor
+        Energy,     // Lasers and plasma. Effective against armor, but weaker against shields.
+        Explosive,  // Rockets and missiles with high blast radius. Effective against groups of small targets.
+        Ion,        // Highly effective against shields.
+        Plasma,     // Highly effective against armor.
+        Pierce      // Armor-piercing weapons designed to penetrate defenses.
     }
 
     public enum GuidanceType

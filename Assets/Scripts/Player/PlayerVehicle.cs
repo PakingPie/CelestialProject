@@ -166,7 +166,7 @@ public class PlayerVehicle : VehicleBase
             case AmmoType.Explosive:
                 damage = ProcessExplosiveDamage(damage);
                 break;
-            case AmmoType.EMP:
+            case AmmoType.Ion:
                 ShieldPoints = 0;
                 damage = 0;
                 break;

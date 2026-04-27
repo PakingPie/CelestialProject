@@ -525,13 +525,16 @@ public abstract class VehicleBase : MonoBehaviour
     }
 
     /// <summary>
-    /// EMP: Destroys shields, no direct damage
-    /// Electromagnetic pulse overloads energy systems
+    /// Ion: Highly effective against shields, weak against armor
     /// </summary>
-    public int ProcessEMPDamage(int damage)
+    public int ProcessIonDamage(int damage)
     {
-        ShieldPoints = 0;
-        return 0;
+        return ProcessDamageFlow(
+            damage,
+            shieldEffectiveness: 2.5f,     // Ion damage is very effective against shields (2.5x) - it can bypass or overload
+            armorEffectiveness: 0.25f,      // Ion damage is weak against armor (0.25x) - it doesn't cause much physical harm to the hull
+            shieldAbsorption: 1.0f        // Shields try to block 100% of ion damage, but it's ineffective
+        );
     }
 
     /// <summary>

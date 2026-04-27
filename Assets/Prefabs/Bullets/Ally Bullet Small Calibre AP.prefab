@@ -120,7 +120,13 @@ MonoBehaviour:
   DamageType: 0
   ImpactDamageProfile:
     DefaultMultiplier: 1
-    TargetTypeModifiers: []
+    TargetTypeModifiers:
+    - TargetType: 0
+      Multiplier: 2
+    - TargetType: 1
+      Multiplier: 1.5
+    - TargetType: 2
+      Multiplier: 1.5
   FireTarget: 12
   ExplodeOnImpact: 1
   UseSpatialGrid: 1

@@ -171,7 +171,7 @@ public class Asteroid : VehicleBase
             AmmoType.Energy => 0.75f,     // Energy less effective vs rock
             AmmoType.Plasma => 1.25f,     // Plasma melts rock decently
             AmmoType.Pierce => 0.5f,      // Pierce designed for armor, not rock
-            AmmoType.EMP => 0f,           // EMP does nothing to rock
+            AmmoType.Ion => 0f,           // Ion does nothing to rock
             _ => 1f
         };
         
