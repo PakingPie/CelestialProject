@@ -15539,6 +15539,9 @@ MonoBehaviour:
   TextureSize: 128
   HitImpactScale: 0.2
   HitImpactDuration: 3
+  MaxActiveRipples: 32
+  MergeUvDistanceThreshold: 0.01
+  MergeTimeThreshold: 0.02
   DecayPerSecond: 0.9
   MinDecayThreshold: 0.02
   ForceClearInterval: 3
@@ -17061,7 +17064,6 @@ GameObject:
   - component: {fileID: 7566076996488627130}
   - component: {fileID: 6612019685232285856}
   - component: {fileID: 8507254586779519082}
-  - component: {fileID: 5781922596785247987}
   m_Layer: 5
   m_Name: Player Hud
   m_TagString: Untagged
@@ -17496,29 +17498,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4479945285705740045}
   m_CullTransparentMesh: 1
---- !u!114 &5781922596785247987
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1380902649744543872}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ecb5bb6b1a146540a966f08aa18fb7a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerHud
-  _cameraController: {fileID: 7868929882183927213}
-  _shipMovement: {fileID: 2840843351104990238}
-  _gunController: {fileID: 8671210974142505000}
-  _boresight: {fileID: 6793779395213009682}
-  _mousePos: {fileID: 2409483310690136672}
-  _velocityIndicator: {fileID: 0}
-  _throttleSlider: {fileID: 1406577136}
-  _throttleText: {fileID: 77568656}
-  _reloadIndicatorPrefab: {fileID: 6084366764215514834, guid: d3f4de8a0cc1fa8448153724f87a49b1, type: 3}
-  _reloadIndicatorContainerForMainGuns: {fileID: 287645398}
-  _reloadIndicatorContainerForSecondaryGuns: {fileID: 2016702231}
 --- !u!20 &5948636715277846842
 Camera:
   m_ObjectHideFlags: 0
@@ -17970,21 +17949,8 @@ MonoBehaviour:
   MaxShieldPoints: 10000
   BoidManager: {fileID: 0}
   Type: 21
-  HullPoint: {fileID: 724275193257514137}
-  ArmorBar: {fileID: 2821503575755146257}
-  ShieldBar: {fileID: 6638831157745888534}
-  HullPointShader: {fileID: -6465566751694194690, guid: 7d61a5a8515e1f1479746c8e2b0518ba, type: 3}
   EnergyShieldShader: {fileID: -6465566751694194690, guid: 0ecca2089310e92469facae548b27810, type: 3}
   ShieldEffect: {fileID: 1980694547}
-  HullPointColor1: {r: 0, g: 1, b: 0, a: 1}
-  HullPointColor2: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  HullPointColor3: {r: 1, g: 0, b: 0, a: 1}
-  ArmorBarColor1: {r: 0.6981132, g: 0.6688305, b: 0.33061582, a: 1}
-  ArmorBarColor2: {r: 0.6377357, g: 0.4679968, b: 0.21057305, a: 1}
-  ArmorBarColor3: {r: 0.5245282, g: 0.2631142, b: 0.058390833, a: 1}
-  ShieldBarColor1: {r: 0.49622637, g: 0.97348547, b: 1, a: 1}
-  ShieldBarColor2: {r: 0.31982192, g: 0.79157627, b: 0.81886786, a: 1}
-  ShieldBarColor3: {r: 0.1515913, g: 0.51110387, b: 0.5320754, a: 1}
   HitPointsRegenerationRate: 2
   HitPointsRegenerationDelay: 5
   ArmorRegenerationRate: 2

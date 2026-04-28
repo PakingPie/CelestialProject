@@ -246,6 +246,42 @@ public static class CombatRegistry
         }
     }
 
+    public static int CountVehicles(Faction targetFactions, bool includeMissiles = false)
+    {
+        int count = 0;
+
+        if ((targetFactions & Faction.Foe) != 0)
+            count += CountVehiclesInList(_foeVehicles, includeMissiles);
+
+        if ((targetFactions & Faction.Player) != 0)
+            count += CountVehiclesInList(_playerVehicles, includeMissiles);
+
+        if ((targetFactions & Faction.Ally) != 0)
+            count += CountVehiclesInList(_allyVehicles, includeMissiles);
+
+        if ((targetFactions & Faction.Neutral) != 0)
+            count += CountVehiclesInList(_neutralVehicles, includeMissiles);
+
+        return count;
+    }
+
+    public static VehicleBase FindFirstVehicle(Faction targetFactions, VehicleType vehicleType)
+    {
+        VehicleBase vehicle = FindFirstVehicleInList(_foeVehicles, targetFactions, Faction.Foe, vehicleType);
+        if (vehicle != null)
+            return vehicle;
+
+        vehicle = FindFirstVehicleInList(_playerVehicles, targetFactions, Faction.Player, vehicleType);
+        if (vehicle != null)
+            return vehicle;
+
+        vehicle = FindFirstVehicleInList(_allyVehicles, targetFactions, Faction.Ally, vehicleType);
+        if (vehicle != null)
+            return vehicle;
+
+        return FindFirstVehicleInList(_neutralVehicles, targetFactions, Faction.Neutral, vehicleType);
+    }
+
     private static bool ShouldUseGridQuery(float range, Faction targetFactions)
     {
         if (_spatialGrid.Count == 0 || _cellSize <= 0f)
@@ -283,6 +319,64 @@ public static class CombatRegistry
             count += _neutralVehicles.Count;
 
         return count;
+    }
+
+    private static int CountVehiclesInList(List<VehicleBase> vehicles, bool includeMissiles)
+    {
+        if (vehicles == null)
+            return 0;
+
+        int count = 0;
+        for (int index = vehicles.Count - 1; index >= 0; index--)
+        {
+            VehicleBase vehicle = vehicles[index];
+
+            if (vehicle == null)
+            {
+                vehicles.RemoveAt(index);
+                continue;
+            }
+
+            if (!includeMissiles && vehicle.VehicleType == VehicleType.Missile)
+                continue;
+
+            if (vehicle.HitPoints <= 0)
+                continue;
+
+            if (vehicle is EnemyVehicle enemyVehicle && enemyVehicle.IsDying)
+                continue;
+
+            count++;
+        }
+
+        return count;
+    }
+
+    private static VehicleBase FindFirstVehicleInList(List<VehicleBase> vehicles, Faction targetFactions, Faction faction, VehicleType vehicleType)
+    {
+        if ((targetFactions & faction) == 0 || vehicles == null)
+            return null;
+
+        for (int index = vehicles.Count - 1; index >= 0; index--)
+        {
+            VehicleBase vehicle = vehicles[index];
+
+            if (vehicle == null)
+            {
+                vehicles.RemoveAt(index);
+                continue;
+            }
+
+            if (vehicle.VehicleType != vehicleType)
+                continue;
+
+            if (vehicle.HitPoints <= 0)
+                continue;
+
+            return vehicle;
+        }
+
+        return null;
     }
 
     private static void AddNearbyFromFactions(Vector3 position, float rangeSqr, Faction targetFactions, List<VehicleBase> results, bool isTargetingMissile)
