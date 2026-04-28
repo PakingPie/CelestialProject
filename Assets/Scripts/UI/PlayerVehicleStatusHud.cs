@@ -155,8 +155,8 @@ public class PlayerVehicleStatusHud : MonoBehaviour
         if (image == null)
             return;
 
-        if (_defaultBarSprite == null)
-            _defaultBarSprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+        // if (_defaultBarSprite == null)
+        //     _defaultBarSprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
 
         rectTransform = image.rectTransform;
         if (baseSize == Vector2.zero)

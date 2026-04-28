@@ -20,6 +20,7 @@ public class PlayerVehicle : VehicleBase
     public float ArmorRegenerationDelay = 5f;
     public int ShieldRegenerationRate = 1;
     public float ShieldRegenerationDelay = 5f;
+    public float PlayerDealtDamageMultiplier = 0.5f;
 
     private float _hullPointsRegenTimer = 0f;
     private float _armorRegenTimer = 0f;
@@ -106,6 +107,7 @@ public class PlayerVehicle : VehicleBase
 
     public override bool TakeDamage(int damage, AmmoType ammoType)
     {
+        damage = (int)(damage * PlayerDealtDamageMultiplier); // Apply player damage multiplier
         switch (ammoType)
         {
             case AmmoType.Kinetic:
